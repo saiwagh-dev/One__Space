@@ -38,7 +38,7 @@ public class UserSpaces {
 
     // 3. Main Cards: Soft Light Blue
     private static final String BG_CARD = "#DDE8F8";
-    private static final String BG_CARD_INNER = "#CADDF2";
+    //private static final String BG_CARD_INNER = "#CADDF2";
     private static final String BORDER_CARD = "#C3D6EC";
 
     // 4. Contrast Typography
@@ -51,10 +51,6 @@ public class UserSpaces {
     private static final String PRIMARY_BLUE = "#2563EB";
 
     public Scene getUserSpacesScene() {
-
-        // =========================================================
-        // SIDEBAR
-        // =========================================================
 
         StackPane logoIcon = createOneSpaceLogo();
 
