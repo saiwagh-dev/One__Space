@@ -18,9 +18,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
-public class UserLoginPage {
+public class UserSignupPage {
 
-    // Slate Blue Theme Constants
+    // Theme Constants
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
     private static final String BG_APP = "#3A4D67";
     private static final String BG_CARD = "#DDE8F5";
@@ -33,9 +33,9 @@ public class UserLoginPage {
     private static final String TEXT_LIGHT = "#FFFFFF";
     private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
 
-    public Scene getUserLoginPageScene() {
+    public Scene getUserSignupPageScene() {
 
-        // App Header Bar
+        // App Header
         Label logoIcon = new Label("⬡");
         logoIcon.setFont(Font.font(FONT, FontWeight.BOLD, 20));
         logoIcon.setTextFill(Color.web("#60A5FA"));
@@ -51,33 +51,48 @@ public class UserLoginPage {
         backBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         backBtn.setTextFill(Color.web(TEXT_MUTED_LIGHT));
         backBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
-        backBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        backBtn.setOnAction(e -> LandingPage.showLandingPage());
 
         HBox appHeader = new HBox(logoHeader, new Region(), backBtn);
         HBox.setHgrow(appHeader.getChildren().get(1), Priority.ALWAYS);
         appHeader.setAlignment(Pos.CENTER_LEFT);
         appHeader.setPadding(new Insets(16, 24, 16, 24));
 
-        // Login Card Header
+        // Signup Card Header
         Label iconAvatar = new Label("👤");
         iconAvatar.setFont(Font.font(20));
         iconAvatar.setTextFill(Color.web(PRIMARY_BLUE));
         iconAvatar.setPrefSize(48, 48);
         iconAvatar.setAlignment(Pos.CENTER);
-        iconAvatar.setStyle("-fx-background-color: " + PRIMARY_LIGHT_BLUE + "; -fx-background-radius: 50%;");
+        iconAvatar.setStyle(
+                "-fx-background-color: " + PRIMARY_LIGHT_BLUE + ";" +
+                "-fx-background-radius: 50%;"
+        );
 
-        Label title = new Label("Welcome Back");
+        Label title = new Label("Create Your Account");
         title.setFont(Font.font(FONT, FontWeight.BOLD, 22));
         title.setTextFill(Color.web(TEXT_DARK));
 
-        Label subtitle = new Label("Enter your credentials to access OneSpace");
+        Label subtitle = new Label("Create your personal OneSpace workspace");
         subtitle.setFont(Font.font(FONT, 13));
         subtitle.setTextFill(Color.web(TEXT_MUTED_DARK));
 
         VBox cardHeader = new VBox(8, iconAvatar, title, subtitle);
         cardHeader.setAlignment(Pos.CENTER);
 
-        // Form Fields
+        // Name Field
+        Label nameLabel = new Label("Full Name");
+        nameLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+        nameLabel.setTextFill(Color.web(TEXT_DARK));
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Enter your full name");
+        nameField.setPrefHeight(42);
+        nameField.setStyle(getFieldStyle());
+
+        VBox nameBox = new VBox(6, nameLabel, nameField);
+
+        // Email Field
         Label emailLabel = new Label("Email Address");
         emailLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         emailLabel.setTextFill(Color.web(TEXT_DARK));
@@ -89,53 +104,73 @@ public class UserLoginPage {
 
         VBox emailBox = new VBox(6, emailLabel, emailField);
 
+        // Password Fields
         Label passwordLabel = new Label("Password");
         passwordLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         passwordLabel.setTextFill(Color.web(TEXT_DARK));
 
-        Label forgotPassword = new Label("Forgot?");
-        forgotPassword.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        forgotPassword.setTextFill(Color.web(PRIMARY_BLUE));
-        forgotPassword.setStyle("-fx-cursor: hand;");
-
-        HBox passwordHeader = new HBox(passwordLabel, new Region(), forgotPassword);
-        HBox.setHgrow(passwordHeader.getChildren().get(1), Priority.ALWAYS);
-
         PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("••••••••");
+        passwordField.setPromptText("Create a password");
         passwordField.setPrefHeight(42);
         passwordField.setStyle(getFieldStyle());
 
-        VBox passwordBox = new VBox(6, passwordHeader, passwordField);
+        VBox passwordBox = new VBox(6, passwordLabel, passwordField);
 
-        // Action Buttons
-        Button loginButton = new Button("Sign In  →");
-        loginButton.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        loginButton.setTextFill(Color.WHITE);
-        loginButton.setMaxWidth(Double.MAX_VALUE);
-        loginButton.setPrefHeight(42);
-        loginButton.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 10; -fx-cursor: hand;");
-        loginButton.setOnAction(e -> { LandingPage.showUserDashboard();});
+        Label confirmLabel = new Label("Confirm Password");
+        confirmLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+        confirmLabel.setTextFill(Color.web(TEXT_DARK));
 
-        // Footer Link
-        Label noAccountText = new Label("Don't have an account?");
-        noAccountText.setFont(Font.font(FONT, 12));
-        noAccountText.setTextFill(Color.web(TEXT_MUTED_DARK));
+        PasswordField confirmField = new PasswordField();
+        confirmField.setPromptText("Re-enter your password");
+        confirmField.setPrefHeight(42);
+        confirmField.setStyle(getFieldStyle());
 
-        Label signUpLink = new Label("Sign Up");
-        signUpLink.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        signUpLink.setTextFill(Color.web(PRIMARY_BLUE));
-        signUpLink.setStyle("-fx-cursor: hand;");
-        signUpLink.setOnMouseClicked(e -> { LandingPage.showUserSignupPage();});
+        VBox confirmBox = new VBox(6, confirmLabel, confirmField);
 
-        HBox signUpBox = new HBox(4, noAccountText, signUpLink);
-        signUpBox.setAlignment(Pos.CENTER);
+        // Signup Button
+        Button signupButton = new Button("Create Account  →");
+        signupButton.setFont(Font.font(FONT, FontWeight.BOLD, 13));
+        signupButton.setTextFill(Color.WHITE);
+        signupButton.setMaxWidth(Double.MAX_VALUE);
+        signupButton.setPrefHeight(42);
+        signupButton.setStyle(
+                "-fx-background-color: " + PRIMARY_BLUE + ";" +
+                "-fx-background-radius: 10;" +
+                "-fx-cursor: hand;"
+        );
+
+        // Temporary Navigation - connect to login after account creation
+        signupButton.setOnAction(e -> LandingPage.showUserLoginPage());
+
+        // Login Link
+        Label accountText = new Label("Already have an account?");
+        accountText.setFont(Font.font(FONT, 12));
+        accountText.setTextFill(Color.web(TEXT_MUTED_DARK));
+
+        Label loginLink = new Label("Sign In");
+        loginLink.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        loginLink.setTextFill(Color.web(PRIMARY_BLUE));
+        loginLink.setStyle("-fx-cursor: hand;");
+        loginLink.setOnMouseClicked(e -> LandingPage.showUserLoginPage());
+
+        HBox loginBox = new HBox(4, accountText, loginLink);
+        loginBox.setAlignment(Pos.CENTER);
 
         // Card Assembly
-        VBox card = new VBox(20, cardHeader, emailBox, passwordBox, loginButton, signUpBox);
-        card.setPadding(new Insets(32, 28, 32, 28));
-        card.setPrefWidth(360);
-        card.setMaxWidth(360);
+        VBox card = new VBox(
+                16,
+                cardHeader,
+                nameBox,
+                emailBox,
+                passwordBox,
+                confirmBox,
+                signupButton,
+                loginBox
+        );
+
+        card.setPadding(new Insets(28));
+        card.setPrefWidth(380);
+        card.setMaxWidth(380);
         card.setStyle(
                 "-fx-background-color: " + BG_CARD + ";" +
                 "-fx-border-color: " + BORDER_COLOR + ";" +
@@ -144,9 +179,10 @@ public class UserLoginPage {
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.12), 16, 0, 0, 6);"
         );
 
-        // Main Layout Assembly
+        // Main Layout
         Region topSpacer = new Region();
         Region bottomSpacer = new Region();
+
         VBox.setVgrow(topSpacer, Priority.ALWAYS);
         VBox.setVgrow(bottomSpacer, Priority.ALWAYS);
 
@@ -162,6 +198,7 @@ public class UserLoginPage {
         return new Scene(root, 1200, 750);
     }
 
+    // Input Style
     private String getFieldStyle() {
         return "-fx-background-color: " + BG_INPUT + ";" +
                "-fx-border-color: " + BORDER_COLOR + ";" +
