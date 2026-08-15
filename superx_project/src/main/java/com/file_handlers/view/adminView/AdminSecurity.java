@@ -40,9 +40,7 @@ public class AdminSecurity {
     private static final String CARD_BG = "#DDE8F8";
     private static final String CARD_BORDER = "#C3D6EC";
 
-    // PURE BLACK COLOR FOR GRID TEXT
     private static final String BLACK = "#000000";
-
     private static final String WHITE = "#FFFFFF";
     private static final String LIGHT_SECONDARY = "#CBD5E1";
 
@@ -86,11 +84,12 @@ public class AdminSecurity {
 
         Scene scene = new Scene(root, 1200, 750);
 
-        // STYLESHEET INJECTION: Overrides global stylesheet rules for grid labels and internal text nodes
         String cssOverride = "data:text/css," +
                 ".dark-grid-card * { -fx-text-fill: #000000 !important; -fx-fill: #000000 !important; }" +
                 ".dark-grid-card .text { -fx-text-fill: #000000 !important; -fx-fill: #000000 !important; }" +
-                ".axis-label, .axis .tick-label { -fx-fill: #000000 !important; -fx-text-fill: #000000 !important; }";
+                ".axis-label, .axis .tick-label { -fx-fill: #000000 !important; -fx-text-fill: #000000 !important; }" +
+                ".slate-dark-combo .list-cell { -fx-text-fill: #F8FAFC !important; -fx-font-weight: bold; -fx-background-color: #1E2A3A !important; }" +
+                ".slate-dark-combo .arrow { -fx-background-color: #94A3B8 !important; }";
         scene.getStylesheets().add(cssOverride);
 
         return scene;
@@ -194,11 +193,6 @@ public class AdminSecurity {
         fallback.setTextFill(Color.WHITE);
         return new StackPane(circle, fallback);
     }
-
-
-    // =========================================================
-    // SIDEBAR BUTTON
-    // =========================================================
 
     private Button createSidebarButton(String type, String text, boolean selected) {
 
@@ -333,7 +327,7 @@ public class AdminSecurity {
 
 
     // =========================================================
-    // SECURITY CONTENT
+    // SECURITY CONTENT (2 GRIDS PER LINE)
     // =========================================================
 
     private VBox createSecurityContent() {
@@ -361,16 +355,21 @@ public class AdminSecurity {
                 "Last 90 Days"
         );
         date.setValue("May 15 - Jun 15, 2025");
-        date.setPrefWidth(180);
-        date.setPrefHeight(36);
+        date.setPrefWidth(200);
+        date.setPrefHeight(38);
+        date.getStyleClass().add("slate-dark-combo");
         date.setStyle(
-                "-fx-background-color: " + SIDEBAR_DARK + ";" +
-                "-fx-border-color: " + SIDEBAR_BORDER + ";" +
+                "-fx-background-color: #1E2A3A;" +
+                "-fx-border-color: #334155;" +
+                "-fx-border-width: 1.5;" +
                 "-fx-border-radius: 8;" +
                 "-fx-background-radius: 8;" +
                 "-fx-font-family: " + FONT + ";" +
                 "-fx-font-size: 13px;" +
-                "-fx-text-fill: #FFFFFF;"
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #F8FAFC;" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.25), 5, 0, 0, 2);"
         );
 
         Region headerSpacer = new Region();
@@ -379,89 +378,34 @@ public class AdminSecurity {
         HBox header = new HBox(headerText, headerSpacer, date);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        HBox statistics = new HBox(16);
-        statistics.setFillHeight(true);
+        // Row 1: Failed Logins & Active Sessions
+        HBox row1 = new HBox(18);
+        addEqualChildren(row1, createFailedLoginCard(), createSessionsCard());
 
-        VBox failedCard = statCard("security", "Failed Login Attempts", "128", "↑ 18.6%", "from last month", RED);
-        VBox sessionsCard = statCard("storage", "Active Sessions", "42", "↑ 12.2%", "from last month", BLUE);
-        VBox alertsCard = statCard("bell", "Security Alerts", "8", "↑ 20%", "from last month", ORANGE);
-        VBox twoFACard = statCard("ai", "2FA Enabled Users", "342", "↑ 24.5%", "from last month", GREEN);
+        // Row 2: Security Alerts & 2FA Users
+        HBox row2 = new HBox(18);
+        addEqualChildren(row2, createAlertsCard(), createTwoFACard());
 
-        addEqualChildren(statistics, failedCard, sessionsCard, alertsCard, twoFACard);
-
-        HBox mainRow = new HBox(16);
-        VBox failedLogin = createFailedLoginCard();
-        VBox sessions = createSessionsCard();
-        VBox alerts = createAlertsCard();
-
-        addEqualChildren(mainRow, failedLogin, sessions, alerts);
-
-        HBox bottomRow = new HBox(16);
-        VBox twoFA = createTwoFACard();
-        VBox suspicious = createSuspiciousCard();
-        VBox audit = createAuditLogsCard();
-
-        addEqualChildren(bottomRow, twoFA, suspicious, audit);
+        // Row 3: Suspicious Activity & Audit Logs
+        HBox row3 = new HBox(18);
+        addEqualChildren(row3, createSuspiciousCard(), createAuditLogsCard());
 
         root.getChildren().addAll(
                 header,
-                statistics,
-                mainRow,
-                bottomRow
+                row1,
+                row2,
+                row3
         );
 
         return root;
     }
 
-    private void addEqualChildren(HBox row, Region... children) {
-        for (Region child : children) {
-            child.setMaxWidth(Double.MAX_VALUE);
-            child.setMinWidth(0);
-            HBox.setHgrow(child, Priority.ALWAYS);
-            row.getChildren().add(child);
-        }
-    }
-
-
-    // =========================================================
-    // STAT CARD
-    // =========================================================
-
-    private VBox statCard(
-            String iconType,
-            String title,
-            String value,
-            String change,
-            String description,
-            String color
-    ) {
-
-        VBox card = card();
-        card.setMinHeight(130);
-
-        SVGPath icon = createIcon(iconType);
-        icon.setStroke(Color.web(color));
-        icon.setStrokeWidth(2);
-
-        StackPane iconBox = new StackPane(icon);
-        iconBox.setPrefSize(28, 28);
-        iconBox.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 7; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 7;");
-
-        Text titleLabel = createTextNode(title, 12, true, BLACK);
-
-        HBox top = new HBox(8, iconBox, titleLabel);
-        top.setAlignment(Pos.CENTER_LEFT);
-
-        Text number = createTextNode(value, 22, true, BLACK);
-
-        Text changeLabel = createTextNode(change, 10, true, color);
-        Text descriptionLabel = createTextNode(description, 10, false, BLACK);
-
-        HBox bottom = new HBox(4, changeLabel, descriptionLabel);
-        bottom.setAlignment(Pos.CENTER_LEFT);
-
-        card.getChildren().addAll(top, number, bottom);
-        return card;
+    private void addEqualChildren(HBox row, Region child1, Region child2) {
+        child1.setMaxWidth(Double.MAX_VALUE); child1.setMinWidth(0);
+        child2.setMaxWidth(Double.MAX_VALUE); child2.setMinWidth(0);
+        HBox.setHgrow(child1, Priority.ALWAYS);
+        HBox.setHgrow(child2, Priority.ALWAYS);
+        row.getChildren().addAll(child1, child2);
     }
 
 
@@ -671,7 +615,7 @@ public class AdminSecurity {
     private VBox createTwoFACard() {
 
         VBox card = card();
-        card.setMinHeight(260);
+        card.setMinHeight(330);
 
         card.getChildren().add(cardHeader("ai", "Users with 2FA Enabled", ""));
 
@@ -688,7 +632,7 @@ public class AdminSecurity {
         HBox.setHgrow(legendArea, Priority.ALWAYS);
 
         donutArea.getChildren().addAll(donut, legendArea);
-        card.getChildren().addAll(donutArea, link("Manage 2FA Settings  →"));
+        card.getChildren().addAll(donutArea, separator(), link("Manage 2FA Settings  →"));
 
         return card;
     }
@@ -748,6 +692,7 @@ public class AdminSecurity {
         card.getChildren().addAll(
                 cardHeader("security", "Suspicious Activity", "View All"),
                 list,
+                separator(),
                 link("View All Suspicious Activity  →")
         );
 
@@ -828,7 +773,7 @@ public class AdminSecurity {
 
 
     // =========================================================
-    // UI HELPERS (Direct Text nodes to bypass CSS overrides)
+    // UI HELPERS
     // =========================================================
 
     private VBox card() {
