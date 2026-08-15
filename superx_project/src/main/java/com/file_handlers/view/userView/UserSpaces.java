@@ -10,6 +10,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -18,8 +20,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
@@ -65,11 +65,7 @@ public class UserSpaces {
         HBox logoHeader = new HBox(10, logoIcon, logoText);
         logoHeader.setAlignment(Pos.CENTER_LEFT);
 
-        Label tagline = new Label("Your AI Workspace");
-        tagline.setFont(Font.font(FONT, 11));
-        tagline.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-
-        VBox logoBox = new VBox(4, logoHeader, tagline);
+        VBox logoBox = new VBox(4, logoHeader);
         logoBox.setPadding(new Insets(0, 0, 18, 6));
 
         // Sidebar Navigation
@@ -294,22 +290,23 @@ public class UserSpaces {
     // HELPER BUILDERS
     // =========================================================
 
-    private StackPane createOneSpaceLogo() {
-        SVGPath cloudPath = new SVGPath();
-        cloudPath.setContent("M 6 15 A 6 6 0 0 1 18 10 A 5 5 0 0 1 26 13 A 4 4 0 0 1 25 21 L 6 21 A 3 3 0 0 1 6 15 Z");
-        cloudPath.setFill(Color.TRANSPARENT);
-        cloudPath.setStroke(Color.web("#38BDF8"));
-        cloudPath.setStrokeWidth(2.2);
+        // OneSpace Logo
+        private StackPane createOneSpaceLogo() {
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
 
-        Label docSymbol = new Label("📄");
-        docSymbol.setFont(Font.font(13));
-        docSymbol.setStyle("-fx-text-fill: #818CF8;");
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
 
-        StackPane logoPane = new StackPane(cloudPath, docSymbol);
-        logoPane.setPrefSize(32, 32);
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(42, 42);
         logoPane.setAlignment(Pos.CENTER);
+
         return logoPane;
-    }
+        }
 
     private Button createSidebarButton(String icon, String label, boolean isActive) {
         Label iconLbl = new Label(icon);
