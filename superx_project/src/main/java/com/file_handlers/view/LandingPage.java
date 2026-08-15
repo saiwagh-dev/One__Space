@@ -1,7 +1,11 @@
 package com.file_handlers.view;
 
+<<<<<<< HEAD
+import com.file_handlers.view.adminView.*;
+=======
 import javafx.util.Duration;
 
+>>>>>>> origin/Development
 import com.file_handlers.view.userView.UserDashboard;
 import com.file_handlers.view.userView.UserLoginPage;
 import com.file_handlers.view.userView.UserSignupPage;
@@ -77,9 +81,32 @@ public class LandingPage extends Application {
 
         public static void showUserSpace() { setScene(new UserSpaces().getUserSpacesScene());}
 
+<<<<<<< HEAD
+    public static void showAdminLoginPage() { setScene(new AdminLoginPage().getAdminLoginPageScene()); }
+    public static void showAdminDashboard() { setScene(new AdminDashboard().getAdminDashboardScene()); }
+    public static void showAdminUsers()   {setScene(new AdminUsers().getAdminUsersScene());}
+    public static void showAdminFiles()   {setScene(new AdminFiles().getAdminFilesScene());}
+    public static void showAnalytics()   {setScene(new AdminAnalytics().getAnalyticsScene());}
+    public static void showAdminSettings()   {setScene(new AdminSettings().getAdminSettingsScene());}
+    public static void showAdminSignUp()   {setScene(new AdminSignUpPage().getAdminSignUpScene());}
+    public static void showAdminAISystem()   {setScene(new AdminAISystem().getAdminAIScene());}
+    public static void showAdminSecurity()   {setScene(new AdminSecurity().getSecurityScene());}
+
+
+
+
+
+
+
+
+
+
+    // LandingPage scene builder
+=======
         public static void showUserSignupPage() { setScene(new UserSignupPage().getUserSignupPageScene());}
 
     // Landing Page
+>>>>>>> origin/Development
     public Scene getLandingPageScene() {
 
         // Center Branding
@@ -109,9 +136,13 @@ public class LandingPage extends Application {
                 "🛡", "#BAE6FD", "#0284C7",
                 "Admin Login",
                 "Manage users, oversee system\nactivities and configurations.",
+<<<<<<< HEAD
+                "Continue as Admin  →", "#0284C7", e -> { LandingPage.showAdminLoginPage(); });
+=======
                 "Continue as Admin  →", "#0284C7",
                 e -> LandingPage.showUserLoginPage()
         );
+>>>>>>> origin/Development
 
         HBox cardsContainer = new HBox(28, userCard, adminCard);
         cardsContainer.setAlignment(Pos.CENTER);
