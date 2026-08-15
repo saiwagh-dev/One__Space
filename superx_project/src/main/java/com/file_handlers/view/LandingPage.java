@@ -1,5 +1,7 @@
 package com.file_handlers.view;
 
+import com.file_handlers.view.userView.CollaborationPage;
+import com.file_handlers.view.userView.RecentPage;
 import com.file_handlers.view.userView.UserDashboard;
 import com.file_handlers.view.userView.UserLoginPage;
 import com.file_handlers.view.userView.UserSpaces;
@@ -61,6 +63,10 @@ public class LandingPage extends Application {
     public static void showUserDashboard() { setScene(new UserDashboard().getDashboardScene()); }
 
     public static void showUserSpace() { setScene(new UserSpaces().getUserSpacesScene()); }
+
+    public static void showCollaborationPage() {setScene(new CollaborationPage().getCollaborationPageScene());}
+
+    public static void showRecentPage() {setScene(new RecentPage().getRecentPageScene());}
 
     // LandingPage scene builder
     public Scene getLandingPageScene() {
