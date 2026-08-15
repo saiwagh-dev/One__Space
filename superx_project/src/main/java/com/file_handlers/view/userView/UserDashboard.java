@@ -87,12 +87,12 @@ public class UserDashboard {
 
         dashboardBtn.setOnAction(e -> { LandingPage.showUserDashboard(); });
         spacesBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
-        searchBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
-        calendarBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        searchBtn.setOnAction(e -> { LandingPage.showUserSearch(); });
+        calendarBtn.setOnAction(e -> { LandingPage.showCalendarPage(); });
         aiBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
         collabBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
         recentBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
-        trashBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
         settingsBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
 
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
