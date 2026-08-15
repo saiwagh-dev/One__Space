@@ -1,0 +1,302 @@
+package com.file_handlers.view;
+
+import javafx.util.Duration;
+
+import com.file_handlers.view.userView.UserDashboard;
+import com.file_handlers.view.userView.UserLoginPage;
+import com.file_handlers.view.userView.UserSignupPage;
+import com.file_handlers.view.userView.UserSpaces;
+
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.SequentialTransition;
+import javafx.animation.TranslateTransition;
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
+import javafx.stage.Stage;
+
+public class LandingPage extends Application {
+
+    // Theme Constants
+    private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    private static final String BG_APP = "#3A4D67";
+    private static final String BG_CARD = "#DDE8F5";
+    private static final String BORDER_COLOR = "#C9DAEE";
+    private static final String PRIMARY_BLUE = "#2563EB";
+    private static final String PRIMARY_LIGHT_BLUE = "#BFDBFE";
+    private static final String TEXT_DARK = "#142338";
+    private static final String TEXT_MUTED_DARK = "#506580";
+    private static final String TEXT_LIGHT = "#FFFFFF";
+    private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
+
+    private static Stage primaryStage;
+
+    @Override
+    public void start(Stage stage){
+        primaryStage = stage;
+        primaryStage.setTitle("OneSpace");
+        primaryStage.setScene(getLandingPageScene());
+        primaryStage.show();
+    }
+
+    // Navigation
+        // Corrected Navigation logic inside LandingPage.java
+        public static void setScene(Scene scene) {
+        if (primaryStage != null) {
+                primaryStage.setScene(scene);
+        }
+        }
+
+        public static void showLandingPage() { 
+        // Re-use current application instance or recreate scene directly
+        if (primaryStage != null && primaryStage.getScene() != null) {
+                setScene(primaryStage.getScene());
+        }
+        }
+
+        public static void showUserLoginPage() {  setScene(new UserLoginPage().getUserLoginPageScene());}
+
+        public static void showUserDashboard() { setScene(new UserDashboard().getDashboardScene());}
+
+        public static void showUserSpace() { setScene(new UserSpaces().getUserSpacesScene());}
+
+        public static void showUserSignupPage() { setScene(new UserSignupPage().getUserSignupPageScene());}
+
+    // Landing Page
+    public Scene getLandingPageScene() {
+
+        // Center Branding
+        StackPane centerIconPane = createOneSpaceLogo(200);
+
+        Label welcomeTitle = new Label("Welcome to OneSpace");
+        welcomeTitle.setFont(Font.font(FONT, FontWeight.BOLD, 28));
+        welcomeTitle.setTextFill(Color.web(TEXT_LIGHT));
+
+        Label welcomeSubtitle = new Label("Choose how you want to continue");
+        welcomeSubtitle.setFont(Font.font(FONT, 14));
+        welcomeSubtitle.setTextFill(Color.web(TEXT_MUTED_LIGHT));
+
+        VBox titleBox = new VBox(8, centerIconPane, welcomeTitle, welcomeSubtitle);
+        titleBox.setAlignment(Pos.CENTER);
+
+        // Role Cards
+        VBox userCard = createRoleCard(
+                "👤", PRIMARY_LIGHT_BLUE, PRIMARY_BLUE,
+                "User Login",
+                "Access your personal space,\nmanage your files and more.",
+                "Continue as User  →", PRIMARY_BLUE,
+                e -> LandingPage.showUserLoginPage()
+        );
+
+        VBox adminCard = createRoleCard(
+                "🛡", "#BAE6FD", "#0284C7",
+                "Admin Login",
+                "Manage users, oversee system\nactivities and configurations.",
+                "Continue as Admin  →", "#0284C7",
+                e -> LandingPage.showUserLoginPage()
+        );
+
+        HBox cardsContainer = new HBox(28, userCard, adminCard);
+        cardsContainer.setAlignment(Pos.CENTER);
+
+        // Footer
+        Label footerIcon = new Label("🛡");
+        footerIcon.setFont(Font.font(14));
+        footerIcon.setTextFill(Color.web(TEXT_MUTED_LIGHT));
+
+        Label footerText = new Label("Secure. Organized. Intelligent.");
+        footerText.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+        footerText.setTextFill(Color.web(TEXT_MUTED_LIGHT));
+
+        HBox footerRow = new HBox(6, footerIcon, footerText);
+        footerRow.setAlignment(Pos.CENTER);
+
+        Label brandText = new Label("OneSpace");
+        brandText.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        brandText.setTextFill(Color.web("#60A5FA"));
+
+        VBox footerBox = new VBox(4, footerRow, brandText);
+        footerBox.setAlignment(Pos.CENTER);
+
+        // Main Layout
+        Region topSpacer = new Region();
+        Region bottomSpacer = new Region();
+
+        VBox.setVgrow(topSpacer, Priority.ALWAYS);
+        VBox.setVgrow(bottomSpacer, Priority.ALWAYS);
+
+        VBox centerBody = new VBox(
+                32, topSpacer, titleBox, cardsContainer, bottomSpacer, footerBox
+        );
+
+        centerBody.setAlignment(Pos.CENTER);
+        centerBody.setPadding(new Insets(24));
+
+        BorderPane root = new BorderPane();
+        root.setStyle("-fx-background-color: " + BG_APP + ";");
+        root.setCenter(centerBody);
+
+        playLandingAnimation(centerIconPane,welcomeTitle,welcomeSubtitle,cardsContainer,footerBox);
+
+        return new Scene(root, 1200, 750);
+    }
+
+    // Landing Page Animation
+    private void playLandingAnimation(StackPane logo, Label title, Label subtitle,
+                                    HBox cards, VBox footer) {
+
+        logo.setOpacity(0);
+        logo.setScaleX(0.85);
+        logo.setScaleY(0.85);
+
+        title.setOpacity(0);
+        title.setTranslateY(12);
+
+        subtitle.setOpacity(0);
+        subtitle.setTranslateY(10);
+
+        cards.setOpacity(0);
+        cards.setTranslateY(35);
+
+        footer.setOpacity(0);
+
+        FadeTransition logoFade = new FadeTransition(Duration.millis(450), logo);
+        logoFade.setToValue(1);
+
+        ScaleTransition logoScale = new ScaleTransition(Duration.millis(550), logo);
+        logoScale.setToX(1);
+        logoScale.setToY(1);
+
+        ParallelTransition logoAnim = new ParallelTransition(logoFade, logoScale);
+
+        FadeTransition titleFade = new FadeTransition(Duration.millis(350), title);
+        titleFade.setToValue(1);
+
+        TranslateTransition titleMove = new TranslateTransition(Duration.millis(350), title);
+        titleMove.setToY(0);
+
+        ParallelTransition titleAnim = new ParallelTransition(titleFade, titleMove);
+
+        FadeTransition subtitleFade = new FadeTransition(Duration.millis(300), subtitle);
+        subtitleFade.setToValue(1);
+
+        TranslateTransition subtitleMove = new TranslateTransition(Duration.millis(300), subtitle);
+        subtitleMove.setToY(0);
+
+        ParallelTransition subtitleAnim = new ParallelTransition(subtitleFade, subtitleMove);
+
+        FadeTransition cardsFade = new FadeTransition(Duration.millis(500), cards);
+        cardsFade.setToValue(1);
+
+        TranslateTransition cardsMove = new TranslateTransition(Duration.millis(500), cards);
+        cardsMove.setToY(0);
+
+        ParallelTransition cardsAnim = new ParallelTransition(cardsFade, cardsMove);
+
+        FadeTransition footerFade = new FadeTransition(Duration.millis(300), footer);
+        footerFade.setToValue(1);
+
+        new SequentialTransition(
+                logoAnim,
+                titleAnim,
+                subtitleAnim,
+                cardsAnim,
+                footerFade
+        ).play();
+    }
+        // OneSpace Logo
+        private StackPane createOneSpaceLogo(double size) {
+
+            Image logoImage = new Image(
+                    getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+            );
+
+            ImageView logoView = new ImageView(logoImage);
+            logoView.setFitWidth(size);
+            logoView.setFitHeight(size);
+            logoView.setPreserveRatio(true);
+
+            StackPane logoPane = new StackPane(logoView);
+            logoPane.setPrefSize(size, size);
+            logoPane.setAlignment(Pos.CENTER);
+
+            return logoPane;
+        }
+
+    // Role Card Builder
+    private VBox createRoleCard(
+            String iconSymbol,
+            String iconBg,
+            String iconColor,
+            String title,
+            String description,
+            String buttonText,
+            String buttonColor,
+            javafx.event.EventHandler<javafx.event.ActionEvent> onAction) {
+
+        Label icon = new Label(iconSymbol);
+        icon.setFont(Font.font(20));
+        icon.setTextFill(Color.web(iconColor));
+        icon.setPrefSize(48, 48);
+        icon.setAlignment(Pos.CENTER);
+        icon.setStyle(
+                "-fx-background-color: " + iconBg + ";" +
+                "-fx-background-radius: 50%;"
+        );
+
+        Label cardTitle = new Label(title);
+        cardTitle.setFont(Font.font(FONT, FontWeight.BOLD, 18));
+        cardTitle.setTextFill(Color.web(TEXT_DARK));
+
+        Label cardDesc = new Label(description);
+        cardDesc.setFont(Font.font(FONT, 13));
+        cardDesc.setTextFill(Color.web(TEXT_MUTED_DARK));
+        cardDesc.setTextAlignment(TextAlignment.CENTER);
+        cardDesc.setWrapText(true);
+
+        Button actionBtn = new Button(buttonText);
+        actionBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
+        actionBtn.setTextFill(Color.WHITE);
+        actionBtn.setMaxWidth(Double.MAX_VALUE);
+        actionBtn.setPrefHeight(42);
+        actionBtn.setStyle(
+                "-fx-background-color: " + buttonColor + ";" +
+                "-fx-background-radius: 10;" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 8, 0, 0, 2);"
+        );
+        actionBtn.setOnAction(onAction);
+
+        VBox card = new VBox(16, icon, cardTitle, cardDesc, actionBtn);
+        card.setAlignment(Pos.CENTER);
+        card.setPadding(new Insets(32, 28, 32, 28));
+        card.setPrefWidth(300);
+        card.setMaxWidth(300);
+        card.setStyle(
+                "-fx-background-color: " + BG_CARD + ";" +
+                "-fx-border-color: " + BORDER_COLOR + ";" +
+                "-fx-border-radius: 18;" +
+                "-fx-background-radius: 18;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.12), 16, 0, 0, 6);"
+        );
+
+        return card;
+    }
+}
