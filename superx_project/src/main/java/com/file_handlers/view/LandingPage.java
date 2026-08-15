@@ -1,5 +1,6 @@
 package com.file_handlers.view;
 
+import com.file_handlers.view.adminView.*;
 import com.file_handlers.view.userView.UserDashboard;
 import com.file_handlers.view.userView.UserLoginPage;
 import com.file_handlers.view.userView.UserSpaces;
@@ -62,6 +63,25 @@ public class LandingPage extends Application {
 
     public static void showUserSpace() { setScene(new UserSpaces().getUserSpacesScene()); }
 
+    public static void showAdminLoginPage() { setScene(new AdminLoginPage().getAdminLoginPageScene()); }
+    public static void showAdminDashboard() { setScene(new AdminDashboard().getAdminDashboardScene()); }
+    public static void showAdminUsers()   {setScene(new AdminUsers().getAdminUsersScene());}
+    public static void showAdminFiles()   {setScene(new AdminFiles().getAdminFilesScene());}
+    public static void showAnalytics()   {setScene(new AdminAnalytics().getAnalyticsScene());}
+    public static void showAdminSettings()   {setScene(new AdminSettings().getAdminSettingsScene());}
+    public static void showAdminSignUp()   {setScene(new AdminSignUpPage().getAdminSignUpScene());}
+    public static void showAdminAISystem()   {setScene(new AdminAISystem().getAdminAIScene());}
+    public static void showAdminSecurity()   {setScene(new AdminSecurity().getSecurityScene());}
+
+
+
+
+
+
+
+
+
+
     // LandingPage scene builder
     public Scene getLandingPageScene() {
         // App header bar
@@ -103,7 +123,7 @@ public class LandingPage extends Application {
 
         VBox adminCard = createRoleCard("🛡", "#BAE6FD", "#0284C7", "Admin Login",
                 "Manage users, oversee system\nactivities and configurations.",
-                "Continue as Admin  →", "#0284C7", e -> { LandingPage.showUserLoginPage(); });
+                "Continue as Admin  →", "#0284C7", e -> { LandingPage.showAdminLoginPage(); });
 
         HBox cardsContainer = new HBox(28, userCard, adminCard);
         cardsContainer.setAlignment(Pos.CENTER);
