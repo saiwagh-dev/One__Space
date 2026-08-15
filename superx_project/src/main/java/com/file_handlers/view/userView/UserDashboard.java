@@ -89,11 +89,11 @@ public class UserDashboard {
         spacesBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
         searchBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
         calendarBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
-        aiBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        aiBtn.setOnAction(e -> { LandingPage.showUserAiAssistant(); });
         collabBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
         recentBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
         trashBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
-        settingsBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        settingsBtn.setOnAction(e -> { LandingPage.showUserSetting(); });
 
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
 
@@ -163,6 +163,7 @@ public class UserDashboard {
 
         Button bellBtn = new Button("🔔");
         bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
+        bellBtn.setOnAction(e -> {  LandingPage.showUserNotificationPage();  });
 
         Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34);

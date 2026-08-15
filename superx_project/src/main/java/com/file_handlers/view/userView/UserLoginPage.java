@@ -172,4 +172,9 @@ public class UserLoginPage {
                "-fx-prompt-text-fill: " + TEXT_MUTED_DARK + ";" +
                "-fx-text-fill: " + TEXT_DARK + ";";
     }
+
+    public Scene getUserNotificationPageScene() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getUserNotificationPageScene'");
+    }
 }

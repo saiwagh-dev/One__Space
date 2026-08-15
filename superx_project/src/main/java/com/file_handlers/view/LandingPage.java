@@ -1,8 +1,11 @@
 package com.file_handlers.view;
 
+import com.file_handlers.view.userView.UserAiAssistantPage;
 import com.file_handlers.view.userView.UserDashboard;
 import com.file_handlers.view.userView.UserLoginPage;
 import com.file_handlers.view.userView.UserSpaces;
+import com.file_handlers.view.userView.UserNotificationPage;
+import com.file_handlers.view.userView.UserSettingPage;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -61,6 +64,9 @@ public class LandingPage extends Application {
     public static void showUserDashboard() { setScene(new UserDashboard().getDashboardScene()); }
 
     public static void showUserSpace() { setScene(new UserSpaces().getUserSpacesScene()); }
+    public static void showUserSetting() {setScene(new UserSettingPage().getSettingPageScene());}
+  public static void showUserAiAssistant(){setScene(new UserAiAssistantPage().getAiAssistantPageScene());}
+   public  static void showUserNotificationPage() { setScene(new UserNotificationPage().getUserNotificationPageScene()); }
 
     // LandingPage scene builder
     public Scene getLandingPageScene() {
