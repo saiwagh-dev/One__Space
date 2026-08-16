@@ -1,503 +1,622 @@
 package com.file_handlers.view.userView;
 
 import com.file_handlers.view.LandingPage;
-import javafx.geometry.*;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.text.*;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
+
 import java.io.File;
 import java.time.format.DateTimeFormatter;
 
 public class AddReminderPage {
 
-    private static final String FONT="Arial",BG_APP="#3A4D67",BG_CARD="#F7FAFE",
-            BG_INNER="#E8F1FB",BG_INPUT="#FFFFFF",BG_SIDE="#26384E",
-            BORDER="#AFC4DA",BLUE="#2563EB",LIGHT_BLUE="#DBEAFE",
-            DARK="#111827",MUTED="#374151",WHITE="#FFFFFF",LIGHT="#E5EDF6";
+    // Style Constants - Synchronized with UserDashboard.java
+    private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-    private TextField titleField,reminderTimeField;
+    // 1. Sidebar & Top Bar Layout Colors
+    private static final String BG_SIDEBAR = "#1E2A3A";
+    private static final String BG_SIDEBAR_CARD = "#141D29";
+    private static final String SIDEBAR_BORDER = "#2D3D52";
+
+    // 2. Center Workspace Canvas Color
+    private static final String BG_CENTER_CANVAS = "#31435B";
+
+    // 3. Card Surface & Input Colors
+    private static final String BG_CARD = "#DDE8F8";
+    private static final String BG_CARD_INNER = "#CADDF2";
+    private static final String BORDER_CARD = "#C3D6EC";
+    private static final String BG_INPUT = "#EDF3FA";
+
+    // 4. Typography Color System
+    private static final String TEXT_DARK = "#0F172A";
+    private static final String TEXT_MUTED_DARK = "#334155";
+    private static final String TEXT_LIGHT = "#FFFFFF";
+    private static final String TEXT_MUTED_LIGHT = "#94A3B8";
+
+    // Accent Colors
+    private static final String PRIMARY_BLUE = "#2563EB";
+    private static final String BADGE_BLUE_BG = "#BFDBFE";
+
+    // Class Variables
+    private TextField titleField, reminderTimeField;
     private TextArea descriptionField;
-    private ComboBox<String> reminderTypeCombo,repeatCombo,priorityCombo;
+    private ComboBox<String> reminderTypeCombo, repeatCombo, priorityCombo;
     private DatePicker reminderDatePicker;
-    private Label selectedFileLabel,previewReminderType,previewTitle,previewDescription;
-    private Label previewDate,previewTime,previewRepeat,previewPriority;
+    private Label selectedFileLabel, previewReminderType, previewTitle, previewDescription;
+    private Label previewDate, previewTime, previewRepeat, previewPriority;
 
-    public Scene getAddReminderPageScene(Stage stage){
+    public Scene getAddReminderPageScene() {
 
-        Button dashboard=side("⌂","Dashboard",false),
-                spaces=side("▦","Spaces",false),
-                search=side("⌕","Search",false),
-                calendar=side("▣","Calendar",true),
-                ai=side("✦","AI Assistant",false),
-                collab=side("♧","Collaboration",false),
-                recent=side("◷","Recent",false),
-                trash=side("♜","Trash",false),
-                settings=side("⚙","Settings",false);
+        // =========================================================
+        // SIDEBAR
+        // =========================================================
 
-        dashboard.setOnAction(e->LandingPage.showUserDashboard());
-        spaces.setOnAction(e->LandingPage.showUserSpace());
-        search.setOnAction(e->LandingPage.showUserSearch());
-        calendar.setOnAction(e->LandingPage.showCalendarPage());
-        ai.setOnAction(e->LandingPage.showLandingPage());
-        collab.setOnAction(e->LandingPage.showLandingPage());
-        recent.setOnAction(e->LandingPage.showLandingPage());
-        trash.setOnAction(e->LandingPage.showLandingPage());
-        settings.setOnAction(e->LandingPage.showLandingPage());
+        StackPane logoIcon = createOneSpaceLogo();
 
-        VBox logoBox=new VBox(4,
-                new HBox(8,
-                        label("⬡",25,FontWeight.BOLD,LIGHT_BLUE),
-                        label("OneSpace",20,FontWeight.BOLD,WHITE)),
-                label("Your AI Workspace",12,FontWeight.NORMAL,LIGHT));
-        logoBox.setPadding(new Insets(0,0,15,8));
+        Label logoText = new Label("OneSpace");
+        logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
+        logoText.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
 
-        VBox nav=new VBox(4,dashboard,spaces,search,calendar,ai,collab,recent,trash);
+        HBox logoHeader = new HBox(10, logoIcon, logoText);
+        logoHeader.setAlignment(Pos.CENTER_LEFT);
 
-        ProgressBar progress=new ProgressBar(0);
+        VBox logoBox = new VBox(4, logoHeader);
+        logoBox.setPadding(new Insets(0, 0, 18, 6));
+
+        Button dashboard = createSidebarButton("⌂", "Dashboard", false);
+        Button spaces = createSidebarButton("📁", "Spaces", false);
+        Button search = createSidebarButton("⌕", "Search", false);
+        Button calendar = createSidebarButton("📅", "Calendar", true);
+        Button ai = createSidebarButton("✧", "AI Assistant", false);
+        Button collab = createSidebarButton("👥", "Collaboration", false);
+        Button recent = createSidebarButton("🕒", "Recent", false);
+        Button trash = createSidebarButton("🗑", "Trash", false);
+        Button settings = createSidebarButton("⚙", "Settings", false);
+
+        dashboard.setOnAction(e -> LandingPage.showUserDashboard());
+        spaces.setOnAction(e -> LandingPage.showUserSpace());
+        search.setOnAction(e -> LandingPage.showUserSearch());
+        calendar.setOnAction(e -> LandingPage.showCalendarPage());
+        ai.setOnAction(e -> LandingPage.showLandingPage());
+        collab.setOnAction(e -> LandingPage.showLandingPage());
+        recent.setOnAction(e -> LandingPage.showLandingPage());
+        trash.setOnAction(e -> LandingPage.showTrashPage());
+        settings.setOnAction(e -> LandingPage.showLandingPage());
+
+        VBox nav = new VBox(4, dashboard, spaces, search, calendar, ai, collab, recent, trash);
+
+        // Sidebar Storage Card
+        Label storageTitle = new Label("Storage Used");
+        storageTitle.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+        storageTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+
+        Label storageVal = new Label("64.2 GB of 100 GB");
+        storageVal.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        storageVal.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+
+        Label storagePercent = new Label("64%");
+        storagePercent.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+        storagePercent.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+
+        HBox storageValGroup = new HBox(storageVal, new Region(), storagePercent);
+        HBox.setHgrow(storageValGroup.getChildren().get(1), Priority.ALWAYS);
+        storageValGroup.setAlignment(Pos.CENTER_LEFT);
+
+        ProgressBar progress = new ProgressBar(0.64);
         progress.setMaxWidth(Double.MAX_VALUE);
         progress.setPrefHeight(6);
+        progress.setStyle("-fx-accent: " + PRIMARY_BLUE + "; -fx-control-inner-background: #0E1520;");
 
-        VBox storage=new VBox(8,
-                label("✧ Storage indexed",11,FontWeight.BOLD,LIGHT_BLUE),
-                label("0.0 GB",16,FontWeight.BOLD,WHITE),
-                label("of 100 GB used",11,FontWeight.NORMAL,LIGHT),
-                progress,
-                label("No files scanned yet.",11,FontWeight.NORMAL,LIGHT));
+        Button manageStorageBtn = new Button("Manage Storage ›");
+        manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
+        manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
+        manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
+
+        VBox storage = new VBox(8, storageTitle, storageValGroup, progress, manageStorageBtn);
         storage.setPadding(new Insets(14));
-        storage.setStyle(card(BG_SIDE));
+        storage.setStyle("-fx-background-color: " + BG_SIDEBAR_CARD + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
 
-        Region sideSpace=space();
-        VBox.setVgrow(sideSpace,Priority.ALWAYS);
+        Region sideSpace = space();
+        VBox.setVgrow(sideSpace, Priority.ALWAYS);
 
-        VBox sidebar=new VBox(10,logoBox,nav,sideSpace,settings,storage);
-        sidebar.setPadding(new Insets(20,14,20,14));
+        VBox sidebar = new VBox(12, logoBox, nav, sideSpace, settings, storage);
+        sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setPrefWidth(230);
-        sidebar.setStyle("-fx-background-color:"+BG_APP+";");
+        sidebar.setMinWidth(230);
+        sidebar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 1 0 0;");
 
-        TextField searchField=new TextField();
-        searchField.setPromptText("Search files...");
+        // =========================================================
+        // TOP SEARCH BAR & PROFILE
+        // =========================================================
+
+        Label searchIcon = new Label("⌕");
+        searchIcon.setFont(Font.font(FONT, 16));
+        searchIcon.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Search in OneSpace...");
         searchField.setPrefHeight(38);
-        searchField.setStyle("-fx-background-color:transparent;"+
-                "-fx-text-fill:"+WHITE+";-fx-prompt-text-fill:"+LIGHT+
-                ";-fx-font-family:Arial;-fx-font-size:13px;");
+        searchField.setStyle("-fx-background-color: transparent; -fx-prompt-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_LIGHT + ";");
 
-        Label searchIcon=label("⌕",16,FontWeight.NORMAL,LIGHT);
-        Label shortcut=label("⌘ K",10,FontWeight.BOLD,DARK);
-        shortcut.setStyle("-fx-background-color:"+BG_INPUT+
-                ";-fx-padding:3 6;-fx-background-radius:4;"+
-                "-fx-text-fill:"+DARK+";");
+        Label shortcut = new Label("⌘ K");
+        shortcut.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 10));
+        shortcut.setStyle("-fx-background-color: #141E2C; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-padding: 3 6; -fx-background-radius: 4;");
 
-        HBox searchBox=new HBox(8,searchIcon,searchField,shortcut);
+        HBox searchBox = new HBox(8, searchIcon, searchField, shortcut);
         searchBox.setAlignment(Pos.CENTER_LEFT);
-        searchBox.setPadding(new Insets(0,10,0,12));
-        searchBox.setMaxWidth(500);
-        searchBox.setStyle("-fx-background-color:"+BG_SIDE+
-                ";-fx-border-color:"+BORDER+
-                ";-fx-border-radius:10;-fx-background-radius:10;");
-        HBox.setHgrow(searchField,Priority.ALWAYS);
+        searchBox.setPadding(new Insets(0, 12, 0, 14));
+        searchBox.setPrefWidth(420);
+        searchBox.setStyle("-fx-background-color: #141E2C; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
+        HBox.setHgrow(searchField, Priority.ALWAYS);
 
-        Button bell=new Button("🔔");
-        bell.setStyle("-fx-background-color:transparent;"+
-                "-fx-text-fill:"+WHITE+";-fx-font-size:16px;");
-        bell.setOnAction(e->LandingPage.showNotificationPage());
+        Button bell = new Button("🔔");
+        bell.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
 
-        Label avatar=label("AV",12,FontWeight.BOLD,WHITE);
-        avatar.setPrefSize(34,34);
+        Label avatar = new Label("AV");
+        avatar.setPrefSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
-        avatar.setStyle("-fx-background-color:"+BLUE+
-                ";-fx-background-radius:50%;");
+        avatar.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 50%; -fx-text-fill: " + TEXT_LIGHT + "; -fx-font-weight: bold; -fx-font-size: 12px;");
 
-        HBox profile=new HBox(8,bell,avatar,
-                label("Aarav Verma",13,FontWeight.BOLD,WHITE),
-                label("⌄",14,FontWeight.NORMAL,LIGHT));
+        Label userName = new Label("Aarav Verma");
+        userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
+        userName.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+
+        Label dropDown = new Label("⌄");
+        dropDown.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+
+        HBox profile = new HBox(10, bell, avatar, userName, dropDown);
         profile.setAlignment(Pos.CENTER);
 
-        Region topSpace=space();
-
-        HBox topBar=new HBox(20,searchBox,topSpace,profile);
+        HBox topBar = new HBox(20, searchBox, new Region(), profile);
+        HBox.setHgrow(topBar.getChildren().get(1), Priority.ALWAYS);
         topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(16,24,8,24));
+        topBar.setPadding(new Insets(16, 28, 14, 28));
+        topBar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
 
-        Label title=label("Add Reminder",22,FontWeight.BOLD,WHITE);
-        Label desc=label("Set a reminder for your important document or task.",
-                13,FontWeight.NORMAL,LIGHT);
+        // =========================================================
+        // FORM HEADER
+        // =========================================================
 
-        Button close=new Button("×");
-        close.setPrefSize(40,40);
-        close.setFont(Font.font(FONT,25));
-        close.setTextFill(Color.web(DARK));
-        close.setStyle("-fx-background-color:"+BG_INPUT+
-                ";-fx-border-color:"+BORDER+
-                ";-fx-border-radius:8;-fx-background-radius:8;");
-        close.setOnAction(e->LandingPage.showCalendarPage());
+        Label title = new Label("Add Reminder");
+        title.setFont(Font.font(FONT, FontWeight.BOLD, 24));
+        title.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
 
-        Region headerSpace=space();
-        HBox header=new HBox(new VBox(4,title,desc),headerSpace,close);
+        Label desc = new Label("Set a reminder for your important document or task.");
+        desc.setFont(Font.font(FONT, 13));
+        desc.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-weight: 500;");
+
+        Button close = new Button("×");
+        close.setPrefSize(38, 38);
+        close.setFont(Font.font(FONT, FontWeight.BOLD, 20));
+        close.setStyle(
+                "-fx-background-color: " + BG_CARD_INNER + ";" +
+                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;" +
+                "-fx-text-fill: " + TEXT_DARK + ";" +
+                "-fx-cursor: hand;"
+        );
+        close.setOnAction(e -> LandingPage.showCalendarPage());
+
+        Region headerSpace = space();
+        HBox header = new HBox(new VBox(4, title, desc), headerSpace, close);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        titleField=new TextField();
+        // =========================================================
+        // FORM CONTROLS
+        // =========================================================
+
+        titleField = new TextField();
         titleField.setPromptText("E.g., Passport Expiry, Insurance Renewal");
         styleTextField(titleField);
 
-        descriptionField=new TextArea();
+        descriptionField = new TextArea();
         descriptionField.setPromptText("Add more details about this reminder...");
         descriptionField.setWrapText(true);
         descriptionField.setPrefRowCount(3);
-        descriptionField.setStyle("-fx-control-inner-background:"+BG_INPUT+
-                ";-fx-background-color:"+BG_INPUT+
-                ";-fx-text-fill:"+DARK+
-                ";-fx-prompt-text-fill:"+MUTED+
-                ";-fx-font-family:Arial;-fx-font-size:13px;");
+        descriptionField.setStyle(
+                "-fx-control-inner-background: " + BG_INPUT + ";" +
+                "-fx-background-color: " + BG_INPUT + ";" +
+                "-fx-text-fill: " + TEXT_DARK + ";" +
+                "-fx-prompt-text-fill: " + TEXT_MUTED_DARK + ";" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-font-size: 13px;" +
+                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;"
+        );
 
-        reminderTypeCombo=new ComboBox<>();
-        reminderTypeCombo.getItems().addAll(
-                "Document Reminder","Task Reminder",
-                "Event Reminder","Deadline Reminder");
+        reminderTypeCombo = new ComboBox<>();
+        reminderTypeCombo.getItems().addAll("Document Reminder", "Task Reminder", "Event Reminder", "Deadline Reminder");
         reminderTypeCombo.setValue("Document Reminder");
         styleCombo(reminderTypeCombo);
 
-        Button choose=new Button("📄  Choose a file");
+        Button choose = new Button("📄  Choose a file");
         choose.setMaxWidth(Double.MAX_VALUE);
         choose.setPrefHeight(42);
         choose.setAlignment(Pos.CENTER_LEFT);
-        choose.setTextFill(Color.web(DARK));
-        choose.setStyle("-fx-background-color:"+BG_INPUT+
-                ";-fx-border-color:"+BORDER+
-                ";-fx-border-radius:8;-fx-background-radius:8;"+
-                "-fx-font-family:Arial;");
-        choose.setOnAction(e->chooseDocument(stage));
+        choose.setTextFill(Color.web(TEXT_DARK));
+        choose.setStyle(
+                "-fx-background-color: " + BG_INPUT + ";" +
+                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-cursor: hand;"
+        );
+        choose.setOnAction(e -> chooseDocument());
 
-        selectedFileLabel=label("No file selected",11,
-                FontWeight.NORMAL,MUTED);
+        selectedFileLabel = new Label("No file selected");
+        selectedFileLabel.setFont(Font.font(FONT, 11));
+        selectedFileLabel.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
-        reminderDatePicker=new DatePicker();
+        reminderDatePicker = new DatePicker();
         reminderDatePicker.setPromptText("dd/mm/yyyy");
         reminderDatePicker.setPrefHeight(42);
         reminderDatePicker.setMaxWidth(Double.MAX_VALUE);
-        reminderDatePicker.setStyle("-fx-background-color:"+BG_INPUT+
-                ";-fx-font-family:Arial;");
+        reminderDatePicker.setStyle("-fx-background-color: " + BG_INPUT + "; -fx-font-family: " + FONT + ";");
 
-        reminderTimeField=new TextField();
+        reminderTimeField = new TextField();
         reminderTimeField.setPromptText("--:-- --");
         styleTextField(reminderTimeField);
 
-        repeatCombo=new ComboBox<>();
-        repeatCombo.getItems().addAll(
-                "Does not repeat","Every day","Every week",
-                "Every month","Every year");
+        repeatCombo = new ComboBox<>();
+        repeatCombo.getItems().addAll("Does not repeat", "Every day", "Every week", "Every month", "Every year");
         repeatCombo.setValue("Does not repeat");
         styleCombo(repeatCombo);
 
-        priorityCombo=new ComboBox<>();
-        priorityCombo.getItems().addAll(
-                "High","Medium","Low");
+        priorityCombo = new ComboBox<>();
+        priorityCombo.getItems().addAll("High", "Medium", "Low");
         priorityCombo.setValue("Medium");
         styleCombo(priorityCombo);
 
-        CheckBox notification=new CheckBox();
+        CheckBox notification = new CheckBox();
         notification.setSelected(true);
 
-        HBox notificationBox=new HBox(12,notification,
-                new VBox(2,
-                        label("Enable notification",13,FontWeight.BOLD,DARK),
-                        label("You will be notified on the selected date and time.",
-                                11,FontWeight.NORMAL,MUTED)));
+        Label notifTitle = new Label("Enable notification");
+        notifTitle.setFont(Font.font(FONT, FontWeight.BOLD, 13));
+        notifTitle.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+
+        Label notifSub = new Label("You will be notified on the selected date and time.");
+        notifSub.setFont(Font.font(FONT, 11));
+        notifSub.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+
+        HBox notificationBox = new HBox(12, notification, new VBox(2, notifTitle, notifSub));
         notificationBox.setAlignment(Pos.CENTER_LEFT);
 
-        VBox reminderTypeBox=new VBox(6,
-                fieldLabel("Reminder Type"),reminderTypeCombo);
+        VBox reminderTypeBox = new VBox(6, fieldLabel("Reminder Type"), reminderTypeCombo);
+        VBox documentBox = new VBox(6, fieldLabel("Select Document (Optional)"), choose, selectedFileLabel);
 
-        VBox documentBox=new VBox(6,
-                fieldLabel("Select Document (Optional)"),
-                choose,selectedFileLabel);
+        HBox typeFile = new HBox(18, reminderTypeBox, documentBox);
+        HBox.setHgrow(reminderTypeBox, Priority.ALWAYS);
+        HBox.setHgrow(documentBox, Priority.ALWAYS);
 
-        HBox typeFile=new HBox(18,reminderTypeBox,documentBox);
-        HBox.setHgrow(reminderTypeBox,Priority.ALWAYS);
-        HBox.setHgrow(documentBox,Priority.ALWAYS);
+        HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminder Time", reminderTimeField));
+        HBox repeatPriority = row(field("Repeat", repeatCombo), field("Priority", priorityCombo));
 
-        HBox dateTime=row(
-                field("Reminder Date *",reminderDatePicker),
-                field("Reminder Time",reminderTimeField));
-
-        HBox repeatPriority=row(
-                field("Repeat",repeatCombo),
-                field("Priority",priorityCombo));
-
-        VBox details=new VBox(16,
+        VBox details = new VBox(16,
                 section("Reminder Details"),
-                fieldLabel("Title *"),titleField,
-                fieldLabel("Description"),descriptionField,
-                typeFile,dateTime,repeatPriority,notificationBox);
+                fieldLabel("Title *"), titleField,
+                fieldLabel("Description"), descriptionField,
+                typeFile, dateTime, repeatPriority, notificationBox
+        );
 
         details.setPadding(new Insets(24));
-        details.setStyle(card(BG_CARD));
+        details.setStyle(
+                "-fx-background-color: " + BG_CARD + ";" +
+                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-border-radius: 16;" +
+                "-fx-background-radius: 16;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.14), 12, 0, 0, 4);"
+        );
 
-        previewReminderType=label(
-                reminderTypeCombo.getValue(),12,FontWeight.BOLD,BLUE);
-        previewReminderType.setStyle("-fx-background-color:"+LIGHT_BLUE+
-                ";-fx-text-fill:"+BLUE+
-                ";-fx-padding:5 8;-fx-background-radius:5;");
+        // =========================================================
+        // PREVIEW CARD
+        // =========================================================
 
-        previewTitle=label("Reminder Title",18,FontWeight.BOLD,DARK);
-        previewDescription=label(
-                "Reminder description will appear here...",
-                12,FontWeight.NORMAL,MUTED);
+        previewReminderType = new Label(reminderTypeCombo.getValue());
+        previewReminderType.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        previewReminderType.setStyle(
+                "-fx-background-color: " + BADGE_BLUE_BG + ";" +
+                "-fx-text-fill: " + PRIMARY_BLUE + ";" +
+                "-fx-padding: 5 8;" +
+                "-fx-background-radius: 5;"
+        );
+
+        previewTitle = new Label("Reminder Title");
+        previewTitle.setFont(Font.font(FONT, FontWeight.BOLD, 18));
+        previewTitle.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+
+        previewDescription = new Label("Reminder description will appear here...");
+        previewDescription.setFont(Font.font(FONT, 12));
+        previewDescription.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
         previewDescription.setWrapText(true);
 
-        previewDate=preview("▣","Select reminder date");
-        previewTime=preview("◷","Select reminder time");
-        previewRepeat=preview("⟳","Does not repeat");
-        previewPriority=preview("⚑","Medium Priority");
+        previewDate = preview("▣", "Select reminder date");
+        previewTime = preview("◷", "Select reminder time");
+        previewRepeat = preview("⟳", "Does not repeat");
+        previewPriority = preview("⚑", "Medium Priority");
 
-        VBox previewInner=new VBox(14,
-                label("🔔",20,FontWeight.NORMAL,BLUE),
-                previewReminderType,previewTitle,
-                previewDescription,new Separator(),
-                previewDate,previewTime,previewRepeat,previewPriority);
+        Label previewIcon = new Label("🔔");
+        previewIcon.setFont(Font.font(FONT, 20));
+        previewIcon.setStyle("-fx-text-fill: " + PRIMARY_BLUE + ";");
+
+        VBox previewInner = new VBox(14,
+                previewIcon,
+                previewReminderType, previewTitle,
+                previewDescription, new Separator(),
+                previewDate, previewTime, previewRepeat, previewPriority
+        );
 
         previewInner.setPadding(new Insets(24));
-        previewInner.setStyle(card(BG_INNER));
+        previewInner.setStyle(
+                "-fx-background-color: " + BG_CARD_INNER + ";" +
+                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-border-radius: 12;" +
+                "-fx-background-radius: 12;"
+        );
 
-        VBox previewCard=new VBox(
+        Label previewSub = new Label("This is how your reminder will appear.");
+        previewSub.setFont(Font.font(FONT, 12));
+        previewSub.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+
+        VBox previewCard = new VBox(8,
                 section("Reminder Preview"),
-                label("This is how your reminder will appear.",
-                        12,FontWeight.NORMAL,MUTED),
-                previewInner);
+                previewSub,
+                previewInner
+        );
 
         previewCard.setPadding(new Insets(24));
-        previewCard.setSpacing(8);
-        previewCard.setStyle(card(BG_CARD));
+        previewCard.setStyle(
+                "-fx-background-color: " + BG_CARD + ";" +
+                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-border-radius: 16;" +
+                "-fx-background-radius: 16;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.14), 12, 0, 0, 4);"
+        );
 
-        titleField.textProperty().addListener((o,a,b)->
-                previewTitle.setText(
-                        b.trim().isEmpty()?"Reminder Title":b.trim()));
+        // Dynamically reflect form updates in Live Preview
+        titleField.textProperty().addListener((o, a, b) -> previewTitle.setText(b.trim().isEmpty() ? "Reminder Title" : b.trim()));
+        descriptionField.textProperty().addListener((o, a, b) -> previewDescription.setText(b.trim().isEmpty() ? "Reminder description will appear here..." : b.trim()));
+        reminderTypeCombo.valueProperty().addListener((o, a, b) -> previewReminderType.setText(b));
+        reminderDatePicker.valueProperty().addListener((o, a, b) -> previewDate.setText(b == null ? "▣  Select reminder date" : "▣  " + b.format(DateTimeFormatter.ofPattern("dd MMM yyyy"))));
+        reminderTimeField.textProperty().addListener((o, a, b) -> previewTime.setText(b.trim().isEmpty() ? "◷  Select reminder time" : "◷  " + b.trim()));
+        repeatCombo.valueProperty().addListener((o, a, b) -> previewRepeat.setText("⟳  " + b));
+        priorityCombo.valueProperty().addListener((o, a, b) -> previewPriority.setText("⚑  " + b + " Priority"));
 
-        descriptionField.textProperty().addListener((o,a,b)->
-                previewDescription.setText(
-                        b.trim().isEmpty()?
-                                "Reminder description will appear here...":
-                                b.trim()));
+        HBox columns = new HBox(20, details, previewCard);
+        HBox.setHgrow(details, Priority.ALWAYS);
+        HBox.setHgrow(previewCard, Priority.ALWAYS);
 
-        reminderTypeCombo.valueProperty().addListener((o,a,b)->
-                previewReminderType.setText(b));
-
-        reminderDatePicker.valueProperty().addListener((o,a,b)->
-                previewDate.setText(
-                        b==null?"▣  Select reminder date":
-                        "▣  "+b.format(
-                                DateTimeFormatter.ofPattern("dd MMM yyyy"))));
-
-        reminderTimeField.textProperty().addListener((o,a,b)->
-                previewTime.setText(
-                        b.trim().isEmpty()?
-                                "◷  Select reminder time":
-                                "◷  "+b.trim()));
-
-        repeatCombo.valueProperty().addListener((o,a,b)->
-                previewRepeat.setText("⟳  "+b));
-
-        priorityCombo.valueProperty().addListener((o,a,b)->
-                previewPriority.setText("⚑  "+b+" Priority"));
-
-        HBox columns=new HBox(20,details,previewCard);
-        HBox.setHgrow(details,Priority.ALWAYS);
-        HBox.setHgrow(previewCard,Priority.ALWAYS);
-
-        Button cancel=new Button("Cancel");
+        // Action Buttons
+        Button cancel = new Button("Cancel");
+        cancel.setFont(Font.font(FONT, FontWeight.BOLD, 13));
         cancel.setPrefHeight(40);
-        cancel.setTextFill(Color.web(DARK));
-        cancel.setStyle("-fx-background-color:"+BG_INPUT+
-                ";-fx-border-color:"+BORDER+
-                ";-fx-border-radius:8;-fx-background-radius:8;");
-        cancel.setOnAction(e->LandingPage.showCalendarPage());
+        cancel.setStyle(
+                "-fx-background-color: " + BG_CARD + ";" +
+                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;" +
+                "-fx-text-fill: " + TEXT_DARK + ";" +
+                "-fx-padding: 8 20;" +
+                "-fx-cursor: hand;"
+        );
+        cancel.setOnAction(e -> LandingPage.showCalendarPage());
 
-        Button create=new Button("+  Create Reminder");
+        Button create = new Button("+  Create Reminder");
+        create.setFont(Font.font(FONT, FontWeight.BOLD, 13));
         create.setPrefHeight(40);
-        create.setTextFill(Color.WHITE);
-        create.setStyle("-fx-background-color:"+BLUE+
-                ";-fx-background-radius:8;"+
-                "-fx-font-weight:bold;");
-        create.setOnAction(e->createReminder());
+        create.setStyle(
+                "-fx-background-color: " + PRIMARY_BLUE + ";" +
+                "-fx-text-fill: #FFFFFF;" +
+                "-fx-background-radius: 8;" +
+                "-fx-padding: 8 20;" +
+                "-fx-cursor: hand;"
+        );
+        create.setOnAction(e -> createReminder());
 
-        HBox buttons=new HBox(10,cancel,create);
+        HBox buttons = new HBox(10, cancel, create);
         buttons.setAlignment(Pos.CENTER_RIGHT);
 
-        VBox content=new VBox(18,header,columns,buttons);
-        content.setPadding(new Insets(8,24,20,24));
+        VBox contentBody = new VBox(22, header, columns, buttons);
+        contentBody.setPadding(new Insets(24, 28, 28, 28));
+        contentBody.setStyle("-fx-background-color: " + BG_CENTER_CANVAS + ";");
 
-        ScrollPane scroll=new ScrollPane(content);
-        scroll.setFitToWidth(true);
-        scroll.setStyle("-fx-background-color:"+BG_APP+
-                ";-fx-background:"+BG_APP+
-                ";-fx-border-color:transparent;");
+        ScrollPane scrollPane = new ScrollPane(contentBody);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle(
+                "-fx-background-color: " + BG_CENTER_CANVAS + ";" +
+                "-fx-background: " + BG_CENTER_CANVAS + ";" +
+                "-fx-background-insets: 0;" +
+                "-fx-padding: 0;"
+        );
 
-        VBox center=new VBox(topBar,scroll);
-        VBox.setVgrow(scroll,Priority.ALWAYS);
+        VBox mainArea = new VBox(topBar, scrollPane);
+        mainArea.setStyle("-fx-background-color: " + BG_CENTER_CANVAS + ";");
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
-        BorderPane root=new BorderPane();
+        BorderPane root = new BorderPane();
+        root.setStyle("-fx-background-color: " + BG_SIDEBAR + ";");
         root.setLeft(sidebar);
-        root.setCenter(center);
-        root.setStyle("-fx-background-color:"+BG_APP+";");
+        root.setCenter(mainArea);
 
-        return new Scene(root,1200,750);
+        return new Scene(root, 1200, 750);
     }
 
-    private void createReminder(){
+    // =========================================================
+    // HELPER METHODS & LOGIC
+    // =========================================================
 
-        String title=titleField.getText().trim();
+    private void createReminder() {
+        String title = titleField.getText().trim();
 
-        if(title.isEmpty()){
-            alert(Alert.AlertType.WARNING,
-                    "Missing Title",
-                    "Please enter a reminder title()");
+        if (title.isEmpty()) {
+            alert(Alert.AlertType.WARNING, "Missing Title", "Please enter a reminder title.");
             titleField.requestFocus();
             return;
         }
 
-        if(reminderDatePicker.getValue()==null){
-            alert(Alert.AlertType.WARNING,
-                    "Missing Date",
-                    "Please select a reminder date.");
+        if (reminderDatePicker.getValue() == null) {
+            alert(Alert.AlertType.WARNING, "Missing Date", "Please select a reminder date.");
             reminderDatePicker.requestFocus();
             return;
         }
 
-        String date=reminderDatePicker.getValue().format(
-                DateTimeFormatter.ofPattern("dd MMM yyyy"));
+        String date = reminderDatePicker.getValue().format(DateTimeFormatter.ofPattern("dd MMM yyyy"));
+        String time = reminderTimeField.getText().trim();
+        if (time.isEmpty()) time = "Not specified";
 
-        String time=reminderTimeField.getText().trim();
-        if(time.isEmpty()) time="Not specified";
+        String msg = "Reminder created successfully.\n\n" +
+                "Title: " + title + "\nType: " + reminderTypeCombo.getValue() +
+                "\nDate: " + date + "\nTime: " + time +
+                "\nRepeat: " + repeatCombo.getValue() + "\nPriority: " + priorityCombo.getValue();
 
-        String msg="Reminder created successfully.\n\n"+
-                "Title: "+title+
-                "\nType: "+reminderTypeCombo.getValue()+
-                "\nDate: "+date+
-                "\nTime: "+time+
-                "\nRepeat: "+repeatCombo.getValue()+
-                "\nPriority: "+priorityCombo.getValue();
-
-        alert(Alert.AlertType.INFORMATION,
-                "Reminder Created",msg);
-
+        alert(Alert.AlertType.INFORMATION, "Reminder Created", msg);
         LandingPage.showCalendarPage();
     }
 
-    private void chooseDocument(Stage stage){
-
-        FileChooser fc=new FileChooser();
+    private void chooseDocument() {
+        FileChooser fc = new FileChooser();
         fc.setTitle("Choose Document");
-
         fc.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("All Files","*.*"),
-                new FileChooser.ExtensionFilter("PDF Files","*.pdf"),
-                new FileChooser.ExtensionFilter(
-                        "Documents","*.doc","*.docx"),
-                new FileChooser.ExtensionFilter(
-                        "Images","*.png","*.jpg","*.jpeg"));
+                new FileChooser.ExtensionFilter("All Files", "*.*"),
+                new FileChooser.ExtensionFilter("PDF Files", "*.pdf"),
+                new FileChooser.ExtensionFilter("Documents", "*.doc", "*.docx"),
+                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"));
 
-        File file=fc.showOpenDialog(stage);
-
-        if(file!=null)
-            selectedFileLabel.setText("Selected: "+file.getName());
+        if (selectedFileLabel.getScene() != null) {
+            File file = fc.showOpenDialog(selectedFileLabel.getScene().getWindow());
+            if (file != null) selectedFileLabel.setText("Selected: " + file.getName());
+        }
     }
 
-    private Label fieldLabel(String text){
-        return label(text,12,FontWeight.BOLD,DARK);
+    private StackPane createOneSpaceLogo() {
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
+
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
+
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(42, 42);
+        logoPane.setAlignment(Pos.CENTER);
+
+        return logoPane;
     }
 
-    private Label section(String text){
-        return label(text,16,FontWeight.BOLD,DARK);
+    private Button createSidebarButton(String icon, String label, boolean isActive) {
+        Label iconLbl = new Label(icon);
+        iconLbl.setFont(Font.font(FONT, 14));
+
+        Label textLbl = new Label(label);
+        textLbl.setFont(Font.font(FONT, isActive ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
+
+        HBox content = new HBox(12, iconLbl, textLbl);
+        content.setAlignment(Pos.CENTER_LEFT);
+
+        Button btn = new Button("", content);
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.setPrefHeight(38);
+        btn.setAlignment(Pos.CENTER_LEFT);
+        btn.setPadding(new Insets(0, 12, 0, 12));
+
+        if (isActive) {
+            btn.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 8; -fx-cursor: hand;");
+            iconLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+            textLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        } else {
+            btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;");
+            iconLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+            textLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+
+            btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #26354A; -fx-background-radius: 8; -fx-cursor: hand;"));
+            btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;"));
+        }
+
+        return btn;
     }
 
-    private void styleTextField(TextField f){
+    private Label fieldLabel(String text) {
+        Label lbl = new Label(text);
+        lbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        lbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        return lbl;
+    }
+
+    private Label section(String text) {
+        Label lbl = new Label(text);
+        lbl.setFont(Font.font(FONT, FontWeight.BOLD, 16));
+        lbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        return lbl;
+    }
+
+    private void styleTextField(TextField f) {
         f.setPrefHeight(42);
         f.setMaxWidth(Double.MAX_VALUE);
-        f.setStyle("-fx-background-color:"+BG_INPUT+
-                ";-fx-control-inner-background:"+BG_INPUT+
-                ";-fx-text-fill:"+DARK+
-                ";-fx-prompt-text-fill:"+MUTED+
-                ";-fx-font-family:Arial;-fx-font-size:13px;");
+        f.setStyle(
+                "-fx-background-color: " + BG_INPUT + ";" +
+                "-fx-control-inner-background: " + BG_INPUT + ";" +
+                "-fx-text-fill: " + TEXT_DARK + ";" +
+                "-fx-prompt-text-fill: " + TEXT_MUTED_DARK + ";" +
+                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-font-size: 13px;"
+        );
     }
 
-    private void styleCombo(ComboBox<String> c){
+    private void styleCombo(ComboBox<String> c) {
         c.setPrefHeight(42);
         c.setMaxWidth(Double.MAX_VALUE);
-        c.setStyle("-fx-background-color:"+BG_INPUT+
-                ";-fx-border-color:"+BORDER+
-                ";-fx-font-family:Arial;-fx-font-size:13px;"+
-                "-fx-text-fill:"+DARK+";");
+        c.setStyle(
+                "-fx-background-color: " + BG_INPUT + ";" +
+                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-font-size: 13px;" +
+                "-fx-text-fill: " + TEXT_DARK + ";" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;"
+        );
     }
 
-    private VBox field(String name,Control control){
-        return new VBox(6,fieldLabel(name),control);
+    private VBox field(String name, Control control) {
+        return new VBox(6, fieldLabel(name), control);
     }
 
-    private HBox row(Pane a,Pane b){
-        HBox h=new HBox(18,a,b);
-        HBox.setHgrow(a,Priority.ALWAYS);
-        HBox.setHgrow(b,Priority.ALWAYS);
+    private HBox row(Pane a, Pane b) {
+        HBox h = new HBox(18, a, b);
+        HBox.setHgrow(a, Priority.ALWAYS);
+        HBox.setHgrow(b, Priority.ALWAYS);
         return h;
     }
 
-    private Label preview(String icon,String text){
-        return label(icon+"  "+text,13,FontWeight.NORMAL,MUTED);
+    private Label preview(String icon, String text) {
+        Label lbl = new Label(icon + "  " + text);
+        lbl.setFont(Font.font(FONT, 13));
+        lbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        return lbl;
     }
 
-    private String card(String color){
-        return "-fx-background-color:"+color+
-                ";-fx-border-color:"+BORDER+
-                ";-fx-border-radius:16;"+
-                "-fx-background-radius:16;";
-    }
-
-    private Button side(String icon,String text,boolean active){
-
-        Label i=label(icon,14,FontWeight.NORMAL,WHITE);
-        Label t=label(text,13,
-                active?FontWeight.BOLD:FontWeight.NORMAL,WHITE);
-
-        HBox box=new HBox(12,i,t);
-        box.setAlignment(Pos.CENTER_LEFT);
-
-        Button b=new Button("",box);
-        b.setMaxWidth(Double.MAX_VALUE);
-        b.setPrefHeight(38);
-        b.setAlignment(Pos.CENTER_LEFT);
-        b.setPadding(new Insets(0,12,0,12));
-
-        String normal=active?
-                "-fx-background-color:"+BLUE+
-                ";-fx-background-radius:8;":
-                "-fx-background-color:transparent;"+
-                "-fx-background-radius:8;";
-
-        b.setStyle(normal);
-        return b;
-    }
-
-    private Label label(String text,double size,
-                        FontWeight weight,String color){
-
-        Label l=new Label(text);
-        l.setFont(Font.font(FONT,weight,size));
-        l.setTextFill(Color.web(color));
-        l.setStyle("-fx-text-fill:"+color+";");
-        return l;
-    }
-
-    private Region space(){
-        Region r=new Region();
-        HBox.setHgrow(r,Priority.ALWAYS);
+    private Region space() {
+        Region r = new Region();
+        HBox.setHgrow(r, Priority.ALWAYS);
         return r;
     }
 
-    private void alert(Alert.AlertType type,String title,String msg){
-
-        Alert a=new Alert(type);
+    private void alert(Alert.AlertType type, String title, String msg) {
+        Alert a = new Alert(type);
         a.setTitle(title);
         a.setHeaderText(null);
         a.setContentText(msg);
