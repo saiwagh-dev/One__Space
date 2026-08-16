@@ -20,15 +20,11 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
-import java.net.URL;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
 public class AdminSecurity {
-
-    // =========================================================
-    // DARK THEME PALETTE & CONSTANTS
-    // =========================================================
 
     private static final String FONT = "Inter, 'Segoe UI', Arial, sans-serif";
 
@@ -50,11 +46,6 @@ public class AdminSecurity {
     private static final String GREEN = "#059669";
     private static final String RED = "#DC2626";
     private static final String ORANGE = "#D97706";
-
-
-    // =========================================================
-    // MAIN SCENE
-    // =========================================================
 
     public Scene getSecurityScene() {
 
@@ -89,16 +80,19 @@ public class AdminSecurity {
                 ".dark-grid-card .text { -fx-text-fill: #000000 !important; -fx-fill: #000000 !important; }" +
                 ".axis-label, .axis .tick-label { -fx-fill: #000000 !important; -fx-text-fill: #000000 !important; }" +
                 ".slate-dark-combo .list-cell { -fx-text-fill: #F8FAFC !important; -fx-font-weight: bold; -fx-background-color: #1E2A3A !important; }" +
-                ".slate-dark-combo .arrow { -fx-background-color: #94A3B8 !important; }";
+                ".slate-dark-combo .arrow { -fx-background-color: #94A3B8 !important; }" +
+                ".chart-bar { -fx-background-insets: 0; }" +
+                ".chart-horizontal-grid-lines { -fx-stroke: transparent !important; -fx-stroke-width: 0px !important; }" +
+                ".chart-vertical-grid-lines { -fx-stroke: transparent !important; -fx-stroke-width: 0px !important; }" +
+                ".chart-horizontal-zero-line { -fx-stroke: transparent !important; }" +
+                ".chart-vertical-zero-line { -fx-stroke: transparent !important; }" +
+                ".axis { -fx-tick-mark-color: transparent; -fx-minor-tick-mark-visible: false; }" +
+                ".axis:left { -fx-border-color: transparent !important; }" +
+                ".axis:bottom { -fx-border-color: transparent !important; }";
         scene.getStylesheets().add(cssOverride);
 
         return scene;
     }
-
-
-    // =========================================================
-    // SIDEBAR
-    // =========================================================
 
     private VBox createSidebar() {
 
@@ -120,17 +114,13 @@ public class AdminSecurity {
         HBox logoRow = new HBox(12, createLogo(), logoText);
         logoRow.setAlignment(Pos.CENTER_LEFT);
 
-        Label tagline = new Label("Your AI Workspace");
-        tagline.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
-        tagline.setTextFill(Color.web(LIGHT_SECONDARY));
-
-        VBox logoSection = new VBox(6, logoRow, tagline);
+        VBox logoSection = new VBox(logoRow);
         logoSection.setPadding(new Insets(0, 0, 18, 6));
 
         Button dashboardButton = createSidebarButton("dashboard", "Dashboard", false);
         Button usersButton = createSidebarButton("users", "Users", false);
         Button filesButton = createSidebarButton("files", "Files", false);
-        Button storageButton = createSidebarButton("storage", "Storage", false);
+        Button collabButton = createSidebarButton("collab", "Collaboration", false);
         Button aiButton = createSidebarButton("ai", "AI System", false);
         Button analyticsButton = createSidebarButton("analytics", "Analytics", false);
         Button securityButton = createSidebarButton("security", "Security", true);
@@ -138,6 +128,7 @@ public class AdminSecurity {
         dashboardButton.setOnAction(e -> LandingPage.showAdminDashboard());
         usersButton.setOnAction(e -> LandingPage.showAdminUsers());
         filesButton.setOnAction(e -> LandingPage.showAdminFiles());
+        collabButton.setOnAction(e -> LandingPage.showAdminCollaboration());
         aiButton.setOnAction(e -> LandingPage.showAdminAISystem());
         analyticsButton.setOnAction(e -> LandingPage.showAnalytics());
         securityButton.setOnAction(e -> LandingPage.showAdminSecurity());
@@ -147,7 +138,7 @@ public class AdminSecurity {
                 dashboardButton,
                 usersButton,
                 filesButton,
-                storageButton,
+                collabButton,
                 aiButton,
                 analyticsButton,
                 securityButton
@@ -179,9 +170,10 @@ public class AdminSecurity {
     }
 
     private StackPane createLogo() {
-        URL logoURL = getClass().getResource("/images/onespace-logo.png");
-        if (logoURL != null) {
-            ImageView imageView = new ImageView(new Image(logoURL.toExternalForm()));
+        InputStream stream = getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png");
+        if (stream != null) {
+            Image logoImage = new Image(stream);
+            ImageView imageView = new ImageView(logoImage);
             imageView.setFitWidth(42);
             imageView.setFitHeight(42);
             imageView.setPreserveRatio(true);
@@ -204,7 +196,7 @@ public class AdminSecurity {
         iconBox.setPrefSize(27, 27);
 
         Label label = new Label(text);
-        label.setFont(Font.font(FONT, selected ? FontWeight.BOLD : FontWeight.NORMAL, 16));
+        label.setFont(Font.font(FONT, selected ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
         label.setTextFill(Color.web(WHITE));
 
         HBox row = new HBox(14, iconBox, label);
@@ -239,11 +231,6 @@ public class AdminSecurity {
         return button;
     }
 
-
-    // =========================================================
-    // TOPBAR
-    // =========================================================
-
     private HBox createTopBar() {
 
         SVGPath searchIcon = createIcon("search");
@@ -258,7 +245,7 @@ public class AdminSecurity {
         HBox searchBox = new HBox(8, searchIconBox, searchField);
         searchBox.setAlignment(Pos.CENTER_LEFT);
         searchBox.setPrefHeight(38);
-        searchBox.setMaxWidth(500);
+        searchBox.setMaxWidth(Double.MAX_VALUE);
         searchBox.setPadding(new Insets(0, 10, 0, 12));
         searchBox.setStyle(
                 "-fx-background-color: " + SIDEBAR_DARK + ";" +
@@ -266,6 +253,7 @@ public class AdminSecurity {
                 "-fx-border-radius: 10;" +
                 "-fx-background-radius: 10;"
         );
+        HBox.setHgrow(searchBox, Priority.ALWAYS);
         HBox.setHgrow(searchField, Priority.ALWAYS);
 
         Region spacer = new Region();
@@ -312,7 +300,7 @@ public class AdminSecurity {
 
     private TextField createSearchField() {
         TextField searchField = new TextField();
-        searchField.setPromptText("Search anything...");
+        searchField.setPromptText("Search in OneSpace...");
         searchField.setFont(Font.font(FONT, FontWeight.NORMAL, 15));
         searchField.setPrefHeight(38);
         searchField.setStyle(
@@ -324,11 +312,6 @@ public class AdminSecurity {
         );
         return searchField;
     }
-
-
-    // =========================================================
-    // SECURITY CONTENT (2 GRIDS PER LINE)
-    // =========================================================
 
     private VBox createSecurityContent() {
 
@@ -378,15 +361,12 @@ public class AdminSecurity {
         HBox header = new HBox(headerText, headerSpacer, date);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        // Row 1: Failed Logins & Active Sessions
         HBox row1 = new HBox(18);
         addEqualChildren(row1, createFailedLoginCard(), createSessionsCard());
 
-        // Row 2: Security Alerts & 2FA Users
         HBox row2 = new HBox(18);
         addEqualChildren(row2, createAlertsCard(), createTwoFACard());
 
-        // Row 3: Suspicious Activity & Audit Logs
         HBox row3 = new HBox(18);
         addEqualChildren(row3, createSuspiciousCard(), createAuditLogsCard());
 
@@ -408,11 +388,6 @@ public class AdminSecurity {
         row.getChildren().addAll(child1, child2);
     }
 
-
-    // =========================================================
-    // FAILED LOGIN CARD
-    // =========================================================
-
     private VBox createFailedLoginCard() {
 
         VBox card = card();
@@ -432,6 +407,7 @@ public class AdminSecurity {
 
         xAxis.setTickMarkVisible(false);
         yAxis.setTickMarkVisible(false);
+        yAxis.setMinorTickVisible(false);
 
         BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
         chart.setLegendVisible(false);
@@ -439,7 +415,7 @@ public class AdminSecurity {
         chart.setCategoryGap(4);
         chart.setBarGap(1);
         chart.setPrefHeight(115);
-        chart.setHorizontalGridLinesVisible(true);
+        chart.setHorizontalGridLinesVisible(false);
         chart.setVerticalGridLinesVisible(false);
         chart.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
 
@@ -456,9 +432,10 @@ public class AdminSecurity {
         Platform.runLater(() -> {
             chart.applyCss();
             chart.layout();
+            chart.setHorizontalGridLinesVisible(false);
             for (XYChart.Data<String, Number> d : series.getData()) {
                 if (d.getNode() != null) {
-                    d.getNode().setStyle("-fx-bar-fill: " + RED + ";");
+                    d.getNode().setStyle("-fx-bar-fill: " + ORANGE + "; -fx-background-insets: 0;");
                 }
             }
         });
@@ -481,24 +458,19 @@ public class AdminSecurity {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Text attemptsLabel = createTextNode(attempts, 10, true, RED);
+        Text attemptsLabel = createTextNode(attempts, 10, true, ORANGE);
 
-        HBox row = new HBox(6, new Circle(3, Color.web(RED)), ipLabel, spacer, attemptsLabel);
+        HBox row = new HBox(6, new Circle(3, Color.web(ORANGE)), ipLabel, spacer, attemptsLabel);
         row.setAlignment(Pos.CENTER_LEFT);
         return row;
     }
-
-
-    // =========================================================
-    // ACTIVE SESSIONS
-    // =========================================================
 
     private VBox createSessionsCard() {
 
         VBox card = card();
         card.setMinHeight(330);
 
-        card.getChildren().add(cardHeader("storage", "Active Sessions", "View All"));
+        card.getChildren().add(cardHeader("collab", "Active Sessions", "View All"));
 
         GridPane table = new GridPane();
         table.setHgap(6);
@@ -553,11 +525,6 @@ public class AdminSecurity {
         return card;
     }
 
-
-    // =========================================================
-    // SECURITY ALERTS
-    // =========================================================
-
     private VBox createAlertsCard() {
 
         VBox card = card();
@@ -606,11 +573,6 @@ public class AdminSecurity {
         row.setPadding(new Insets(6, 0, 6, 0));
         return row;
     }
-
-
-    // =========================================================
-    // TWO FACTOR AUTHENTICATION
-    // =========================================================
 
     private VBox createTwoFACard() {
 
@@ -673,11 +635,6 @@ public class AdminSecurity {
         return new VBox(2, titleRow, valueLabel);
     }
 
-
-    // =========================================================
-    // SUSPICIOUS ACTIVITY
-    // =========================================================
-
     private VBox createSuspiciousCard() {
 
         VBox card = card();
@@ -723,11 +680,6 @@ public class AdminSecurity {
         return box;
     }
 
-
-    // =========================================================
-    // AUDIT LOGS
-    // =========================================================
-
     private VBox createAuditLogsCard() {
 
         VBox card = card();
@@ -770,11 +722,6 @@ public class AdminSecurity {
         card.getChildren().addAll(table, separator(), link("View All Audit Logs  →"));
         return card;
     }
-
-
-    // =========================================================
-    // UI HELPERS
-    // =========================================================
 
     private VBox card() {
         VBox box = new VBox(7);
@@ -889,7 +836,7 @@ public class AdminSecurity {
             case "dashboard": icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z"); break;
             case "users": icon.setContent("M8 11 A3 3 0 1 0 8 5 A3 3 0 0 0 8 11 Z M16 11 A3 3 0 1 0 16 5 A3 3 0 0 0 16 11 Z M2 20 C2 16 5 14 8 14 C11 14 14 16 14 20 M12 15 C14 14 17 14 19 15 C21 16 22 18 22 20"); break;
             case "files": icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13"); break;
-            case "storage": icon.setContent("M4 5 H20 L21 8 H3 Z M4 8 V20 H20 V8 M7 12 H17 M7 16 H17"); break;
+            case "collab": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
             case "ai": icon.setContent("M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z"); break;
             case "analytics": icon.setContent("M4 20 V11 M10 20 V6 M16 20 V13 M22 20 V3"); break;
             case "security": icon.setContent("M12 2 L20 5 V11 C20 16 17 20 12 22 C7 20 4 16 4 11 V5 Z M9 12 L11 14 L15 9"); break;
@@ -901,11 +848,6 @@ public class AdminSecurity {
         }
         return icon;
     }
-
-
-    // =========================================================
-    // MODELS
-    // =========================================================
 
     private static class Session {
         String initials, name, device, location, duration;

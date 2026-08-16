@@ -28,8 +28,7 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-
-import java.net.URL;
+import java.io.InputStream;
 
 public class AdminAISystem {
 
@@ -74,7 +73,6 @@ public class AdminAISystem {
 
         Scene scene = new Scene(root, 1200, 750);
 
-        // STYLESHEET INJECTION: Overrides global .label CSS rules explicitly for dark grid text
         String cssOverride = "data:text/css," +
                 ".dark-grid-label { -fx-text-fill: #000000 !important; -fx-fill: #000000 !important; }" +
                 ".dark-grid-label .text { -fx-text-fill: #000000 !important; -fx-fill: #000000 !important; }";
@@ -96,17 +94,13 @@ public class AdminAISystem {
         HBox logoRow = new HBox(12, createLogo(), logoText);
         logoRow.setAlignment(Pos.CENTER_LEFT);
 
-        Label tagline = new Label("Your AI Workspace");
-        tagline.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
-        tagline.setTextFill(Color.web(LIGHT_SECONDARY));
-
-        VBox logoSection = new VBox(6, logoRow, tagline);
+        VBox logoSection = new VBox(logoRow);
         logoSection.setPadding(new Insets(0, 0, 18, 6));
 
         Button dashboardButton = createSidebarButton("dashboard", "Dashboard", false);
         Button usersButton = createSidebarButton("users", "Users", false);
         Button filesButton = createSidebarButton("files", "Files", false);
-        Button storageButton = createSidebarButton("storage", "Storage", false);
+        Button collabButton = createSidebarButton("collab", "Collaboration", false);
         Button aiButton = createSidebarButton("ai", "AI System", true);
         Button analyticsButton = createSidebarButton("analytics", "Analytics", false);
         Button securityButton = createSidebarButton("security", "Security", false);
@@ -114,10 +108,11 @@ public class AdminAISystem {
         dashboardButton.setOnAction(e -> LandingPage.showAdminDashboard());
         usersButton.setOnAction(e -> LandingPage.showAdminUsers());
         filesButton.setOnAction(e -> LandingPage.showAdminFiles());
+        collabButton.setOnAction(e -> LandingPage.showAdminCollaboration());
         analyticsButton.setOnAction(e -> LandingPage.showAnalytics());
         securityButton.setOnAction(e -> LandingPage.showAdminSecurity());
 
-        VBox navList = new VBox(4, dashboardButton, usersButton, filesButton, storageButton, aiButton, analyticsButton, securityButton);
+        VBox navList = new VBox(4, dashboardButton, usersButton, filesButton, collabButton, aiButton, analyticsButton, securityButton);
 
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
@@ -137,10 +132,13 @@ public class AdminAISystem {
     }
 
     private StackPane createLogo() {
-        URL logoURL = getClass().getResource("/images/onespace-logo.png");
-        if (logoURL != null) {
-            ImageView imageView = new ImageView(new Image(logoURL.toExternalForm()));
-            imageView.setFitWidth(42); imageView.setFitHeight(42); imageView.setPreserveRatio(true);
+        InputStream stream = getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png");
+        if (stream != null) {
+            Image logoImage = new Image(stream);
+            ImageView imageView = new ImageView(logoImage);
+            imageView.setFitWidth(42); 
+            imageView.setFitHeight(42); 
+            imageView.setPreserveRatio(true);
             return new StackPane(imageView);
         }
         Circle circle = new Circle(20, Color.web(BLUE));
@@ -159,7 +157,7 @@ public class AdminAISystem {
         iconBox.setPrefSize(27, 27);
 
         Label label = new Label(text);
-        label.setFont(Font.font(FONT, selected ? FontWeight.BOLD : FontWeight.NORMAL, 16));
+        label.setFont(Font.font(FONT, selected ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
         label.setTextFill(Color.web(WHITE));
 
         HBox row = new HBox(14, iconBox, label);
@@ -203,9 +201,11 @@ public class AdminAISystem {
 
         HBox searchBox = new HBox(8, searchIconBox, searchField);
         searchBox.setAlignment(Pos.CENTER_LEFT);
-        searchBox.setPrefHeight(38); searchBox.setMaxWidth(500);
+        searchBox.setPrefHeight(38);
+        searchBox.setMaxWidth(Double.MAX_VALUE);
         searchBox.setPadding(new Insets(0, 10, 0, 12));
         searchBox.setStyle("-fx-background-color: " + SIDEBAR_DARK + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
+        HBox.setHgrow(searchBox, Priority.ALWAYS);
         HBox.setHgrow(searchField, Priority.ALWAYS);
 
         Region spacer = new Region();
@@ -406,14 +406,12 @@ public class AdminAISystem {
                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.18), 7, 0, 0, 2);";
     }
 
-    // Advanced Label Factory forcing both API level fill and underlying JavaFX Text node fill
     private Label createLabel(String text, String extraStyle) {
         Label label = new Label(text);
         label.getStyleClass().add("dark-grid-label");
         label.setTextFill(Color.BLACK);
         label.setStyle(extraStyle + " -fx-text-fill: #000000 !important; -fx-fill: #000000 !important;");
 
-        // Force internal child Text node coloring after scene layout pass
         Platform.runLater(() -> {
             Text textNode = (Text) label.lookup(".text");
             if (textNode != null) {
@@ -433,7 +431,7 @@ public class AdminAISystem {
             case "dashboard": icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z"); break;
             case "users": icon.setContent("M8 11 A3 3 0 1 0 8 5 A3 3 0 0 0 8 11 Z M16 11 A3 3 0 1 0 16 5 A3 3 0 0 0 16 11 Z M2 20 C2 16 5 14 8 14 C11 14 14 16 14 20 M12 15 C14 14 17 14 19 15 C21 16 22 18 22 20"); break;
             case "files": icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13"); break;
-            case "storage": icon.setContent("M4 5 H20 L21 8 H3 Z M4 8 V20 H20 V8 M7 12 H17 M7 16 H17"); break;
+            case "collab": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
             case "ai": icon.setContent("M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z"); break;
             case "analytics": icon.setContent("M4 20 V11 M10 20 V6 M16 20 V13 M22 20 V3"); break;
             case "security": icon.setContent("M12 2 L20 5 V11 C20 16 17 20 12 22 C7 20 4 16 4 11 V5 Z M9 12 L11 14 L15 9"); break;
