@@ -1,4 +1,4 @@
-package com.file_handlers.view.userView;
+package com.file_handlers.view.adminView;
 
 import com.file_handlers.view.LandingPage;
 
@@ -18,7 +18,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
-public class UserLoginPage {
+public class AdminLoginPage {
 
     // Slate Blue Theme Constants
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -33,7 +33,7 @@ public class UserLoginPage {
     private static final String TEXT_LIGHT = "#FFFFFF";
     private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
 
-    public Scene getUserLoginPageScene() {
+    public Scene getAdminLoginPageScene() {
 
         // App Header Bar
         Label logoIcon = new Label("⬡");
@@ -115,7 +115,7 @@ public class UserLoginPage {
         loginButton.setMaxWidth(Double.MAX_VALUE);
         loginButton.setPrefHeight(42);
         loginButton.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 10; -fx-cursor: hand;");
-        loginButton.setOnAction(e -> { LandingPage.showUserDashboard();});
+        loginButton.setOnAction(e -> { LandingPage.showAdminDashboard(); });
 
         // Footer Link
         Label noAccountText = new Label("Don't have an account?");
@@ -126,7 +126,7 @@ public class UserLoginPage {
         signUpLink.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         signUpLink.setTextFill(Color.web(PRIMARY_BLUE));
         signUpLink.setStyle("-fx-cursor: hand;");
-        signUpLink.setOnMouseClicked(e -> { LandingPage.showUserSignupPage();});
+        signUpLink.setOnMouseClicked(e -> { LandingPage.showAdminSignUp(); });
 
         HBox signUpBox = new HBox(4, noAccountText, signUpLink);
         signUpBox.setAlignment(Pos.CENTER);
