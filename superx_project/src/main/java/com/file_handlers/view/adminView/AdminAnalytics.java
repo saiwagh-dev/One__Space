@@ -28,7 +28,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import java.net.URL;
+import java.io.InputStream;
 
 public class AdminAnalytics {
     private static final String FONT = "Inter, 'Segoe UI', Arial, sans-serif";
@@ -83,11 +83,7 @@ public class AdminAnalytics {
         HBox logoRow = new HBox(12, createLogo(), logoText);
         logoRow.setAlignment(Pos.CENTER_LEFT);
 
-        Label tagline = new Label("Your AI Workspace");
-        tagline.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
-        tagline.setTextFill(Color.web(LIGHT_SECONDARY));
-
-        VBox logoSection = new VBox(6, logoRow, tagline);
+        VBox logoSection = new VBox(logoRow);
         logoSection.setPadding(new Insets(0, 0, 18, 6));
 
         Button dashboard = createSidebarButton("dashboard", "Dashboard", false);
@@ -99,19 +95,19 @@ public class AdminAnalytics {
         Button files = createSidebarButton("files", "Files", false);
         files.setOnAction(e -> LandingPage.showAdminFiles());
 
-        Button storage = createSidebarButton("storage", "Storage", false);
+        Button collab = createSidebarButton("collab", "Collaboration", false);
+        collab.setOnAction(e -> LandingPage.showAdminCollaboration());
+
         Button aiSystem = createSidebarButton("ai", "AI System", false);
         aiSystem.setOnAction(e -> LandingPage.showAdminAISystem());
 
-        
         Button analytics = createSidebarButton("analytics", "Analytics", true);
         analytics.setOnAction(e -> LandingPage.showAnalytics());
 
         Button security = createSidebarButton("security", "Security", false);
         security.setOnAction(e -> LandingPage.showAdminSecurity());
 
-
-        VBox navigation = new VBox(4, dashboard, users, files, storage, aiSystem, analytics, security);
+        VBox navigation = new VBox(4, dashboard, users, files, collab, aiSystem, analytics, security);
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
@@ -119,21 +115,22 @@ public class AdminAnalytics {
         Button settings = createSidebarButton("settings", "Settings", false);
         settings.setOnAction(e -> LandingPage.showAdminSettings());
 
-
         Region divider = new Region();
         divider.setPrefHeight(1);
         divider.setStyle("-fx-background-color: " + SIDEBAR_BORDER + ";");
 
         Button logout = createSidebarButton("logout", "Logout", false);
+        logout.setOnAction(e -> LandingPage.showAdminLoginPage());
 
         sidebar.getChildren().addAll(logoSection, navigation, spacer, settings, divider, logout);
         return sidebar;
     }
 
     private StackPane createLogo() {
-        URL logoURL = getClass().getResource("/images/onespace-logo.png");
-        if (logoURL != null) {
-            ImageView imageView = new ImageView(new Image(logoURL.toExternalForm()));
+        InputStream stream = getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png");
+        if (stream != null) {
+            Image logoImage = new Image(stream);
+            ImageView imageView = new ImageView(logoImage);
             imageView.setFitWidth(42);
             imageView.setFitHeight(42);
             imageView.setPreserveRatio(true);
@@ -155,7 +152,7 @@ public class AdminAnalytics {
         iconBox.setPrefSize(27, 27);
 
         Label label = new Label(text);
-        label.setFont(Font.font(FONT, active ? FontWeight.BOLD : FontWeight.NORMAL, 16));
+        label.setFont(Font.font(FONT, active ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
         label.setTextFill(Color.WHITE);
 
         HBox row = new HBox(14, iconBox, label);
@@ -205,9 +202,10 @@ public class AdminAnalytics {
         HBox searchBox = new HBox(8, searchIconBox, search);
         searchBox.setAlignment(Pos.CENTER_LEFT);
         searchBox.setPrefHeight(38);
-        searchBox.setMaxWidth(500);
+        searchBox.setMaxWidth(Double.MAX_VALUE);
         searchBox.setPadding(new Insets(0, 10, 0, 12));
         searchBox.setStyle("-fx-background-color: " + SIDEBAR_DARK + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
+        HBox.setHgrow(searchBox, Priority.ALWAYS);
         HBox.setHgrow(search, Priority.ALWAYS);
 
         Region spacer = new Region();
@@ -406,8 +404,8 @@ public class AdminAnalytics {
             case "files":
                 icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13");
                 break;
-            case "storage":
-                icon.setContent("M4 5 H20 L21 8 H3 Z M4 8 V20 H20 V8 M7 12 H17 M7 16 H17");
+            case "collab":
+                icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75");
                 break;
             case "ai":
                 icon.setContent("M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z");

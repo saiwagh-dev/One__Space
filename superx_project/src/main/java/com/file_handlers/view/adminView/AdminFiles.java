@@ -23,8 +23,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import java.net.URL;
-import com.file_handlers.Main;
+import java.io.InputStream;
 import com.file_handlers.view.LandingPage;
 
 public class AdminFiles {
@@ -56,6 +55,7 @@ public class AdminFiles {
 
         ScrollPane scrollPane = new ScrollPane(createFilesContent());
         scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
@@ -81,11 +81,7 @@ public class AdminFiles {
         HBox logoRow = new HBox(12, createLogo(), logoText);
         logoRow.setAlignment(Pos.CENTER_LEFT);
 
-        Label tagline = new Label("Your AI Workspace");
-        tagline.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
-        tagline.setTextFill(Color.web(LIGHT_SECONDARY));
-
-        VBox logoSection = new VBox(6, logoRow, tagline);
+        VBox logoSection = new VBox(logoRow);
         logoSection.setPadding(new Insets(0, 0, 18, 6));
 
         Button dashboard = createSidebarButton("dashboard", "Dashboard", false);
@@ -94,7 +90,8 @@ public class AdminFiles {
         users.setOnAction(e -> LandingPage.showAdminUsers());
         Button files = createSidebarButton("files", "Files", true);
         files.setOnAction(e -> LandingPage.showAdminFiles());
-        Button storage = createSidebarButton("storage", "Storage", false);
+        Button collab = createSidebarButton("collab", "Collaboration", false);
+        collab.setOnAction(e -> LandingPage.showAdminCollaboration());
         Button aiSystem = createSidebarButton("ai", "AI System", false);
         aiSystem.setOnAction(e -> LandingPage.showAdminAISystem());
 
@@ -103,8 +100,7 @@ public class AdminFiles {
         Button security = createSidebarButton("security", "Security", false);
         security.setOnAction(e -> LandingPage.showAdminSecurity());
 
-
-        VBox navigation = new VBox(4, dashboard, users, files, storage, aiSystem, analytics, security);
+        VBox navigation = new VBox(4, dashboard, users, files, collab, aiSystem, analytics, security);
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
@@ -124,10 +120,13 @@ public class AdminFiles {
     }
 
     private StackPane createLogo() {
-        URL logoURL = getClass().getResource("/images/onespace-logo.png");
-        if (logoURL != null) {
-            ImageView imageView = new ImageView(new Image(logoURL.toExternalForm()));
-            imageView.setFitWidth(42); imageView.setFitHeight(42); imageView.setPreserveRatio(true);
+        InputStream stream = getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png");
+        if (stream != null) {
+            Image logoImage = new Image(stream);
+            ImageView imageView = new ImageView(logoImage);
+            imageView.setFitWidth(42); 
+            imageView.setFitHeight(42); 
+            imageView.setPreserveRatio(true);
             return new StackPane(imageView);
         }
         Circle circle = new Circle(20, Color.web(BLUE));
@@ -146,7 +145,7 @@ public class AdminFiles {
         iconBox.setPrefSize(27, 27);
 
         Label label = new Label(text);
-        label.setFont(Font.font(FONT, active ? FontWeight.BOLD : FontWeight.NORMAL, 16));
+        label.setFont(Font.font(FONT, active ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
         label.setTextFill(Color.web(WHITE));
 
         HBox row = new HBox(14, iconBox, label);
@@ -194,9 +193,10 @@ public class AdminFiles {
 
         HBox searchBox = new HBox(8, searchIconBox, search);
         searchBox.setAlignment(Pos.CENTER_LEFT);
-        searchBox.setPrefHeight(38); searchBox.setMaxWidth(500);
+        searchBox.setPrefHeight(38); searchBox.setMaxWidth(Double.MAX_VALUE);
         searchBox.setPadding(new Insets(0, 10, 0, 12));
         searchBox.setStyle("-fx-background-color: " + SIDEBAR_DARK + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
+        HBox.setHgrow(searchBox, Priority.ALWAYS);
         HBox.setHgrow(search, Priority.ALWAYS);
 
         Region spacer = new Region();
@@ -229,7 +229,6 @@ public class AdminFiles {
         profile.setAlignment(Pos.CENTER);
 
         HBox topBar = new HBox(20, searchBox, spacer, profile);
-        HBox.setHgrow(spacer, Priority.ALWAYS);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPadding(new Insets(16, 24, 16, 24));
         topBar.setStyle("-fx-background-color: " + SIDEBAR_BG + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
@@ -251,6 +250,7 @@ public class AdminFiles {
 
         GridPane grid = new GridPane();
         grid.setHgap(22); grid.setVgap(22);
+        grid.setMaxWidth(Double.MAX_VALUE);
 
         ColumnConstraints firstColumn = new ColumnConstraints();
         firstColumn.setPercentWidth(50); firstColumn.setHgrow(Priority.ALWAYS);
@@ -262,8 +262,9 @@ public class AdminFiles {
         grid.add(createMostUsedCategories(), 1, 0);
 
         VBox content = new VBox(25, heading, grid);
-        content.setPadding(new Insets(42, 48, 45, 48));
+        content.setPadding(new Insets(30, 35, 30, 35));
         content.setFillWidth(true);
+        content.setMaxWidth(Double.MAX_VALUE);
         content.setStyle("-fx-background-color: " + MAIN_BG + ";");
         return content;
     }
@@ -293,9 +294,9 @@ public class AdminFiles {
         totalFilesText.setAlignment(Pos.CENTER_LEFT);
 
         VBox totalFilesCard = new VBox(totalFilesText);
-        totalFilesCard.setPrefWidth(183); totalFilesCard.setMinWidth(183); totalFilesCard.setMaxWidth(183);
+        totalFilesCard.setPrefWidth(140); totalFilesCard.setMinWidth(120); totalFilesCard.setMaxWidth(160);
         totalFilesCard.setPrefHeight(225); totalFilesCard.setMinHeight(225);
-        totalFilesCard.setPadding(new Insets(28, 24, 28, 24));
+        totalFilesCard.setPadding(new Insets(24, 18, 24, 18));
         totalFilesCard.setStyle("-fx-background-color: " + TOTAL_FILES_BG + "; -fx-border-color: " + TOTAL_FILES_BORDER + "; -fx-border-width: 1; -fx-border-radius: 18; -fx-background-radius: 18;");
 
         PieChart pieChart = new PieChart();
@@ -309,7 +310,7 @@ public class AdminFiles {
         pieChart.setLegendVisible(false);
         pieChart.setLabelsVisible(false);
         pieChart.setStartAngle(90);
-        pieChart.setPrefSize(160, 160); pieChart.setMinSize(160, 160); pieChart.setMaxSize(160, 160);
+        pieChart.setPrefSize(140, 140); pieChart.setMinSize(140, 140); pieChart.setMaxSize(140, 140);
         pieChart.setStyle("-fx-background-color: transparent;");
 
         pdf.getNode().setStyle("-fx-pie-color: " + PDF_COLOR + ";");
@@ -318,31 +319,32 @@ public class AdminFiles {
         videos.getNode().setStyle("-fx-pie-color: " + VIDEO_COLOR + ";");
         others.getNode().setStyle("-fx-pie-color: " + OTHER_COLOR + ";");
 
-        Circle donutCenter = new Circle(42);
+        Circle donutCenter = new Circle(36);
         donutCenter.setFill(Color.web(CARD_BG));
 
         StackPane donut = new StackPane(pieChart, donutCenter);
-        donut.setPrefSize(170, 170); donut.setMinSize(170, 170); donut.setMaxSize(170, 170);
+        donut.setPrefSize(150, 150); donut.setMinSize(150, 150); donut.setMaxSize(150, 150);
 
-        VBox legend = new VBox(15,
+        VBox legend = new VBox(12,
                 createLegendRow("PDF", "36%"),
                 createLegendRow("Images", "27%"),
                 createLegendRow("Documents", "21%"),
                 createLegendRow("Videos", "9%"),
                 createLegendRow("Others", "5%")
         );
-
-        HBox chartArea = new HBox(18, donut, legend);
-        chartArea.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(legend, Priority.ALWAYS);
 
-        HBox middle = new HBox(28, totalFilesCard, chartArea);
+        HBox chartArea = new HBox(12, donut, legend);
+        chartArea.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(chartArea, Priority.ALWAYS);
+
+        HBox middle = new HBox(16, totalFilesCard, chartArea);
         middle.setAlignment(Pos.CENTER_LEFT);
 
         VBox card = new VBox(22, title, middle);
         card.setPrefHeight(333); card.setMinHeight(333);
         card.setMaxWidth(Double.MAX_VALUE);
-        card.setPadding(new Insets(30, 28, 25, 28));
+        card.setPadding(new Insets(30, 24, 25, 24));
         card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1; -fx-border-radius: 18; -fx-background-radius: 18; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.18), 7, 0, 0, 2);");
         return card;
     }
@@ -350,7 +352,7 @@ public class AdminFiles {
     private HBox createLegendRow(String name, String percentage) {
         Circle bullet = new Circle(4, Color.BLACK);
         Label nameLabel = new Label(name);
-        nameLabel.setFont(Font.font(FONT, FontWeight.NORMAL, 15));
+        nameLabel.setFont(Font.font(FONT, FontWeight.NORMAL, 14));
         nameLabel.setTextFill(Color.BLACK);
         nameLabel.setStyle("-fx-text-fill: #000000;");
 
@@ -362,9 +364,9 @@ public class AdminFiles {
         percentageLabel.setTextFill(Color.BLACK);
         percentageLabel.setStyle("-fx-text-fill: #000000;");
 
-        HBox row = new HBox(12, bullet, nameLabel, spacer, percentageLabel);
+        HBox row = new HBox(8, bullet, nameLabel, spacer, percentageLabel);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setPrefWidth(210);
+        row.setMaxWidth(Double.MAX_VALUE);
         return row;
     }
 
@@ -392,10 +394,10 @@ public class AdminFiles {
 
     private HBox createCategoryRow(String category, int count, String percentage, double progress) {
         Label categoryLabel = new Label(category);
-        categoryLabel.setFont(Font.font(FONT, FontWeight.NORMAL, 16));
+        categoryLabel.setFont(Font.font(FONT, FontWeight.NORMAL, 15));
         categoryLabel.setTextFill(Color.BLACK);
         categoryLabel.setStyle("-fx-text-fill: #000000;");
-        categoryLabel.setPrefWidth(128);
+        categoryLabel.setPrefWidth(90);
 
         StackPane progressBackground = new StackPane();
         progressBackground.setPrefHeight(8); progressBackground.setMinHeight(8); progressBackground.setMaxHeight(8);
@@ -415,7 +417,7 @@ public class AdminFiles {
         countLabel.setFont(Font.font(FONT, FontWeight.NORMAL, 14));
         countLabel.setTextFill(Color.BLACK);
         countLabel.setStyle("-fx-text-fill: #000000;");
-        countLabel.setPrefWidth(130);
+        countLabel.setPrefWidth(100);
         countLabel.setAlignment(Pos.CENTER_RIGHT);
 
         HBox row = new HBox(10, categoryLabel, progressBackground, countLabel);
@@ -432,7 +434,7 @@ public class AdminFiles {
             case "dashboard": icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z"); break;
             case "users": icon.setContent("M8 11 A3 3 0 1 0 8 5 A3 3 0 0 0 8 11 Z M16 11 A3 3 0 1 0 16 5 A3 3 0 0 0 16 11 Z M2 20 C2 16 5 14 8 14 C11 14 14 16 14 20 M12 15 C14 14 17 14 19 15 C21 16 22 18 22 20"); break;
             case "files": icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13"); break;
-            case "storage": icon.setContent("M4 5 H20 L21 8 H3 Z M4 8 V20 H20 V8 M7 12 H17 M7 16 H17"); break;
+            case "collab": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
             case "ai": icon.setContent("M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z"); break;
             case "analytics": icon.setContent("M4 20 V11 M10 20 V6 M16 20 V13 M22 20 V3"); break;
             case "security": icon.setContent("M12 2 L20 5 V11 C20 16 17 20 12 22 C7 20 4 16 4 11 V5 Z M9 12 L11 14 L15 9"); break;

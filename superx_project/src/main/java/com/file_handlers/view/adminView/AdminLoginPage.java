@@ -9,14 +9,20 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+
+import java.io.InputStream;
 
 public class AdminLoginPage {
 
@@ -27,54 +33,43 @@ public class AdminLoginPage {
     private static final String BG_INPUT = "#EDF3FA";
     private static final String BORDER_COLOR = "#C9DAEE";
     private static final String PRIMARY_BLUE = "#2563EB";
-    private static final String PRIMARY_LIGHT_BLUE = "#BFDBFE";
     private static final String TEXT_DARK = "#142338";
     private static final String TEXT_MUTED_DARK = "#506580";
-    private static final String TEXT_LIGHT = "#FFFFFF";
     private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
 
     public Scene getAdminLoginPageScene() {
 
         // App Header Bar
-        Label logoIcon = new Label("⬡");
-        logoIcon.setFont(Font.font(FONT, FontWeight.BOLD, 20));
-        logoIcon.setTextFill(Color.web("#60A5FA"));
-
-        Label logoText = new Label("OneSpace");
-        logoText.setFont(Font.font(FONT, FontWeight.BOLD, 16));
-        logoText.setTextFill(Color.web(TEXT_LIGHT));
-
-        HBox logoHeader = new HBox(8, logoIcon, logoText);
-        logoHeader.setAlignment(Pos.CENTER_LEFT);
-
         Button backBtn = new Button("← Back to home");
         backBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         backBtn.setTextFill(Color.web(TEXT_MUTED_LIGHT));
         backBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
-        backBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
-
-        HBox appHeader = new HBox(logoHeader, new Region(), backBtn);
-        HBox.setHgrow(appHeader.getChildren().get(1), Priority.ALWAYS);
+        backBtn.setOnAction(e -> { 
+    LandingPage.setScene(new LandingPage().getLandingPageScene()); 
+});
+        HBox appHeader = new HBox(new Region(), backBtn);
+        HBox.setHgrow(appHeader.getChildren().get(0), Priority.ALWAYS);
         appHeader.setAlignment(Pos.CENTER_LEFT);
         appHeader.setPadding(new Insets(16, 24, 16, 24));
 
-        // Login Card Header
-        Label iconAvatar = new Label("👤");
-        iconAvatar.setFont(Font.font(20));
-        iconAvatar.setTextFill(Color.web(PRIMARY_BLUE));
-        iconAvatar.setPrefSize(48, 48);
-        iconAvatar.setAlignment(Pos.CENTER);
-        iconAvatar.setStyle("-fx-background-color: " + PRIMARY_LIGHT_BLUE + "; -fx-background-radius: 50%;");
+        // Branding Header (Above Card Grid)
+        Label brandingText = new Label("OneSpace");
+        brandingText.setFont(Font.font(FONT, FontWeight.BOLD, 24));
+        brandingText.setTextFill(Color.web("#FFFFFF"));
 
+        VBox topBranding = new VBox(0, createLogo(), brandingText);
+        topBranding.setAlignment(Pos.CENTER);
+
+        // Login Card Header
         Label title = new Label("Welcome Back");
-        title.setFont(Font.font(FONT, FontWeight.BOLD, 22));
+        title.setFont(Font.font(FONT, FontWeight.BOLD, 20));
         title.setTextFill(Color.web(TEXT_DARK));
 
         Label subtitle = new Label("Enter your credentials to access OneSpace");
         subtitle.setFont(Font.font(FONT, 13));
         subtitle.setTextFill(Color.web(TEXT_MUTED_DARK));
 
-        VBox cardHeader = new VBox(8, iconAvatar, title, subtitle);
+        VBox cardHeader = new VBox(4, title, subtitle);
         cardHeader.setAlignment(Pos.CENTER);
 
         // Form Fields
@@ -132,10 +127,10 @@ public class AdminLoginPage {
         signUpBox.setAlignment(Pos.CENTER);
 
         // Card Assembly
-        VBox card = new VBox(20, cardHeader, emailBox, passwordBox, loginButton, signUpBox);
-        card.setPadding(new Insets(32, 28, 32, 28));
-        card.setPrefWidth(360);
-        card.setMaxWidth(360);
+        VBox card = new VBox(16, cardHeader, emailBox, passwordBox, loginButton, signUpBox);
+        card.setPadding(new Insets(28, 28, 28, 28));
+        card.setPrefWidth(380);
+        card.setMaxWidth(380);
         card.setStyle(
                 "-fx-background-color: " + BG_CARD + ";" +
                 "-fx-border-color: " + BORDER_COLOR + ";" +
@@ -150,7 +145,7 @@ public class AdminLoginPage {
         VBox.setVgrow(topSpacer, Priority.ALWAYS);
         VBox.setVgrow(bottomSpacer, Priority.ALWAYS);
 
-        VBox centerBody = new VBox(topSpacer, card, bottomSpacer);
+        VBox centerBody = new VBox(8, topSpacer, topBranding, card, bottomSpacer);
         centerBody.setAlignment(Pos.CENTER);
         centerBody.setPadding(new Insets(0, 24, 24, 24));
 
@@ -160,6 +155,23 @@ public class AdminLoginPage {
         root.setCenter(centerBody);
 
         return new Scene(root, 1200, 750);
+    }
+
+    private StackPane createLogo() {
+        InputStream stream = getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png");
+        if (stream != null) {
+            Image logoImage = new Image(stream);
+            ImageView imageView = new ImageView(logoImage);
+            imageView.setFitWidth(76); 
+            imageView.setFitHeight(76); 
+            imageView.setPreserveRatio(true);
+            return new StackPane(imageView);
+        }
+        Circle circle = new Circle(36, Color.web(PRIMARY_BLUE));
+        Label fallback = new Label("O");
+        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 30));
+        fallback.setTextFill(Color.WHITE);
+        return new StackPane(circle, fallback);
     }
 
     private String getFieldStyle() {

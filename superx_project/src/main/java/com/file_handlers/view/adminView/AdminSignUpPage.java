@@ -9,14 +9,20 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+
+import java.io.InputStream;
 
 public class AdminSignUpPage {
 
@@ -34,12 +40,10 @@ public class AdminSignUpPage {
     private static final String BORDER_COLOR = "#C9DAEE";
 
     private static final String PRIMARY_BLUE = "#2563EB";
-    private static final String PRIMARY_LIGHT_BLUE = "#BFDBFE";
 
     private static final String TEXT_DARK = "#142338";
     private static final String TEXT_MUTED_DARK = "#506580";
 
-    private static final String TEXT_LIGHT = "#FFFFFF";
     private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
 
     public Scene getAdminSignUpScene() {
@@ -47,32 +51,6 @@ public class AdminSignUpPage {
         // =========================================================
         // APP HEADER BAR
         // =========================================================
-
-        Label logoIcon = new Label("⬡");
-        logoIcon.setFont(
-                Font.font(FONT, FontWeight.BOLD, 20)
-        );
-        logoIcon.setTextFill(
-                Color.web("#60A5FA")
-        );
-
-        Label logoText = new Label("OneSpace");
-        logoText.setFont(
-                Font.font(FONT, FontWeight.BOLD, 16)
-        );
-        logoText.setTextFill(
-                Color.web(TEXT_LIGHT)
-        );
-
-        HBox logoHeader = new HBox(
-                8,
-                logoIcon,
-                logoText
-        );
-
-        logoHeader.setAlignment(
-                Pos.CENTER_LEFT
-        );
 
         Button backBtn = new Button("← Back to home");
 
@@ -89,18 +67,17 @@ public class AdminSignUpPage {
                 "-fx-cursor: hand;"
         );
 
-        backBtn.setOnAction(e -> {
-            LandingPage.showLandingPage();
+        backBtn.setOnAction(e -> { 
+        LandingPage.setScene(new LandingPage().getLandingPageScene()); 
         });
 
         HBox appHeader = new HBox(
-                logoHeader,
                 new Region(),
                 backBtn
         );
 
         HBox.setHgrow(
-                appHeader.getChildren().get(1),
+                appHeader.getChildren().get(0),
                 Priority.ALWAYS
         );
 
@@ -113,39 +90,35 @@ public class AdminSignUpPage {
         );
 
         // =========================================================
-        // SIGN UP CARD HEADER
+        // BRANDING HEADER (ABOVE CARD GRID)
         // =========================================================
 
-        Label iconAvatar = new Label("✦");
-
-        iconAvatar.setFont(
-                Font.font(FONT, FontWeight.BOLD, 20)
+        Label brandingText = new Label("OneSpace");
+        brandingText.setFont(
+                Font.font(FONT, FontWeight.BOLD, 24)
+        );
+        brandingText.setTextFill(
+                Color.web("#FFFFFF")
         );
 
-        iconAvatar.setTextFill(
-                Color.web(PRIMARY_BLUE)
+        VBox topBranding = new VBox(
+                0,
+                createLogo(),
+                brandingText
         );
 
-        iconAvatar.setPrefSize(
-                48,
-                48
-        );
-
-        iconAvatar.setAlignment(
+        topBranding.setAlignment(
                 Pos.CENTER
         );
 
-        iconAvatar.setStyle(
-                "-fx-background-color: " +
-                PRIMARY_LIGHT_BLUE +
-                ";" +
-                "-fx-background-radius: 50%;"
-        );
+        // =========================================================
+        // SIGN UP CARD HEADER
+        // =========================================================
 
         Label title = new Label("Create Account");
 
         title.setFont(
-                Font.font(FONT, FontWeight.BOLD, 22)
+                Font.font(FONT, FontWeight.BOLD, 20)
         );
 
         title.setTextFill(
@@ -165,8 +138,7 @@ public class AdminSignUpPage {
         );
 
         VBox cardHeader = new VBox(
-                8,
-                iconAvatar,
+                4,
                 title,
                 subtitle
         );
@@ -411,7 +383,7 @@ public class AdminSignUpPage {
         // =========================================================
 
         VBox card = new VBox(
-                20,
+                16,
                 cardHeader,
                 nameBox,
                 emailBox,
@@ -423,9 +395,9 @@ public class AdminSignUpPage {
 
         card.setPadding(
                 new Insets(
-                        32,
                         28,
-                        32,
+                        28,
+                        28,
                         28
                 )
         );
@@ -471,7 +443,9 @@ public class AdminSignUpPage {
         );
 
         VBox centerBody = new VBox(
+                8,
                 topSpacer,
+                topBranding,
                 card,
                 bottomSpacer
         );
@@ -514,6 +488,27 @@ public class AdminSignUpPage {
                 1200,
                 750
         );
+    }
+
+    // =========================================================
+    // LOGO LOADER
+    // =========================================================
+
+    private StackPane createLogo() {
+        InputStream stream = getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png");
+        if (stream != null) {
+            Image logoImage = new Image(stream);
+            ImageView imageView = new ImageView(logoImage);
+            imageView.setFitWidth(76); 
+            imageView.setFitHeight(76); 
+            imageView.setPreserveRatio(true);
+            return new StackPane(imageView);
+        }
+        Circle circle = new Circle(36, Color.web(PRIMARY_BLUE));
+        Label fallback = new Label("O");
+        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 30));
+        fallback.setTextFill(Color.WHITE);
+        return new StackPane(circle, fallback);
     }
 
     // =========================================================
