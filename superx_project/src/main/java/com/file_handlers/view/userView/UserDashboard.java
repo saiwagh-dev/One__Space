@@ -86,9 +86,9 @@ public class UserDashboard {
         spacesBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
         searchBtn.setOnAction(e -> { LandingPage.showUserSearch(); });
         calendarBtn.setOnAction(e -> { LandingPage.showCalendarPage(); });
+        collabBtn.setOnAction(e -> { LandingPage.showCollaborationPage();});
         aiBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
-        collabBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
-        recentBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        recentBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
         trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
         settingsBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
 

@@ -1,10 +1,13 @@
 package com.file_handlers.view;
 
+
 import com.file_handlers.view.adminView.*;
 import javafx.util.Duration;
 
 import com.file_handlers.view.userView.AddReminderPage;
+import com.file_handlers.view.userView.CollaborationPage;
 import com.file_handlers.view.userView.NotificationPage;
+import com.file_handlers.view.userView.RecentPage;
 import com.file_handlers.view.userView.UserCalendar;
 import com.file_handlers.view.userView.UserDashboard;
 import com.file_handlers.view.userView.UserLoginPage;
@@ -84,18 +87,33 @@ public class LandingPage extends Application {
 
     public static void showAdminLoginPage() { setScene(new AdminLoginPage().getAdminLoginPageScene()); }
     public static void showAdminDashboard() { setScene(new AdminDashboard().getAdminDashboardScene()); }
-    public static void showAdminUsers()   { setScene(new AdminUsers().getAdminUsersScene()); }
-    public static void showAdminFiles()   { setScene(new AdminFiles().getAdminFilesScene()); }
-    public static void showAnalytics()    { setScene(new AdminAnalytics().getAnalyticsScene()); }
-    public static void showAdminSettings(){ setScene(new AdminSettings().getAdminSettingsScene()); }
-    public static void showAdminSignUp()  { setScene(new AdminSignUpPage().getAdminSignUpScene()); }
-    public static void showAdminAISystem(){ setScene(new AdminAISystem().getAdminAIScene()); }
-    public static void showAdminSecurity(){ setScene(new AdminSecurity().getSecurityScene()); }
+    public static void showAdminUsers()   {setScene(new AdminUsers().getAdminUsersScene());}
+    public static void showAdminFiles()   {setScene(new AdminFiles().getAdminFilesScene());}
+    public static void showAnalytics()   {setScene(new AdminAnalytics().getAnalyticsScene());}
+    public static void showAdminSettings()   {setScene(new AdminSettings().getAdminSettingsScene());}
+    public static void showAdminSignUp()   {setScene(new AdminSignUpPage().getAdminSignUpScene());}
+    public static void showAdminAISystem()   {setScene(new AdminAISystem().getAdminAIScene());}
+    public static void showAdminSecurity()   {setScene(new AdminSecurity().getSecurityScene());}
+
+
+
+
+
+
+
+
+
+
+    public static void showCollaborationPage() {setScene(new CollaborationPage().getCollaborationPageScene());}
+
+    public static void showRecentPage() {setScene(new RecentPage().getRecentPageScene());}
 
     // LandingPage scene builder
-    public static void showUserSignupPage() { setScene(new UserSignupPage().getUserSignupPageScene()); }
+
+        public static void showUserSignupPage() { setScene(new UserSignupPage().getUserSignupPageScene());}
 
     // Landing Page
+
     public Scene getLandingPageScene() {
 
         // Center Branding
@@ -120,9 +138,10 @@ public class LandingPage extends Application {
                 "🛡", "#BAE6FD", "#0284C7",
                 "Admin Login",
                 "Manage users, oversee system\nactivities and configurations.",
-                "Continue as Admin  →", "#0284C7",
-                e -> LandingPage.showAdminLoginPage()
-        );
+
+                "Continue as Admin  →", "#0284C7", e -> { LandingPage.showAdminLoginPage(); });
+
+
 
         HBox cardsContainer = new HBox(28, userCard, adminCard);
         cardsContainer.setAlignment(Pos.CENTER);
