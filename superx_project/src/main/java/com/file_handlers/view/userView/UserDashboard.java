@@ -84,7 +84,7 @@ public class UserDashboard {
 
         dashboardBtn.setOnAction(e -> { LandingPage.showUserDashboard(); });
         spacesBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
-        searchBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        searchBtn.setOnAction(e -> { LandingPage.showDemoSearchPage(); });
         calendarBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
         aiBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
         collabBtn.setOnAction(e -> { LandingPage.showLandingPage(); });

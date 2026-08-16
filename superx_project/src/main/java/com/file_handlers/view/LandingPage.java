@@ -2,6 +2,7 @@ package com.file_handlers.view;
 
 import javafx.util.Duration;
 
+import com.file_handlers.view.userView.DemoSearchPage;
 import com.file_handlers.view.userView.UserDashboard;
 import com.file_handlers.view.userView.UserLoginPage;
 import com.file_handlers.view.userView.UserSignupPage;
@@ -71,6 +72,12 @@ public class LandingPage extends Application {
         }
         }
 
+        //DemoSearchPage calling for testing purpose 
+        public static void showDemoSearchPage() { setScene(new DemoSearchPage().getDemoSearchPageScene());}
+
+
+
+        
         public static void showUserLoginPage() {  setScene(new UserLoginPage().getUserLoginPageScene());}
 
         public static void showUserDashboard() { setScene(new UserDashboard().getDashboardScene());}
