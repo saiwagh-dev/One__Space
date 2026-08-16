@@ -1,34 +1,20 @@
 package com.file_handlers.view.userView;
 
 import com.file_handlers.view.LandingPage;
-
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.chart.PieChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
+import javafx.scene.layout.*;
+//import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
-public class UserDashboard {
+public class UserTrash {
 
-    // Style Constants - Exact Color Hierarchy
+    // Style Constants - Synchronized with UserDashboard.java
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
     // 1. Sidebar & Top Bar: Deep Dark Slate
@@ -39,7 +25,7 @@ public class UserDashboard {
     // 2. Center Workspace Canvas: Medium Slate Blue
     private static final String BG_CENTER_CANVAS = "#31435B";
 
-    // 3. Main Cards: Soft Light Blue
+    // 3. Main Cards & Inner Surfaces: Soft Light Blue
     private static final String BG_CARD = "#DDE8F8";
     private static final String BG_CARD_INNER = "#CADDF2";
     private static final String BORDER_CARD = "#C3D6EC";
@@ -52,9 +38,10 @@ public class UserDashboard {
 
     // Accent Colors
     private static final String PRIMARY_BLUE = "#2563EB";
-    private static final String[] CHART_COLORS = {"#2563EB", "#0284C7", "#059669", "#7C3AED", "#475569"};
+    private static final String DANGER_RED = "#11cd66";
+    private static final String BADGE_RED_BG = "#FEE2E2";
 
-    public Scene getDashboardScene() {
+    public Scene getTrashPageScene() {
 
         // =========================================================
         // SIDEBAR
@@ -72,25 +59,25 @@ public class UserDashboard {
         VBox logoBox = new VBox(4, logoHeader);
         logoBox.setPadding(new Insets(0, 0, 18, 6));
 
-        Button dashboardBtn = createSidebarButton("⌂", "Dashboard", true);
+        Button dashboardBtn = createSidebarButton("⌂", "Dashboard", false);
         Button spacesBtn = createSidebarButton("📁", "Spaces", false);
         Button searchBtn = createSidebarButton("⌕", "Search", false);
         Button calendarBtn = createSidebarButton("📅", "Calendar", false);
         Button aiBtn = createSidebarButton("✧", "AI Assistant", false);
         Button collabBtn = createSidebarButton("👥", "Collaboration", false);
         Button recentBtn = createSidebarButton("🕒", "Recent", false);
-        Button trashBtn = createSidebarButton("🗑", "Trash", false);
+        Button trashBtn = createSidebarButton("🗑", "Trash", true);
         Button settingsBtn = createSidebarButton("⚙", "Settings", false);
 
-        dashboardBtn.setOnAction(e -> { LandingPage.showUserDashboard(); });
-        spacesBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
-        searchBtn.setOnAction(e -> { LandingPage.showUserSearch(); });
-        calendarBtn.setOnAction(e -> { LandingPage.showCalendarPage(); });
-        collabBtn.setOnAction(e -> { LandingPage.showCollaborationPage();});
-        aiBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
-        recentBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
-        trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
-        settingsBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        dashboardBtn.setOnAction(e -> LandingPage.showUserDashboard());
+        spacesBtn.setOnAction(e -> LandingPage.showUserSpace());
+        searchBtn.setOnAction(e -> LandingPage.showUserSearch());
+        calendarBtn.setOnAction(e -> LandingPage.showCalendarPage());
+        aiBtn.setOnAction(e -> LandingPage.showLandingPage());
+        collabBtn.setOnAction(e -> LandingPage.showLandingPage());
+        recentBtn.setOnAction(e -> LandingPage.showLandingPage());
+        trashBtn.setOnAction(e -> LandingPage.showTrashPage());
+        settingsBtn.setOnAction(e -> LandingPage.showLandingPage());
 
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
 
@@ -119,7 +106,7 @@ public class UserDashboard {
         Button manageStorageBtn = new Button("Manage Storage ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
-        manageStorageBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
 
         VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
@@ -183,42 +170,45 @@ public class UserDashboard {
         topBar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
 
         // =========================================================
-        // GREETING & SCAN ACTION HEADER
+        // HEADER & ACTION BAR
         // =========================================================
 
-        Label welcomeTitle = new Label("Good afternoon, Aarav");
+        Label welcomeTitle = new Label("Trash Bin");
         welcomeTitle.setFont(Font.font(FONT, FontWeight.BOLD, 24));
         welcomeTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
 
-        Label welcomeSub = new Label("OneSpace indexed 412 new files since yesterday — nothing was moved or renamed.");
+        Label welcomeSub = new Label("Items in trash are permanently deleted after 30 days. Recover 4.2 GB space.");
         welcomeSub.setFont(Font.font(FONT, 13));
         welcomeSub.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-weight: 500;");
 
         VBox greetingText = new VBox(4, welcomeTitle, welcomeSub);
 
-        Button scanFolderBtn = new Button("⛶  Scan folder");
-        scanFolderBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        scanFolderBtn.setStyle(
-                "-fx-background-color: " + PRIMARY_BLUE + ";" +
+        Button emptyTrashBtn = new Button("🗑  Empty Trash");
+        emptyTrashBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
+        emptyTrashBtn.setStyle(
+                "-fx-background-color: " + DANGER_RED + ";" +
                 "-fx-text-fill: #FFFFFF;" +
                 "-fx-background-radius: 10;" +
                 "-fx-cursor: hand;" +
                 "-fx-padding: 8 18;"
         );
-        scanFolderBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        emptyTrashBtn.setOnAction(e -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to permanently delete all items in trash?", ButtonType.YES, ButtonType.NO);
+            alert.showAndWait();
+        });
 
-        HBox greetingHeader = new HBox(greetingText, new Region(), scanFolderBtn);
+        HBox greetingHeader = new HBox(greetingText, new Region(), emptyTrashBtn);
         HBox.setHgrow(greetingHeader.getChildren().get(1), Priority.ALWAYS);
         greetingHeader.setAlignment(Pos.CENTER_LEFT);
 
         // =========================================================
-        // TOP 4 FILE OVERVIEW / TELEMETRY METRIC CARDS
+        // METRIC CARDS
         // =========================================================
 
-        HBox card1 = createMetricCard("📁", "Indexing Activity", "7,032", "● 84 auto-tagged", "+412 files today", "#2563EB", "#CADDF2", "#1D4ED8");
-        HBox card2 = createMetricCard("▦", "Active Spaces", "8 Spaces", "2 AI generated", "🔥 Java Project (64%)", "#0284C7", "#BAE6FD", "#0369A1");
-        HBox card3 = createMetricCard("💾", "Indexed Storage", "64.2 GB", "● Synced 2m ago", "4.2 GB recoverable", "#059669", "#A7F3D0", "#065F46");
-        HBox card4 = createMetricCard("✦", "AI Actions Live", "126 Actions", "⚡ Live pipeline", "12 summaries · 8 links", "#D97706", "#FDE68A", "#92400E");
+        HBox card1 = createMetricCard("🗑", "Items in Trash", "14 Files", "● Auto-clean active", "Will auto-delete soon", DANGER_RED, BADGE_RED_BG, DANGER_RED);
+        HBox card2 = createMetricCard("💾", "Recoverable Space", "4.2 GB", "● Ready to free up", "Can be restored", "#059669", "#A7F3D0", "#065F46");
+        HBox card3 = createMetricCard("⏳", "Expiring Soon", "3 Files", "⚡ < 3 days left", "Permanent removal", "#D97706", "#FDE68A", "#92400E");
+        HBox card4 = createMetricCard("📁", "Original Spaces", "4 Spaces", "● Main sources", "Java, Placement, etc.", PRIMARY_BLUE, "#CADDF2", "#1D4ED8");
 
         HBox metricsRow = new HBox(14, card1, card2, card3, card4);
         HBox.setHgrow(card1, Priority.ALWAYS);
@@ -227,22 +217,22 @@ public class UserDashboard {
         HBox.setHgrow(card4, Priority.ALWAYS);
 
         // =========================================================
-        // SPACE OCCUPANCY CARD
+        // TRASH ITEMS TABLE CARD
         // =========================================================
 
-        Label cardTitle = new Label("Space Occupancy");
+        Label cardTitle = new Label("Deleted Items");
         cardTitle.setFont(Font.font(FONT, FontWeight.BOLD, 17));
         cardTitle.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
 
-        Label cardSub = new Label("Overview of file storage across your spaces.");
+        Label cardSub = new Label("Manage or restore your recently deleted files and folders.");
         cardSub.setFont(Font.font(FONT, 12));
         cardSub.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         VBox cardHeaderTitles = new VBox(2, cardTitle, cardSub);
 
-        Button viewAllBtn = new Button("View all spaces ›");
-        viewAllBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        viewAllBtn.setStyle(
+        Button restoreAllBtn = new Button("Restore All");
+        restoreAllBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+        restoreAllBtn.setStyle(
                 "-fx-background-color: " + BG_CARD_INNER + ";" +
                 "-fx-border-color: " + BORDER_CARD + ";" +
                 "-fx-border-radius: 8;" +
@@ -251,70 +241,42 @@ public class UserDashboard {
                 "-fx-padding: 6 14;" +
                 "-fx-cursor: hand;"
         );
-        viewAllBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        restoreAllBtn.setOnAction(e -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, "All items restored to original locations.");
+            alert.showAndWait();
+        });
 
-        HBox cardHeader = new HBox(cardHeaderTitles, new Region(), viewAllBtn);
+        HBox cardHeader = new HBox(cardHeaderTitles, new Region(), restoreAllBtn);
         HBox.setHgrow(cardHeader.getChildren().get(1), Priority.ALWAYS);
         cardHeader.setAlignment(Pos.CENTER_LEFT);
 
-        // Donut Chart
-        ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList(
-                new PieChart.Data("Java Project", 34),
-                new PieChart.Data("Placement Preparation", 29),
-                new PieChart.Data("College Assignments", 20),
-                new PieChart.Data("Personal Documents", 11),
-                new PieChart.Data("Others", 6)
-        );
-
-        PieChart chart = new PieChart(pieChartData);
-        chart.setLabelsVisible(false);
-        chart.setLegendVisible(false);
-        chart.setPrefSize(205, 205);
-        chart.setMaxSize(205, 205);
-
-        Circle donutHole = new Circle(66, Color.web(BG_CARD));
-
-        Label chartValText = new Label("64.2 GB");
-        chartValText.setFont(Font.font(FONT, FontWeight.BOLD, 18));
-        chartValText.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
-
-        Label chartSubText = new Label("of 100 GB used");
-        chartSubText.setFont(Font.font(FONT, 11));
-        chartSubText.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 600;");
-
-        VBox chartCenterText = new VBox(2, chartValText, chartSubText);
-        chartCenterText.setAlignment(Pos.CENTER);
-
-        StackPane donutChartPane = new StackPane(chart, donutHole, chartCenterText);
-        donutChartPane.setPadding(new Insets(8));
-
-        // Space Breakdown Table
+        // Table Headers
         HBox tableHeader = new HBox(
-                createHeaderLabel("Space", 220),
-                createHeaderLabel("Storage Used", 130),
-                createHeaderLabel("Percentage", 160)
+                createHeaderLabel("Name", 240),
+                createHeaderLabel("Original Location", 180),
+                createHeaderLabel("Date Deleted", 140),
+                createHeaderLabel("Size", 100),
+                createHeaderLabel("Days Left", 100),
+                createHeaderLabel("Actions", 120)
         );
         tableHeader.setPadding(new Insets(0, 0, 8, 0));
 
-        VBox spaceRows = new VBox(11,
+        VBox trashTableRows = new VBox(10,
                 tableHeader,
-                createSpaceRow("📁", CHART_COLORS[0], "Java Project", "22.4 GB", 0.34, "34%", CHART_COLORS[0]),
-                createSpaceRow("📁", CHART_COLORS[1], "Placement Preparation", "18.7 GB", 0.29, "29%", CHART_COLORS[1]),
-                createSpaceRow("📁", CHART_COLORS[2], "College Assignments", "12.6 GB", 0.20, "20%", CHART_COLORS[2]),
-                createSpaceRow("📁", CHART_COLORS[3], "Personal Documents", "6.8 GB", 0.11, "11%", CHART_COLORS[3]),
-                createSpaceRow("📁", CHART_COLORS[4], "Others", "3.7 GB", 0.06, "6%", CHART_COLORS[4])
+                createTrashRow("📄", "Project_Report_v1.pdf", "Java Project", "12 Oct 2024", "18.4 MB", "2 Days", true),
+                createTrashRow("📁", "Old_Assignments_Backup", "College Assignments", "10 Oct 2024", "1.2 GB", "4 Days", false),
+                createTrashRow("📄", "Resume_Draft_Old.docx", "Placement Preparation", "08 Oct 2024", "2.1 MB", "6 Days", false),
+                createTrashRow("🎬", "Demo_Presentation.mp4", "Java Project", "05 Oct 2024", "450 MB", "9 Days", false),
+                createTrashRow("📄", "Scanned_ID_Copy.png", "Personal Documents", "01 Oct 2024", "4.5 MB", "13 Days", false)
         );
 
-        HBox cardContent = new HBox(36, donutChartPane, spaceRows);
-        cardContent.setAlignment(Pos.CENTER_LEFT);
-
-        Label lastUpdated = new Label("🕒  Last updated just now");
+        Label lastUpdated = new Label("🕒  Auto-delete schedule running every 24 hours");
         lastUpdated.setFont(Font.font(FONT, 11));
         lastUpdated.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 500;");
 
-        VBox occupancyCard = new VBox(16, cardHeader, cardContent, lastUpdated);
-        occupancyCard.setPadding(new Insets(24));
-        occupancyCard.setStyle(
+        VBox trashCard = new VBox(16, cardHeader, trashTableRows, lastUpdated);
+        trashCard.setPadding(new Insets(24));
+        trashCard.setStyle(
                 "-fx-background-color: " + BG_CARD + ";" +
                 "-fx-border-color: " + BORDER_CARD + ";" +
                 "-fx-border-radius: 16;" +
@@ -326,7 +288,7 @@ public class UserDashboard {
         // SCROLLABLE CONTAINER
         // =========================================================
 
-        VBox contentBody = new VBox(22, greetingHeader, metricsRow, occupancyCard);
+        VBox contentBody = new VBox(22, greetingHeader, metricsRow, trashCard);
         contentBody.setPadding(new Insets(24, 28, 28, 28));
         contentBody.setStyle("-fx-background-color: " + BG_CENTER_CANVAS + ";");
 
@@ -348,10 +310,7 @@ public class UserDashboard {
         root.setLeft(sidebar);
         root.setCenter(mainArea);
 
-        Scene scene = new Scene(root, 1200, 750);
-        scene.setOnMouseEntered(e -> applyPieChartColors(pieChartData));
-
-        return scene;
+        return new Scene(root, 1200, 750);
     }
 
     // =========================================================
@@ -359,22 +318,21 @@ public class UserDashboard {
     // =========================================================
 
     private StackPane createOneSpaceLogo() {
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
 
-    Image logoImage = new Image(
-            getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
-    );
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
 
-    ImageView logoView = new ImageView(logoImage);
-    logoView.setFitWidth(42);
-    logoView.setFitHeight(42);
-    logoView.setPreserveRatio(true);
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(42, 42);
+        logoPane.setAlignment(Pos.CENTER);
 
-    StackPane logoPane = new StackPane(logoView);
-    logoPane.setPrefSize(42, 42);
-    logoPane.setAlignment(Pos.CENTER);
-
-    return logoPane;
-}
+        return logoPane;
+    }
 
     private Button createSidebarButton(String icon, String label, boolean isActive) {
         Label iconLbl = new Label(icon);
@@ -465,53 +423,67 @@ public class UserDashboard {
         return lbl;
     }
 
-    private HBox createSpaceRow(String icon, String iconHex, String title, String storage, double progress, String percent, String colorHex) {
-        Label folderIcon = new Label(icon);
-        folderIcon.setFont(Font.font(12));
-        folderIcon.setPrefSize(24, 24);
-        folderIcon.setAlignment(Pos.CENTER);
-        folderIcon.setStyle("-fx-background-color: " + iconHex + "22; -fx-background-radius: 6; -fx-text-fill: " + iconHex + ";");
+    private HBox createTrashRow(String icon, String fileName, String originSpace, String dateDeleted, String fileSize, String daysLeft, boolean isUrgent) {
+        Label fileIconLbl = new Label(icon);
+        fileIconLbl.setFont(Font.font(12));
+        fileIconLbl.setPrefSize(24, 24);
+        fileIconLbl.setAlignment(Pos.CENTER);
+        fileIconLbl.setStyle("-fx-background-color: #CADDF2; -fx-background-radius: 6; -fx-text-fill: " + PRIMARY_BLUE + ";");
 
-        Label spaceName = new Label(title);
-        spaceName.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        spaceName.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        Label nameLbl = new Label(fileName);
+        nameLbl.setFont(Font.font(FONT, FontWeight.BOLD, 13));
+        nameLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
 
-        HBox nameGroup = new HBox(10, folderIcon, spaceName);
+        HBox nameGroup = new HBox(10, fileIconLbl, nameLbl);
         nameGroup.setAlignment(Pos.CENTER_LEFT);
-        nameGroup.setPrefWidth(220);
+        nameGroup.setPrefWidth(240);
 
-        Label sizeLbl = new Label(storage);
+        Label spaceLbl = new Label(originSpace);
+        spaceLbl.setFont(Font.font(FONT, 12));
+        spaceLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 500;");
+        spaceLbl.setPrefWidth(180);
+
+        Label dateLbl = new Label(dateDeleted);
+        dateLbl.setFont(Font.font(FONT, 12));
+        dateLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 500;");
+        dateLbl.setPrefWidth(140);
+
+        Label sizeLbl = new Label(fileSize);
         sizeLbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         sizeLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
-        sizeLbl.setPrefWidth(130);
+        sizeLbl.setPrefWidth(100);
 
-        ProgressBar bar = new ProgressBar(progress);
-        bar.setPrefWidth(100);
-        bar.setPrefHeight(6);
-        bar.setStyle("-fx-accent: " + colorHex + "; -fx-control-inner-background: #B6CDE7;");
+        Label daysLbl = new Label(daysLeft);
+        daysLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+        daysLbl.setStyle(isUrgent ?
+                "-fx-text-fill: " + DANGER_RED + "; -fx-background-color: " + BADGE_RED_BG + "; -fx-padding: 2 6; -fx-background-radius: 4;" :
+                "-fx-text-fill: " + TEXT_MUTED_DARK + ";"
+        );
+        daysLbl.setPrefWidth(100);
 
-        Label percentLbl = new Label(percent);
-        percentLbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        percentLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
-        percentLbl.setPrefWidth(45);
-        percentLbl.setAlignment(Pos.BASELINE_RIGHT);
+        Button restoreBtn = new Button("↺");
+        restoreBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + PRIMARY_BLUE + "; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;");
+        restoreBtn.setOnAction(e -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION, "Restored " + fileName);
+            alert.showAndWait();
+        });
 
-        HBox progressGroup = new HBox(10, bar, percentLbl);
-        progressGroup.setAlignment(Pos.CENTER_LEFT);
-        progressGroup.setPrefWidth(160);
+        Button deleteBtn = new Button("✕");
+        deleteBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + DANGER_RED + "; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 13px;");
+        deleteBtn.setOnAction(e -> {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Permanently delete " + fileName + "?", ButtonType.YES, ButtonType.NO);
+            alert.showAndWait();
+        });
 
-        HBox row = new HBox(nameGroup, sizeLbl, progressGroup);
+        HBox actionsGroup = new HBox(8, restoreBtn, deleteBtn);
+        actionsGroup.setAlignment(Pos.CENTER_LEFT);
+        actionsGroup.setPrefWidth(120);
+
+        HBox row = new HBox(nameGroup, spaceLbl, dateLbl, sizeLbl, daysLbl, actionsGroup);
         row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
+        row.setPadding(new Insets(6, 0, 6, 0));
+        row.setStyle("-fx-border-color: " + BORDER_CARD + "; -fx-border-width: 0 0 1 0;");
 
-    private void applyPieChartColors(ObservableList<PieChart.Data> data) {
-        int i = 0;
-        for (PieChart.Data d : data) {
-            if (d.getNode() != null) {
-                d.getNode().setStyle("-fx-pie-color: " + CHART_COLORS[i % CHART_COLORS.length] + ";");
-            }
-            i++;
-        }
+        return row;
     }
 }

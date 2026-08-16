@@ -50,7 +50,7 @@ public class SharedSpacePage {
     private static final String ORANGE = "#EA580C";
     private static final String ORANGE_LIGHT = "#FFEDD5";
     private static final String RED = "#DC2626";
-    private static final String RED_LIGHT = "#FEE2E2";
+    public static final String RED_LIGHT = "#FEE2E2";
 
     private static final int MAX_VISIBLE_FILES = 3;
     private static final int MAX_VISIBLE_MEMBERS = 3;

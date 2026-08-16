@@ -30,7 +30,7 @@ public class CollaborationPage {
     private static final String TEXT_LIGHT = "#FFFFFF";
     private static final String TEXT_MUTED_LIGHT = "#94A3B8";
     private static final String PRIMARY_BLUE = "#2563EB";
-    private static final String PRIMARY_LIGHT_BLUE = "#3B82F6";
+    public static final String PRIMARY_LIGHT_BLUE = "#3B82F6";
 
     private static class WorkspaceData {
         String icon, iconColor, name, storage, role, badgeBg, badgeText;
