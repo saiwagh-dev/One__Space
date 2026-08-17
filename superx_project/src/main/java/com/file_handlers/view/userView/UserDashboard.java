@@ -2,6 +2,7 @@ package com.file_handlers.view.userView;
 
 import com.file_handlers.view.LandingPage;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -15,6 +16,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -183,7 +185,7 @@ public class UserDashboard {
         topBar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
 
         // =========================================================
-        // GREETING & SCAN ACTION HEADER
+        // GREETING & SCAN ACTION HEADER (Absolute Anchor Layout Fix)
         // =========================================================
 
         Label welcomeTitle = new Label("Good afternoon, Aarav");
@@ -207,9 +209,15 @@ public class UserDashboard {
         );
         scanFolderBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
 
-        HBox greetingHeader = new HBox(greetingText, new Region(), scanFolderBtn);
-        HBox.setHgrow(greetingHeader.getChildren().get(1), Priority.ALWAYS);
-        greetingHeader.setAlignment(Pos.CENTER_LEFT);
+        AnchorPane greetingHeader = new AnchorPane(greetingText, scanFolderBtn);
+        AnchorPane.setTopAnchor(greetingText, 0.0);
+        AnchorPane.setLeftAnchor(greetingText, 0.0);
+        AnchorPane.setBottomAnchor(greetingText, 0.0);
+        
+        AnchorPane.setTopAnchor(scanFolderBtn, 0.0);
+        AnchorPane.setRightAnchor(scanFolderBtn, 0.0);
+        AnchorPane.setBottomAnchor(scanFolderBtn, 0.0);
+        greetingHeader.setMaxWidth(Double.MAX_VALUE);
 
         // =========================================================
         // TOP 4 FILE OVERVIEW / TELEMETRY METRIC CARDS
@@ -349,7 +357,8 @@ public class UserDashboard {
         root.setCenter(mainArea);
 
         Scene scene = new Scene(root, 1200, 750);
-        scene.setOnMouseEntered(e -> applyPieChartColors(pieChartData));
+        
+        Platform.runLater(() -> applyPieChartColors(pieChartData));
 
         return scene;
     }
@@ -359,22 +368,21 @@ public class UserDashboard {
     // =========================================================
 
     private StackPane createOneSpaceLogo() {
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
 
-    Image logoImage = new Image(
-            getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
-    );
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
 
-    ImageView logoView = new ImageView(logoImage);
-    logoView.setFitWidth(42);
-    logoView.setFitHeight(42);
-    logoView.setPreserveRatio(true);
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(42, 42);
+        logoPane.setAlignment(Pos.CENTER);
 
-    StackPane logoPane = new StackPane(logoView);
-    logoPane.setPrefSize(42, 42);
-    logoPane.setAlignment(Pos.CENTER);
-
-    return logoPane;
-}
+        return logoPane;
+    }
 
     private Button createSidebarButton(String icon, String label, boolean isActive) {
         Label iconLbl = new Label(icon);
@@ -430,29 +438,34 @@ public class UserDashboard {
         valLbl.setFont(Font.font(FONT, FontWeight.BOLD, 22));
         valLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
 
-        Label badgeLbl = new Label(badgeText);
-        badgeLbl.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        badgeLbl.setStyle("-fx-text-fill: " + textBadgeColor + "; -fx-background-color: " + bgAccent + "; -fx-background-radius: 6; -fx-padding: 3 8;");
-
         Label subLbl = new Label(subText);
         subLbl.setFont(Font.font(FONT, 11));
         subLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 600;");
+        subLbl.setMinWidth(Region.USE_PREF_SIZE);
+
+        Label badgeLbl = new Label(badgeText);
+        badgeLbl.setFont(Font.font(FONT, FontWeight.BOLD, 10));
+        badgeLbl.setStyle("-fx-text-fill: " + textBadgeColor + "; -fx-background-color: " + bgAccent + "; -fx-background-radius: 6; -fx-padding: 3 8;");
+        badgeLbl.setMinWidth(Region.USE_PREF_SIZE);
 
         HBox bottomRow = new HBox(6, badgeLbl, subLbl);
         bottomRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox cardContent = new VBox(8, topRow, valLbl, bottomRow);
+        cardContent.setMaxWidth(Double.MAX_VALUE);
 
         HBox card = new HBox(cardContent);
         HBox.setHgrow(cardContent, Priority.ALWAYS);
         card.setPadding(new Insets(16));
-        card.setStyle(
-                "-fx-background-color: " + BG_CARD + ";" +
-                "-fx-border-color: " + BORDER_CARD + ";" +
-                "-fx-border-radius: 14;" +
-                "-fx-background-radius: 14;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.14), 12, 0, 0, 4);"
-        );
+        card.setMaxWidth(Double.MAX_VALUE);
+
+        String styleIdle = "-fx-background-color: " + BG_CARD + "; -fx-border-color: " + BORDER_CARD + "; -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.14), 12, 0, 0, 4);";
+        String styleHover = "-fx-background-color: " + BG_CARD + "; -fx-border-color: " + accentColor + "; -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(99,102,241,0.08), 16, 0, 0, 6); -fx-cursor: hand;";
+
+        card.setPickOnBounds(true);
+        card.setStyle(styleIdle);
+        card.setOnMouseEntered(e -> card.setStyle(styleHover));
+        card.setOnMouseExited(e -> card.setStyle(styleIdle));
 
         return card;
     }
