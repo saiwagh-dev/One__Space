@@ -80,6 +80,8 @@ public class AddReminderPage {
         Button recent = createSidebarButton("🕒", "Recent", false);
         Button trash = createSidebarButton("🗑", "Trash", false);
         Button settings = createSidebarButton("⚙", "Settings", false);
+        Button logoutBtn = createSidebarButton("🚪", "Logout", false);
+
 
         dashboard.setOnAction(e -> LandingPage.showUserDashboard());
         spaces.setOnAction(e -> LandingPage.showUserSpace());
@@ -90,8 +92,10 @@ public class AddReminderPage {
         recent.setOnAction(e -> LandingPage.showLandingPage());
         trash.setOnAction(e -> LandingPage.showTrashPage());
         settings.setOnAction(e -> LandingPage.showLandingPage());
+        logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
 
-        VBox nav = new VBox(4, dashboard, spaces, search, calendar, ai, collab, recent, trash);
+
+        VBox nav = new VBox(4, dashboard, spaces, search, calendar, ai, collab, recent, trash, settings, logoutBtn);
 
         // Sidebar Storage Card
         Label storageTitle = new Label("Storage Used");

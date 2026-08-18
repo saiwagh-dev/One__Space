@@ -93,7 +93,7 @@ public class RecentPage {
         settingsBtn.setOnAction(e -> LandingPage.showLandingPage());
         logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
 
-        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
+        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn, settingsBtn, logoutBtn);
 
         // Sidebar Storage Card
         Label storageTitle = new Label("Storage Used");
@@ -186,7 +186,7 @@ public class RecentPage {
         topBar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
 
         // =========================================================
-        // RECENT PAGE CONTENT AREA WITH CLICKABLE OPEN-FILE ACTION
+        // RECENT PAGE CONTENT AREA
         // =========================================================
 
         Label pageTitle = new Label("Recent Files");
@@ -199,7 +199,6 @@ public class RecentPage {
 
         VBox headerBox = new VBox(4, pageTitle, pageSub);
 
-        // Table Header Layout for Dummy Files List
         HBox listHeader = new HBox(
                 createHeaderLabel("Name", 350),
                 createHeaderLabel("Space", 200),
@@ -209,18 +208,20 @@ public class RecentPage {
         listHeader.setPadding(new Insets(0, 0, 10, 0));
         listHeader.setStyle("-fx-border-color: transparent transparent " + BORDER_CARD + " transparent; -fx-border-width: 0 0 1 0;");
 
-        // Dummy Data Rows Collection configured with actual target paths to launch via Desktop API
+        // Using user home directory or system temporary directory so the files are guaranteed to open/exist when clicked
+        File tempDir = new File(System.getProperty("user.home"), "OneSpaceDemoFiles");
+        if (!tempDir.exists()) tempDir.mkdirs();
+
         VBox fileRows = new VBox(8,
                 listHeader,
-                createFileRow("☕", "#2563EB", "UserService.java", "Backend logic for user authentications", "Java Project", "14.2 KB", "10 mins ago", new File("C:/OneSpaceFiles/UserService.java")),
-                createFileRow("📊", "#059669", "System_Architecture_v2.pdf", "High level component workflow diagrams", "College Assignments", "4.8 MB", "2 hours ago", new File("C:/OneSpaceFiles/System_Architecture_v2.pdf")),
-                createFileRow("📝", "#0284C7", "Resume_Aarav_Verma_2026.docx", "Updated technical skill sets & projects", "Placement Preparation", "1.2 MB", "Yesterday", new File("C:/OneSpaceFiles/Resume_Aarav_Verma_2026.docx")),
-                createFileRow("☕", "#2563EB", "DatabaseConnection.java", "JDBC configuration handler script", "Java Project", "8.5 KB", "Yesterday", new File("C:/OneSpaceFiles/DatabaseConnection.java")),
-                createFileRow("📈", "#7C3AED", "DSA_Arrays_CheatSheet.md", "Important sorting and searching algorithms", "Placement Preparation", "24.0 KB", "3 days ago", new File("C:/OneSpaceFiles/DSA_Arrays_CheatSheet.md")),
-                createFileRow("🖼", "#D97706", "Project_Demo_Screenshot.png", "UI layout preview for dashboard screen", "Java Project", "2.1 MB", "4 days ago", new File("C:/OneSpaceFiles/Project_Demo_Screenshot.png"))
+                createFileRow("☕", "#2563EB", "UserService.java", "Backend logic for user authentications", "Java Project", "14.2 KB", "10 mins ago", new File(tempDir, "UserService.java")),
+                createFileRow("📊", "#059669", "System_Architecture_v2.pdf", "High level component workflow diagrams", "College Assignments", "4.8 MB", "2 hours ago", new File(tempDir, "System_Architecture_v2.pdf")),
+                createFileRow("📝", "#0284C7", "Resume_Aarav_Verma_2026.docx", "Updated technical skill sets & projects", "Placement Preparation", "1.2 MB", "Yesterday", new File(tempDir, "Resume_Aarav_Verma_2026.docx")),
+                createFileRow("☕", "#2563EB", "DatabaseConnection.java", "JDBC configuration handler script", "Java Project", "8.5 KB", "Yesterday", new File(tempDir, "DatabaseConnection.java")),
+                createFileRow("📈", "#7C3AED", "DSA_Arrays_CheatSheet.md", "Important sorting and searching algorithms", "Placement Preparation", "24.0 KB", "3 days ago", new File(tempDir, "DSA_Arrays_CheatSheet.md")),
+                createFileRow("🖼", "#D97706", "Project_Demo_Screenshot.png", "UI layout preview for dashboard screen", "Java Project", "2.1 MB", "4 days ago", new File(tempDir, "Project_Demo_Screenshot.png"))
         );
 
-        // Main Card Wrapper containing the data rows
         VBox recentCard = new VBox(14, fileRows);
         recentCard.setPadding(new Insets(24));
         recentCard.setStyle(
@@ -231,7 +232,6 @@ public class RecentPage {
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.18), 16, 0, 0, 6);"
         );
 
-        // Scrollable Container
         VBox contentBody = new VBox(22, headerBox, recentCard);
         contentBody.setPadding(new Insets(24, 28, 28, 28));
         contentBody.setStyle("-fx-background-color: " + BG_CENTER_CANVAS + ";");
@@ -258,7 +258,7 @@ public class RecentPage {
     }
 
     // =========================================================
-    // HELPER BUILDERS & OPEN-FILE ACTION HANDLER
+    // HELPER BUILDERS & ROBUST CLICK-TO-OPEN HANDLER
     // =========================================================
 
     private StackPane createOneSpaceLogo() {
@@ -367,20 +367,21 @@ public class RecentPage {
         row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: " + BG_CARD_INNER + "; -fx-background-radius: 8; -fx-cursor: hand;"));
         row.setOnMouseExited(e -> row.setStyle("-fx-background-color: transparent; -fx-cursor: hand;"));
 
-        // Click event to launch/open the file using Java's Desktop API
+        // Robust Click event: Automatically creates a placeholder file if it doesn't exist yet so Desktop.open() fires successfully
         row.setOnMouseClicked(e -> {
-            if (Desktop.isDesktopSupported()) {
-                Desktop desktop = Desktop.getDesktop();
-                try {
-                    if (targetFile.exists()) {
-                        desktop.open(targetFile);
-                    } else {
-                        // Fallback action simulation if physical file doesn't exist on local system yet
-                        System.out.println("Opening simulated handler for: " + targetFile.getName());
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
+            try {
+                if (!targetFile.exists()) {
+                    targetFile.createNewFile();
                 }
+                
+                if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop().open(targetFile);
+                } else {
+                    System.out.println("Desktop API is not supported on this platform.");
+                }
+            } catch (IOException ex) {
+                System.err.println("Could not open file: " + targetFile.getName());
+                ex.printStackTrace();
             }
         });
 
