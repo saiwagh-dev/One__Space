@@ -78,19 +78,22 @@ public class NotificationPage {
         Button trash = nav("🗑", "Trash", false);
         Button notifications = nav("🔔", "Notifications", true);
         Button settings = nav("⚙", "Settings", false);
+        Button logoutBtn = nav("🚪", "Logout", false);
+
 
         dashboard.setOnAction(e -> LandingPage.showUserDashboard());
         spaces.setOnAction(e -> LandingPage.showUserSpace());
         search.setOnAction(e -> LandingPage.showUserSearch());
         calendar.setOnAction(e -> LandingPage.showCalendarPage());
         ai.setOnAction(e -> LandingPage.showLandingPage());
-        collab.setOnAction(e -> LandingPage.showLandingPage());
-        recent.setOnAction(e -> LandingPage.showLandingPage());
+        collab.setOnAction(e -> LandingPage.showCollaborationPage());
+        recent.setOnAction(e -> LandingPage.showRecentPage());
         trash.setOnAction(e -> LandingPage.showTrashPage());
         notifications.setOnAction(e -> LandingPage.showNotificationPage());
         settings.setOnAction(e -> LandingPage.showLandingPage());
+        logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
 
-        VBox navList = new VBox(4, dashboard, spaces, search, calendar, ai, collab, recent, trash);
+        VBox navList = new VBox(4, dashboard, spaces, search, calendar, ai, collab, recent,  trash, settings, logoutBtn);
 
         // Sidebar Storage Card
         Label storageTitle = text("Storage Used", 12, true, WHITE);

@@ -27,6 +27,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
+
+import java.io.File;
 
 public class UserDashboard {
 
@@ -83,6 +87,10 @@ public class UserDashboard {
         Button recentBtn = createSidebarButton("🕒", "Recent", false);
         Button trashBtn = createSidebarButton("🗑", "Trash", false);
         Button settingsBtn = createSidebarButton("⚙", "Settings", false);
+        
+        // 1. Logout Button Created
+        Button logoutBtn = createSidebarButton("🚪", "Logout", false);
+
 
         dashboardBtn.setOnAction(e -> { LandingPage.showUserDashboard(); });
         spacesBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
@@ -91,8 +99,25 @@ public class UserDashboard {
         collabBtn.setOnAction(e -> { LandingPage.showCollaborationPage();});
         aiBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
         recentBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
-        trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
+        trashBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
         settingsBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+
+         
+        
+        // =========================================================
+        // 2. LOGOUT SET-ON-ACTION IMPLEMENTATION
+        // =========================================================
+        logoutBtn.setOnAction(e -> {
+            // Option A: If LandingPage has a method for showing the login screen, call it here.
+            // Example: LandingPage.showLoginPage();
+            
+            // Option B: Fallback navigation method routing back to landing/login view:
+            LandingPage.showUserLoginPage();
+            
+            // Optional: If you manage the stage directly from the button context:
+            // Stage currentStage = (Stage) logoutBtn.getScene().getWindow();
+            // currentStage.setScene(new LoginView().getLoginScene()); // Replace with your login scene class
+        });
 
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
 
@@ -130,7 +155,8 @@ public class UserDashboard {
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
 
-        VBox sidebar = new VBox(12, logoBox, navList, sidebarSpacer, settingsBtn, storageCard);
+        // Added logoutBtn right next to settingsBtn in the sidebar layout hierarchy
+        VBox sidebar = new VBox(12, logoBox, navList, sidebarSpacer, settingsBtn, logoutBtn, storageCard);
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setPrefWidth(230);
         sidebar.setMinWidth(230);
@@ -162,6 +188,8 @@ public class UserDashboard {
 
         Button bellBtn = new Button("🔔");
         bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
+        bellBtn.setOnAction(e -> { LandingPage.showNotificationPage(); });
+
 
         Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34);
@@ -185,7 +213,7 @@ public class UserDashboard {
         topBar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
 
         // =========================================================
-        // GREETING & SCAN ACTION HEADER (Absolute Anchor Layout Fix)
+        // GREETING & SCAN ACTION HEADER (File Upload Dialog via DirectoryChooser)
         // =========================================================
 
         Label welcomeTitle = new Label("Good afternoon, Aarav");
@@ -207,7 +235,19 @@ public class UserDashboard {
                 "-fx-cursor: hand;" +
                 "-fx-padding: 8 18;"
         );
-        scanFolderBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        
+        // Scan folder action opens system window to pick folder for uploading/indexing
+        scanFolderBtn.setOnAction(e -> {
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle("Select Folder to Scan & Upload");
+            Stage stage = (Stage) scanFolderBtn.getScene().getWindow();
+            File selectedDirectory = directoryChooser.showDialog(stage);
+            
+            if (selectedDirectory != null) {
+                System.out.println("Selected folder: " + selectedDirectory.getAbsolutePath());
+                // Add your custom logic here to push files into your indexing pipeline
+            }
+        });
 
         AnchorPane greetingHeader = new AnchorPane(greetingText, scanFolderBtn);
         AnchorPane.setTopAnchor(greetingText, 0.0);
@@ -259,7 +299,7 @@ public class UserDashboard {
                 "-fx-padding: 6 14;" +
                 "-fx-cursor: hand;"
         );
-        viewAllBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        viewAllBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
 
         HBox cardHeader = new HBox(cardHeaderTitles, new Region(), viewAllBtn);
         HBox.setHgrow(cardHeader.getChildren().get(1), Priority.ALWAYS);

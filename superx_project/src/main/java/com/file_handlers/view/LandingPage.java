@@ -72,7 +72,8 @@ public class LandingPage extends Application {
     public static void showLandingPage() {
         if (primaryStage != null && primaryStage.getScene() != null) setScene(primaryStage.getScene());
     }
-
+    
+            
     // User Pages
     public static void showUserLoginPage() { setScene(new UserLoginPage().getUserLoginPageScene()); }
     public static void showUserSignupPage() { setScene(new UserSignupPage().getUserSignupPageScene()); }
@@ -85,6 +86,8 @@ public class LandingPage extends Application {
     public static void showNotificationPage() { setScene(new NotificationPage().getNotificationsScene()); }
     public static void showCollaborationPage() { setScene(new CollaborationPage().getCollaborationPageScene()); }
     public static void showRecentPage() { setScene(new RecentPage().getRecentPageScene()); }
+    //public static void showUserLoginPage() { setScene(new UserLoginPage().getUserLoginPageScene()); }
+
 
     // Admin Pages
     public static void showAdminLoginPage() { setScene(new AdminLoginPage().getAdminLoginPageScene()); }
@@ -117,10 +120,10 @@ public class LandingPage extends Application {
         );
 
         VBox adminCard = createRoleCard(
-                "🛡", "#BAE6FD", "PRIMARY_BLUE",
+                "🛡", "#BAE6FD", PRIMARY_BLUE,
                 "Admin Login",
                 "Manage users, oversee system\nactivities and configurations.",
-                "Continue as Admin  →", "PRIMARY_BLUE",
+                "Continue as Admin  →", PRIMARY_BLUE,
                 e -> showAdminLoginPage()
         );
 
