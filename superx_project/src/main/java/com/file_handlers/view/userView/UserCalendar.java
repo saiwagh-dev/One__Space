@@ -95,18 +95,22 @@ public class UserCalendar {
         Button recentBtn = createSidebarButton("🕒", "Recent", false);
         Button trashBtn = createSidebarButton("🗑", "Trash", false);
         Button settingsBtn = createSidebarButton("⚙", "Settings", false);
+        Button logoutBtn = createSidebarButton("🚪", "Logout", false);
+
 
         dashboardBtn.setOnAction(e -> LandingPage.showUserDashboard());
         spacesBtn.setOnAction(e -> LandingPage.showUserSpace());
         searchBtn.setOnAction(e -> LandingPage.showUserSearch());
         calendarBtn.setOnAction(e -> LandingPage.showCalendarPage());
         aiBtn.setOnAction(e -> LandingPage.showLandingPage());
-        collabBtn.setOnAction(e -> LandingPage.showLandingPage());
-        recentBtn.setOnAction(e -> LandingPage.showLandingPage());
+        collabBtn.setOnAction(e -> LandingPage.showCollaborationPage());
+        recentBtn.setOnAction(e -> LandingPage.showRecentPage());
         trashBtn.setOnAction(e -> LandingPage.showTrashPage());
         settingsBtn.setOnAction(e -> LandingPage.showLandingPage());
+        logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
 
-        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
+
+        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn, settingsBtn, logoutBtn);
 
         // Sidebar Storage Card
         Label storageTitle = new Label("Storage Used");
@@ -174,6 +178,8 @@ public class UserCalendar {
 
         Button bellBtn = new Button("🔔");
         bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
+        bellBtn.setOnAction(e -> LandingPage.showNotificationPage());
+
 
         Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34);
@@ -219,7 +225,7 @@ public class UserCalendar {
                 "-fx-cursor: hand;" +
                 "-fx-padding: 8 18;"
         );
-        addReminderBtn.setOnAction(e -> LandingPage.showLandingPage());
+        addReminderBtn.setOnAction(e -> LandingPage.showAddReminderPage());
 
         HBox pageHeader = new HBox(titleBox, new Region(), addReminderBtn);
         HBox.setHgrow(pageHeader.getChildren().get(1), Priority.ALWAYS);
@@ -463,8 +469,8 @@ public class UserCalendar {
         dayLabel.setFont(Font.font(FONT, FontWeight.BOLD, 12));
 
         boolean isToday = year == today.getYear() &&
-                          month == today.getMonthValue() &&
-                          day == today.getDayOfMonth();
+                        month == today.getMonthValue() &&
+                        day == today.getDayOfMonth();
 
         dayLabel.setStyle("-fx-text-fill: " + (isToday ? PRIMARY_BLUE : TEXT_DARK) + ";");
 
@@ -482,7 +488,130 @@ public class UserCalendar {
         cell.setOnMouseEntered(e -> cell.setStyle(hoverStyle));
         cell.setOnMouseExited(e -> cell.setStyle(normalStyle));
 
+        // --- UPDATED: Open a large centered modal window on click ---
+        LocalDate cellDate = LocalDate.of(year, month, day);
+        cell.setOnMouseClicked(e -> showDayEventsWindow(cellDate));
+
         return cell;
+    }
+
+    private void showDayEventsWindow(LocalDate date) {
+        javafx.stage.Stage eventStage = new javafx.stage.Stage();
+        eventStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        eventStage.setTitle("Scheduled Events");
+
+        // Header Title & Subtitle
+        String formattedDate = date.format(java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy"));
+        Label headerTitle = new Label("Events for " + formattedDate);
+        headerTitle.setFont(Font.font(FONT, FontWeight.BOLD, 20));
+        headerTitle.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+
+        Label headerSubtitle = new Label("Review all tasks, assignments, and meetings planned for this date.");
+        headerSubtitle.setFont(Font.font(FONT, 13));
+        headerSubtitle.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+
+        VBox headerBox = new VBox(6, headerTitle, headerSubtitle);
+        headerBox.setPadding(new Insets(0, 0, 8, 0));
+
+        // Events List Container
+        VBox eventsList = new VBox(12);
+        eventsList.setPadding(new Insets(4, 2, 4, 2));
+
+        // Match dummy data with clicked date
+        if (date.getDayOfMonth() == 12 && date.getMonthValue() == 8 && date.getYear() == 2026) {
+            eventsList.getChildren().add(createModalEventCard("📄 JavaFX Submission", "11:59 PM • Project Portal", "Ensure all controller logic and FXML files are properly linked and tested before submission.", DANGER_RED));
+        } else if (date.getDayOfMonth() == 16 && date.getMonthValue() == 8 && date.getYear() == 2026) {
+            eventsList.getChildren().add(createModalEventCard("👥 Team Sync 4PM", "04:00 PM • Google Meet", "Discuss final module integrations and assign remaining tasks for the upcoming sprint.", PRIMARY_BLUE));
+        } else if (date.getDayOfMonth() == 20 && date.getMonthValue() == 8 && date.getYear() == 2026) {
+            eventsList.getChildren().add(createModalEventCard("📝 DBMS Mock Exam", "10:00 AM • Exam Hall B", "Covers normalization, SQL queries, transactional properties, and ER diagrams.", "#D97706"));
+        } else if (date.getDayOfMonth() == 25 && date.getMonthValue() == 8 && date.getYear() == 2026) {
+            eventsList.getChildren().add(createModalEventCard("💻 Arch Review", "02:30 PM • Conference Room 1", "Present component interaction layouts and security layers to the project supervisor.", "#059669"));
+        } else {
+            VBox emptyBox = new VBox(8);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setPadding(new Insets(50, 20, 50, 20));
+            
+            Label emptyIcon = new Label("📅");
+            emptyIcon.setFont(Font.font(FONT, 28));
+            
+            Label noEventLbl = new Label("No events or reminders scheduled for this day.");
+            noEventLbl.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
+            noEventLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+            
+            emptyBox.getChildren().addAll(emptyIcon, noEventLbl);
+            eventsList.getChildren().add(emptyBox);
+        }
+
+        ScrollPane scrollPane = new ScrollPane(eventsList);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle(
+                "-fx-background: transparent;" +
+                "-fx-background-color: transparent;" +
+                "-fx-padding: 0;" +
+                "-fx-border-color: transparent;"
+        );
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+        // Cancel / Close Button styled neatly
+        Button cancelBtn = new Button("Close");
+        cancelBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
+        cancelBtn.setPrefWidth(110);
+        cancelBtn.setPrefHeight(38);
+        cancelBtn.setStyle(
+                "-fx-background-color: " + PRIMARY_BLUE + ";" +
+                "-fx-text-fill: #FFFFFF;" +
+                "-fx-background-radius: 10;" +
+                "-fx-cursor: hand;"
+        );
+        cancelBtn.setOnAction(e -> eventStage.close());
+
+        HBox footerBox = new HBox(cancelBtn);
+        footerBox.setAlignment(Pos.CENTER_RIGHT);
+        footerBox.setPadding(new Insets(8, 0, 0, 0));
+
+        // Main Layout Container with Smooth Padding & Card Background
+        VBox rootLayout = new VBox(16, headerBox, scrollPane, footerBox);
+        rootLayout.setPadding(new Insets(28));
+        rootLayout.setStyle(
+                "-fx-background-color: " + BG_CARD + ";" +
+                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-border-radius: 14;" +
+                "-fx-background-radius: 14;"
+        );
+
+        Scene scene = new Scene(rootLayout, 520, 400);
+        eventStage.setScene(scene);
+        eventStage.setResizable(false);
+        eventStage.centerOnScreen();
+        eventStage.show();
+    }
+
+    private VBox createModalEventCard(String title, String timeAndLocation, String description, String accentColor) {
+        Label titleLbl = new Label(title);
+        titleLbl.setFont(Font.font(FONT, FontWeight.BOLD, 14));
+        titleLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+
+        Label metaLbl = new Label(timeAndLocation);
+        metaLbl.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
+        metaLbl.setStyle("-fx-text-fill: " + accentColor + ";");
+
+        Label descLbl = new Label(description);
+        descLbl.setFont(Font.font(FONT, 12));
+        descLbl.setWrapText(true);
+        descLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+
+        VBox card = new VBox(6, titleLbl, metaLbl, descLbl);
+        card.setPadding(new Insets(14));
+        card.setMaxWidth(Double.MAX_VALUE); // Ensures the card stretches to fill the vertical list width
+        card.setStyle(
+                "-fx-background-color: " + BG_CARD_INNER + ";" +
+                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;" +
+                "-fx-border-width: 1 1 1 4;" +
+                "-fx-border-color: " + BORDER_CARD + " " + BORDER_CARD + " " + BORDER_CARD + " " + accentColor + ";"
+        );
+        return card;
     }
 
     private void addEventBadge(VBox dateBox, String title, String textColor, String bgColor) {
