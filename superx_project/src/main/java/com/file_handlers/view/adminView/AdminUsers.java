@@ -10,15 +10,14 @@ import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -39,21 +38,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AdminUsers {
-    private static final String FONT = "Inter, 'Segoe UI', Arial, sans-serif";
+    private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
     private static final String SIDEBAR_BG = "#1E2A3A";
     private static final String SIDEBAR_DARK = "#141D29";
-    private static final String SIDEBAR_BORDER = "#334155";
+    private static final String SIDEBAR_BORDER = "#2D3D52";
     private static final String MAIN_BG = "#31435B";
     private static final String CARD_BG = "#DDE8F8";
     private static final String CARD_BORDER = "#C3D6EC";
     private static final String BLUE = "#2563EB";
     private static final String WHITE = "#FFFFFF";
-    private static final String LIGHT_SECONDARY = "#CBD5E1";
+    private static final String LIGHT_SECONDARY = "#94A3B8";
 
     private final ObservableList<UserData> users = FXCollections.observableArrayList();
     private VBox tableBody;
-    private TextField userSearch;
+    private TextField topBarSearchField;
     private ComboBox<String> statusDropdown;
+    private HBox batchActionBar;
+    private Label selectedCountLabel;
 
     public AdminUsers() {
         loadDummyUsers();
@@ -61,16 +62,18 @@ public class AdminUsers {
 
     public Scene getAdminUsersScene() {
         BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: " + MAIN_BG + ";");
+        root.setStyle("-fx-background-color: " + SIDEBAR_BG + ";");
         root.setLeft(createSidebar());
 
         ScrollPane scrollPane = new ScrollPane(createUsersContent());
         scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+        scrollPane.setStyle("-fx-background-color: " + MAIN_BG + "; -fx-background: " + MAIN_BG + "; -fx-background-insets: 0; -fx-padding: 0;");
 
         VBox rightSide = new VBox(createTopBar(), scrollPane);
+        rightSide.setStyle("-fx-background-color: " + MAIN_BG + ";");
         rightSide.setFillWidth(true);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         root.setCenter(rightSide);
@@ -92,19 +95,19 @@ public class AdminUsers {
     }
 
     private VBox createSidebar() {
-        VBox sidebar = new VBox(10);
+        VBox sidebar = new VBox(12);
         sidebar.setPrefWidth(230); sidebar.setMinWidth(230); sidebar.setMaxWidth(230);
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setStyle("-fx-background-color: " + SIDEBAR_BG + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 1 0 0;");
 
         Label logoText = new Label("OneSpace");
-        logoText.setFont(Font.font(FONT, FontWeight.BOLD, 22));
+        logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
         logoText.setTextFill(Color.WHITE);
 
-        HBox logoRow = new HBox(12, createLogo(), logoText);
+        HBox logoRow = new HBox(10, createLogo(), logoText);
         logoRow.setAlignment(Pos.CENTER_LEFT);
 
-        VBox logoSection = new VBox(logoRow);
+        VBox logoSection = new VBox(4, logoRow);
         logoSection.setPadding(new Insets(0, 0, 18, 6));
 
         Button dashboard = createSidebarButton("dashboard", "Dashboard", false);
@@ -148,13 +151,13 @@ public class AdminUsers {
         icon.setStrokeWidth(2);
 
         StackPane iconBox = new StackPane(icon);
-        iconBox.setPrefSize(27, 27);
+        iconBox.setPrefSize(24, 24);
 
         Label label = new Label(text);
         label.setFont(Font.font(FONT, active ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
         label.setTextFill(Color.WHITE);
 
-        HBox row = new HBox(14, iconBox, label);
+        HBox row = new HBox(12, iconBox, label);
         row.setAlignment(Pos.CENTER_LEFT);
 
         Button button = new Button();
@@ -170,7 +173,7 @@ public class AdminUsers {
         } else {
             button.setStyle("-fx-background-color: transparent;" + baseStyle);
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: " + SIDEBAR_DARK + ";" + baseStyle);
+                button.setStyle("-fx-background-color: #26354A;" + baseStyle);
                 icon.setStroke(Color.WHITE);
                 label.setTextFill(Color.WHITE);
             });
@@ -189,22 +192,22 @@ public class AdminUsers {
         searchIcon.setStrokeWidth(2);
 
         StackPane searchIconBox = new StackPane(searchIcon);
-        searchIconBox.setPrefSize(25, 25); searchIconBox.setMinSize(25, 25); searchIconBox.setMaxSize(25, 25);
+        searchIconBox.setPrefSize(24, 24);
 
-        TextField search = new TextField();
-        search.setPromptText("Search in OneSpace...");
-        search.setFont(Font.font(FONT, FontWeight.NORMAL, 15));
-        search.setPrefHeight(38); search.setMinHeight(38); search.setMaxHeight(38);
-        search.setStyle("-fx-background-color: transparent; -fx-text-fill: #F8FAFC; -fx-prompt-text-fill: #94A3B8; -fx-border-color: transparent; -fx-padding: 0;");
-        HBox.setHgrow(search, Priority.ALWAYS);
+        topBarSearchField = new TextField();
+        topBarSearchField.setPromptText("Search in OneSpace...");
+        topBarSearchField.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
+        topBarSearchField.setPrefHeight(38);
+        topBarSearchField.setStyle("-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #94A3B8; -fx-border-color: transparent; -fx-padding: 0;");
+        topBarSearchField.textProperty().addListener((obs, oldVal, newVal) -> refreshUserTable());
 
-        HBox searchBox = new HBox(8, searchIconBox, search);
+        HBox searchBox = new HBox(8, searchIconBox, topBarSearchField);
         searchBox.setAlignment(Pos.CENTER_LEFT);
-        searchBox.setPrefHeight(38); searchBox.setMaxWidth(Double.MAX_VALUE);
-        searchBox.setPadding(new Insets(0, 10, 0, 12));
-        searchBox.setStyle("-fx-background-color: " + SIDEBAR_DARK + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
-        HBox.setHgrow(searchBox, Priority.ALWAYS);
-        HBox.setHgrow(search, Priority.ALWAYS);
+        searchBox.setPrefHeight(38); searchBox.setMinHeight(38); searchBox.setMaxHeight(38);
+        searchBox.setPrefWidth(420); searchBox.setMinWidth(420); searchBox.setMaxWidth(420);
+        searchBox.setPadding(new Insets(0, 12, 0, 14));
+        searchBox.setStyle("-fx-background-color: #141E2C; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
+        HBox.setHgrow(topBarSearchField, Priority.ALWAYS);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -215,8 +218,7 @@ public class AdminUsers {
 
         Button notification = new Button();
         notification.setGraphic(bell);
-        notification.setPrefSize(38, 38);
-        notification.setStyle("-fx-background-color: transparent; -fx-font-size: 19px; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
+        notification.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
 
         Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
@@ -225,60 +227,36 @@ public class AdminUsers {
         avatar.setStyle("-fx-background-color: " + BLUE + "; -fx-background-radius: 50%;");
 
         Label admin = new Label("Admin");
-        admin.setFont(Font.font(FONT, FontWeight.BOLD, 13));
+        admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
 
-        Label arrow = new Label("⌄");
-        arrow.setFont(Font.font(FONT, FontWeight.NORMAL, 16));
-        arrow.setTextFill(Color.web(LIGHT_SECONDARY));
-
-        HBox profile = new HBox(8, notification, avatar, admin, arrow);
+        HBox profile = new HBox(10, notification, avatar, admin);
         profile.setAlignment(Pos.CENTER);
 
         HBox topBar = new HBox(20, searchBox, spacer, profile);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPrefHeight(70); topBar.setMinHeight(70); topBar.setMaxHeight(70);
-        topBar.setPadding(new Insets(16, 24, 16, 24));
+        topBar.setPadding(new Insets(16, 28, 14, 28));
         topBar.setStyle("-fx-background-color: " + SIDEBAR_BG + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
         return topBar;
     }
 
     private VBox createUsersContent() {
-        Label title = createLabel("Users", "-fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;");
-        Label subtitle = createLabel("Manage your organization's users easily.", "-fx-font-size: 16px; -fx-text-fill: #CBD5E1;");
-        VBox titleBox = new VBox(7, title, subtitle);
+        Label title = createLabel("Users", "-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;");
+        Label subtitle = createLabel("Manage your organization's users easily.", "-fx-font-size: 13px; -fx-font-weight: 500; -fx-text-fill: #94A3B8;");
+        VBox titleBox = new VBox(4, title, subtitle);
 
-        userSearch = new TextField();
-        userSearch.setPromptText("Search users...");
-        userSearch.setPrefHeight(56);
-        userSearch.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-font-size: 15px; -fx-text-fill: #0B1220; -fx-prompt-text-fill: #657696;");
-        HBox.setHgrow(userSearch, Priority.ALWAYS);
-
-        SVGPath searchUserIcon = createIcon("search");
-        searchUserIcon.setStroke(Color.web("#657696"));
-        searchUserIcon.setStrokeWidth(2);
-
-        StackPane userSearchIcon = new StackPane(searchUserIcon);
-        userSearchIcon.setPrefSize(25, 25);
-
-        HBox userSearchBox = new HBox(10, userSearchIcon, userSearch);
-        userSearchBox.setAlignment(Pos.CENTER_LEFT);
-        userSearchBox.setPrefHeight(56);
-        HBox.setHgrow(userSearchBox, Priority.ALWAYS);
-        userSearchBox.setPadding(new Insets(0, 15, 0, 18));
-        userSearchBox.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 11; -fx-background-radius: 11;");
-
-        statusDropdown = createDropdown(182, "All Status", "All Status", "Active", "Inactive");
-
-        HBox filterRow = new HBox(25, userSearchBox, statusDropdown);
-        filterRow.setAlignment(Pos.CENTER_LEFT);
-        filterRow.setPadding(new Insets(30, 0, 28, 0));
-
-        userSearch.textProperty().addListener((observable, oldValue, newValue) -> refreshUserTable());
+        statusDropdown = createDropdown(160, "All Status", "All Status", "Active", "Inactive");
         statusDropdown.valueProperty().addListener((observable, oldValue, newValue) -> refreshUserTable());
 
+        Region filterSpacer = new Region();
+        HBox.setHgrow(filterSpacer, Priority.ALWAYS);
+
+        HBox filterRow = new HBox(16, titleBox, filterSpacer, statusDropdown);
+        filterRow.setAlignment(Pos.CENTER_LEFT);
+
         GridPane tableHeader = createTableGrid();
-        tableHeader.setMinHeight(48); tableHeader.setPrefHeight(48);
+        tableHeader.setMinHeight(44); tableHeader.setPrefHeight(44);
         tableHeader.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1 0 1 0;");
 
         CheckBox selectAll = new CheckBox();
@@ -307,6 +285,7 @@ public class AdminUsers {
                     }
                 }
             }
+            updateBatchActionBar();
         });
 
         refreshUserTable();
@@ -314,11 +293,29 @@ public class AdminUsers {
         VBox table = new VBox(tableHeader, tableBody);
         table.setFillWidth(true);
         VBox.setVgrow(tableBody, Priority.ALWAYS);
-        table.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 14; -fx-background-radius: 14;");
+        table.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.18), 16, 0, 0, 6);");
 
-        VBox content = new VBox(0, titleBox, filterRow, table, createPagination());
+        selectedCountLabel = createLabel("0 selected", "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;");
+        Button bulkDeactivateBtn = new Button("Deactivate Selected");
+        bulkDeactivateBtn.setStyle("-fx-background-color: #EF4444; -fx-text-fill: #FFFFFF; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+        bulkDeactivateBtn.setOnAction(e -> {
+            showInfo("Bulk Action", "Selected users marked as inactive.");
+            updateBatchActionBar();
+        });
+
+        Region batchSpacer = new Region();
+        HBox.setHgrow(batchSpacer, Priority.ALWAYS);
+
+        batchActionBar = new HBox(14, selectedCountLabel, batchSpacer, bulkDeactivateBtn);
+        batchActionBar.setAlignment(Pos.CENTER_LEFT);
+        batchActionBar.setPadding(new Insets(10, 16, 10, 16));
+        batchActionBar.setStyle("-fx-background-color: #1E2A3A; -fx-background-radius: 10; -fx-border-color: #2D3D52; -fx-border-radius: 10;");
+        batchActionBar.setVisible(false);
+        batchActionBar.setManaged(false);
+
+        VBox content = new VBox(22, filterRow, batchActionBar, table, createPagination());
         content.setFillWidth(true);
-        content.setPadding(new Insets(42, 48, 30, 48));
+        content.setPadding(new Insets(24, 28, 28, 28));
         content.setStyle("-fx-background-color: " + MAIN_BG + ";");
         return content;
     }
@@ -342,7 +339,7 @@ public class AdminUsers {
         if (tableBody == null) return;
         tableBody.getChildren().clear();
 
-        String searchText = userSearch == null ? "" : userSearch.getText().trim().toLowerCase();
+        String searchText = topBarSearchField == null ? "" : topBarSearchField.getText().trim().toLowerCase();
         String selectedStatus = statusDropdown == null ? "All Status" : statusDropdown.getValue();
 
         List<UserData> filteredUsers = new ArrayList<>();
@@ -353,13 +350,25 @@ public class AdminUsers {
         }
 
         if (filteredUsers.isEmpty()) {
+            SVGPath emptyIcon = createIcon("search");
+            emptyIcon.setStroke(Color.web("#94A3B8"));
+            emptyIcon.setStrokeWidth(2);
+            StackPane emptyIconBox = new StackPane(emptyIcon);
+            emptyIconBox.setPrefSize(40, 40);
+
             VBox noUsers = new VBox(10,
-                    createLabel("No users found", "-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #0B1220;"),
-                    createLabel("Try changing your search or status filter.", "-fx-font-size: 15px; -fx-text-fill: #334155;")
+                    emptyIconBox,
+                    createLabel("No users found", "-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #0F172A;"),
+                    createLabel("Try changing your search or status filter.", "-fx-font-size: 13px; -fx-text-fill: #334155;")
             );
             noUsers.setAlignment(Pos.CENTER);
-            noUsers.setPrefHeight(300);
-            tableBody.getChildren().add(noUsers);
+            noUsers.setPadding(new Insets(30));
+            noUsers.setStyle("-fx-border-color: #C3D6EC; -fx-border-style: dashed; -fx-border-radius: 8;");
+            
+            VBox wrapper = new VBox(noUsers);
+            wrapper.setAlignment(Pos.CENTER);
+            wrapper.setPadding(new Insets(20));
+            tableBody.getChildren().add(wrapper);
             return;
         }
 
@@ -370,74 +379,120 @@ public class AdminUsers {
 
     private GridPane createUserRow(UserData user) {
         GridPane row = createTableGrid();
-        row.setMinHeight(72); row.setPrefHeight(72); row.setMaxWidth(Double.MAX_VALUE);
+        row.setMinHeight(64); row.setPrefHeight(64); row.setMaxWidth(Double.MAX_VALUE);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(0, 10, 0, 10));
         row.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 0 0 1 0;");
 
         CheckBox checkBox = new CheckBox();
+        checkBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
+            updateBatchActionBar();
+            if (newVal) {
+                row.setStyle("-fx-background-color: #CFE0F5; -fx-border-color: #2563EB; -fx-border-width: 0 0 1 3;");
+            } else {
+                row.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 0 0 1 0;");
+            }
+        });
         GridPane.setHalignment(checkBox, HPos.CENTER);
         row.add(checkBox, 0, 0);
 
-        Circle avatarCircle = new Circle(20, getAvatarColor(user.getName()));
+        Circle avatarCircle = new Circle(18, getAvatarColor(user.getName()));
         Label initials = createLabel(getInitials(user.getName()), "-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #333333;");
         StackPane avatarPane = new StackPane(avatarCircle, initials);
 
-        Label nameLabel = createLabel(user.getName(), "-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0B1220;");
-        HBox userBox = new HBox(12, avatarPane, nameLabel);
+        Label nameLabel = createLabel(user.getName(), "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #0F172A;");
+        HBox userBox = new HBox(10, avatarPane, nameLabel);
         userBox.setAlignment(Pos.CENTER_LEFT);
         userBox.setPadding(new Insets(0, 8, 0, 8));
         userBox.setMaxWidth(Double.MAX_VALUE);
         GridPane.setHgrow(userBox, Priority.ALWAYS);
         row.add(userBox, 1, 0);
 
-        Label emailLabel = createLabel(user.getEmail(), "-fx-font-size: 14px; -fx-text-fill: #1E293B;");
+        Label emailLabel = createLabel(user.getEmail(), "-fx-font-size: 12px; -fx-text-fill: #1E293B;");
         emailLabel.setMaxWidth(Double.MAX_VALUE);
         emailLabel.setPadding(new Insets(0, 8, 0, 8));
+        emailLabel.setTooltip(new Tooltip(user.getEmail()));
         GridPane.setHgrow(emailLabel, Priority.ALWAYS);
         row.add(emailLabel, 2, 0);
 
-        Label statusLabel = new Label("●  " + user.getStatus());
-        statusLabel.setMaxWidth(Double.MAX_VALUE);
+        Circle statusDot = new Circle(3.5);
+        Label statusText = new Label(user.getStatus());
+        statusText.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+
+        HBox statusLabel = new HBox(6, statusDot, statusText);
         statusLabel.setAlignment(Pos.CENTER_LEFT);
-        statusLabel.setPadding(new Insets(6, 12, 6, 12));
+        statusLabel.setMaxWidth(Double.MAX_VALUE);
+        statusLabel.setPadding(new Insets(4, 10, 4, 10));
+
         if (user.getStatus().equalsIgnoreCase("Active")) {
-            statusLabel.setStyle("-fx-background-color: #A7F3D0; -fx-text-fill: #047857; -fx-background-radius: 15; -fx-font-size: 12px; -fx-font-weight: bold;");
+            statusDot.setFill(Color.web("#047857"));
+            statusText.setTextFill(Color.web("#047857"));
+            statusLabel.setStyle("-fx-background-color: #A7F3D0; -fx-background-radius: 12;");
         } else {
-            statusLabel.setStyle("-fx-background-color: #FECACA; -fx-text-fill: #B91C1C; -fx-background-radius: 15; -fx-font-size: 12px; -fx-font-weight: bold;");
+            statusDot.setFill(Color.web("#B91C1C"));
+            statusText.setTextFill(Color.web("#B91C1C"));
+            statusLabel.setStyle("-fx-background-color: #FECACA; -fx-background-radius: 12;");
         }
         GridPane.setHgrow(statusLabel, Priority.ALWAYS);
         row.add(statusLabel, 3, 0);
 
-        Label lastLogin = createLabel(user.getLastLogin(), "-fx-font-size: 14px; -fx-text-fill: #1E293B;");
+        Label lastLogin = createLabel(user.getLastLogin(), "-fx-font-size: 12px; -fx-text-fill: #1E293B;");
         lastLogin.setPadding(new Insets(0, 8, 0, 8));
         lastLogin.setMaxWidth(Double.MAX_VALUE);
         GridPane.setHgrow(lastLogin, Priority.ALWAYS);
         row.add(lastLogin, 4, 0);
 
         Button actionButton = new Button("⋮");
-        actionButton.setPrefSize(42, 38);
-        actionButton.setStyle("-fx-background-color: transparent; -fx-font-size: 22px; -fx-text-fill: #1E293B; -fx-cursor: hand;");
-        actionButton.setOnMouseEntered(e -> actionButton.setStyle("-fx-background-color: #BFDBFE; -fx-background-radius: 8; -fx-font-size: 22px; -fx-text-fill: #2563EB; -fx-cursor: hand;"));
-        actionButton.setOnMouseExited(e -> actionButton.setStyle("-fx-background-color: transparent; -fx-font-size: 22px; -fx-text-fill: #1E293B; -fx-cursor: hand;"));
+        actionButton.setPrefSize(36, 32);
+        actionButton.setStyle("-fx-background-color: transparent; -fx-font-size: 18px; -fx-text-fill: #1E293B; -fx-cursor: hand;");
+        actionButton.setOnMouseEntered(e -> actionButton.setStyle("-fx-background-color: #CADDF2; -fx-background-radius: 6; -fx-font-size: 18px; -fx-text-fill: #2563EB; -fx-cursor: hand;"));
+        actionButton.setOnMouseExited(e -> actionButton.setStyle("-fx-background-color: transparent; -fx-font-size: 18px; -fx-text-fill: #1E293B; -fx-cursor: hand;"));
 
         ContextMenu contextMenu = new ContextMenu();
         MenuItem viewItem = new MenuItem("View User");
-        MenuItem editItem = new MenuItem("Edit User");
-        MenuItem deleteItem = new MenuItem("Delete User");
-        contextMenu.getItems().addAll(viewItem, editItem, new SeparatorMenuItem(), deleteItem);
+        viewItem.setStyle("-fx-font-size: 11px; -fx-padding: 4 10 4 10; -fx-cursor: hand;");
+        contextMenu.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 2;");
+        contextMenu.getItems().add(viewItem);
 
         actionButton.setOnAction(e -> contextMenu.show(actionButton, Side.BOTTOM, 0, 0));
         viewItem.setOnAction(e -> showUserDetails(user));
-        editItem.setOnAction(e -> showInfo("Edit User", "Edit functionality can be connected later."));
-        deleteItem.setOnAction(e -> deleteUser(user));
 
         row.add(actionButton, 5, 0);
         GridPane.setHalignment(actionButton, HPos.CENTER);
 
-        row.setOnMouseEntered(e -> row.setStyle("-fx-background-color: #EAF2FC; -fx-border-color: #C3D6EC; -fx-border-width: 0 0 1 0;"));
-        row.setOnMouseExited(e -> row.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 0 0 1 0;"));
+        row.setOnMouseEntered(e -> {
+            if (!checkBox.isSelected()) {
+                row.setStyle("-fx-background-color: #CADDF2; -fx-border-color: #2563EB; -fx-border-width: 0 0 1 3;");
+            }
+        });
+        row.setOnMouseExited(e -> {
+            if (!checkBox.isSelected()) {
+                row.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 0 0 1 0;");
+            }
+        });
         return row;
+    }
+
+    private void updateBatchActionBar() {
+        int count = 0;
+        for (javafx.scene.Node node : tableBody.getChildren()) {
+            if (node instanceof GridPane) {
+                for (javafx.scene.Node child : ((GridPane) node).getChildren()) {
+                    if (child instanceof CheckBox && ((CheckBox) child).isSelected()) {
+                        count++;
+                        break;
+                    }
+                }
+            }
+        }
+        if (count > 0) {
+            selectedCountLabel.setText(count + " user" + (count > 1 ? "s" : "") + " selected");
+            batchActionBar.setVisible(true);
+            batchActionBar.setManaged(true);
+        } else {
+            batchActionBar.setVisible(false);
+            batchActionBar.setManaged(false);
+        }
     }
 
     private void showUserDetails(UserData user) {
@@ -448,19 +503,6 @@ public class AdminUsers {
         alert.showAndWait();
     }
 
-    private void deleteUser(UserData user) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Delete User");
-        alert.setHeaderText("Delete " + user.getName() + "?");
-        alert.setContentText("This action will remove the user from this list.");
-        alert.showAndWait().ifPresent(result -> {
-            if (result == ButtonType.OK) {
-                users.remove(user);
-                refreshUserTable();
-            }
-        });
-    }
-
     private void showInfo(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title); alert.setHeaderText(null); alert.setContentText(message);
@@ -468,28 +510,28 @@ public class AdminUsers {
     }
 
     private HBox createPagination() {
-        Label dots = createLabel("...", "-fx-font-size: 14px; -fx-text-fill: #1E293B;");
-        dots.setAlignment(Pos.CENTER); dots.setPrefSize(35, 42);
+        Label dots = createLabel("...", "-fx-font-size: 13px; -fx-text-fill: #1E293B;");
+        dots.setAlignment(Pos.CENTER); dots.setPrefSize(32, 36);
 
         HBox pagination = new HBox(6,
                 createPageButton("‹"), createPageButton("1"), createPageButton("2"), createPageButton("3"),
                 createPageButton("4"), createPageButton("5"), dots, createPageButton("10"), createPageButton("›")
         );
         pagination.setAlignment(Pos.CENTER);
-        pagination.setPadding(new Insets(22, 0, 0, 0));
+        pagination.setPadding(new Insets(14, 0, 0, 0));
         return pagination;
     }
 
     private Button createPageButton(String text) {
         Button button = new Button(text);
-        button.setPrefSize(42, 42);
+        button.setPrefSize(36, 36);
         boolean active = text.equals("1");
 
-        String normalStyle = "-fx-background-color: " + (active ? BLUE : "#FFFFFF") + "; -fx-border-color: " + (active ? BLUE : "#C3D6EC") + "; -fx-text-fill: " + (active ? WHITE : "#28344D") + "; -fx-border-radius: 9; -fx-background-radius: 9; -fx-font-size: 14px; -fx-cursor: hand;";
+        String normalStyle = "-fx-background-color: " + (active ? BLUE : "#FFFFFF") + "; -fx-border-color: " + (active ? BLUE : "#C3D6EC") + "; -fx-text-fill: " + (active ? WHITE : "#28344D") + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-size: 12px; -fx-cursor: hand;";
         button.setStyle(normalStyle);
 
         if (!active) {
-            button.setOnMouseEntered(e -> button.setStyle("-fx-background-color: #BFDBFE; -fx-border-color: #2563EB; -fx-text-fill: #2563EB; -fx-border-radius: 9; -fx-background-radius: 9; -fx-font-size: 14px; -fx-cursor: hand;"));
+            button.setOnMouseEntered(e -> button.setStyle("-fx-background-color: #CADDF2; -fx-border-color: #2563EB; -fx-text-fill: #2563EB; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-size: 12px; -fx-cursor: hand;"));
             button.setOnMouseExited(e -> button.setStyle(normalStyle));
         }
         return button;
@@ -503,7 +545,7 @@ public class AdminUsers {
     }
 
     private Label createHeaderLabel(String text) {
-        Label label = createLabel(text, "-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #0B1220;");
+        Label label = createLabel(text, "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #0F172A;");
         label.setAlignment(Pos.CENTER_LEFT);
         label.setPadding(new Insets(0, 8, 0, 8));
         return label;
@@ -513,8 +555,8 @@ public class AdminUsers {
         ComboBox<String> cb = new ComboBox<>();
         cb.getItems().addAll(items);
         cb.setValue(defaultValue);
-        cb.setPrefSize(width, 56); cb.setMinWidth(width);
-        cb.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 11; -fx-background-radius: 11; -fx-font-size: 15px; -fx-text-fill: #0F172A;");
+        cb.setPrefSize(width, 42); cb.setMinWidth(width);
+        cb.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10; -fx-font-size: 13px; -fx-text-fill: #0F172A;");
         return cb;
     }
 
@@ -541,11 +583,15 @@ public class AdminUsers {
             Image logoImage = new Image(stream);
             ImageView imageView = new ImageView(logoImage);
             imageView.setFitWidth(42); imageView.setFitHeight(42); imageView.setPreserveRatio(true); imageView.setSmooth(true);
-            return new StackPane(imageView);
+            
+            StackPane logoPane = new StackPane(imageView);
+            logoPane.setPrefSize(42, 42);
+            logoPane.setAlignment(Pos.CENTER);
+            return logoPane;
         }
-        Circle circle = new Circle(20, Color.web(BLUE));
+        Circle circle = new Circle(21, Color.web(BLUE));
         Label fallback = new Label("O");
-        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 20));
+        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 18));
         fallback.setTextFill(Color.WHITE);
         return new StackPane(circle, fallback);
     }

@@ -45,31 +45,27 @@ public class AdminLoginPage {
         backBtn.setTextFill(Color.web(TEXT_MUTED_LIGHT));
         backBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
         backBtn.setOnAction(e -> { 
-    LandingPage.setScene(new LandingPage().getLandingPageScene()); 
-});
+            LandingPage.setScene(new LandingPage().getLandingPageScene()); 
+        });
+
         HBox appHeader = new HBox(new Region(), backBtn);
         HBox.setHgrow(appHeader.getChildren().get(0), Priority.ALWAYS);
         appHeader.setAlignment(Pos.CENTER_LEFT);
         appHeader.setPadding(new Insets(16, 24, 16, 24));
 
-        // Branding Header (Above Card Grid)
+        // Branding Text: Negative margin cancels PNG transparency padding
         Label brandingText = new Label("OneSpace");
-        brandingText.setFont(Font.font(FONT, FontWeight.BOLD, 24));
-        brandingText.setTextFill(Color.web("#FFFFFF"));
+        brandingText.setFont(Font.font(FONT, FontWeight.BOLD, 22));
+        brandingText.setTextFill(Color.web(TEXT_DARK));
+        VBox.setMargin(brandingText, new Insets(-26, 0, 4, 0));
 
-        VBox topBranding = new VBox(0, createLogo(), brandingText);
-        topBranding.setAlignment(Pos.CENTER);
-
-        // Login Card Header
-        Label title = new Label("Welcome Back");
-        title.setFont(Font.font(FONT, FontWeight.BOLD, 20));
-        title.setTextFill(Color.web(TEXT_DARK));
-
+        // Subtitle
         Label subtitle = new Label("Enter your credentials to access OneSpace");
         subtitle.setFont(Font.font(FONT, 13));
         subtitle.setTextFill(Color.web(TEXT_MUTED_DARK));
 
-        VBox cardHeader = new VBox(4, title, subtitle);
+        // Card Header - Direct assembly with 0 internal spacing
+        VBox cardHeader = new VBox(0, createLogo(), brandingText, subtitle);
         cardHeader.setAlignment(Pos.CENTER);
 
         // Form Fields
@@ -126,11 +122,11 @@ public class AdminLoginPage {
         HBox signUpBox = new HBox(4, noAccountText, signUpLink);
         signUpBox.setAlignment(Pos.CENTER);
 
-        // Card Assembly
-        VBox card = new VBox(16, cardHeader, emailBox, passwordBox, loginButton, signUpBox);
-        card.setPadding(new Insets(28, 28, 28, 28));
-        card.setPrefWidth(380);
-        card.setMaxWidth(380);
+        // Card Assembly (Exact sizing matches UserLoginPage: VBox 20 spacing, 32/28 padding, 360 width)
+        VBox card = new VBox(20, cardHeader, emailBox, passwordBox, loginButton, signUpBox);
+        card.setPadding(new Insets(32, 28, 32, 28));
+        card.setPrefWidth(360);
+        card.setMaxWidth(360);
         card.setStyle(
                 "-fx-background-color: " + BG_CARD + ";" +
                 "-fx-border-color: " + BORDER_COLOR + ";" +
@@ -145,7 +141,7 @@ public class AdminLoginPage {
         VBox.setVgrow(topSpacer, Priority.ALWAYS);
         VBox.setVgrow(bottomSpacer, Priority.ALWAYS);
 
-        VBox centerBody = new VBox(8, topSpacer, topBranding, card, bottomSpacer);
+        VBox centerBody = new VBox(topSpacer, card, bottomSpacer);
         centerBody.setAlignment(Pos.CENTER);
         centerBody.setPadding(new Insets(0, 24, 24, 24));
 
@@ -162,14 +158,17 @@ public class AdminLoginPage {
         if (stream != null) {
             Image logoImage = new Image(stream);
             ImageView imageView = new ImageView(logoImage);
-            imageView.setFitWidth(76); 
-            imageView.setFitHeight(76); 
+            imageView.setFitWidth(90); 
+            imageView.setFitHeight(90); 
             imageView.setPreserveRatio(true);
-            return new StackPane(imageView);
+            
+            StackPane logoHolder = new StackPane(imageView);
+            logoHolder.setAlignment(Pos.CENTER);
+            return logoHolder;
         }
-        Circle circle = new Circle(36, Color.web(PRIMARY_BLUE));
+        Circle circle = new Circle(42, Color.web(PRIMARY_BLUE));
         Label fallback = new Label("O");
-        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 30));
+        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 36));
         fallback.setTextFill(Color.WHITE);
         return new StackPane(circle, fallback);
     }
