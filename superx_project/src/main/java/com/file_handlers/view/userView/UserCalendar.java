@@ -110,7 +110,7 @@ public class UserCalendar {
         logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
 
 
-        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn, settingsBtn, logoutBtn);
+        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn, logoutBtn);
 
         // Sidebar Storage Card
         Label storageTitle = new Label("Storage Used");
@@ -500,22 +500,21 @@ public class UserCalendar {
         eventStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
         eventStage.setTitle("Scheduled Events");
 
-        // Header Title & Subtitle
+        // Header Title
         String formattedDate = date.format(java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy"));
         Label headerTitle = new Label("Events for " + formattedDate);
-        headerTitle.setFont(Font.font(FONT, FontWeight.BOLD, 20));
+        headerTitle.setFont(Font.font(FONT, FontWeight.BOLD, 18));
         headerTitle.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
 
         Label headerSubtitle = new Label("Review all tasks, assignments, and meetings planned for this date.");
-        headerSubtitle.setFont(Font.font(FONT, 13));
+        headerSubtitle.setFont(Font.font(FONT, 12));
         headerSubtitle.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
-        VBox headerBox = new VBox(6, headerTitle, headerSubtitle);
-        headerBox.setPadding(new Insets(0, 0, 8, 0));
+        VBox headerBox = new VBox(4, headerTitle, headerSubtitle);
 
-        // Events List Container
+        // Events Container
         VBox eventsList = new VBox(12);
-        eventsList.setPadding(new Insets(4, 2, 4, 2));
+        eventsList.setPadding(new Insets(4));
 
         // Match dummy data with clicked date
         if (date.getDayOfMonth() == 12 && date.getMonthValue() == 8 && date.getYear() == 2026) {
@@ -527,59 +526,45 @@ public class UserCalendar {
         } else if (date.getDayOfMonth() == 25 && date.getMonthValue() == 8 && date.getYear() == 2026) {
             eventsList.getChildren().add(createModalEventCard("💻 Arch Review", "02:30 PM • Conference Room 1", "Present component interaction layouts and security layers to the project supervisor.", "#059669"));
         } else {
-            VBox emptyBox = new VBox(8);
+            VBox emptyBox = new VBox();
             emptyBox.setAlignment(Pos.CENTER);
-            emptyBox.setPadding(new Insets(50, 20, 50, 20));
-            
-            Label emptyIcon = new Label("📅");
-            emptyIcon.setFont(Font.font(FONT, 28));
-            
+            emptyBox.setPadding(new Insets(40));
             Label noEventLbl = new Label("No events or reminders scheduled for this day.");
-            noEventLbl.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
+            noEventLbl.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
             noEventLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
-            
-            emptyBox.getChildren().addAll(emptyIcon, noEventLbl);
+            emptyBox.getChildren().add(noEventLbl);
             eventsList.getChildren().add(emptyBox);
         }
 
         ScrollPane scrollPane = new ScrollPane(eventsList);
         scrollPane.setFitToWidth(true);
-        scrollPane.setStyle(
-                "-fx-background: transparent;" +
-                "-fx-background-color: transparent;" +
-                "-fx-padding: 0;" +
-                "-fx-border-color: transparent;"
-        );
+        scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
-        // Cancel / Close Button styled neatly
-        Button cancelBtn = new Button("Close");
+        // Cancel / Close Button
+        Button cancelBtn = new Button("Cancel");
         cancelBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        cancelBtn.setPrefWidth(110);
-        cancelBtn.setPrefHeight(38);
+        cancelBtn.setPrefWidth(100);
         cancelBtn.setStyle(
-                "-fx-background-color: " + PRIMARY_BLUE + ";" +
-                "-fx-text-fill: #FFFFFF;" +
-                "-fx-background-radius: 10;" +
-                "-fx-cursor: hand;"
+                "-fx-background-color: " + BG_INPUT + ";" +
+                "-fx-text-fill: " + TEXT_DARK + ";" +
+                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;" +
+                "-fx-cursor: hand;" +
+                "-fx-padding: 8 16;"
         );
         cancelBtn.setOnAction(e -> eventStage.close());
 
         HBox footerBox = new HBox(cancelBtn);
         footerBox.setAlignment(Pos.CENTER_RIGHT);
-        footerBox.setPadding(new Insets(8, 0, 0, 0));
 
-        // Main Layout Container with Smooth Padding & Card Background
+        // Main Layout Container
         VBox rootLayout = new VBox(16, headerBox, scrollPane, footerBox);
-        rootLayout.setPadding(new Insets(28));
-        rootLayout.setStyle(
-                "-fx-background-color: " + BG_CARD + ";" +
-                "-fx-border-color: " + BORDER_CARD + ";" +
-                "-fx-border-radius: 14;" +
-                "-fx-background-radius: 14;"
-        );
+        rootLayout.setPadding(new Insets(24));
+        rootLayout.setStyle("-fx-background-color: " + BG_CARD + ";");
 
-        Scene scene = new Scene(rootLayout, 520, 400);
+        Scene scene = new Scene(rootLayout, 500, 380);
         eventStage.setScene(scene);
         eventStage.setResizable(false);
         eventStage.centerOnScreen();
@@ -601,8 +586,7 @@ public class UserCalendar {
         descLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         VBox card = new VBox(6, titleLbl, metaLbl, descLbl);
-        card.setPadding(new Insets(14));
-        card.setMaxWidth(Double.MAX_VALUE); // Ensures the card stretches to fill the vertical list width
+        //card.setPadding(14);
         card.setStyle(
                 "-fx-background-color: " + BG_CARD_INNER + ";" +
                 "-fx-border-color: " + BORDER_CARD + ";" +

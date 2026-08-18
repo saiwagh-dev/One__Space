@@ -2,11 +2,15 @@ package com.file_handlers.view.userView;
 
 import com.file_handlers.view.LandingPage;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -22,6 +26,12 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+
+import java.io.File;
+import java.util.List;
 
 public class UserSpaces {
 
@@ -38,7 +48,6 @@ public class UserSpaces {
 
     // 3. Main Cards: Soft Light Blue
     private static final String BG_CARD = "#DDE8F8";
-    //private static final String BG_CARD_INNER = "#CADDF2";
     private static final String BORDER_CARD = "#C3D6EC";
 
     // 4. Contrast Typography
@@ -76,7 +85,6 @@ public class UserSpaces {
         Button settingsBtn = createSidebarButton("⚙", "Settings", false);
         Button logoutBtn = createSidebarButton("🚪", "Logout", false);
 
-
         dashboardBtn.setOnAction(e -> { LandingPage.showUserDashboard(); });
         spacesBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
         searchBtn.setOnAction(e -> { LandingPage.showUserSearch(); });
@@ -86,11 +94,9 @@ public class UserSpaces {
         recentBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
         trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
         settingsBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
-
         logoutBtn.setOnAction(e -> { LandingPage.showUserLoginPage(); });
         
-        
-        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn, settingsBtn, logoutBtn);
+        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
 
         // Sidebar Storage Card
         Label storageTitle = new Label("Storage Used");
@@ -126,7 +132,8 @@ public class UserSpaces {
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
 
-        VBox sidebar = new VBox(12, logoBox, navList, sidebarSpacer, settingsBtn, storageCard);
+        // Sidebar layout placing logout directly below settings
+        VBox sidebar = new VBox(8, logoBox, navList, sidebarSpacer, settingsBtn, logoutBtn, storageCard);
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setPrefWidth(230);
         sidebar.setMinWidth(230);
@@ -158,7 +165,6 @@ public class UserSpaces {
 
         Button bellBtn = new Button("🔔");
         bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
-
         bellBtn.setOnAction(event -> { LandingPage.showNotificationPage(); });
 
         Label avatar = new Label("AV");
@@ -205,7 +211,7 @@ public class UserSpaces {
                 "-fx-cursor: hand;" +
                 "-fx-padding: 8 18;"
         );
-        newSpaceButton.setOnAction(e -> { LandingPage.showLandingPage(); });
+        newSpaceButton.setOnAction(e -> openNewSpaceWindow());
 
         HBox pageHeader = new HBox(headerTitleBox, new Region(), newSpaceButton);
         HBox.setHgrow(pageHeader.getChildren().get(1), Priority.ALWAYS);
@@ -293,8 +299,7 @@ public class UserSpaces {
     // HELPER BUILDERS
     // =========================================================
 
-        // OneSpace Logo
-        private StackPane createOneSpaceLogo() {
+    private StackPane createOneSpaceLogo() {
         Image logoImage = new Image(
                 getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
         );
@@ -309,7 +314,7 @@ public class UserSpaces {
         logoPane.setAlignment(Pos.CENTER);
 
         return logoPane;
-        }
+    }
 
     private Button createSidebarButton(String icon, String label, boolean isActive) {
         Label iconLbl = new Label(icon);
@@ -394,5 +399,185 @@ public class UserSpaces {
         card.setOnMouseClicked(e -> { LandingPage.showLandingPage(); });
 
         return card;
+    }
+
+    // =========================================================
+    // PREMIUM DESIGNED, LARGE NEW SPACE CREATION WINDOW
+    // =========================================================
+    private void openNewSpaceWindow() {
+        Stage newSpaceStage = new Stage();
+        newSpaceStage.initModality(Modality.APPLICATION_MODAL);
+        newSpaceStage.setTitle("Create New Space");
+
+        // Top Header Section with Accent Indicator Line
+        Label windowTitle = new Label("Create New Space");
+        windowTitle.setFont(Font.font(FONT, FontWeight.BOLD, 22));
+        windowTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+
+        Label windowSub = new Label("Group your important documents securely into an intelligent virtual folder.");
+        windowSub.setFont(Font.font(FONT, 13));
+        windowSub.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+
+        VBox titleContainer = new VBox(4, windowTitle, windowSub);
+
+        // Input Fields Styled with Refined Accents
+        Label nameLabel = new Label("SPACE NAME");
+        nameLabel.setFont(Font.font(FONT, FontWeight.BOLD, 10));
+        nameLabel.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-letter-spacing: 1px;");
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("e.g. Tax Records 2026, Thesis Project...");
+        nameField.setPrefHeight(42);
+        nameField.setStyle(
+                "-fx-background-color: #141D29; " +
+                "-fx-text-fill: " + TEXT_LIGHT + "; " +
+                "-fx-prompt-text-fill: #64748B; " +
+                "-fx-font-size: 13px; " +
+                "-fx-background-radius: 10; " +
+                "-fx-border-color: " + SIDEBAR_BORDER + "; " +
+                "-fx-border-radius: 10; " +
+                "-fx-padding: 0 14;"
+        );
+
+        Label descLabel = new Label("DESCRIPTION");
+        descLabel.setFont(Font.font(FONT, FontWeight.BOLD, 10));
+        descLabel.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-letter-spacing: 1px;");
+
+        TextField descField = new TextField();
+        descField.setPromptText("What kind of files will live in this space?");
+        descField.setPrefHeight(42);
+        descField.setStyle(
+                "-fx-background-color: #141D29; " +
+                "-fx-text-fill: " + TEXT_LIGHT + "; " +
+                "-fx-prompt-text-fill: #64748B; " +
+                "-fx-font-size: 13px; " +
+                "-fx-background-radius: 10; " +
+                "-fx-border-color: " + SIDEBAR_BORDER + "; " +
+                "-fx-border-radius: 10; " +
+                "-fx-padding: 0 14;"
+        );
+
+        // File Management Section
+        Label filesLabel = new Label("ATTACHED FILES");
+        filesLabel.setFont(Font.font(FONT, FontWeight.BOLD, 10));
+        filesLabel.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-letter-spacing: 1px;");
+
+        ObservableList<File> uploadedFiles = FXCollections.observableArrayList();
+        ListView<File> fileListView = new ListView<>(uploadedFiles);
+        fileListView.setPrefHeight(160);
+        fileListView.setStyle(
+                "-fx-background-color: #141D29; " +
+                "-fx-control-inner-background: #141D29; " +
+                "-fx-border-color: " + SIDEBAR_BORDER + "; " +
+                "-fx-border-radius: 10; " +
+                "-fx-background-radius: 10;"
+        );
+        
+        fileListView.setCellFactory(param -> new ListCell<File>() {
+            @Override
+            protected void updateItem(File item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                    setStyle("-fx-background-color: transparent;");
+                } else {
+                    setText("📄  " + item.getName() + "  (" + (item.length() / 1024) + " KB)");
+                    setStyle("-fx-background-color: #141D29; -fx-text-fill: #E2E8F0; -fx-font-size: 13px; -fx-padding: 6 10;");
+                }
+            }
+        });
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Add Files to Space");
+
+        Button uploadBtn = new Button("＋ Add Files");
+        uploadBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+        uploadBtn.setStyle(
+                "-fx-background-color: #2D3D52; " +
+                "-fx-text-fill: " + TEXT_LIGHT + "; " +
+                "-fx-background-radius: 8; " +
+                "-fx-cursor: hand; " +
+                "-fx-padding: 8 16;"
+        );
+        uploadBtn.setOnMouseEntered(e -> uploadBtn.setStyle("-fx-background-color: #3B4D66; -fx-text-fill: #FFFFFF; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16;"));
+        uploadBtn.setOnMouseExited(e -> uploadBtn.setStyle("-fx-background-color: #2D3D52; -fx-text-fill: " + TEXT_LIGHT + "; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16;"));
+        
+        uploadBtn.setOnAction(e -> {
+            List<File> selectedFiles = fileChooser.showOpenMultipleDialog(newSpaceStage);
+            if (selectedFiles != null) {
+                uploadedFiles.addAll(selectedFiles);
+            }
+        });
+
+        Button removeBtn = new Button("✕ Remove File");
+        removeBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+        removeBtn.setStyle(
+                "-fx-background-color: rgba(239, 68, 68, 0.15); " +
+                "-fx-text-fill: #F87171; " +
+                "-fx-background-radius: 8; " +
+                "-fx-cursor: hand; " +
+                "-fx-padding: 8 16;"
+        );
+        removeBtn.setOnMouseEntered(e -> removeBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.25); -fx-text-fill: #FCA5A5; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16;"));
+        removeBtn.setOnMouseExited(e -> removeBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-text-fill: #F87171; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16;"));
+        
+        removeBtn.setOnAction(e -> {
+            File selectedFile = fileListView.getSelectionModel().getSelectedItem();
+            if (selectedFile != null) {
+                uploadedFiles.remove(selectedFile);
+            }
+        });
+
+        HBox fileActionBox = new HBox(10, uploadBtn, removeBtn);
+        fileActionBox.setAlignment(Pos.CENTER_LEFT);
+
+        VBox fileSection = new VBox(8, filesLabel, fileListView, fileActionBox);
+
+        // Dialog Footer Controls
+        Button cancelBtn = new Button("Cancel");
+        cancelBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
+        cancelBtn.setStyle(
+                "-fx-background-color: transparent; " +
+                "-fx-text-fill: " + TEXT_MUTED_LIGHT + "; " +
+                "-fx-cursor: hand; " +
+                "-fx-padding: 10 18;"
+        );
+        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle("-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: #FFFFFF; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 10 18;"));
+        cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-cursor: hand; -fx-padding: 10 18;"));
+        cancelBtn.setOnAction(event -> newSpaceStage.close());
+
+        Button createBtn = new Button("Create Space");
+        createBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
+        createBtn.setStyle(
+                "-fx-background-color: " + PRIMARY_BLUE + "; " +
+                "-fx-text-fill: #FFFFFF; " +
+                "-fx-background-radius: 10; " +
+                "-fx-cursor: hand; " +
+                "-fx-padding: 10 24;"
+        );
+        createBtn.setOnMouseEntered(e -> createBtn.setStyle("-fx-background-color: #1D4ED8; -fx-text-fill: #FFFFFF; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 10 24;"));
+        createBtn.setOnMouseExited(e -> createBtn.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-text-fill: #FFFFFF; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 10 24;"));
+        
+        createBtn.setOnAction(event -> {
+            System.out.println("New Space Created: " + nameField.getText() + " with " + uploadedFiles.size() + " files.");
+            newSpaceStage.close();
+        });
+
+        Region footerSpacer = new Region();
+        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
+
+        HBox buttonBox = new HBox(12, cancelBtn, footerSpacer, createBtn);
+        buttonBox.setAlignment(Pos.CENTER_RIGHT);
+        buttonBox.setPadding(new Insets(10, 0, 0, 0));
+
+        // Main Layout Panel matching precise dark theme depth
+        VBox layout = new VBox(16, titleContainer, nameLabel, nameField, descLabel, descField, fileSection, buttonBox);
+        layout.setPadding(new Insets(30));
+        layout.setStyle("-fx-background-color: " + BG_SIDEBAR + ";");
+
+        Scene scene = new Scene(layout, 560, 640);
+        newSpaceStage.setScene(scene);
+        newSpaceStage.showAndWait();
     }
 }

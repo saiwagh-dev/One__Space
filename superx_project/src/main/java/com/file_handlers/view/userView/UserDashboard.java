@@ -99,7 +99,7 @@ public class UserDashboard {
         collabBtn.setOnAction(e -> { LandingPage.showCollaborationPage();});
         aiBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
         recentBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
-        trashBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
+        trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
         settingsBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
 
          
