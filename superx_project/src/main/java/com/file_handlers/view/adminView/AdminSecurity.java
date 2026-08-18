@@ -2,12 +2,18 @@ package com.file_handlers.view.adminView;
 
 import com.file_handlers.view.LandingPage;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.scene.control.*;
+import javafx.scene.effect.BlurType;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -18,19 +24,20 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.util.Duration;
 
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
 
 public class AdminSecurity {
 
-    private static final String FONT = "Inter, 'Segoe UI', Arial, sans-serif";
+    private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
     private static final String SIDEBAR_BG = "#1E2A3A";
     private static final String SIDEBAR_DARK = "#141D29";
-    private static final String SIDEBAR_BORDER = "#334155";
+    private static final String SIDEBAR_BORDER = "#2D3D52";
 
     private static final String MAIN_BG = "#31435B";
     private static final String CARD_BG = "#DDE8F8";
@@ -38,7 +45,7 @@ public class AdminSecurity {
 
     private static final String BLACK = "#000000";
     private static final String WHITE = "#FFFFFF";
-    private static final String LIGHT_SECONDARY = "#CBD5E1";
+    private static final String LIGHT_SECONDARY = "#94A3B8";
 
     private static final String BLUE = "#2563EB";
     private static final String PURPLE = "#7C3AED";
@@ -48,26 +55,25 @@ public class AdminSecurity {
     private static final String ORANGE = "#D97706";
 
     public Scene getSecurityScene() {
-
         BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: " + MAIN_BG + ";");
-
+        root.setStyle("-fx-background-color: " + SIDEBAR_BG + ";");
         root.setLeft(createSidebar());
 
-        ScrollPane scrollPane = new ScrollPane(createSecurityContent());
+        VBox contentContainer = createSecurityContent();
+        
+        ScrollPane scrollPane = new ScrollPane(contentContainer);
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-background: transparent;" +
-                "-fx-border-color: transparent;"
+                "-fx-background-color: " + MAIN_BG + ";" +
+                "-fx-background: " + MAIN_BG + ";" +
+                "-fx-background-insets: 0;" +
+                "-fx-padding: 0;"
         );
 
-        VBox rightSide = new VBox(
-                createTopBar(),
-                scrollPane
-        );
+        VBox rightSide = new VBox(createTopBar(), scrollPane);
+        rightSide.setStyle("-fx-background-color: " + MAIN_BG + ";");
         rightSide.setFillWidth(true);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
@@ -79,10 +85,11 @@ public class AdminSecurity {
                 ".dark-grid-card * { -fx-text-fill: #000000 !important; -fx-fill: #000000 !important; }" +
                 ".dark-grid-card .text { -fx-text-fill: #000000 !important; -fx-fill: #000000 !important; }" +
                 ".axis-label, .axis .tick-label { -fx-fill: #000000 !important; -fx-text-fill: #000000 !important; }" +
-                ".slate-dark-combo .list-cell { -fx-text-fill: #F8FAFC !important; -fx-font-weight: bold; -fx-background-color: #1E2A3A !important; }" +
+                ".slate-dark-combo .list-cell { -fx-text-fill: #F8FAFC !important; -fx-font-weight: bold; -fx-background-color: #1E2A3A !important; -fx-padding: 10 14 10 14; }" +
+                ".slate-dark-combo .list-cell:hover { -fx-background-color: #2563EB !important; -fx-text-fill: #FFFFFF !important; }" +
                 ".slate-dark-combo .arrow { -fx-background-color: #94A3B8 !important; }" +
                 ".chart-bar { -fx-background-insets: 0; }" +
-                ".chart-horizontal-grid-lines { -fx-stroke: transparent !important; -fx-stroke-width: 0px !important; }" +
+                ".chart-horizontal-grid-lines { -fx-stroke: rgba(0,0,0,0.08) !important; -fx-stroke-width: 1px !important; }" +
                 ".chart-vertical-grid-lines { -fx-stroke: transparent !important; -fx-stroke-width: 0px !important; }" +
                 ".chart-horizontal-zero-line { -fx-stroke: transparent !important; }" +
                 ".chart-vertical-zero-line { -fx-stroke: transparent !important; }" +
@@ -95,8 +102,7 @@ public class AdminSecurity {
     }
 
     private VBox createSidebar() {
-
-        VBox sidebar = new VBox(10);
+        VBox sidebar = new VBox(12);
         sidebar.setPrefWidth(230);
         sidebar.setMinWidth(230);
         sidebar.setMaxWidth(230);
@@ -108,13 +114,13 @@ public class AdminSecurity {
         );
 
         Label logoText = new Label("OneSpace");
-        logoText.setFont(Font.font(FONT, FontWeight.BOLD, 22));
+        logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
         logoText.setTextFill(Color.web(WHITE));
 
-        HBox logoRow = new HBox(12, createLogo(), logoText);
+        HBox logoRow = new HBox(10, createLogo(), logoText);
         logoRow.setAlignment(Pos.CENTER_LEFT);
 
-        VBox logoSection = new VBox(logoRow);
+        VBox logoSection = new VBox(4, logoRow);
         logoSection.setPadding(new Insets(0, 0, 18, 6));
 
         Button dashboardButton = createSidebarButton("dashboard", "Dashboard", false);
@@ -133,16 +139,7 @@ public class AdminSecurity {
         analyticsButton.setOnAction(e -> LandingPage.showAnalytics());
         securityButton.setOnAction(e -> LandingPage.showAdminSecurity());
 
-        VBox navList = new VBox(
-                4,
-                dashboardButton,
-                usersButton,
-                filesButton,
-                collabButton,
-                aiButton,
-                analyticsButton,
-                securityButton
-        );
+        VBox navList = new VBox(4, dashboardButton, usersButton, filesButton, collabButton, aiButton, analyticsButton, securityButton);
 
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
@@ -157,15 +154,7 @@ public class AdminSecurity {
         Button logoutButton = createSidebarButton("logout", "Logout", false);
         logoutButton.setOnAction(e -> LandingPage.showAdminLoginPage());
 
-        sidebar.getChildren().addAll(
-                logoSection,
-                navList,
-                sidebarSpacer,
-                settingsButton,
-                divider,
-                logoutButton
-        );
-
+        sidebar.getChildren().addAll(logoSection, navList, sidebarSpacer, settingsButton, divider, logoutButton);
         return sidebar;
     }
 
@@ -177,29 +166,31 @@ public class AdminSecurity {
             imageView.setFitWidth(42);
             imageView.setFitHeight(42);
             imageView.setPreserveRatio(true);
-            return new StackPane(imageView);
+            StackPane logoPane = new StackPane(imageView);
+            logoPane.setPrefSize(42, 42);
+            logoPane.setAlignment(Pos.CENTER);
+            return logoPane;
         }
-        Circle circle = new Circle(20, Color.web(BLUE));
+        Circle circle = new Circle(21, Color.web(BLUE));
         Label fallback = new Label("O");
-        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 20));
+        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 18));
         fallback.setTextFill(Color.WHITE);
         return new StackPane(circle, fallback);
     }
 
     private Button createSidebarButton(String type, String text, boolean selected) {
-
         SVGPath icon = createIcon(type);
         icon.setStroke(Color.web(selected ? WHITE : LIGHT_SECONDARY));
         icon.setStrokeWidth(2);
 
         StackPane iconBox = new StackPane(icon);
-        iconBox.setPrefSize(27, 27);
+        iconBox.setPrefSize(24, 24);
 
         Label label = new Label(text);
         label.setFont(Font.font(FONT, selected ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
         label.setTextFill(Color.web(WHITE));
 
-        HBox row = new HBox(14, iconBox, label);
+        HBox row = new HBox(12, iconBox, label);
         row.setAlignment(Pos.CENTER_LEFT);
 
         Button button = new Button();
@@ -217,7 +208,7 @@ public class AdminSecurity {
         } else {
             button.setStyle("-fx-background-color: transparent;" + baseStyle);
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: " + SIDEBAR_DARK + ";" + baseStyle);
+                button.setStyle("-fx-background-color: #26354A;" + baseStyle);
                 icon.setStroke(Color.WHITE);
                 label.setTextFill(Color.WHITE);
             });
@@ -227,33 +218,34 @@ public class AdminSecurity {
                 label.setTextFill(Color.WHITE);
             });
         }
-
         return button;
     }
 
     private HBox createTopBar() {
-
         SVGPath searchIcon = createIcon("search");
         searchIcon.setStroke(Color.web(LIGHT_SECONDARY));
         searchIcon.setStrokeWidth(2);
 
         StackPane searchIconBox = new StackPane(searchIcon);
-        searchIconBox.setPrefSize(25, 25);
+        searchIconBox.setPrefSize(24, 24);
 
         TextField searchField = createSearchField();
 
         HBox searchBox = new HBox(8, searchIconBox, searchField);
         searchBox.setAlignment(Pos.CENTER_LEFT);
         searchBox.setPrefHeight(38);
-        searchBox.setMaxWidth(Double.MAX_VALUE);
-        searchBox.setPadding(new Insets(0, 10, 0, 12));
+        searchBox.setMinHeight(38);
+        searchBox.setMaxHeight(38);
+        searchBox.setPrefWidth(420);
+        searchBox.setMinWidth(420);
+        searchBox.setMaxWidth(420);
+        searchBox.setPadding(new Insets(0, 12, 0, 14));
         searchBox.setStyle(
                 "-fx-background-color: " + SIDEBAR_DARK + ";" +
                 "-fx-border-color: " + SIDEBAR_BORDER + ";" +
                 "-fx-border-radius: 10;" +
                 "-fx-background-radius: 10;"
         );
-        HBox.setHgrow(searchBox, Priority.ALWAYS);
         HBox.setHgrow(searchField, Priority.ALWAYS);
 
         Region spacer = new Region();
@@ -265,8 +257,7 @@ public class AdminSecurity {
 
         Button notificationButton = new Button();
         notificationButton.setGraphic(bell);
-        notificationButton.setPrefSize(38, 38);
-        notificationButton.setStyle("-fx-background-color: transparent; -fx-font-size: 19px; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
+        notificationButton.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
 
         Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34);
@@ -276,36 +267,34 @@ public class AdminSecurity {
         avatar.setStyle("-fx-background-color: " + BLUE + "; -fx-background-radius: 50%;");
 
         Label adminName = new Label("Admin");
-        adminName.setFont(Font.font(FONT, FontWeight.BOLD, 13));
+        adminName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         adminName.setTextFill(Color.WHITE);
 
-        Label dropdown = new Label("⌄");
-        dropdown.setFont(Font.font(FONT, FontWeight.NORMAL, 16));
-        dropdown.setTextFill(Color.web(LIGHT_SECONDARY));
-
-        HBox profile = new HBox(8, notificationButton, avatar, adminName, dropdown);
+        HBox profile = new HBox(10, notificationButton, avatar, adminName);
         profile.setAlignment(Pos.CENTER);
 
         HBox topBar = new HBox(20, searchBox, spacer, profile);
         topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(16, 24, 16, 24));
+        topBar.setPrefHeight(70);
+        topBar.setMinHeight(70);
+        topBar.setMaxHeight(70);
+        topBar.setPadding(new Insets(16, 28, 14, 28));
         topBar.setStyle(
                 "-fx-background-color: " + SIDEBAR_BG + ";" +
                 "-fx-border-color: " + SIDEBAR_BORDER + ";" +
                 "-fx-border-width: 0 0 1 0;"
         );
-
         return topBar;
     }
 
     private TextField createSearchField() {
         TextField searchField = new TextField();
         searchField.setPromptText("Search in OneSpace...");
-        searchField.setFont(Font.font(FONT, FontWeight.NORMAL, 15));
+        searchField.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
         searchField.setPrefHeight(38);
         searchField.setStyle(
                 "-fx-background-color: transparent;" +
-                "-fx-text-fill: #F8FAFC;" +
+                "-fx-text-fill: #FFFFFF;" +
                 "-fx-prompt-text-fill: #94A3B8;" +
                 "-fx-border-color: transparent;" +
                 "-fx-padding: 0;"
@@ -314,32 +303,31 @@ public class AdminSecurity {
     }
 
     private VBox createSecurityContent() {
-
-        VBox root = new VBox(22);
+        VBox root = new VBox(24);
         root.setFillWidth(true);
-        root.setPadding(new Insets(32, 38, 36, 38));
+        root.setPadding(new Insets(28, 32, 40, 32));
         root.setStyle("-fx-background-color: " + MAIN_BG + ";");
 
         Label title = new Label("Security Overview");
-        title.setFont(Font.font(FONT, FontWeight.BOLD, 30));
+        title.setFont(Font.font(FONT, FontWeight.BOLD, 26));
         title.setTextFill(Color.WHITE);
 
-        Label subtitle = new Label("Monitor and manage the security of your OneSpace system");
-        subtitle.setFont(Font.font(FONT, FontWeight.NORMAL, 15));
-        subtitle.setTextFill(Color.WHITE);
+        Label subtitle = new Label("Monitor and manage the security of your OneSpace system with real-time diagnostics.");
+        subtitle.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
+        subtitle.setTextFill(Color.web(LIGHT_SECONDARY));
 
-        VBox headerText = new VBox(4, title, subtitle);
+        VBox headerText = new VBox(6, title, subtitle);
 
         ComboBox<String> date = new ComboBox<>();
         date.getItems().addAll(
-                "May 15 - Jun 15, 2025",
                 "Last 7 Days",
                 "Last 30 Days",
-                "Last 90 Days"
+                "Last 90 Days",
+                "This Year"
         );
-        date.setValue("May 15 - Jun 15, 2025");
-        date.setPrefWidth(200);
-        date.setPrefHeight(38);
+        date.setValue("Last 30 Days");
+        date.setPrefWidth(160);
+        date.setPrefHeight(36);
         date.getStyleClass().add("slate-dark-combo");
         date.setStyle(
                 "-fx-background-color: #1E2A3A;" +
@@ -348,7 +336,7 @@ public class AdminSecurity {
                 "-fx-border-radius: 8;" +
                 "-fx-background-radius: 8;" +
                 "-fx-font-family: " + FONT + ";" +
-                "-fx-font-size: 13px;" +
+                "-fx-font-size: 12px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: #F8FAFC;" +
                 "-fx-cursor: hand;" +
@@ -361,232 +349,174 @@ public class AdminSecurity {
         HBox header = new HBox(headerText, headerSpacer, date);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        HBox row1 = new HBox(18);
-        addEqualChildren(row1, createFailedLoginCard(), createSessionsCard());
+        Region fullWidthTwoFA = createTwoFACard();
+        fullWidthTwoFA.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(fullWidthTwoFA, Priority.ALWAYS);
 
-        HBox row2 = new HBox(18);
-        addEqualChildren(row2, createAlertsCard(), createTwoFACard());
+        Region fullWidthFailedLogin = createFailedLoginCard();
+        fullWidthFailedLogin.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(fullWidthFailedLogin, Priority.ALWAYS);
 
-        HBox row3 = new HBox(18);
-        addEqualChildren(row3, createSuspiciousCard(), createAuditLogsCard());
+        Region fullWidthAlerts = createAlertsCard();
+        fullWidthAlerts.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(fullWidthAlerts, Priority.ALWAYS);
 
-        root.getChildren().addAll(
-                header,
-                row1,
-                row2,
-                row3
-        );
-
+        root.getChildren().addAll(header, fullWidthTwoFA, fullWidthFailedLogin, fullWidthAlerts);
         return root;
     }
 
-    private void addEqualChildren(HBox row, Region child1, Region child2) {
-        child1.setMaxWidth(Double.MAX_VALUE); child1.setMinWidth(0);
-        child2.setMaxWidth(Double.MAX_VALUE); child2.setMinWidth(0);
-        HBox.setHgrow(child1, Priority.ALWAYS);
-        HBox.setHgrow(child2, Priority.ALWAYS);
-        row.getChildren().addAll(child1, child2);
-    }
-
     private VBox createFailedLoginCard() {
-
         VBox card = card();
-        card.setMinHeight(330);
+        card.setPrefHeight(380);
+        card.setMaxHeight(380);
 
         HBox header = cardHeader("security", "Failed Login Attempts", "Last 30 Days");
-        HBox numberRow = new HBox(6, bigNumber("128"));
-        HBox change = new HBox(4, createColoredText("↑ 18.6%", GREEN), createSmallSecondaryText("from last month"));
+        HBox numberRow = new HBox(8, bigNumber("128"));
+        HBox change = new HBox(8, badge("↑ 18.6%", "#D1FAE5", GREEN), createSmallSecondaryText("vs previous period"));
 
         CategoryAxis xAxis = new CategoryAxis();
         NumberAxis yAxis = new NumberAxis();
 
         xAxis.setTickLabelFill(Color.web(BLACK));
         yAxis.setTickLabelFill(Color.web(BLACK));
-        xAxis.setTickLabelFont(Font.font(FONT, 8));
-        yAxis.setTickLabelFont(Font.font(FONT, 8));
+        xAxis.setTickLabelFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
+        yAxis.setTickLabelFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
 
         xAxis.setTickMarkVisible(false);
         yAxis.setTickMarkVisible(false);
         yAxis.setMinorTickVisible(false);
 
-        BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
+        LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
         chart.setLegendVisible(false);
         chart.setAnimated(false);
-        chart.setCategoryGap(4);
-        chart.setBarGap(1);
-        chart.setPrefHeight(115);
-        chart.setHorizontalGridLinesVisible(false);
+        chart.setCreateSymbols(true);
+        chart.setHorizontalGridLinesVisible(true);
         chart.setVerticalGridLinesVisible(false);
-        chart.setStyle("-fx-background-color: transparent; -fx-padding: 0;");
+        chart.setAlternativeRowFillVisible(false);
+        chart.setAlternativeColumnFillVisible(false);
+        chart.setPrefHeight(125);
+        chart.setMaxHeight(125);
+        chart.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0;");
+        chart.lookupAll(".chart-plot-background").forEach(n -> n.setStyle("-fx-background-color: transparent;"));
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
-        int[] values = { 15, 30, 47, 10, 24, 42, 8, 12, 25, 18, 45, 31, 13, 8, 55, 42, 10, 32, 28, 15, 20, 10, 30, 47, 70 };
-
-        for (int i = 0; i < values.length; i++) {
-            String label = (i == 0) ? "May 15" : (i == 7) ? "May 22" : (i == 14) ? "May 29" : (i == 18) ? "Jun 05" : (i == 24) ? "Jun 12" : "";
-            series.getData().add(new XYChart.Data<>(label, values[i]));
-        }
-
+        series.getData().add(new XYChart.Data<>("Week 1", 18));
+        series.getData().add(new XYChart.Data<>("Week 2", 32));
+        series.getData().add(new XYChart.Data<>("Week 3", 47));
+        series.getData().add(new XYChart.Data<>("Week 4", 65));
         chart.getData().add(series);
 
         Platform.runLater(() -> {
             chart.applyCss();
             chart.layout();
-            chart.setHorizontalGridLinesVisible(false);
             for (XYChart.Data<String, Number> d : series.getData()) {
                 if (d.getNode() != null) {
-                    d.getNode().setStyle("-fx-bar-fill: " + ORANGE + "; -fx-background-insets: 0;");
+                    d.getNode().setStyle("-fx-background-color: " + ORANGE + ", white; -fx-background-radius: 6px; -fx-padding: 4px;");
                 }
             }
         });
 
         VBox ips = new VBox(
-                3,
+                6,
                 ipRow("192.168.1.45", "28 attempts"),
                 ipRow("203.0.113.10", "21 attempts"),
                 ipRow("45.77.32.11", "17 attempts")
         );
 
-        card.getChildren().addAll(header, numberRow, change, chart, sectionLabel("Top IP Addresses"), ips);
+        VBox ipsSection = new VBox(6, sectionLabel("Top IP Addresses"), ips);
+
+        HBox chartAndIps = new HBox(16, chart, ipsSection);
+        chartAndIps.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(chart, Priority.ALWAYS);
+        HBox.setHgrow(ipsSection, Priority.SOMETIMES);
+
+        card.getChildren().addAll(header, numberRow, change, chartAndIps);
         return card;
     }
 
     private HBox ipRow(String ip, String attempts) {
-
-        Text ipLabel = createTextNode(ip, 10, false, BLACK);
+        Label ipLabel = createWrappedLabel(ip, 11, false, BLACK);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Text attemptsLabel = createTextNode(attempts, 10, true, ORANGE);
+        Label attemptsLabel = createWrappedLabel(attempts, 11, true, ORANGE);
 
-        HBox row = new HBox(6, new Circle(3, Color.web(ORANGE)), ipLabel, spacer, attemptsLabel);
+        HBox row = new HBox(10, new Circle(3.5, Color.web(ORANGE)), ipLabel, spacer, attemptsLabel);
         row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(4, 10, 4, 10));
+        row.setStyle("-fx-background-color: rgba(255,255,255,0.55); -fx-background-radius: 8;");
         return row;
     }
 
-    private VBox createSessionsCard() {
-
-        VBox card = card();
-        card.setMinHeight(330);
-
-        card.getChildren().add(cardHeader("collab", "Active Sessions", "View All"));
-
-        GridPane table = new GridPane();
-        table.setHgap(6);
-        table.setVgap(8);
-        table.setMaxWidth(Double.MAX_VALUE);
-
-        ColumnConstraints userColumn = new ColumnConstraints(); userColumn.setPercentWidth(28);
-        ColumnConstraints deviceColumn = new ColumnConstraints(); deviceColumn.setPercentWidth(20);
-        ColumnConstraints locationColumn = new ColumnConstraints(); locationColumn.setPercentWidth(20);
-        ColumnConstraints durationColumn = new ColumnConstraints(); durationColumn.setPercentWidth(14);
-        ColumnConstraints actionColumn = new ColumnConstraints(); actionColumn.setPercentWidth(18);
-
-        table.getColumnConstraints().addAll(userColumn, deviceColumn, locationColumn, durationColumn, actionColumn);
-
-        String[] headers = { "User", "Device", "Location", "Duration", "Action" };
-        for (int i = 0; i < headers.length; i++) {
-            Text label = createTextNode(headers[i], 9, true, BLACK);
-            table.add(label, i, 0);
-        }
-
-        List<Session> list = Arrays.asList(
-                new Session("AV", "Aarav Verma", "Windows 11", "Pune, India", "2 hours"),
-                new Session("NS", "Neha Singh", "Android", "Mumbai, India", "45 min"),
-                new Session("RS", "Riya Sharma", "macOS", "Bangalore", "1 hour"),
-                new Session("RM", "Rahul Mehta", "iPhone 14", "Delhi, India", "30 min")
-        );
-
-        int r = 1;
-        for (Session session : list) {
-            HBox userBox = new HBox(4, avatarCircle(session.initials), textNode(session.name, BLACK, true));
-            userBox.setAlignment(Pos.CENTER_LEFT);
-
-            table.add(userBox, 0, r);
-            table.add(textNode(session.device, BLACK, false), 1, r);
-            table.add(textNode(session.location, BLACK, false), 2, r);
-            table.add(textNode(session.duration, BLACK, false), 3, r);
-
-            Button terminate = new Button("Terminate");
-            terminate.setFont(Font.font(FONT, FontWeight.BOLD, 9));
-            terminate.setStyle("-fx-text-fill: " + RED + " !important; -fx-background-color: #FEE2E2; -fx-border-color: #FCA5A5; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand;");
-            terminate.setOnAction(e -> {
-                terminate.setText("Ended");
-                terminate.setDisable(true);
-            });
-
-            table.add(terminate, 4, r);
-            r++;
-        }
-
-        VBox.setVgrow(table, Priority.ALWAYS);
-        card.getChildren().addAll(table, separator(), link("View All Active Sessions  →"));
-        return card;
-    }
-
     private VBox createAlertsCard() {
-
         VBox card = card();
-        card.setMinHeight(330);
+        card.setPrefHeight(Region.USE_COMPUTED_SIZE);
 
         VBox alerts = new VBox(
-                0,
+                8,
                 alert("bell", "Multiple failed login attempts", "User: aarav.verma@example.com", "10 min ago", ORANGE),
                 alert("bell", "Server connection interrupted", "Storage service disconnected", "25 min ago", ORANGE),
                 alert("bell", "Backup service unavailable", "Last backup failed", "1 hour ago", ORANGE),
-                alert("security", "Password changed", "User: neha.singh@example.com", "2 hours ago", BLUE),
                 alert("ai", "New device logged in", "User: riya.sharma@example.com", "3 hours ago", GREEN)
         );
+
+        Label viewAllAlertsLink = link("View All Alerts  →");
+        viewAllAlertsLink.setOnMouseClicked(e -> openCreativeModalWindow("All Security Alerts", "Here is the complete detailed log of all system security alerts.", "alerts"));
 
         card.getChildren().addAll(
                 cardHeader("bell", "Security Alerts", "View All"),
                 alerts,
                 separator(),
-                link("View All Alerts  →")
+                viewAllAlertsLink
         );
 
         return card;
     }
 
     private HBox alert(String iconType, String title, String description, String time, String color) {
-
         SVGPath icon = createIcon(iconType);
         icon.setStroke(Color.web(color));
         icon.setStrokeWidth(2);
 
         StackPane iconPane = new StackPane(icon);
-        iconPane.setMinWidth(20);
+        iconPane.setMinSize(28, 28);
+        iconPane.setPrefSize(28, 28);
+        iconPane.setMaxSize(28, 28);
+        iconPane.setStyle("-fx-background-color: rgba(255,255,255,0.75); -fx-background-radius: 8;");
 
-        Text titleLabel = createTextNode(title, 10, true, BLACK);
-        Text descriptionLabel = createTextNode(description, 9, false, BLACK);
+        Label titleLabel = createWrappedLabel(title, 12, true, BLACK);
+        Label descriptionLabel = createWrappedLabel(description, 11, false, "#334155");
 
         VBox text = new VBox(2, titleLabel, descriptionLabel);
+        HBox.setHgrow(text, Priority.ALWAYS);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Text timeLabel = createTextNode(time, 9, false, BLACK);
+        Label timeLabel = createWrappedLabel(time, 11, false, "#64748B");
 
-        HBox row = new HBox(8, iconPane, text, spacer, timeLabel);
+        HBox row = new HBox(12, iconPane, text, spacer, timeLabel);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(6, 0, 6, 0));
+        row.setPadding(new Insets(8, 12, 8, 12));
+        row.setStyle("-fx-background-color: rgba(255,255,255,0.5); -fx-background-radius: 10;");
         return row;
     }
 
     private VBox createTwoFACard() {
-
         VBox card = card();
-        card.setMinHeight(330);
+        card.setPrefHeight(250);
+        card.setMaxHeight(250);
 
         card.getChildren().add(cardHeader("ai", "Users with 2FA Enabled", ""));
 
-        HBox donutArea = new HBox(12);
+        HBox donutArea = new HBox(24);
+        donutArea.setAlignment(Pos.CENTER_LEFT);
         StackPane donut = donut();
-        donut.setPrefSize(105, 105);
+        donut.setPrefSize(120, 120);
 
         VBox legendArea = new VBox(
-                10,
+                12,
                 legend(GREEN, "2FA Enabled", "342 (68.4%)"),
                 legend("#94A3B8", "2FA Disabled", "158 (31.6%)")
         );
@@ -594,219 +524,360 @@ public class AdminSecurity {
         HBox.setHgrow(legendArea, Priority.ALWAYS);
 
         donutArea.getChildren().addAll(donut, legendArea);
-        card.getChildren().addAll(donutArea, separator(), link("Manage 2FA Settings  →"));
 
+        VBox container = new VBox(12, donutArea);
+        container.setAlignment(Pos.CENTER);
+        VBox.setVgrow(container, Priority.ALWAYS);
+
+        Label manage2FALink = link("Manage 2FA Settings  →");
+        manage2FALink.setOnMouseClicked(e -> openCreativeModalWindow("Manage 2FA Settings", "Configure organizational Two-Factor Authentication policies and requirements here.", "2fa"));
+
+        card.getChildren().addAll(container, separator(), manage2FALink);
         return card;
     }
 
-    private StackPane donut() {
+    // --- CREATIVE MODAL IMPLEMENTATION ---
+    private void openCreativeModalWindow(String windowTitle, String message, String type) {
+        Stage modalStage = new Stage();
+        modalStage.initModality(Modality.APPLICATION_MODAL);
+        modalStage.initStyle(StageStyle.TRANSPARENT);
 
-        Arc backgroundArc = new Arc(0, 0, 48, 48, 0, 360);
+        // Header Titles
+        Label titleLabel = new Label(windowTitle);
+        titleLabel.setFont(Font.font(FONT, FontWeight.BOLD, 22));
+        titleLabel.setTextFill(Color.web(WHITE));
+
+        Label descLabel = new Label(message);
+        descLabel.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
+        descLabel.setTextFill(Color.web(LIGHT_SECONDARY));
+        descLabel.setWrapText(true);
+
+        VBox headerText = new VBox(4, titleLabel, descLabel);
+        HBox.setHgrow(headerText, Priority.ALWAYS);
+
+        // Custom Close Button
+        SVGPath closeIcon = new SVGPath();
+        closeIcon.setContent("M18 6 L6 18 M6 6 L18 18");
+        closeIcon.setStroke(Color.web(LIGHT_SECONDARY));
+        closeIcon.setStrokeWidth(2);
+        
+        StackPane closeBtnPane = new StackPane(closeIcon);
+        closeBtnPane.setPrefSize(34, 34);
+        closeBtnPane.setStyle("-fx-background-radius: 8; -fx-cursor: hand; -fx-background-color: transparent;");
+        closeBtnPane.setOnMouseEntered(e -> {
+            closeBtnPane.setStyle("-fx-background-color: #334155; -fx-background-radius: 8; -fx-cursor: hand;");
+            closeIcon.setStroke(Color.WHITE);
+        });
+        closeBtnPane.setOnMouseExited(e -> {
+            closeBtnPane.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;");
+            closeIcon.setStroke(Color.web(LIGHT_SECONDARY));
+        });
+        
+        // Header Row
+        HBox headerRow = new HBox(headerText, closeBtnPane);
+        headerRow.setAlignment(Pos.TOP_LEFT);
+
+        // Main Content Area based on Type
+        Node contentNode;
+        if ("alerts".equals(type)) {
+            contentNode = createAlertsTable();
+        } else {
+            contentNode = create2FASettingsLayout();
+        }
+
+        // Action Button Row
+        Button actionBtn = new Button("Done & Close");
+        actionBtn.setStyle("-fx-background-color: " + BLUE + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 24; -fx-font-size: 13px; -fx-cursor: hand;");
+        actionBtn.setOnMouseEntered(e -> actionBtn.setStyle("-fx-background-color: #1D4ED8; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 24; -fx-font-size: 13px; -fx-cursor: hand;"));
+        actionBtn.setOnMouseExited(e -> actionBtn.setStyle("-fx-background-color: " + BLUE + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 24; -fx-font-size: 13px; -fx-cursor: hand;"));
+        
+        // Handle Close Events
+        closeBtnPane.setOnMouseClicked(e -> closeModalWithAnimation(modalStage, headerRow.getParent()));
+        actionBtn.setOnAction(e -> closeModalWithAnimation(modalStage, headerRow.getParent()));
+
+        HBox bottomRow = new HBox(actionBtn);
+        bottomRow.setAlignment(Pos.CENTER_RIGHT);
+        bottomRow.setPadding(new Insets(10, 0, 0, 0));
+
+        // Assemble Root Box
+        VBox rootBox = new VBox(24, headerRow, contentNode, bottomRow);
+        rootBox.setPadding(new Insets(32));
+        rootBox.setStyle("-fx-background-color: " + SIDEBAR_BG + "; -fx-background-radius: 16; -fx-border-radius: 16; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 1;");
+        
+        // Draggable Logic
+        final double[] xOffset = {0};
+        final double[] yOffset = {0};
+        rootBox.setOnMousePressed(event -> {
+            xOffset[0] = event.getSceneX();
+            yOffset[0] = event.getSceneY();
+        });
+        rootBox.setOnMouseDragged(event -> {
+            modalStage.setX(event.getScreenX() - xOffset[0]);
+            modalStage.setY(event.getScreenY() - yOffset[0]);
+        });
+
+        // Drop Shadow Effect
+        rootBox.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0,0,0,0.5), 25, 0, 0, 10));
+
+        // Wrapper to give space for drop shadow
+        StackPane wrapper = new StackPane(rootBox);
+        wrapper.setPadding(new Insets(30));
+        wrapper.setStyle("-fx-background-color: transparent;");
+
+        Scene modalScene = new Scene(wrapper, 650, 520);
+        modalScene.setFill(Color.TRANSPARENT);
+        modalScene.getStylesheets().add(createModalCss());
+
+        modalStage.setScene(modalScene);
+        
+        // Entry Animations
+        rootBox.setOpacity(0);
+        rootBox.setTranslateY(30);
+        modalStage.show();
+
+        FadeTransition ft = new FadeTransition(Duration.millis(300), rootBox);
+        ft.setToValue(1.0);
+        
+        TranslateTransition tt = new TranslateTransition(Duration.millis(300), rootBox);
+        tt.setToY(0);
+        
+        ParallelTransition pt = new ParallelTransition(ft, tt);
+        pt.play();
+    }
+
+    private void closeModalWithAnimation(Stage stage, Node rootBox) {
+        FadeTransition ft = new FadeTransition(Duration.millis(200), rootBox);
+        ft.setToValue(0.0);
+        
+        TranslateTransition tt = new TranslateTransition(Duration.millis(200), rootBox);
+        tt.setToY(20);
+        
+        ParallelTransition pt = new ParallelTransition(ft, tt);
+        pt.setOnFinished(e -> stage.close());
+        pt.play();
+    }
+
+    private TableView<AlertItem> createAlertsTable() {
+        TableView<AlertItem> table = new TableView<>();
+        table.setPrefHeight(260);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        TableColumn<AlertItem, String> timeCol = new TableColumn<>("Time");
+        timeCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getTime()));
+        timeCol.setMaxWidth(100);
+        timeCol.setMinWidth(100);
+
+        TableColumn<AlertItem, String> typeCol = new TableColumn<>("Alert Type");
+        typeCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getTitle()));
+        
+        TableColumn<AlertItem, String> descCol = new TableColumn<>("Details");
+        descCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getDescription()));
+
+        table.getColumns().addAll(timeCol, typeCol, descCol);
+        table.getItems().addAll(
+                new AlertItem("10 min ago", "Multiple failed login attempts", "User: aarav.verma@example.com (IP: 192.168.1.45)"),
+                new AlertItem("25 min ago", "Server connection interrupted", "Storage service disconnected unexpectedly"),
+                new AlertItem("1 hour ago", "Backup service unavailable", "Scheduled night backup failed to execute"),
+                new AlertItem("3 hours ago", "New device logged in", "User: riya.sharma@example.com from Chrome/Windows"),
+                new AlertItem("5 hours ago", "High CPU Load", "System utilization peaked above 90% threshold"),
+                new AlertItem("1 day ago", "Unauthorized API Request", "Blocked request with invalid token signature")
+        );
+        return table;
+    }
+
+    private VBox create2FASettingsLayout() {
+        VBox container = new VBox(14);
+        container.getChildren().addAll(
+            createToggleSetting("Enforce 2FA for all Administrators", "Require two-factor authentication for accounts with admin privileges.", true),
+            createToggleSetting("Enforce 2FA for all Users", "Mandate 2FA for every regular user logging into OneSpace.", false),
+            createToggleSetting("Allow SMS Recovery", "Permit users to recover their accounts via SMS codes if authenticator is lost.", true),
+            createToggleSetting("Remember Devices", "Allow users to skip 2FA for 30 days on trusted network devices.", true)
+        );
+        return container;
+    }
+
+    private HBox createToggleSetting(String title, String desc, boolean defaultState) {
+        Label tLabel = new Label(title);
+        tLabel.setFont(Font.font(FONT, FontWeight.BOLD, 14));
+        tLabel.setTextFill(Color.web(WHITE));
+        
+        Label dLabel = new Label(desc);
+        dLabel.setFont(Font.font(FONT, FontWeight.NORMAL, 12));
+        dLabel.setTextFill(Color.web(LIGHT_SECONDARY));
+        dLabel.setWrapText(true);
+        
+        VBox text = new VBox(4, tLabel, dLabel);
+        HBox.setHgrow(text, Priority.ALWAYS);
+        
+        ToggleButton toggle = new ToggleButton(defaultState ? "ON" : "OFF");
+        toggle.setSelected(defaultState);
+        toggle.setPrefWidth(60);
+        toggle.setStyle(defaultState ? 
+            "-fx-background-color: " + GREEN + "; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-weight: bold; -fx-cursor: hand;" :
+            "-fx-background-color: #334155; -fx-text-fill: #94A3B8; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-weight: bold; -fx-cursor: hand;"
+        );
+        
+        toggle.setOnAction(e -> {
+            if (toggle.isSelected()) {
+                toggle.setText("ON");
+                toggle.setStyle("-fx-background-color: " + GREEN + "; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-weight: bold; -fx-cursor: hand;");
+            } else {
+                toggle.setText("OFF");
+                toggle.setStyle("-fx-background-color: #334155; -fx-text-fill: #94A3B8; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-weight: bold; -fx-cursor: hand;");
+            }
+        });
+        
+        HBox row = new HBox(16, text, toggle);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(16));
+        row.setStyle("-fx-background-color: #141D29; -fx-background-radius: 12; -fx-border-color: #2D3D52; -fx-border-radius: 12;");
+        return row;
+    }
+
+    private String createModalCss() {
+        return "data:text/css," +
+               ".table-view { -fx-background-color: transparent; -fx-padding: 0; }" +
+               ".table-view .column-header-background { -fx-background-color: #141D29; -fx-background-radius: 8 8 0 0; }" +
+               ".table-view .column-header { -fx-background-color: transparent; -fx-size: 40; }" +
+               ".table-view .column-header .label { -fx-text-fill: #94A3B8; -fx-font-weight: bold; -fx-font-size: 13px; }" +
+               ".table-view .table-row-cell { -fx-background-color: #1E2A3A; -fx-border-color: #2D3D52; -fx-border-width: 0 0 1 0; }" +
+               ".table-view .table-row-cell:odd { -fx-background-color: #1A2433; }" +
+               ".table-view .table-row-cell:hover { -fx-background-color: #2563EB; }" +
+               ".table-view .table-cell { -fx-text-fill: #F8FAFC; -fx-padding: 10 12; -fx-font-size: 13px; -fx-border-width: 0; }" +
+               ".table-view .virtual-flow .scroll-bar:vertical, " +
+               ".table-view .virtual-flow .scroll-bar:horizontal { -fx-opacity: 0; -fx-padding: 0; -fx-pref-width: 0; -fx-pref-height: 0; }";
+    }
+
+    public static class AlertItem {
+        private final String time;
+        private final String title;
+        private final String description;
+
+        public AlertItem(String time, String title, String description) {
+            this.time = time;
+            this.title = title;
+            this.description = description;
+        }
+
+        public String getTime() { return time; }
+        public String getTitle() { return title; }
+        public String getDescription() { return description; }
+    }
+    // --- END CREATIVE MODAL ---
+
+    private StackPane donut() {
+        Arc backgroundArc = new Arc(0, 0, 52, 52, 0, 360);
         backgroundArc.setType(ArcType.OPEN);
         backgroundArc.setFill(Color.TRANSPARENT);
         backgroundArc.setStroke(Color.web("#CBD5E1"));
-        backgroundArc.setStrokeWidth(14);
+        backgroundArc.setStrokeWidth(12);
 
-        Arc enabledArc = new Arc(0, 0, 48, 48, 90, -246);
+        Arc enabledArc = new Arc(0, 0, 52, 52, 90, -246);
         enabledArc.setType(ArcType.OPEN);
         enabledArc.setFill(Color.TRANSPARENT);
         enabledArc.setStroke(Color.web(GREEN));
-        enabledArc.setStrokeWidth(14);
+        enabledArc.setStrokeWidth(12);
 
-        Text number = createTextNode("342", 17, true, BLACK);
-        Text total = createTextNode("Total Users", 9, false, BLACK);
+        Label number = createWrappedLabel("342", 20, true, BLACK);
+        Label total = createWrappedLabel("Total Users", 10, false, "#475569");
 
-        VBox center = new VBox(1, number, total);
+        VBox center = new VBox(2, number, total);
         center.setAlignment(Pos.CENTER);
 
         StackPane pane = new StackPane(backgroundArc, enabledArc, center);
-        pane.setPrefSize(105, 105);
+        pane.setPrefSize(120, 120);
         return pane;
     }
 
     private VBox legend(String color, String title, String value) {
+        Label titleLabel = createWrappedLabel(title, 11, false, "#334155");
+        Label valueLabel = createWrappedLabel(value, 13, true, BLACK);
 
-        Text titleLabel = createTextNode(title, 10, false, BLACK);
-        Text valueLabel = createTextNode(value, 10, true, BLACK);
-
-        HBox titleRow = new HBox(5, new Circle(4, Color.web(color)), titleLabel);
+        HBox titleRow = new HBox(8, new Circle(4, Color.web(color)), titleLabel);
         titleRow.setAlignment(Pos.CENTER_LEFT);
 
-        return new VBox(2, titleRow, valueLabel);
-    }
-
-    private VBox createSuspiciousCard() {
-
-        VBox card = card();
-        card.setMinHeight(260);
-
-        VBox list = new VBox(
-                6,
-                suspicious("Multiple failed logins", "User: rahul.mehta@example.com", "8 failed attempts in 15 min", "5 min ago"),
-                suspicious("Too many upload requests", "User: unknown", "1450 requests in 10 min", "20 min ago")
-        );
-
-        card.getChildren().addAll(
-                cardHeader("security", "Suspicious Activity", "View All"),
-                list,
-                separator(),
-                link("View All Suspicious Activity  →")
-        );
-
-        return card;
-    }
-
-    private VBox suspicious(String title, String user, String description, String time) {
-
-        SVGPath icon = createIcon("security");
-        icon.setStroke(Color.web(RED));
-        icon.setStrokeWidth(2);
-
-        Text titleLabel = createTextNode(title, 10, true, BLACK);
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Text timeLabel = createTextNode(time, 9, false, BLACK);
-        Text userLabel = createTextNode(user, 9, false, BLACK);
-        Text descriptionLabel = createTextNode(description, 9, false, BLACK);
-
-        HBox titleRow = new HBox(5, icon, titleLabel, spacer, timeLabel);
-        titleRow.setAlignment(Pos.CENTER_LEFT);
-
-        VBox box = new VBox(2, titleRow, userLabel, descriptionLabel);
-        box.setPadding(new Insets(6));
-        box.setStyle("-fx-background-color: #FEE2E2; -fx-border-color: #FCA5A5; -fx-border-radius: 7; -fx-background-radius: 7;");
+        VBox box = new VBox(4, titleRow, valueLabel);
+        box.setPadding(new Insets(8, 12, 8, 12));
+        box.setStyle("-fx-background-color: rgba(255,255,255,0.55); -fx-background-radius: 8;");
         return box;
     }
 
-    private VBox createAuditLogsCard() {
-
-        VBox card = card();
-        card.setMinHeight(260);
-
-        card.getChildren().add(cardHeader("files", "Audit Logs", "View All"));
-
-        GridPane table = new GridPane();
-        table.setHgap(7);
-        table.setVgap(8);
-
-        ColumnConstraints c1 = new ColumnConstraints(); c1.setPercentWidth(26);
-        ColumnConstraints c2 = new ColumnConstraints(); c2.setPercentWidth(20);
-        ColumnConstraints c3 = new ColumnConstraints(); c3.setPercentWidth(18);
-        ColumnConstraints c4 = new ColumnConstraints(); c4.setPercentWidth(36);
-
-        table.getColumnConstraints().addAll(c1, c2, c3, c4);
-
-        String[] headers = { "Timestamp", "Event", "User", "Details" };
-        for (int i = 0; i < headers.length; i++) {
-            Text label = createTextNode(headers[i], 9, true, BLACK);
-            table.add(label, i, 0);
-        }
-
-        List<Audit> audits = Arrays.asList(
-                new Audit("Jun 15 10:55 AM", "User suspended", "Aarav Verma", "Suspended for 7 days"),
-                new Audit("Jun 15 10:40 AM", "Category updated", "Neha Singh", "'Finance' updated"),
-                new Audit("Jun 15 10:35 AM", "User created", "Admin", "New user: Karan Patel")
-        );
-
-        int r = 1;
-        for (Audit audit : audits) {
-            table.add(tableNode(audit.time), 0, r);
-            table.add(tableNode(audit.event), 1, r);
-            table.add(tableNode(audit.user), 2, r);
-            table.add(tableNode(audit.details), 3, r);
-            r++;
-        }
-
-        card.getChildren().addAll(table, separator(), link("View All Audit Logs  →"));
-        return card;
-    }
-
     private VBox card() {
-        VBox box = new VBox(7);
+        VBox box = new VBox(14);
         box.setFillWidth(true);
-        box.setPadding(new Insets(14));
+        box.setPadding(new Insets(20));
         box.getStyleClass().add("dark-grid-card");
         box.setStyle(
                 "-fx-background-color: " + CARD_BG + ";" +
                 "-fx-border-color: " + CARD_BORDER + ";" +
                 "-fx-border-width: 1;" +
-                "-fx-border-radius: 14;" +
-                "-fx-background-radius: 14;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.18), 7, 0, 0, 2);"
+                "-fx-border-radius: 18;" +
+                "-fx-background-radius: 18;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.18), 14, 0, 0, 5);"
         );
         return box;
     }
 
     private HBox cardHeader(String iconType, String title, String right) {
-
         SVGPath icon = createIcon(iconType);
         icon.setStroke(Color.web(PURPLE));
         icon.setStrokeWidth(2);
 
-        Text titleLabel = createTextNode(title, 13, true, BLACK);
+        StackPane iconBox = new StackPane(icon);
+        iconBox.setMinSize(32, 32);
+        iconBox.setPrefSize(32, 32);
+        iconBox.setMaxSize(32, 32);
+        iconBox.setStyle("-fx-background-color: " + PURPLE_LIGHT + "; -fx-background-radius: 8;");
+
+        Label titleLabel = createWrappedLabel(title, 14, true, BLACK);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox header = new HBox(6, icon, titleLabel, spacer);
+        HBox header = new HBox(12, iconBox, titleLabel, spacer);
         header.setAlignment(Pos.CENTER_LEFT);
 
         if (!right.isEmpty()) {
-            Text rightLabel = createTextNode(right, 11, true, PURPLE);
+            Label rightLabel = createWrappedLabel(right, 12, true, PURPLE);
             header.getChildren().add(rightLabel);
         }
 
         return header;
     }
 
-    private Text sectionLabel(String text) {
-        return createTextNode(text, 11, true, BLACK);
+    private Label sectionLabel(String text) {
+        return createWrappedLabel(text, 12, true, BLACK);
     }
 
-    private Text bigNumber(String value) {
-        return createTextNode(value, 22, true, BLACK);
+    private Label bigNumber(String value) {
+        return createWrappedLabel(value, 28, true, BLACK);
     }
 
-    private Text tableNode(String text) {
-        return createTextNode(text, 9, false, BLACK);
+    private Label createSmallSecondaryText(String text) {
+        return createWrappedLabel(text, 11, false, "#475569");
     }
 
-    private Text textNode(String text, String color, boolean bold) {
-        return createTextNode(text, 9, bold, color);
+    private Label badge(String text, String bgColor, String textColor) {
+        Label badge = new Label(text);
+        badge.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+        badge.setStyle("-fx-text-fill: " + textColor + " !important; -fx-background-color: " + bgColor + "; -fx-background-radius: 6; -fx-padding: 3 8 3 8;");
+        return badge;
     }
 
-    private StackPane avatarCircle(String initials) {
-        Circle circle = new Circle(9, Color.web(PURPLE_LIGHT));
-        Text label = createTextNode(initials, 8, true, PURPLE);
-
-        StackPane pane = new StackPane(circle, label);
-        pane.setPrefSize(18, 18);
-        return pane;
-    }
-
-    private Text createSmallSecondaryText(String text) {
-        return createTextNode(text, 10, false, BLACK);
-    }
-
-    private Text createColoredText(String text, String color) {
-        return createTextNode(text, 10, true, color);
-    }
-
-    private Text createTextNode(String text, double fontSize, boolean isBold, String hexColor) {
-        Text textNode = new Text(text);
-        textNode.setFont(Font.font(FONT, isBold ? FontWeight.BOLD : FontWeight.NORMAL, fontSize));
-        textNode.setFill(Color.web(hexColor));
-        textNode.setStyle("-fx-fill: " + hexColor + " !important; -fx-text-fill: " + hexColor + " !important;");
-        return textNode;
+    private Label createWrappedLabel(String text, double fontSize, boolean isBold, String hexColor) {
+        Label label = new Label(text);
+        label.setFont(Font.font(FONT, isBold ? FontWeight.BOLD : FontWeight.NORMAL, fontSize));
+        label.setTextFill(Color.web(hexColor));
+        label.setWrapText(true);
+        label.setStyle("-fx-text-fill: " + hexColor + " !important;");
+        return label;
     }
 
     private Label link(String text) {
         Label label = new Label(text);
         label.setMaxWidth(Double.MAX_VALUE);
         label.setAlignment(Pos.CENTER);
-        label.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+        label.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         label.setStyle("-fx-text-fill: " + PURPLE + " !important;");
         label.setCursor(javafx.scene.Cursor.HAND);
 
@@ -847,20 +918,5 @@ public class AdminSecurity {
             default: icon.setContent("M4 4 H20 V20 H4 Z"); break;
         }
         return icon;
-    }
-
-    private static class Session {
-        String initials, name, device, location, duration;
-        Session(String initials, String name, String device, String location, String duration) {
-            this.initials = initials; this.name = name; this.device = device;
-            this.location = location; this.duration = duration;
-        }
-    }
-
-    private static class Audit {
-        String time, event, user, details;
-        Audit(String time, String event, String user, String details) {
-            this.time = time; this.event = event; this.user = user; this.details = details;
-        }
     }
 }
