@@ -8,13 +8,12 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-//import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 public class UserTrash {
 
-    // Style Constants - Synchronized with UserDashboard.java
+    // Style Constants - Synchronized with UserDashboard.java (Original Light/Medium Slate Theme)
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
     // 1. Sidebar & Top Bar: Deep Dark Slate
@@ -31,15 +30,13 @@ public class UserTrash {
     private static final String BORDER_CARD = "#C3D6EC";
 
     // 4. Contrast Typography
-    private static final String TEXT_DARK = "#0F172A";        // Deep Navy for headings / big numbers
+    private static final String TEXT_DARK = "#0F172A";         // Deep Navy for headings / big numbers
     private static final String TEXT_MUTED_DARK = "#334155";  // Slate for subtext / labels inside cards
     private static final String TEXT_LIGHT = "#FFFFFF";       // Main white text on dark surfaces
     private static final String TEXT_MUTED_LIGHT = "#94A3B8"; // Subtext on dark surfaces
 
     // Accent Colors
     private static final String PRIMARY_BLUE = "#2563EB";
-    private static final String DANGER_RED = "#11cd66";
-    private static final String BADGE_RED_BG = "#FEE2E2";
 
     public Scene getTrashPageScene() {
 
@@ -67,19 +64,25 @@ public class UserTrash {
         Button collabBtn = createSidebarButton("👥", "Collaboration", false);
         Button recentBtn = createSidebarButton("🕒", "Recent", false);
         Button trashBtn = createSidebarButton("🗑", "Trash", true);
-        Button settingsBtn = createSidebarButton("⚙", "Settings", false);
 
+        // Action handlers for main navigation
         dashboardBtn.setOnAction(e -> LandingPage.showUserDashboard());
         spacesBtn.setOnAction(e -> LandingPage.showUserSpace());
         searchBtn.setOnAction(e -> LandingPage.showUserSearch());
         calendarBtn.setOnAction(e -> LandingPage.showCalendarPage());
         aiBtn.setOnAction(e -> LandingPage.showLandingPage());
-        collabBtn.setOnAction(e -> LandingPage.showLandingPage());
-        recentBtn.setOnAction(e -> LandingPage.showLandingPage());
+        collabBtn.setOnAction(e -> LandingPage.showCollaborationPage());
+        recentBtn.setOnAction(e -> LandingPage.showRecentPage());
         trashBtn.setOnAction(e -> LandingPage.showTrashPage());
-        settingsBtn.setOnAction(e -> LandingPage.showLandingPage());
 
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
+
+        // Bottom Sidebar Buttons (Settings & Logout)
+        Button settingsBtn = createSidebarButton("⚙", "Settings", false);
+        Button logoutBtn = createSidebarButton("🚪", "Logout", false);
+
+        settingsBtn.setOnAction(e -> LandingPage.showLandingPage());
+        logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
 
         // Sidebar Storage Card
         Label storageTitle = new Label("Storage Used");
@@ -115,7 +118,8 @@ public class UserTrash {
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
 
-        VBox sidebar = new VBox(12, logoBox, navList, sidebarSpacer, settingsBtn, storageCard);
+        // Sidebar container layout with Settings and Logout stacked correctly at the bottom
+        VBox sidebar = new VBox(8, logoBox, navList, sidebarSpacer, settingsBtn, logoutBtn, storageCard);
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setPrefWidth(230);
         sidebar.setMinWidth(230);
@@ -177,7 +181,7 @@ public class UserTrash {
         welcomeTitle.setFont(Font.font(FONT, FontWeight.BOLD, 24));
         welcomeTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
 
-        Label welcomeSub = new Label("Items in trash are permanently deleted after 30 days. Recover 4.2 GB space.");
+        Label welcomeSub = new Label("Items in trash are permanently deleted after 30 days. Recover your system space.");
         welcomeSub.setFont(Font.font(FONT, 13));
         welcomeSub.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-weight: 500;");
 
@@ -186,7 +190,7 @@ public class UserTrash {
         Button emptyTrashBtn = new Button("🗑  Empty Trash");
         emptyTrashBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
         emptyTrashBtn.setStyle(
-                "-fx-background-color: " + DANGER_RED + ";" +
+                "-fx-background-color: " + PRIMARY_BLUE + ";" +
                 "-fx-text-fill: #FFFFFF;" +
                 "-fx-background-radius: 10;" +
                 "-fx-cursor: hand;" +
@@ -202,29 +206,21 @@ public class UserTrash {
         greetingHeader.setAlignment(Pos.CENTER_LEFT);
 
         // =========================================================
-        // METRIC CARDS
+        // SINGLE STREAMLINED METRIC CARD
         // =========================================================
 
-        HBox card1 = createMetricCard("🗑", "Items in Trash", "14 Files", "● Auto-clean active", "Will auto-delete soon", DANGER_RED, BADGE_RED_BG, DANGER_RED);
-        HBox card2 = createMetricCard("💾", "Recoverable Space", "4.2 GB", "● Ready to free up", "Can be restored", "#059669", "#A7F3D0", "#065F46");
-        HBox card3 = createMetricCard("⏳", "Expiring Soon", "3 Files", "⚡ < 3 days left", "Permanent removal", "#D97706", "#FDE68A", "#92400E");
-        HBox card4 = createMetricCard("📁", "Original Spaces", "4 Spaces", "● Main sources", "Java, Placement, etc.", PRIMARY_BLUE, "#CADDF2", "#1D4ED8");
-
-        HBox metricsRow = new HBox(14, card1, card2, card3, card4);
-        HBox.setHgrow(card1, Priority.ALWAYS);
-        HBox.setHgrow(card2, Priority.ALWAYS);
-        HBox.setHgrow(card3, Priority.ALWAYS);
-        HBox.setHgrow(card4, Priority.ALWAYS);
+        HBox statusCard = createMetricCard("🗑", "Items in Trash", "14 Files", "● Auto-clean active", "Will auto-delete after 30 days", "#059669", "#A7F3D0", "#065F46");
+        HBox.setHgrow(statusCard, Priority.ALWAYS);
 
         // =========================================================
-        // TRASH ITEMS TABLE CARD
+        // REMOVED ITEMS TABLE CARD
         // =========================================================
 
-        Label cardTitle = new Label("Deleted Items");
+        Label cardTitle = new Label("Removed Items");
         cardTitle.setFont(Font.font(FONT, FontWeight.BOLD, 17));
         cardTitle.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
 
-        Label cardSub = new Label("Manage or restore your recently deleted files and folders.");
+        Label cardSub = new Label("Manage or restore your recently removed files and folders.");
         cardSub.setFont(Font.font(FONT, 12));
         cardSub.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
@@ -288,7 +284,7 @@ public class UserTrash {
         // SCROLLABLE CONTAINER
         // =========================================================
 
-        VBox contentBody = new VBox(22, greetingHeader, metricsRow, trashCard);
+        VBox contentBody = new VBox(22, greetingHeader, statusCard, trashCard);
         contentBody.setPadding(new Insets(24, 28, 28, 28));
         contentBody.setStyle("-fx-background-color: " + BG_CENTER_CANVAS + ";");
 
@@ -456,7 +452,7 @@ public class UserTrash {
         Label daysLbl = new Label(daysLeft);
         daysLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
         daysLbl.setStyle(isUrgent ?
-                "-fx-text-fill: " + DANGER_RED + "; -fx-background-color: " + BADGE_RED_BG + "; -fx-padding: 2 6; -fx-background-radius: 4;" :
+                "-fx-text-fill: #D97706; -fx-background-color: #FDE68A; -fx-padding: 2 6; -fx-background-radius: 4;" :
                 "-fx-text-fill: " + TEXT_MUTED_DARK + ";"
         );
         daysLbl.setPrefWidth(100);
@@ -469,7 +465,7 @@ public class UserTrash {
         });
 
         Button deleteBtn = new Button("✕");
-        deleteBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + DANGER_RED + "; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 13px;");
+        deleteBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #EF4444; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 13px;");
         deleteBtn.setOnAction(e -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Permanently delete " + fileName + "?", ButtonType.YES, ButtonType.NO);
             alert.showAndWait();

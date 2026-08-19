@@ -103,16 +103,18 @@ public class UserSearch {
         Button recentBtn = createSidebarButton("🕒", "Recent", false);
         Button trashBtn = createSidebarButton("🗑", "Trash", false);
         Button settingsBtn = createSidebarButton("⚙", "Settings", false);
+        Button logoutBtn = createSidebarButton("🚪", "Logout", false);
 
         dashboardBtn.setOnAction(e -> LandingPage.showUserDashboard());
         spacesBtn.setOnAction(e -> LandingPage.showUserSpace());
         searchBtn.setOnAction(e -> LandingPage.showUserSearch());
         calendarBtn.setOnAction(e -> LandingPage.showCalendarPage());
         aiBtn.setOnAction(e -> LandingPage.showLandingPage());
-        collabBtn.setOnAction(e -> LandingPage.showLandingPage());
-        recentBtn.setOnAction(e -> LandingPage.showLandingPage());
+        collabBtn.setOnAction(e -> LandingPage.showCollaborationPage());
+        recentBtn.setOnAction(e -> LandingPage.showRecentPage());
         trashBtn.setOnAction(e -> LandingPage.showTrashPage());
         settingsBtn.setOnAction(e -> LandingPage.showLandingPage());
+        logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
 
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
 
@@ -150,7 +152,7 @@ public class UserSearch {
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
 
-        VBox sidebar = new VBox(12, logoBox, navList, sidebarSpacer, settingsBtn, storageCard);
+        VBox sidebar = new VBox(8, logoBox, navList, sidebarSpacer, settingsBtn, logoutBtn, storageCard);
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setPrefWidth(230);
         sidebar.setMinWidth(230);
@@ -340,7 +342,6 @@ public class UserSearch {
         // SCROLLABLE CONTAINER
         // =========================================================
 
-        // Removed filterBtn from the vertical stack since it's now inside resultsBar
         VBox contentBody = new VBox(20, titleBox, searchBarBox, aiCard, resultsBar, contentBox);
         contentBody.setPadding(new Insets(24, 28, 28, 28));
         contentBody.setStyle("-fx-background-color: " + BG_CENTER_CANVAS + ";");
@@ -521,7 +522,6 @@ public class UserSearch {
     HBox.setHgrow(topRow.getChildren().get(1), Priority.ALWAYS);
     topRow.setAlignment(Pos.CENTER_LEFT);
 
-    // Reduced height preview pane
     Label previewText = new Label("FILE PREVIEW");
     previewText.setFont(Font.font(FONT, FontWeight.BOLD, 10));
     previewText.setStyle("-fx-text-fill: " + PRIMARY_BLUE + ";");
@@ -550,7 +550,6 @@ public class UserSearch {
     HBox.setHgrow(bottomRow.getChildren().get(1), Priority.ALWAYS);
     bottomRow.setAlignment(Pos.CENTER_LEFT);
 
-    // Reduced gap (6px) and padding (10px)
     VBox card = new VBox(6, topRow, previewPane, nameLbl, pathLbl, bottomRow);
     card.setPadding(new Insets(10));
     card.setStyle(
@@ -562,7 +561,7 @@ public class UserSearch {
     );
 
     if (isGrid) {
-        card.setPrefWidth(300); // Reduced from 420px to 300px
+        card.setPrefWidth(300);
     } else {
         card.setMaxWidth(Double.MAX_VALUE);
     }
