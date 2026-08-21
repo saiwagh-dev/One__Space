@@ -199,10 +199,8 @@ public class AdminSignUpPage {
         Label fallback = new Label("O");
         fallback.setFont(Font.font(FONT, FontWeight.BOLD, 36));
         fallback.setTextFill(Color.WHITE);
-        
         return new StackPane(circle, fallback);
     }
-
     private String getFieldStyle() {
         return "-fx-background-color: " + BG_INPUT + ";" +
                "-fx-border-color: " + BORDER_COLOR + ";" +
