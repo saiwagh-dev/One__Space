@@ -299,7 +299,7 @@ public class CollaborationPage {
 
         Button viewAllActivities = new Button("View all activities ›");
         viewAllActivities.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        viewAllActivities.setStyle("-fx-background-color:transparent;-fx-text-fill:" + PRIMARY_BLUE + ";-fx-cursor:hand;");
+        viewAllActivities.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-background-color: transparent; -fx-text-fill: " + PRIMARY_BLUE + "; -fx-cursor: hand;");
         viewAllActivities.setOnAction(e -> showAllActivitiesPopup());
 
         VBox activityCard = new VBox(14, activityTitle, activityList, viewAllActivities);
@@ -309,16 +309,16 @@ public class CollaborationPage {
 
         Label shield = new Label("🛡");
         shield.setFont(Font.font(FONT, 15));
-        shield.setStyle("-fx-text-fill:" + PRIMARY_BLUE + ";");
+        shield.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 15px; -fx-text-fill: " + PRIMARY_BLUE + ";");
 
         Label securityBold = new Label("End-to-End Encrypted Sharing:");
         securityBold.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        securityBold.setStyle("-fx-text-fill:" + TEXT_DARK + ";");
+        securityBold.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
 
         Label securityText = new Label(
                 "Files in shared spaces are synced peer-to-peer. Original files remain safely stored on your local drive.");
         securityText.setFont(Font.font(FONT, 12));
-        securityText.setStyle("-fx-text-fill:" + TEXT_MUTED_DARK + ";");
+        securityText.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         HBox securityTextBox = new HBox(6, securityBold, securityText);
         securityTextBox.setAlignment(Pos.CENTER_LEFT);
@@ -365,7 +365,7 @@ public class CollaborationPage {
     private Label createValueLabel() {
         Label label = new Label();
         label.setFont(Font.font(FONT, FontWeight.BOLD, 22));
-        label.setStyle("-fx-text-fill:" + TEXT_DARK + ";");
+        label.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
         return label;
     }
 
@@ -429,11 +429,11 @@ public class CollaborationPage {
 
         Label title = new Label(w.name);
         title.setFont(Font.font(FONT, FontWeight.BOLD, 14));
-        title.setStyle("-fx-text-fill:" + TEXT_DARK + ";");
+        title.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
 
         Label subtitle = new Label(w.members + " Members  ·  " + w.files + " Files  ·  " + w.storage);
         subtitle.setFont(Font.font(FONT, 11));
-        subtitle.setStyle("-fx-text-fill:" + TEXT_MUTED_DARK + ";");
+        subtitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         VBox text = new VBox(3, title, subtitle);
 
@@ -462,22 +462,19 @@ public class CollaborationPage {
 
         Label role = new Label(w.role);
         role.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        role.setStyle("-fx-background-color:" + w.badgeBg + ";-fx-text-fill:" + w.badgeText +
-                ";-fx-padding:3 8;-fx-background-radius:6;");
-
+        role.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-font-weight: 700; -fx-background-color: " + w.badgeBg + "; -fx-text-fill: " + w.badgeText + "; -fx-padding: 3 8; -fx-background-radius: 6;");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-
         HBox top = new HBox(icon, spacer, role);
         top.setAlignment(Pos.CENTER);
 
         Label title = new Label(w.name);
         title.setFont(Font.font(FONT, FontWeight.BOLD, 14));
-        title.setStyle("-fx-text-fill:" + TEXT_DARK + ";");
+        title.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
 
         Label subtitle = new Label(w.members + " Members  ·  " + w.files + " Files\nStorage: " + w.storage);
         subtitle.setFont(Font.font(FONT, 11));
-        subtitle.setStyle("-fx-text-fill:" + TEXT_MUTED_DARK + ";");
+        subtitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         VBox card = new VBox(10, top, title, subtitle);
         card.setPadding(new Insets(16));
@@ -559,23 +556,23 @@ public class CollaborationPage {
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 11));
         avatar.setPrefSize(38, 38);
         avatar.setAlignment(Pos.CENTER);
-        avatar.setStyle("-fx-background-color:" + BG_CARD_INNER + ";-fx-background-radius:50%;-fx-text-fill:" + PRIMARY_BLUE + ";");
+        avatar.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 700; -fx-background-color: " + BG_CARD_INNER + "; -fx-background-radius: 50%; -fx-text-fill: " + PRIMARY_BLUE + ";");
 
         Label nameLbl = new Label(name);
         nameLbl.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        nameLbl.setStyle("-fx-text-fill:" + TEXT_DARK + ";");
+        nameLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
 
         Label emailLbl = new Label(email);
         emailLbl.setFont(Font.font(FONT, 10));
-        emailLbl.setStyle("-fx-text-fill:" + TEXT_MUTED_DARK + ";");
+        emailLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         Label spaceLbl = new Label("Invited to: " + space);
         spaceLbl.setFont(Font.font(FONT, 11));
-        spaceLbl.setStyle("-fx-text-fill:" + TEXT_MUTED_DARK + ";");
+        spaceLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         Label timeLbl = new Label(requestedTime);
         timeLbl.setFont(Font.font(FONT, 10));
-        timeLbl.setStyle("-fx-text-fill:" + TEXT_MUTED_DARK + ";");
+        timeLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         VBox info = new VBox(2, nameLbl, emailLbl, spaceLbl, timeLbl);
         Region spacer = new Region();
@@ -599,15 +596,14 @@ public class CollaborationPage {
 
         accept.setOnAction(e -> {
             nameLbl.setText(name + " ✓ Accepted");
-            nameLbl.setStyle("-fx-text-fill:#059669;");
+            nameLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #059669;");
             accept.setDisable(true);
             decline.setDisable(true);
             spaceLbl.setText("Invite accepted");
-            spaceLbl.setStyle("-fx-text-fill:#059669;");
-        });
-
-        decline.setOnAction(e -> {
-            nameLbl.setText(name + " ✕ Declined");
+            spaceLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: #059669;");
+            decline.setDisable(true);
+            spaceLbl.setText("Invite declined");
+            spaceLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: #DC2626;");
             nameLbl.setStyle("-fx-text-fill:#DC2626;");
             accept.setDisable(true);
             decline.setDisable(true);
@@ -756,11 +752,13 @@ public class CollaborationPage {
         TextField nameField = new TextField();
         nameField.setPromptText("e.g. Final Year Project");
         nameField.setPrefHeight(42);
+        nameField.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px;");
 
         Label membersLabel = formLabel("2. Add members");
         TextField membersField = new TextField();
         membersField.setPromptText("Search members by name or email...");
         membersField.setPrefHeight(42);
+        membersField.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px;");
 
         Label uploadLabel = formLabel("3. Upload file");
 
