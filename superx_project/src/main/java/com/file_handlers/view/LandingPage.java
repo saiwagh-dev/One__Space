@@ -72,12 +72,6 @@ public class LandingPage extends Application {
     public static void showLandingPage() {
         if (primaryStage != null && primaryStage.getScene() != null) setScene(primaryStage.getScene());
     }
-<<<<<<< HEAD
-    
-            
-=======
-
->>>>>>> origin/Development
     // User Pages
     public static void showUserLoginPage() { setScene(new UserLoginPage().getUserLoginPageScene()); }
     public static void showUserSignupPage() { setScene(new UserSignupPage().getUserSignupPageScene()); }
@@ -90,13 +84,6 @@ public class LandingPage extends Application {
     public static void showNotificationPage() { setScene(new NotificationPage().getNotificationsScene()); }
     public static void showCollaborationPage() { setScene(new CollaborationPage().getCollaborationPageScene()); }
     public static void showRecentPage() { setScene(new RecentPage().getRecentPageScene()); }
-<<<<<<< HEAD
-    //public static void showUserLoginPage() { setScene(new UserLoginPage().getUserLoginPageScene()); }
-
-
-=======
-
->>>>>>> origin/Development
     // Admin Pages
     public static void showAdminLoginPage() { setScene(new AdminLoginPage().getAdminLoginPageScene()); }
     public static void showAdminDashboard() { setScene(new AdminDashboard().getAdminDashboardScene()); }
@@ -107,11 +94,8 @@ public class LandingPage extends Application {
     public static void showAdminSignUp() { setScene(new AdminSignUpPage().getAdminSignUpScene()); }
     public static void showAdminAISystem() { setScene(new AdminAISystem().getAdminAIScene()); }
     public static void showAdminSecurity() { setScene(new AdminSecurity().getSecurityScene()); }
-<<<<<<< HEAD
-=======
     public static void showAdminCollaboration() { setScene(new AdminCollaboration().getCollaborationScene()); }
 
->>>>>>> origin/Development
 
     // Landing Page
     public Scene getLandingPageScene() {
@@ -133,28 +117,17 @@ public class LandingPage extends Application {
         );
 
         VBox adminCard = createRoleCard(
-<<<<<<< HEAD
-                "🛡", "#BAE6FD", PRIMARY_BLUE,
-                "Admin Login",
-                "Manage users, oversee system\nactivities and configurations.",
-                "Continue as Admin  →", PRIMARY_BLUE,
-=======
                 "🛡️", "#BAE6FD", "#0284C7",
                 "Admin Login",
                 "Manage users, oversee system\nactivities and configurations.",
                 "Continue as Admin  →", "#0284C7",
->>>>>>> origin/Development
                 e -> showAdminLoginPage()
         );
 
         HBox cardsContainer = new HBox(28, userCard, adminCard);
         cardsContainer.setAlignment(Pos.CENTER);
 
-<<<<<<< HEAD
-        Label footerIcon = new Label("🛡");
-=======
         Label footerIcon = new Label("🛡️");
->>>>>>> origin/Development
         footerIcon.setFont(Font.font(14));
         footerIcon.setTextFill(Color.web(TEXT_MUTED_LIGHT));
 
