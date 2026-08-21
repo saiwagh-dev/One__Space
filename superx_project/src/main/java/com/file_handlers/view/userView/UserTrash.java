@@ -153,25 +153,140 @@ public class UserTrash {
         bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
 
         Label avatar = new Label("AV");
-        avatar.setPrefSize(34, 34);
-        avatar.setAlignment(Pos.CENTER);
-        avatar.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 50%; -fx-text-fill: " + TEXT_LIGHT + "; -fx-font-weight: bold; -fx-font-size: 12px;");
+avatar.setPrefSize(34, 34);
+avatar.setAlignment(Pos.CENTER);
+avatar.setStyle(
+        "-fx-background-color: " + PRIMARY_BLUE + ";" +
+        "-fx-background-radius: 50%;" +
+        "-fx-text-fill: " + TEXT_LIGHT + ";" +
+        "-fx-font-weight: bold;" +
+        "-fx-font-size: 12px;"
+);
 
-        Label userName = new Label("Aarav Verma");
-        userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
-        userName.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+Label userName = new Label("Aarav Verma");
+userName.setFont(
+        Font.font(FONT, FontWeight.SEMI_BOLD, 13)
+);
+userName.setStyle(
+        "-fx-text-fill: " + TEXT_LIGHT + ";"
+);
 
-        Label dropDown = new Label("⌄");
-        dropDown.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+Label dropDown = new Label("⌄");
+dropDown.setStyle(
+        "-fx-text-fill: " + TEXT_MUTED_LIGHT + ";"
+);
 
-        HBox profileBox = new HBox(10, bellBtn, avatar, userName, dropDown);
-        profileBox.setAlignment(Pos.CENTER);
 
-        HBox topBar = new HBox(20, searchContainer, new Region(), profileBox);
-        HBox.setHgrow(topBar.getChildren().get(1), Priority.ALWAYS);
-        topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(16, 28, 14, 28));
-        topBar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
+// =========================================================
+// CLICKABLE PROFILE OPTION
+// =========================================================
+
+HBox profileOption =
+        new HBox(
+                8,
+                avatar,
+                userName,
+                dropDown
+        );
+
+profileOption.setAlignment(
+        Pos.CENTER
+);
+
+profileOption.setPadding(
+        new Insets(5, 8, 5, 8)
+);
+
+profileOption.setStyle(
+        "-fx-background-color: transparent;" +
+        "-fx-background-radius: 8;" +
+        "-fx-cursor: hand;"
+);
+
+
+// =========================================================
+// OPEN PROFILE PAGE WHEN CLICKED
+// =========================================================
+
+profileOption.setOnMouseClicked(e -> {
+    LandingPage.showUserProfilePage();
+});
+
+
+// =========================================================
+// HOVER EFFECT
+// =========================================================
+
+profileOption.setOnMouseEntered(e -> {
+    profileOption.setStyle(
+            "-fx-background-color: #26354A;" +
+            "-fx-background-radius: 8;" +
+            "-fx-cursor: hand;"
+    );
+});
+
+profileOption.setOnMouseExited(e -> {
+    profileOption.setStyle(
+            "-fx-background-color: transparent;" +
+            "-fx-background-radius: 8;" +
+            "-fx-cursor: hand;"
+    );
+});
+
+
+// =========================================================
+// TOP RIGHT
+// =========================================================
+
+HBox profileBox =
+        new HBox(
+                10,
+                bellBtn,
+                profileOption
+        );
+
+profileBox.setAlignment(
+        Pos.CENTER
+);
+
+
+// =========================================================
+// TOP BAR
+// =========================================================
+
+HBox topBar =
+        new HBox(
+                20,
+                searchContainer,
+                new Region(),
+                profileBox
+        );
+
+HBox.setHgrow(
+        topBar.getChildren().get(1),
+        Priority.ALWAYS
+);
+
+topBar.setAlignment(
+        Pos.CENTER_LEFT
+);
+
+topBar.setPadding(
+        new Insets(
+                16,
+                28,
+                14,
+                28
+        )
+);
+
+topBar.setStyle(
+        "-fx-background-color: " + BG_SIDEBAR + ";" +
+        "-fx-border-color: " + SIDEBAR_BORDER + ";" +
+        "-fx-border-width: 0 0 1 0;"
+);
+
+
 
         // =========================================================
         // HEADER & ACTION BAR
