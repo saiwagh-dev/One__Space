@@ -123,26 +123,20 @@ public class AdminDashboard {
     }
 
     private StackPane createLogo() {
-        InputStream stream = getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png");
-        if (stream != null) {
-            Image logoImage = new Image(stream);
-            ImageView imageView = new ImageView(logoImage);
-            imageView.setFitWidth(42); 
-            imageView.setFitHeight(42); 
-            imageView.setPreserveRatio(true);
-            imageView.setSmooth(true);
-            
-            StackPane logoPane = new StackPane(imageView);
-            logoPane.setPrefSize(42, 42);
-            logoPane.setAlignment(Pos.CENTER);
-            return logoPane;
-        }
-        
-        Circle circle = new Circle(21, Color.web(BLUE));
-        Label fallback = new Label("O");
-        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 18));
-        fallback.setTextFill(Color.WHITE);
-        return new StackPane(circle, fallback);
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
+
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
+
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(42, 42);
+        logoPane.setAlignment(Pos.CENTER);
+
+        return logoPane;
     }
 
     private Button createSidebarButton(String type, String text, boolean active) {
