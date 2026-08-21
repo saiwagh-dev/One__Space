@@ -8,6 +8,7 @@ import com.file_handlers.view.userView.RecentPage;
 import com.file_handlers.view.userView.UserCalendar;
 import com.file_handlers.view.userView.UserDashboard;
 import com.file_handlers.view.userView.UserLoginPage;
+import com.file_handlers.view.userView.UserProfilePage;
 import com.file_handlers.view.userView.UserSearch;
 import com.file_handlers.view.userView.UserSignupPage;
 import com.file_handlers.view.userView.UserSpaces;
@@ -84,6 +85,7 @@ public class LandingPage extends Application {
     public static void showNotificationPage() { setScene(new NotificationPage().getNotificationsScene()); }
     public static void showCollaborationPage() { setScene(new CollaborationPage().getCollaborationPageScene()); }
     public static void showRecentPage() { setScene(new RecentPage().getRecentPageScene()); }
+    public static void showUserProfilePage() { setScene(new UserProfilePage().getUserProfilePageScene());}
     // Admin Pages
     public static void showAdminLoginPage() { setScene(new AdminLoginPage().getAdminLoginPageScene()); }
     public static void showAdminDashboard() { setScene(new AdminDashboard().getAdminDashboardScene()); }

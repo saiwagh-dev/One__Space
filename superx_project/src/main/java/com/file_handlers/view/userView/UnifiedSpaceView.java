@@ -31,9 +31,12 @@ import java.util.List;
 public class UnifiedSpaceView {
 
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    private static final String BG_APP = "#F4F8FC", WHITE = "#FFFFFF", BORDER = "#DCE5EF";
+        private static final String BG_APP = "#F4F8FC", WHITE = "#FFFFFF", BORDER = "#DCE5EF";
+        private static final String BG_SIDEBAR = "#FFFFFF", SIDEBAR_BORDER = BORDER;
     private static final String PURPLE = "#6366F1", PURPLE_LIGHT = "#EEF2FF";
-    private static final String TEXT = "#0F172A", MUTED = "#64748B";
+        private static final String PRIMARY_BLUE = "#2563EB";
+        private static final String TEXT = "#0F172A", MUTED = "#64748B", TEXT_LIGHT = "#FFFFFF",
+                TEXT_MUTED_LIGHT = "#CBD5E1";
 
     private final List<FileData> fileData = new ArrayList<>();
     
@@ -150,26 +153,140 @@ public class UnifiedSpaceView {
         notificationButton.setOnAction(e -> LandingPage.showNotificationPage());
 
         Label avatar = new Label("AV");
-        avatar.setPrefSize(32, 32);
-        avatar.setAlignment(Pos.CENTER);
-        avatar.setStyle("-fx-background-color:" + PURPLE_LIGHT + ";-fx-background-radius:50%;" +
-                "-fx-text-fill:" + PURPLE + ";-fx-font-weight:bold;-fx-font-size:10px;");
+avatar.setPrefSize(34, 34);
+avatar.setAlignment(Pos.CENTER);
+avatar.setStyle(
+        "-fx-background-color: " + PRIMARY_BLUE + ";" +
+        "-fx-background-radius: 50%;" +
+        "-fx-text-fill: " + TEXT_LIGHT + ";" +
+        "-fx-font-weight: bold;" +
+        "-fx-font-size: 12px;"
+);
 
-        Label userName = new Label("Aarav Verma");
-        userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        userName.setTextFill(Color.web(TEXT));
+Label userName = new Label("Aarav Verma");
+userName.setFont(
+        Font.font(FONT, FontWeight.SEMI_BOLD, 13)
+);
+userName.setStyle(
+        "-fx-text-fill: " + TEXT_LIGHT + ";"
+);
 
-        Label arrow = new Label("⌄");
-        arrow.setTextFill(Color.web(MUTED));
+Label dropDown = new Label("⌄");
+dropDown.setStyle(
+        "-fx-text-fill: " + TEXT_MUTED_LIGHT + ";"
+);
 
-        HBox profile = new HBox(8, notificationButton, avatar, userName, arrow);
-        profile.setAlignment(Pos.CENTER);
 
-        Region topSpacer = new Region();
-        HBox topBar = new HBox(20, searchBox, topSpacer, profile);
-        HBox.setHgrow(topSpacer, Priority.ALWAYS);
-        topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(12, 18, 8, 18));
+// =========================================================
+// CLICKABLE PROFILE OPTION
+// =========================================================
+
+HBox profileOption =
+        new HBox(
+                8,
+                avatar,
+                userName,
+                dropDown
+        );
+
+profileOption.setAlignment(
+        Pos.CENTER
+);
+
+profileOption.setPadding(
+        new Insets(5, 8, 5, 8)
+);
+
+profileOption.setStyle(
+        "-fx-background-color: transparent;" +
+        "-fx-background-radius: 8;" +
+        "-fx-cursor: hand;"
+);
+
+
+// =========================================================
+// OPEN PROFILE PAGE WHEN CLICKED
+// =========================================================
+
+profileOption.setOnMouseClicked(e -> {
+    LandingPage.showUserProfilePage();
+});
+
+
+// =========================================================
+// HOVER EFFECT
+// =========================================================
+
+profileOption.setOnMouseEntered(e -> {
+    profileOption.setStyle(
+            "-fx-background-color: #26354A;" +
+            "-fx-background-radius: 8;" +
+            "-fx-cursor: hand;"
+    );
+});
+
+profileOption.setOnMouseExited(e -> {
+    profileOption.setStyle(
+            "-fx-background-color: transparent;" +
+            "-fx-background-radius: 8;" +
+            "-fx-cursor: hand;"
+    );
+});
+
+
+// =========================================================
+// TOP RIGHT
+// =========================================================
+
+HBox profileBox =
+        new HBox(
+                10,
+                notificationButton,
+                profileOption
+        );
+
+profileBox.setAlignment(
+        Pos.CENTER
+);
+
+
+// =========================================================
+// TOP BAR
+// =========================================================
+
+HBox topBar =
+        new HBox(
+                20,
+                searchBox,
+                new Region(),
+                profileBox
+        );
+
+HBox.setHgrow(
+        topBar.getChildren().get(1),
+        Priority.ALWAYS
+);
+
+topBar.setAlignment(
+        Pos.CENTER_LEFT
+);
+
+topBar.setPadding(
+        new Insets(
+                16,
+                28,
+                14,
+                28
+        )
+);
+
+topBar.setStyle(
+        "-fx-background-color: " + BG_SIDEBAR + ";" +
+        "-fx-border-color: " + SIDEBAR_BORDER + ";" +
+        "-fx-border-width: 0 0 1 0;"
+);
+
+
 
         Label pageIcon = new Label("♟");
         pageIcon.setPrefSize(46, 46);

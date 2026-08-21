@@ -167,28 +167,122 @@ public class AddReminderPage {
         Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
-        avatar.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 50%; -fx-text-fill: " + TEXT_LIGHT + "; -fx-font-weight: bold; -fx-font-size: 12px;");
+        avatar.setStyle(
+                "-fx-background-color: " + PRIMARY_BLUE + ";" +
+                "-fx-background-radius: 50%;" +
+                "-fx-text-fill: " + TEXT_LIGHT + ";" +
+                "-fx-font-weight: bold;" +
+                "-fx-font-size: 12px;"
+        );
 
         Label userName = new Label("Aarav Verma");
-        userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
-        userName.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        userName.setFont(
+                Font.font(FONT, FontWeight.SEMI_BOLD, 13)
+        );
+        userName.setStyle(
+                "-fx-text-fill: " + TEXT_LIGHT + ";"
+        );
 
         Label dropDown = new Label("⌄");
-        dropDown.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        dropDown.setStyle(
+                "-fx-text-fill: " + TEXT_MUTED_LIGHT + ";"
+        );
 
-        HBox profile = new HBox(10, bell, avatar, userName, dropDown);
-        profile.setAlignment(Pos.CENTER);
 
-        HBox topBar = new HBox(20, searchBox, new Region(), profile);
-        HBox.setHgrow(topBar.getChildren().get(1), Priority.ALWAYS);
-        topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(16, 28, 14, 28));
-        topBar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
 
-        // =========================================================
-        // FORM HEADER
-        // =========================================================
+        HBox profileOption =
+                new HBox(
+                        8,
+                        avatar,
+                        userName,
+                        dropDown
+                );
 
+        profileOption.setAlignment(
+                Pos.CENTER
+        );
+
+        profileOption.setPadding(
+                new Insets(5, 8, 5, 8)
+        );
+
+        profileOption.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-background-radius: 8;" +
+                "-fx-cursor: hand;"
+        );
+
+
+
+        profileOption.setOnMouseClicked(e -> {
+            LandingPage.showUserProfilePage();
+        });
+
+
+
+        profileOption.setOnMouseEntered(e -> {
+            profileOption.setStyle(
+                    "-fx-background-color: #26354A;" +
+                    "-fx-background-radius: 8;" +
+                    "-fx-cursor: hand;"
+            );
+        });
+
+        profileOption.setOnMouseExited(e -> {
+            profileOption.setStyle(
+                    "-fx-background-color: transparent;" +
+                    "-fx-background-radius: 8;" +
+                    "-fx-cursor: hand;"
+            );
+        });
+
+
+        
+        HBox profileBox =
+                new HBox(
+                        10,
+                        bell,
+                        profileOption
+                );
+
+        profileBox.setAlignment(
+                Pos.CENTER
+        );
+
+
+
+        HBox topBar =
+                new HBox(
+                        20,
+                        searchBox,
+                        new Region(),
+                        profileBox
+                );
+
+        HBox.setHgrow(
+                topBar.getChildren().get(1),
+                Priority.ALWAYS
+        );
+
+        topBar.setAlignment(
+                Pos.CENTER_LEFT
+        );
+
+        topBar.setPadding(
+                new Insets(
+                        16,
+                        28,
+                        14,
+                        28
+                )
+        );
+
+        topBar.setStyle(
+                "-fx-background-color: " + BG_SIDEBAR + ";" +
+                "-fx-border-color: " + SIDEBAR_BORDER + ";" +
+                "-fx-border-width: 0 0 1 0;"
+        );
+        
         Label title = new Label("Add Reminder");
         title.setFont(Font.font(FONT, FontWeight.BOLD, 24));
         title.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
@@ -454,10 +548,6 @@ public class AddReminderPage {
 
         return new Scene(root, 1200, 750);
     }
-
-    // =========================================================
-    // HELPER METHODS & LOGIC
-    // =========================================================
 
     private void createReminder() {
         String title = titleField.getText().trim();

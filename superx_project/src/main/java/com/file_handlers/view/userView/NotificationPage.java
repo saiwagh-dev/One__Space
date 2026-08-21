@@ -157,24 +157,140 @@ public class NotificationPage {
         bell.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + WHITE + "; -fx-cursor: hand;");
         bell.setOnAction(e -> LandingPage.showNotificationPage());
 
-        Label avatar = text("AV", 12, true, WHITE);
-        avatar.setPrefSize(34, 34);
-        avatar.setAlignment(Pos.CENTER);
-        avatar.setStyle("-fx-background-color: " + BLUE + "; -fx-text-fill: " + WHITE + "; -fx-background-radius: 50%;");
+        Label avatar = new Label("AV");
+avatar.setPrefSize(34, 34);
+avatar.setAlignment(Pos.CENTER);
+avatar.setStyle(
+        "-fx-background-color: " + BLUE + ";" +
+        "-fx-background-radius: 50%;" +
+        "-fx-text-fill: " + WHITE + ";" +
+        "-fx-font-weight: bold;" +
+        "-fx-font-size: 12px;"
+);
 
-        Label userName = text("Aarav Verma", 13, true, WHITE);
-        userName.setStyle("-fx-text-fill: " + WHITE + ";");
+Label userName = new Label("Aarav Verma");
+userName.setFont(
+        Font.font(FONT, FontWeight.SEMI_BOLD, 13)
+);
+userName.setStyle(
+        "-fx-text-fill: " + WHITE + ";"
+);
 
-        Label dropDown = text("⌄", 12, false, LIGHT);
-        dropDown.setStyle("-fx-text-fill: " + LIGHT + ";");
+Label dropDown = new Label("⌄");
+dropDown.setStyle(
+        "-fx-text-fill: " + LIGHT + ";"
+);
 
-        HBox profileBox = new HBox(10, bell, avatar, userName, dropDown);
-        profileBox.setAlignment(Pos.CENTER);
 
-        HBox top = new HBox(20, topSearchContainer, space(), profileBox);
-        top.setAlignment(Pos.CENTER_LEFT);
-        top.setPadding(new Insets(16, 28, 14, 28));
-        top.setStyle("-fx-background-color: " + NAV + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
+// =========================================================
+// CLICKABLE PROFILE OPTION
+// =========================================================
+
+HBox profileOption =
+        new HBox(
+                8,
+                avatar,
+                userName,
+                dropDown
+        );
+
+profileOption.setAlignment(
+        Pos.CENTER
+);
+
+profileOption.setPadding(
+        new Insets(5, 8, 5, 8)
+);
+
+profileOption.setStyle(
+        "-fx-background-color: transparent;" +
+        "-fx-background-radius: 8;" +
+        "-fx-cursor: hand;"
+);
+
+
+// =========================================================
+// OPEN PROFILE PAGE WHEN CLICKED
+// =========================================================
+
+profileOption.setOnMouseClicked(e -> {
+    LandingPage.showUserProfilePage();
+});
+
+
+// =========================================================
+// HOVER EFFECT
+// =========================================================
+
+profileOption.setOnMouseEntered(e -> {
+    profileOption.setStyle(
+            "-fx-background-color: #26354A;" +
+            "-fx-background-radius: 8;" +
+            "-fx-cursor: hand;"
+    );
+});
+
+profileOption.setOnMouseExited(e -> {
+    profileOption.setStyle(
+            "-fx-background-color: transparent;" +
+            "-fx-background-radius: 8;" +
+            "-fx-cursor: hand;"
+    );
+});
+
+
+// =========================================================
+// TOP RIGHT
+// =========================================================
+
+HBox profileBox =
+        new HBox(
+                10,
+                bell,
+                profileOption
+        );
+
+profileBox.setAlignment(
+        Pos.CENTER
+);
+
+
+// =========================================================
+// TOP BAR
+// =========================================================
+
+HBox topBar =
+        new HBox(
+                20,
+                topSearchContainer,
+                new Region(),
+                profileBox
+        );
+
+HBox.setHgrow(
+        topBar.getChildren().get(1),
+        Priority.ALWAYS
+);
+
+topBar.setAlignment(
+        Pos.CENTER_LEFT
+);
+
+topBar.setPadding(
+        new Insets(
+                16,
+                28,
+                14,
+                28
+        )
+);
+
+topBar.setStyle(
+        "-fx-background-color: " + NAV + ";" +
+        "-fx-border-color: " + SIDEBAR_BORDER + ";" +
+        "-fx-border-width: 0 0 1 0;"
+);
+
 
         // =========================================================
         // NOTIFICATIONS HEADER & FILTERS
@@ -225,7 +341,7 @@ public class NotificationPage {
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroll.setStyle("-fx-background-color: " + APP + "; -fx-background: " + APP + "; -fx-border-color: transparent; -fx-padding: 0;");
 
-        VBox center = new VBox(top, scroll);
+        VBox center = new VBox(topBar, scroll);
         center.setStyle("-fx-background-color: " + APP + ";");
         VBox.setVgrow(scroll, Priority.ALWAYS);
 
