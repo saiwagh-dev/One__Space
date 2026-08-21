@@ -9,10 +9,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -27,57 +30,38 @@ public class UserSignupPage {
     private static final String BG_INPUT = "#EDF3FA";
     private static final String BORDER_COLOR = "#C9DAEE";
     private static final String PRIMARY_BLUE = "#2563EB";
-    private static final String PRIMARY_LIGHT_BLUE = "#BFDBFE";
+    public static final String PRIMARY_LIGHT_BLUE = "#BFDBFE";
     private static final String TEXT_DARK = "#142338";
     private static final String TEXT_MUTED_DARK = "#506580";
-    private static final String TEXT_LIGHT = "#FFFFFF";
+    public static final String TEXT_LIGHT = "#FFFFFF";
     private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
 
     public Scene getUserSignupPageScene() {
 
-        // App Header
-        Label logoIcon = new Label("⬡");
-        logoIcon.setFont(Font.font(FONT, FontWeight.BOLD, 20));
-        logoIcon.setTextFill(Color.web("#60A5FA"));
-
-        Label logoText = new Label("OneSpace");
-        logoText.setFont(Font.font(FONT, FontWeight.BOLD, 16));
-        logoText.setTextFill(Color.web(TEXT_LIGHT));
-
-        HBox logoHeader = new HBox(8, logoIcon, logoText);
-        logoHeader.setAlignment(Pos.CENTER_LEFT);
-
+        // App Header (Logo removed from top left corner)
         Button backBtn = new Button("← Back to home");
         backBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         backBtn.setTextFill(Color.web(TEXT_MUTED_LIGHT));
         backBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
-        backBtn.setOnAction(e -> LandingPage.showLandingPage());
+        backBtn.setOnAction(e -> {LandingPage.setScene(new LandingPage().getLandingPageScene());});
 
-        HBox appHeader = new HBox(logoHeader, new Region(), backBtn);
-        HBox.setHgrow(appHeader.getChildren().get(1), Priority.ALWAYS);
+        HBox appHeader = new HBox(new Region(), backBtn);
+        HBox.setHgrow(appHeader.getChildren().get(0), Priority.ALWAYS);
         appHeader.setAlignment(Pos.CENTER_LEFT);
         appHeader.setPadding(new Insets(16, 24, 16, 24));
 
-        // Signup Card Header
-        Label iconAvatar = new Label("👤");
-        iconAvatar.setFont(Font.font(20));
-        iconAvatar.setTextFill(Color.web(PRIMARY_BLUE));
-        iconAvatar.setPrefSize(48, 48);
-        iconAvatar.setAlignment(Pos.CENTER);
-        iconAvatar.setStyle(
-                "-fx-background-color: " + PRIMARY_LIGHT_BLUE + ";" +
-                "-fx-background-radius: 50%;"
-        );
+        // Signup Card Header (Logo added above title with reduced spacing)
+        StackPane centerIconPane = createOneSpaceLogo(135);
 
-        Label title = new Label("Create Your Account");
-        title.setFont(Font.font(FONT, FontWeight.BOLD, 22));
+        Label title = new Label("One Space");
+        title.setFont(Font.font(FONT, FontWeight.BOLD, 24));
         title.setTextFill(Color.web(TEXT_DARK));
 
         Label subtitle = new Label("Create your personal OneSpace workspace");
         subtitle.setFont(Font.font(FONT, 13));
         subtitle.setTextFill(Color.web(TEXT_MUTED_DARK));
 
-        VBox cardHeader = new VBox(8, iconAvatar, title, subtitle);
+        VBox cardHeader = new VBox(-3, centerIconPane, title, subtitle);
         cardHeader.setAlignment(Pos.CENTER);
 
         // Name Field
@@ -168,7 +152,7 @@ public class UserSignupPage {
                 loginBox
         );
 
-        card.setPadding(new Insets(28));
+        card.setPadding(new Insets(24, 28, 24, 28));
         card.setPrefWidth(380);
         card.setMaxWidth(380);
         card.setStyle(
@@ -208,5 +192,22 @@ public class UserSignupPage {
                "-fx-font-size: 13px;" +
                "-fx-prompt-text-fill: " + TEXT_MUTED_DARK + ";" +
                "-fx-text-fill: " + TEXT_DARK + ";";
+    }
+
+    private StackPane createOneSpaceLogo(double size) {
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
+
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(size);
+        logoView.setFitHeight(size);
+        logoView.setPreserveRatio(true);
+
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(size, size);
+        logoPane.setAlignment(Pos.CENTER);
+
+        return logoPane;
     }
 }

@@ -1,14 +1,18 @@
 package com.file_handlers.view;
 
-
 import com.file_handlers.view.adminView.*;
-import javafx.util.Duration;
+import com.file_handlers.view.userView.AddReminderPage;
 import com.file_handlers.view.userView.CollaborationPage;
+import com.file_handlers.view.userView.NotificationPage;
 import com.file_handlers.view.userView.RecentPage;
+import com.file_handlers.view.userView.UserCalendar;
 import com.file_handlers.view.userView.UserDashboard;
 import com.file_handlers.view.userView.UserLoginPage;
+import com.file_handlers.view.userView.UserProfilePage;
+import com.file_handlers.view.userView.UserSearch;
 import com.file_handlers.view.userView.UserSignupPage;
 import com.file_handlers.view.userView.UserSpaces;
+import com.file_handlers.view.userView.UserTrash;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
@@ -34,6 +38,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class LandingPage extends Application {
 
@@ -51,8 +56,9 @@ public class LandingPage extends Application {
 
     private static Stage primaryStage;
 
+    // Application Setup
     @Override
-    public void start(Stage stage){
+    public void start(Stage stage) {
         primaryStage = stage;
         primaryStage.setTitle("OneSpace");
         primaryStage.setScene(getLandingPageScene());
@@ -60,95 +66,70 @@ public class LandingPage extends Application {
     }
 
     // Navigation
-        // Corrected Navigation logic inside LandingPage.java
-        public static void setScene(Scene scene) {
-        if (primaryStage != null) {
-                primaryStage.setScene(scene);
-        }
-        }
+    public static void setScene(Scene scene) {
+        if (primaryStage != null) primaryStage.setScene(scene);
+    }
 
-        public static void showLandingPage() { 
-        // Re-use current application instance or recreate scene directly
-        if (primaryStage != null && primaryStage.getScene() != null) {
-                setScene(primaryStage.getScene());
-        }
-        }
-
-        public static void showUserLoginPage() {  setScene(new UserLoginPage().getUserLoginPageScene());}
-
-        public static void showUserDashboard() { setScene(new UserDashboard().getDashboardScene());}
-
-        public static void showUserSpace() { setScene(new UserSpaces().getUserSpacesScene());}
-
-
+    public static void showLandingPage() {
+        if (primaryStage != null && primaryStage.getScene() != null) setScene(primaryStage.getScene());
+    }
+    // User Pages
+    public static void showUserLoginPage() { setScene(new UserLoginPage().getUserLoginPageScene()); }
+    public static void showUserSignupPage() { setScene(new UserSignupPage().getUserSignupPageScene()); }
+    public static void showUserDashboard() { setScene(new UserDashboard().getDashboardScene()); }
+    public static void showUserSpace() { setScene(new UserSpaces().getUserSpacesScene()); }
+    public static void showUserSearch() { setScene(new UserSearch().getUserSearchScene()); }
+    public static void showCalendarPage() { setScene(new UserCalendar().getCalendarPageScene()); }
+    public static void showTrashPage() { setScene(new UserTrash().getTrashPageScene()); }
+    public static void showAddReminderPage() { setScene(new AddReminderPage().getAddReminderPageScene()); }
+    public static void showNotificationPage() { setScene(new NotificationPage().getNotificationsScene()); }
+    public static void showCollaborationPage() { setScene(new CollaborationPage().getCollaborationPageScene()); }
+    public static void showRecentPage() { setScene(new RecentPage().getRecentPageScene()); }
+    public static void showUserProfilePage() { setScene(new UserProfilePage().getUserProfilePageScene());}
+    // Admin Pages
     public static void showAdminLoginPage() { setScene(new AdminLoginPage().getAdminLoginPageScene()); }
     public static void showAdminDashboard() { setScene(new AdminDashboard().getAdminDashboardScene()); }
-    public static void showAdminUsers()   {setScene(new AdminUsers().getAdminUsersScene());}
-    public static void showAdminFiles()   {setScene(new AdminFiles().getAdminFilesScene());}
-    public static void showAnalytics()   {setScene(new AdminAnalytics().getAnalyticsScene());}
-    public static void showAdminSettings()   {setScene(new AdminSettings().getAdminSettingsScene());}
-    public static void showAdminSignUp()   {setScene(new AdminSignUpPage().getAdminSignUpScene());}
-    public static void showAdminAISystem()   {setScene(new AdminAISystem().getAdminAIScene());}
-    public static void showAdminSecurity()   {setScene(new AdminSecurity().getSecurityScene());}
+    public static void showAdminUsers() { setScene(new AdminUsers().getAdminUsersScene()); }
+    public static void showAdminFiles() { setScene(new AdminFiles().getAdminFilesScene()); }
+    public static void showAnalytics() { setScene(new AdminAnalytics().getAnalyticsScene()); }
+    public static void showAdminSettings() { setScene(new AdminSettings().getAdminSettingsScene()); }
+    public static void showAdminSignUp() { setScene(new AdminSignUpPage().getAdminSignUpScene()); }
+    public static void showAdminAISystem() { setScene(new AdminAISystem().getAdminAIScene()); }
+    public static void showAdminSecurity() { setScene(new AdminSecurity().getSecurityScene()); }
+    public static void showAdminCollaboration() { setScene(new AdminCollaboration().getCollaborationScene()); }
 
-
-
-
-
-
-
-
-
-
-    public static void showCollaborationPage() {setScene(new CollaborationPage().getCollaborationPageScene());}
-
-    public static void showRecentPage() {setScene(new RecentPage().getRecentPageScene());}
-
-    // LandingPage scene builder
-
-        public static void showUserSignupPage() { setScene(new UserSignupPage().getUserSignupPageScene());}
 
     // Landing Page
-
     public Scene getLandingPageScene() {
 
-        // Center Branding
         StackPane centerIconPane = createOneSpaceLogo(200);
 
-        Label welcomeTitle = new Label("Welcome to OneSpace");
-        welcomeTitle.setFont(Font.font(FONT, FontWeight.BOLD, 28));
-        welcomeTitle.setTextFill(Color.web(TEXT_LIGHT));
+        Label title = label("Welcome to OneSpace", 28, FontWeight.BOLD, TEXT_LIGHT);
+        Label sub = label("Choose how you want to continue", 14, FontWeight.NORMAL, TEXT_MUTED_LIGHT);
 
-        Label welcomeSubtitle = new Label("Choose how you want to continue");
-        welcomeSubtitle.setFont(Font.font(FONT, 14));
-        welcomeSubtitle.setTextFill(Color.web(TEXT_MUTED_LIGHT));
-
-        VBox titleBox = new VBox(8, centerIconPane, welcomeTitle, welcomeSubtitle);
+        VBox titleBox = new VBox(10, centerIconPane, title, sub);
         titleBox.setAlignment(Pos.CENTER);
 
-        // Role Cards
         VBox userCard = createRoleCard(
                 "👤", PRIMARY_LIGHT_BLUE, PRIMARY_BLUE,
                 "User Login",
                 "Access your personal space,\nmanage your files and more.",
                 "Continue as User  →", PRIMARY_BLUE,
-                e -> LandingPage.showUserLoginPage()
+                e -> showUserLoginPage()
         );
 
         VBox adminCard = createRoleCard(
-                "🛡", "#BAE6FD", "#0284C7",
+                "🛡️", "#BAE6FD", "#0284C7",
                 "Admin Login",
                 "Manage users, oversee system\nactivities and configurations.",
-
-                "Continue as Admin  →", "#0284C7", e -> { LandingPage.showAdminLoginPage(); });
-
-
+                "Continue as Admin  →", "#0284C7",
+                e -> showAdminLoginPage()
+        );
 
         HBox cardsContainer = new HBox(28, userCard, adminCard);
         cardsContainer.setAlignment(Pos.CENTER);
 
-        // Footer
-        Label footerIcon = new Label("🛡");
+        Label footerIcon = new Label("🛡️");
         footerIcon.setFont(Font.font(14));
         footerIcon.setTextFill(Color.web(TEXT_MUTED_LIGHT));
 
@@ -159,24 +140,17 @@ public class LandingPage extends Application {
         HBox footerRow = new HBox(6, footerIcon, footerText);
         footerRow.setAlignment(Pos.CENTER);
 
-        Label brandText = new Label("OneSpace");
-        brandText.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        brandText.setTextFill(Color.web("#60A5FA"));
+        Label brand = label("OneSpace", 12, FontWeight.BOLD, TEXT_LIGHT);
 
-        VBox footerBox = new VBox(4, footerRow, brandText);
+        VBox footerBox = new VBox(4, footerRow, brand);
         footerBox.setAlignment(Pos.CENTER);
 
-        // Main Layout
         Region topSpacer = new Region();
         Region bottomSpacer = new Region();
-
         VBox.setVgrow(topSpacer, Priority.ALWAYS);
         VBox.setVgrow(bottomSpacer, Priority.ALWAYS);
 
-        VBox centerBody = new VBox(
-                32, topSpacer, titleBox, cardsContainer, bottomSpacer, footerBox
-        );
-
+        VBox centerBody = new VBox(32, topSpacer, titleBox, cardsContainer, bottomSpacer, footerBox);
         centerBody.setAlignment(Pos.CENTER);
         centerBody.setPadding(new Insets(24));
 
@@ -184,14 +158,13 @@ public class LandingPage extends Application {
         root.setStyle("-fx-background-color: " + BG_APP + ";");
         root.setCenter(centerBody);
 
-        playLandingAnimation(centerIconPane,welcomeTitle,welcomeSubtitle,cardsContainer,footerBox);
+        playLandingAnimation(centerIconPane, title, sub, cardsContainer, footerBox);
 
         return new Scene(root, 1200, 750);
     }
 
-    // Landing Page Animation
-    private void playLandingAnimation(StackPane logo, Label title, Label subtitle,
-                                    HBox cards, VBox footer) {
+    // Landing Animation
+    private void playLandingAnimation(StackPane logo, Label title, Label subtitle, HBox cards, VBox footer) {
 
         logo.setOpacity(0);
         logo.setScaleX(0.85);
@@ -245,33 +218,28 @@ public class LandingPage extends Application {
         footerFade.setToValue(1);
 
         new SequentialTransition(
-                logoAnim,
-                titleAnim,
-                subtitleAnim,
-                cardsAnim,
-                footerFade
+                logoAnim, titleAnim, subtitleAnim, cardsAnim, footerFade
         ).play();
     }
-        // OneSpace Logo
-        private StackPane createOneSpaceLogo(double size) {
 
-            Image logoImage = new Image(
-                    getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
-            );
+    // UI Helpers
+    private StackPane createOneSpaceLogo(double size) {
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
 
-            ImageView logoView = new ImageView(logoImage);
-            logoView.setFitWidth(size);
-            logoView.setFitHeight(size);
-            logoView.setPreserveRatio(true);
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(size);
+        logoView.setFitHeight(size);
+        logoView.setPreserveRatio(true);
 
-            StackPane logoPane = new StackPane(logoView);
-            logoPane.setPrefSize(size, size);
-            logoPane.setAlignment(Pos.CENTER);
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(size, size);
+        logoPane.setAlignment(Pos.CENTER);
 
-            return logoPane;
-        }
+        return logoPane;
+    }
 
-    // Role Card Builder
     private VBox createRoleCard(
             String iconSymbol,
             String iconBg,
@@ -287,20 +255,13 @@ public class LandingPage extends Application {
         icon.setTextFill(Color.web(iconColor));
         icon.setPrefSize(48, 48);
         icon.setAlignment(Pos.CENTER);
-        icon.setStyle(
-                "-fx-background-color: " + iconBg + ";" +
-                "-fx-background-radius: 50%;"
-        );
+        icon.setStyle("-fx-background-color: " + iconBg + "; -fx-background-radius: 50%;");
 
-        Label cardTitle = new Label(title);
-        cardTitle.setFont(Font.font(FONT, FontWeight.BOLD, 18));
-        cardTitle.setTextFill(Color.web(TEXT_DARK));
+        Label cardTitle = label(title, 18, FontWeight.BOLD, TEXT_DARK);
 
-        Label cardDesc = new Label(description);
-        cardDesc.setFont(Font.font(FONT, 13));
-        cardDesc.setTextFill(Color.web(TEXT_MUTED_DARK));
-        cardDesc.setTextAlignment(TextAlignment.CENTER);
-        cardDesc.setWrapText(true);
+        Label desc = label(description, 13, FontWeight.NORMAL, TEXT_MUTED_DARK);
+        desc.setTextAlignment(TextAlignment.CENTER);
+        desc.setWrapText(true);
 
         Button actionBtn = new Button(buttonText);
         actionBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
@@ -315,7 +276,7 @@ public class LandingPage extends Application {
         );
         actionBtn.setOnAction(onAction);
 
-        VBox card = new VBox(16, icon, cardTitle, cardDesc, actionBtn);
+        VBox card = new VBox(16, icon, cardTitle, desc, actionBtn);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(32, 28, 32, 28));
         card.setPrefWidth(300);
@@ -329,5 +290,12 @@ public class LandingPage extends Application {
         );
 
         return card;
+    }
+
+    private static Label label(String text, double size, FontWeight weight, String color) {
+        Label l = new Label(text);
+        l.setFont(Font.font(FONT, weight, size));
+        l.setTextFill(Color.web(color));
+        return l;
     }
 }

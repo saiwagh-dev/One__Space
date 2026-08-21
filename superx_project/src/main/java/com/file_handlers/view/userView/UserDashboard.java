@@ -2,6 +2,7 @@ package com.file_handlers.view.userView;
 
 import com.file_handlers.view.LandingPage;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -15,6 +16,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -25,6 +27,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
+
+import java.io.File;
 
 public class UserDashboard {
 
@@ -81,16 +87,37 @@ public class UserDashboard {
         Button recentBtn = createSidebarButton("🕒", "Recent", false);
         Button trashBtn = createSidebarButton("🗑", "Trash", false);
         Button settingsBtn = createSidebarButton("⚙", "Settings", false);
+        
+        // 1. Logout Button Created
+        Button logoutBtn = createSidebarButton("🚪", "Logout", false);
+
 
         dashboardBtn.setOnAction(e -> { LandingPage.showUserDashboard(); });
         spacesBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
-        searchBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
-        calendarBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        searchBtn.setOnAction(e -> { LandingPage.showUserSearch(); });
+        calendarBtn.setOnAction(e -> { LandingPage.showCalendarPage(); });
         collabBtn.setOnAction(e -> { LandingPage.showCollaborationPage();});
         aiBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
         recentBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
-        trashBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
         settingsBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+       
+         
+        
+        // =========================================================
+        // 2. LOGOUT SET-ON-ACTION IMPLEMENTATION
+        // =========================================================
+        logoutBtn.setOnAction(e -> {
+            // Option A: If LandingPage has a method for showing the login screen, call it here.
+            // Example: LandingPage.showLoginPage();
+            
+            // Option B: Fallback navigation method routing back to landing/login view:
+            LandingPage.showUserLoginPage();
+            
+            // Optional: If you manage the stage directly from the button context:
+            // Stage currentStage = (Stage) logoutBtn.getScene().getWindow();
+            // currentStage.setScene(new LoginView().getLoginScene()); // Replace with your login scene class
+        });
 
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
 
@@ -128,7 +155,8 @@ public class UserDashboard {
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
 
-        VBox sidebar = new VBox(12, logoBox, navList, sidebarSpacer, settingsBtn, storageCard);
+        // Added logoutBtn right next to settingsBtn in the sidebar layout hierarchy
+        VBox sidebar = new VBox(12, logoBox, navList, sidebarSpacer, settingsBtn, logoutBtn, storageCard);
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setPrefWidth(230);
         sidebar.setMinWidth(230);
@@ -160,30 +188,144 @@ public class UserDashboard {
 
         Button bellBtn = new Button("🔔");
         bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
+        bellBtn.setOnAction(e -> { LandingPage.showNotificationPage(); });
+
 
         Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
-        avatar.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 50%; -fx-text-fill: " + TEXT_LIGHT + "; -fx-font-weight: bold; -fx-font-size: 12px;");
+        avatar.setStyle(
+            "-fx-background-color: " + PRIMARY_BLUE + ";" +
+            "-fx-background-radius: 50%;" +
+            "-fx-text-fill: " + TEXT_LIGHT + ";" +
+            "-fx-font-weight: bold;" +
+            "-fx-font-size: 12px;"
+        );
 
         Label userName = new Label("Aarav Verma");
-        userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
-        userName.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        userName.setFont(
+                Font.font(FONT, FontWeight.SEMI_BOLD, 13)
+        );
+        userName.setStyle(
+                "-fx-text-fill: " + TEXT_LIGHT + ";"
+        );
 
         Label dropDown = new Label("⌄");
-        dropDown.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        dropDown.setStyle(
+                "-fx-text-fill: " + TEXT_MUTED_LIGHT + ";"
+        );
 
-        HBox profileBox = new HBox(10, bellBtn, avatar, userName, dropDown);
-        profileBox.setAlignment(Pos.CENTER);
 
-        HBox topBar = new HBox(20, searchContainer, new Region(), profileBox);
-        HBox.setHgrow(topBar.getChildren().get(1), Priority.ALWAYS);
-        topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(16, 28, 14, 28));
-        topBar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
+// =========================================================
+// CLICKABLE PROFILE OPTION
+// =========================================================
 
+        HBox profileOption =
+                new HBox(
+                        8,
+                        avatar,
+                        userName,
+                        dropDown
+                );
+
+        profileOption.setAlignment(
+                Pos.CENTER
+        );
+
+        profileOption.setPadding(
+                new Insets(5, 8, 5, 8)
+        );
+
+        profileOption.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-background-radius: 8;" +
+                "-fx-cursor: hand;"
+        );
+
+
+// =========================================================
+// OPEN PROFILE PAGE WHEN CLICKED
+// =========================================================
+
+        profileOption.setOnMouseClicked(e -> {
+            LandingPage.showUserProfilePage();
+        });
+
+
+// =========================================================
+// HOVER EFFECT
+// =========================================================
+
+        profileOption.setOnMouseEntered(e -> {
+            profileOption.setStyle(
+                    "-fx-background-color: #26354A;" +
+                    "-fx-background-radius: 8;" +
+                    "-fx-cursor: hand;"
+            );
+        });
+
+        profileOption.setOnMouseExited(e -> {
+            profileOption.setStyle(
+                    "-fx-background-color: transparent;" +
+                    "-fx-background-radius: 8;" +
+                    "-fx-cursor: hand;"
+            );
+        });
+
+
+// =========================================================
+// TOP RIGHT
+// =========================================================
+
+        HBox profileBox =
+                new HBox(
+                        10,
+                        bellBtn,
+                        profileOption
+                );
+
+        profileBox.setAlignment(
+                Pos.CENTER
+        );
+
+
+// =========================================================
+// TOP BAR
+// =========================================================
+
+        HBox topBar =
+                new HBox(
+                        20,
+                        searchContainer,
+                        new Region(),
+                        profileBox
+                );
+
+        HBox.setHgrow(
+                topBar.getChildren().get(1),
+                Priority.ALWAYS
+        );
+
+        topBar.setAlignment(
+                Pos.CENTER_LEFT
+        );
+
+        topBar.setPadding(
+                new Insets(
+                        16,
+                        28,
+                        14,
+                        28
+                )
+        );
+
+        topBar.setStyle(
+                "-fx-background-color: " + BG_SIDEBAR + ";" +
+                "-fx-border-color: " + SIDEBAR_BORDER + ";" +
+                "-fx-border-width: 0 0 1 0;"
+        );
         // =========================================================
-        // GREETING & SCAN ACTION HEADER
+        // GREETING & SCAN ACTION HEADER (File Upload Dialog via DirectoryChooser)
         // =========================================================
 
         Label welcomeTitle = new Label("Good afternoon, Aarav");
@@ -205,11 +347,29 @@ public class UserDashboard {
                 "-fx-cursor: hand;" +
                 "-fx-padding: 8 18;"
         );
-        scanFolderBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        
+        // Scan folder action opens system window to pick folder for uploading/indexing
+        scanFolderBtn.setOnAction(e -> {
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle("Select Folder to Scan & Upload");
+            Stage stage = (Stage) scanFolderBtn.getScene().getWindow();
+            File selectedDirectory = directoryChooser.showDialog(stage);
+            
+            if (selectedDirectory != null) {
+                System.out.println("Selected folder: " + selectedDirectory.getAbsolutePath());
+                // Add your custom logic here to push files into your indexing pipeline
+            }
+        });
 
-        HBox greetingHeader = new HBox(greetingText, new Region(), scanFolderBtn);
-        HBox.setHgrow(greetingHeader.getChildren().get(1), Priority.ALWAYS);
-        greetingHeader.setAlignment(Pos.CENTER_LEFT);
+        AnchorPane greetingHeader = new AnchorPane(greetingText, scanFolderBtn);
+        AnchorPane.setTopAnchor(greetingText, 0.0);
+        AnchorPane.setLeftAnchor(greetingText, 0.0);
+        AnchorPane.setBottomAnchor(greetingText, 0.0);
+        
+        AnchorPane.setTopAnchor(scanFolderBtn, 0.0);
+        AnchorPane.setRightAnchor(scanFolderBtn, 0.0);
+        AnchorPane.setBottomAnchor(scanFolderBtn, 0.0);
+        greetingHeader.setMaxWidth(Double.MAX_VALUE);
 
         // =========================================================
         // TOP 4 FILE OVERVIEW / TELEMETRY METRIC CARDS
@@ -251,7 +411,7 @@ public class UserDashboard {
                 "-fx-padding: 6 14;" +
                 "-fx-cursor: hand;"
         );
-        viewAllBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        viewAllBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
 
         HBox cardHeader = new HBox(cardHeaderTitles, new Region(), viewAllBtn);
         HBox.setHgrow(cardHeader.getChildren().get(1), Priority.ALWAYS);
@@ -349,7 +509,8 @@ public class UserDashboard {
         root.setCenter(mainArea);
 
         Scene scene = new Scene(root, 1200, 750);
-        scene.setOnMouseEntered(e -> applyPieChartColors(pieChartData));
+        
+        Platform.runLater(() -> applyPieChartColors(pieChartData));
 
         return scene;
     }
@@ -359,22 +520,21 @@ public class UserDashboard {
     // =========================================================
 
     private StackPane createOneSpaceLogo() {
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
 
-    Image logoImage = new Image(
-            getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
-    );
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
 
-    ImageView logoView = new ImageView(logoImage);
-    logoView.setFitWidth(42);
-    logoView.setFitHeight(42);
-    logoView.setPreserveRatio(true);
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(42, 42);
+        logoPane.setAlignment(Pos.CENTER);
 
-    StackPane logoPane = new StackPane(logoView);
-    logoPane.setPrefSize(42, 42);
-    logoPane.setAlignment(Pos.CENTER);
-
-    return logoPane;
-}
+        return logoPane;
+    }
 
     private Button createSidebarButton(String icon, String label, boolean isActive) {
         Label iconLbl = new Label(icon);
@@ -430,29 +590,34 @@ public class UserDashboard {
         valLbl.setFont(Font.font(FONT, FontWeight.BOLD, 22));
         valLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
 
-        Label badgeLbl = new Label(badgeText);
-        badgeLbl.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        badgeLbl.setStyle("-fx-text-fill: " + textBadgeColor + "; -fx-background-color: " + bgAccent + "; -fx-background-radius: 6; -fx-padding: 3 8;");
-
         Label subLbl = new Label(subText);
         subLbl.setFont(Font.font(FONT, 11));
         subLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 600;");
+        subLbl.setMinWidth(Region.USE_PREF_SIZE);
+
+        Label badgeLbl = new Label(badgeText);
+        badgeLbl.setFont(Font.font(FONT, FontWeight.BOLD, 10));
+        badgeLbl.setStyle("-fx-text-fill: " + textBadgeColor + "; -fx-background-color: " + bgAccent + "; -fx-background-radius: 6; -fx-padding: 3 8;");
+        badgeLbl.setMinWidth(Region.USE_PREF_SIZE);
 
         HBox bottomRow = new HBox(6, badgeLbl, subLbl);
         bottomRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox cardContent = new VBox(8, topRow, valLbl, bottomRow);
+        cardContent.setMaxWidth(Double.MAX_VALUE);
 
         HBox card = new HBox(cardContent);
         HBox.setHgrow(cardContent, Priority.ALWAYS);
         card.setPadding(new Insets(16));
-        card.setStyle(
-                "-fx-background-color: " + BG_CARD + ";" +
-                "-fx-border-color: " + BORDER_CARD + ";" +
-                "-fx-border-radius: 14;" +
-                "-fx-background-radius: 14;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.14), 12, 0, 0, 4);"
-        );
+        card.setMaxWidth(Double.MAX_VALUE);
+
+        String styleIdle = "-fx-background-color: " + BG_CARD + "; -fx-border-color: " + BORDER_CARD + "; -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.14), 12, 0, 0, 4);";
+        String styleHover = "-fx-background-color: " + BG_CARD + "; -fx-border-color: " + accentColor + "; -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(99,102,241,0.08), 16, 0, 0, 6); -fx-cursor: hand;";
+
+        card.setPickOnBounds(true);
+        card.setStyle(styleIdle);
+        card.setOnMouseEntered(e -> card.setStyle(styleHover));
+        card.setOnMouseExited(e -> card.setStyle(styleIdle));
 
         return card;
     }
