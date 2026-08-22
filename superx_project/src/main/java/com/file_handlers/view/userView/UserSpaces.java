@@ -108,7 +108,7 @@ public class UserSpaces {
         collabBtn.setOnAction(e -> { LandingPage.showCollaborationPage(); });
         recentBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
         trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
-        settingsBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        settingsBtn.setOnAction(e -> { LandingPage.showSettingPage(); });
         logoutBtn.setOnAction(e -> { LandingPage.showUserLoginPage(); });
         
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
@@ -525,7 +525,11 @@ topBar.setStyle(
         card.setStyle(styleIdle);
         card.setOnMouseEntered(e -> card.setStyle(styleHover));
         card.setOnMouseExited(e -> card.setStyle(styleIdle));
-        card.setOnMouseClicked(e -> { LandingPage.showLandingPage(); });
+        
+        // Updated action to route to UnifiedSpaceView instead of LandingPage
+        card.setOnMouseClicked(e -> { 
+            LandingPage.showUnifiedSpaceView(); 
+        });
 
         return card;
     }

@@ -102,7 +102,7 @@ public class RecentPage {
         searchBtn.setOnAction(e -> LandingPage.showUserSearch());
         calendarBtn.setOnAction(e -> LandingPage.showCalendarPage());
         collabBtn.setOnAction(e -> LandingPage.showCollaborationPage());
-        aiBtn.setOnAction(e -> LandingPage.showLandingPage());
+        aiBtn.setOnAction(e -> LandingPage.showAiAssistantPage());
         recentBtn.setOnAction(e -> LandingPage.showRecentPage());
         trashBtn.setOnAction(e -> LandingPage.showTrashPage());
         settingsBtn.setOnAction(e -> LandingPage.showLandingPage());
