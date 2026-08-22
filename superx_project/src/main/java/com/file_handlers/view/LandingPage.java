@@ -91,6 +91,8 @@ public class LandingPage extends Application {
     public static void showRecentPage() { setScene(new RecentPage().getRecentPageScene()); }
     public static void showSettingPage() { setScene(new UserSettingPage().getSettingPageScene()); }
     public static void showAiAssistantPage() { setScene(new AiAssistantPage().getAiAssistantPageScene()); }
+    public static void showUserProfilePage() {setScene(new UserProfilePage().getUserProfilePageScene());}
+
       
     public static void showUnifiedSpaceView() {
         try {

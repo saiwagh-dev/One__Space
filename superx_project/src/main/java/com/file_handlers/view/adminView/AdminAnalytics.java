@@ -227,6 +227,7 @@ public class AdminAnalytics {
 
         HBox profile = new HBox(10, notification, avatar, admin);
         profile.setAlignment(Pos.CENTER);
+        profile.setStyle("-fx-cursor: hand;");
 
         HBox topBar = new HBox(20, searchBox, spacer, profile);
         topBar.setAlignment(Pos.CENTER_LEFT);
