@@ -266,6 +266,7 @@ public class AdminSecurity {
 
         HBox profile = new HBox(10, notificationButton, avatar, adminName);
         profile.setAlignment(Pos.CENTER);
+        profile.setStyle("-fx-cursor: hand;");
 
         HBox topBar = new HBox(20, searchBox, spacer, profile);
         topBar.setAlignment(Pos.CENTER_LEFT);
