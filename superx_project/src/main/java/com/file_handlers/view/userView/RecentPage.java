@@ -1,5 +1,6 @@
 package com.file_handlers.view.userView;
 
+import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 
 import javafx.geometry.Insets;
@@ -53,6 +54,20 @@ public class RecentPage {
     private static final String PRIMARY_BLUE = "#2563EB";
 
     public Scene getRecentPageScene() {
+         String activeUserName = "User";
+        String initials = "U";
+
+        if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
+                String fullName = UserSession.getInstance().getDisplayName().trim();
+                if (!fullName.isEmpty()) {
+                // Extract only the first name (everything before the first space)
+                        String[] parts = fullName.split("\\s+");
+                        activeUserName = parts[0];
+        
+                        // Grab the initial from the first name
+                        initials = activeUserName.substring(0, 1).toUpperCase();
+                }
+        }
 
         // =========================================================
         // SIDEBAR
@@ -164,12 +179,12 @@ public class RecentPage {
         bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
         bellBtn.setOnAction(e -> LandingPage.showNotificationPage());
 
-        Label avatar = new Label("AV");
+        Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
         avatar.setStyle("-fx-font-family: " + FONT + "; -fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 50%; -fx-text-fill: " + TEXT_LIGHT + "; -fx-font-weight: bold; -fx-font-size: 12px;");
 
-        Label userName = new Label("Aarav Verma");
+        Label userName = new Label(activeUserName);
         userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         userName.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: " + TEXT_LIGHT + ";");
 

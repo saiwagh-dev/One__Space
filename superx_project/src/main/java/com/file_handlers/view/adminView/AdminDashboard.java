@@ -229,6 +229,9 @@ public class AdminDashboard {
 
         HBox profile = new HBox(10, notification, avatar, admin);
         profile.setAlignment(Pos.CENTER);
+        
+        // Added click navigation to Admin Profile
+        profile.setStyle("-fx-cursor: hand;");
 
         HBox topBar = new HBox(20, searchBox, spacer, profile);
         topBar.setAlignment(Pos.CENTER_LEFT);
