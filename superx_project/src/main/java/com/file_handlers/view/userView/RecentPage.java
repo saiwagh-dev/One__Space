@@ -62,7 +62,7 @@ public class RecentPage {
 
         Label logoText = new Label("OneSpace");
         logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
-        logoText.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        logoText.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 19px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         HBox logoHeader = new HBox(10, logoIcon, logoText);
         logoHeader.setAlignment(Pos.CENTER_LEFT);
@@ -98,15 +98,15 @@ public class RecentPage {
         // Sidebar Storage Card
         Label storageTitle = new Label("Storage Used");
         storageTitle.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        storageTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        storageTitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label storageVal = new Label("64.2 GB of 100 GB");
         storageVal.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        storageVal.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        storageVal.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label storagePercent = new Label("64%");
         storagePercent.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        storagePercent.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        storagePercent.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
 
         HBox storageValGroup = new HBox(storageVal, new Region(), storagePercent);
         HBox.setHgrow(storageValGroup.getChildren().get(1), Priority.ALWAYS);
@@ -119,7 +119,7 @@ public class RecentPage {
 
         Button manageStorageBtn = new Button("Manage Storage ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
+        manageStorageBtn.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 600; -fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
         manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
 
         VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
@@ -142,16 +142,16 @@ public class RecentPage {
 
         Label searchIcon = new Label("⌕");
         searchIcon.setFont(Font.font(FONT, 16));
-        searchIcon.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        searchIcon.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 16px; -fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
 
         TextField searchField = new TextField();
         searchField.setPromptText("Search in OneSpace...");
         searchField.setPrefHeight(38);
-        searchField.setStyle("-fx-background-color: transparent; -fx-prompt-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_LIGHT + ";");
+        searchField.setStyle("-fx-font-family: " + FONT + "; -fx-background-color: transparent; -fx-prompt-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label keyShortcut = new Label("⌘ K");
         keyShortcut.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 10));
-        keyShortcut.setStyle("-fx-background-color: #141E2C; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-padding: 3 6; -fx-background-radius: 4;");
+        keyShortcut.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-font-weight: 600; -fx-background-color: #141E2C; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-padding: 3 6; -fx-background-radius: 4;");
 
         HBox searchContainer = new HBox(8, searchIcon, searchField, keyShortcut);
         searchContainer.setAlignment(Pos.CENTER_LEFT);
@@ -167,14 +167,14 @@ public class RecentPage {
         Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
-        avatar.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 50%; -fx-text-fill: " + TEXT_LIGHT + "; -fx-font-weight: bold; -fx-font-size: 12px;");
+        avatar.setStyle("-fx-font-family: " + FONT + "; -fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 50%; -fx-text-fill: " + TEXT_LIGHT + "; -fx-font-weight: bold; -fx-font-size: 12px;");
 
         Label userName = new Label("Aarav Verma");
         userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
-        userName.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        userName.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label dropDown = new Label("⌄");
-        dropDown.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        dropDown.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
 
         HBox profileBox = new HBox(10, bellBtn, avatar, userName, dropDown);
         profileBox.setAlignment(Pos.CENTER);
@@ -191,11 +191,11 @@ public class RecentPage {
 
         Label pageTitle = new Label("Recent Files");
         pageTitle.setFont(Font.font(FONT, FontWeight.BOLD, 24));
-        pageTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        pageTitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 24px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label pageSub = new Label("Files you've opened, edited, or indexed recently across your spaces.");
         pageSub.setFont(Font.font(FONT, 13));
-        pageSub.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-weight: 500;");
+        pageSub.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-weight: 500;");
 
         VBox headerBox = new VBox(4, pageTitle, pageSub);
 
@@ -284,6 +284,7 @@ public class RecentPage {
 
         Label textLbl = new Label(label);
         textLbl.setFont(Font.font(FONT, isActive ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
+        textLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: " + (isActive ? "700" : "500") + "; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         HBox content = new HBox(12, iconLbl, textLbl);
         content.setAlignment(Pos.CENTER_LEFT);
@@ -297,11 +298,9 @@ public class RecentPage {
         if (isActive) {
             btn.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 8; -fx-cursor: hand;");
             iconLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-            textLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
         } else {
             btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;");
             iconLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-            textLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
 
             btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #26354A; -fx-background-radius: 8; -fx-cursor: hand;"));
             btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;"));
@@ -313,7 +312,7 @@ public class RecentPage {
     private Label createHeaderLabel(String text, double width) {
         Label lbl = new Label(text);
         lbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        lbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        lbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
         lbl.setPrefWidth(width);
         return lbl;
     }
@@ -323,15 +322,15 @@ public class RecentPage {
         fileIcon.setFont(Font.font(13));
         fileIcon.setPrefSize(30, 30);
         fileIcon.setAlignment(Pos.CENTER);
-        fileIcon.setStyle("-fx-background-color: " + iconHex + "22; -fx-background-radius: 8; -fx-text-fill: " + iconHex + ";");
+        fileIcon.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-background-color: " + iconHex + "22; -fx-background-radius: 8; -fx-text-fill: " + iconHex + ";");
 
         Label nameLbl = new Label(fileName);
         nameLbl.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        nameLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        nameLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
 
         Label subLbl = new Label(fileSub);
         subLbl.setFont(Font.font(FONT, 11));
-        subLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        subLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         VBox nameStack = new VBox(2, nameLbl, subLbl);
         nameStack.setAlignment(Pos.CENTER_LEFT);
@@ -342,7 +341,7 @@ public class RecentPage {
 
         Label spaceLbl = new Label(spaceName);
         spaceLbl.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        spaceLbl.setStyle("-fx-text-fill: " + PRIMARY_BLUE + "; -fx-background-color: " + BG_CARD_INNER + "; -fx-padding: 3 8; -fx-background-radius: 6;");
+        spaceLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: " + PRIMARY_BLUE + "; -fx-background-color: " + BG_CARD_INNER + "; -fx-padding: 3 8; -fx-background-radius: 6;");
         
         HBox spaceGroup = new HBox(spaceLbl);
         spaceGroup.setAlignment(Pos.CENTER_LEFT);
@@ -350,12 +349,12 @@ public class RecentPage {
 
         Label sizeLbl = new Label(fileSize);
         sizeLbl.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        sizeLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        sizeLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
         sizeLbl.setPrefWidth(100);
 
         Label timeLbl = new Label(modifiedTime);
         timeLbl.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        timeLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        timeLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
         timeLbl.setPrefWidth(150);
 
         HBox row = new HBox(nameGroup, spaceGroup, sizeLbl, timeLbl);
