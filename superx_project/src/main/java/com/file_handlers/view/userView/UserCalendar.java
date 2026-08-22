@@ -113,19 +113,19 @@ public class UserCalendar {
         Button logoutBtn = createSidebarButton("🚪", "Logout", false);
 
 
-        dashboardBtn.setOnAction(e -> LandingPage.showUserDashboard());
-        spacesBtn.setOnAction(e -> LandingPage.showUserSpace());
-        searchBtn.setOnAction(e -> LandingPage.showUserSearch());
-        calendarBtn.setOnAction(e -> LandingPage.showCalendarPage());
-        aiBtn.setOnAction(e -> LandingPage.showLandingPage());
-        collabBtn.setOnAction(e -> LandingPage.showCollaborationPage());
-        recentBtn.setOnAction(e -> LandingPage.showRecentPage());
-        trashBtn.setOnAction(e -> LandingPage.showTrashPage());
-        settingsBtn.setOnAction(e -> LandingPage.showLandingPage());
-        logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
+        dashboardBtn.setOnAction(e -> { LandingPage.showUserDashboard(); });
+        spacesBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
+        searchBtn.setOnAction(e -> { LandingPage.showUserSearch(); });
+        calendarBtn.setOnAction(e -> { LandingPage.showCalendarPage(); });
+        collabBtn.setOnAction(e -> { LandingPage.showCollaborationPage();});
+        aiBtn.setOnAction(e -> { LandingPage.showAiAssistantPage(); });
+        recentBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
+        trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
+        settingsBtn.setOnAction(e -> { LandingPage.showSettingPage(); });
+        logoutBtn.setOnAction(e -> { LandingPage.showUserLoginPage(); });
 
 
-        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn, logoutBtn);
+        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn, settingsBtn, logoutBtn);
 
         // Sidebar Storage Card
         Label storageTitle = new Label("Storage Used");

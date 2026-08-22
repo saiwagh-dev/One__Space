@@ -96,7 +96,7 @@ public class UserTrash {
         Button settingsBtn = createSidebarButton("⚙", "Settings", false);
         Button logoutBtn = createSidebarButton("🚪", "Logout", false);
 
-        settingsBtn.setOnAction(e -> LandingPage.showLandingPage());
+        settingsBtn.setOnAction(e -> LandingPage.showSettingPage());
         logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
 
         // Sidebar Storage Card
