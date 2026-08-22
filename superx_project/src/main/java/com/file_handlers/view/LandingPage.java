@@ -10,6 +10,7 @@ import com.file_handlers.view.userView.UnifiedSpaceView;
 import com.file_handlers.view.userView.UserCalendar;
 import com.file_handlers.view.userView.UserDashboard;
 import com.file_handlers.view.userView.UserLoginPage;
+import com.file_handlers.view.userView.UserProfilePage;
 import com.file_handlers.view.userView.UserSearch;
 import com.file_handlers.view.userView.UserSettingPage;
 import com.file_handlers.view.userView.UserSignupPage;

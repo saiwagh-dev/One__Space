@@ -10,7 +10,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -18,7 +17,6 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -60,14 +58,7 @@ public class AdminCollaboration {
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         root.setCenter(rightSide);
 
-        Scene scene = new Scene(root, 1200, 750);
-
-        String cssOverride = "data:text/css," +
-                ".dark-grid-card * { -fx-text-fill: #000000 !important; -fx-fill: #000000 !important; }" +
-                ".dark-grid-card .text { -fx-text-fill: #000000 !important; -fx-fill: #000000 !important; }";
-        scene.getStylesheets().add(cssOverride);
-
-        return scene;
+        return new Scene(root, 1200, 750);
     }
 
     private VBox createSidebar() {
@@ -121,24 +112,20 @@ public class AdminCollaboration {
     }
 
     private StackPane createLogo() {
-        InputStream stream = getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png");
-        if (stream != null) {
-            Image logoImage = new Image(stream);
-            ImageView imageView = new ImageView(logoImage);
-            imageView.setFitWidth(42); 
-            imageView.setFitHeight(42); 
-            imageView.setPreserveRatio(true);
-            
-            StackPane logoPane = new StackPane(imageView);
-            logoPane.setPrefSize(42, 42);
-            logoPane.setAlignment(Pos.CENTER);
-            return logoPane;
-        }
-        Circle circle = new Circle(21, Color.web(BLUE));
-        Label fallback = new Label("O");
-        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 18));
-        fallback.setTextFill(Color.WHITE);
-        return new StackPane(circle, fallback);
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
+
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
+
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(42, 42);
+        logoPane.setAlignment(Pos.CENTER);
+
+        return logoPane;
     }
 
     private Button createSidebarButton(String type, String text, boolean selected) {
@@ -256,7 +243,6 @@ public class AdminCollaboration {
         return root;
     }
 
-    // REDUCED WIDTH TOP OVERVIEW CARD
     private VBox createWorkspaceSummaryCard() {
         VBox card = card();
         card.setPrefWidth(480);
@@ -278,7 +264,6 @@ public class AdminCollaboration {
         return card;
     }
 
-    // TALLER WORKSPACES GRID CARD
     private VBox createWorkspacesGridCard() {
         VBox card = card();
         card.setMinHeight(360);
@@ -329,7 +314,6 @@ public class AdminCollaboration {
         return card;
     }
 
-    // TALLER INTERNAL COLLABORATION LOG GRID CARD
     private VBox createActivityGridCard() {
         VBox card = card();
         card.setMinHeight(360);

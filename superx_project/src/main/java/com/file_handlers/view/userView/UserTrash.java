@@ -30,7 +30,7 @@ public class UserTrash {
     private static final String BORDER_CARD = "#C3D6EC";
 
     // 4. Contrast Typography
-    private static final String TEXT_DARK = "#0F172A";         // Deep Navy for headings / big numbers
+    private static final String TEXT_DARK = "#0F172A";        // Deep Navy for headings / big numbers
     private static final String TEXT_MUTED_DARK = "#334155";  // Slate for subtext / labels inside cards
     private static final String TEXT_LIGHT = "#FFFFFF";       // Main white text on dark surfaces
     private static final String TEXT_MUTED_LIGHT = "#94A3B8"; // Subtext on dark surfaces
@@ -48,7 +48,7 @@ public class UserTrash {
 
         Label logoText = new Label("OneSpace");
         logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
-        logoText.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        logoText.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 19px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         HBox logoHeader = new HBox(10, logoIcon, logoText);
         logoHeader.setAlignment(Pos.CENTER_LEFT);
@@ -87,15 +87,15 @@ public class UserTrash {
         // Sidebar Storage Card
         Label storageTitle = new Label("Storage Used");
         storageTitle.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        storageTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        storageTitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label storageVal = new Label("64.2 GB of 100 GB");
         storageVal.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        storageVal.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        storageVal.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label storagePercent = new Label("64%");
         storagePercent.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        storagePercent.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        storagePercent.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
 
         HBox storageValGroup = new HBox(storageVal, new Region(), storagePercent);
         HBox.setHgrow(storageValGroup.getChildren().get(1), Priority.ALWAYS);
@@ -108,7 +108,7 @@ public class UserTrash {
 
         Button manageStorageBtn = new Button("Manage Storage ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
+        manageStorageBtn.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 600; -fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
         manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
 
         VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
@@ -131,16 +131,16 @@ public class UserTrash {
 
         Label searchIcon = new Label("⌕");
         searchIcon.setFont(Font.font(FONT, 16));
-        searchIcon.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        searchIcon.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 16px; -fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
 
         TextField searchField = new TextField();
         searchField.setPromptText("Search in OneSpace...");
         searchField.setPrefHeight(38);
-        searchField.setStyle("-fx-background-color: transparent; -fx-prompt-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_LIGHT + ";");
+        searchField.setStyle("-fx-font-family: " + FONT + "; -fx-background-color: transparent; -fx-prompt-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label keyShortcut = new Label("⌘ K");
         keyShortcut.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 10));
-        keyShortcut.setStyle("-fx-background-color: #141E2C; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-padding: 3 6; -fx-background-radius: 4;");
+        keyShortcut.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-font-weight: 600; -fx-background-color: #141E2C; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-padding: 3 6; -fx-background-radius: 4;");
 
         HBox searchContainer = new HBox(8, searchIcon, searchField, keyShortcut);
         searchContainer.setAlignment(Pos.CENTER_LEFT);
@@ -153,25 +153,140 @@ public class UserTrash {
         bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
 
         Label avatar = new Label("AV");
-        avatar.setPrefSize(34, 34);
-        avatar.setAlignment(Pos.CENTER);
-        avatar.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 50%; -fx-text-fill: " + TEXT_LIGHT + "; -fx-font-weight: bold; -fx-font-size: 12px;");
+avatar.setPrefSize(34, 34);
+avatar.setAlignment(Pos.CENTER);
+avatar.setStyle(
+        "-fx-background-color: " + PRIMARY_BLUE + ";" +
+        "-fx-background-radius: 50%;" +
+        "-fx-text-fill: " + TEXT_LIGHT + ";" +
+        "-fx-font-weight: bold;" +
+        "-fx-font-size: 12px;"
+);
 
-        Label userName = new Label("Aarav Verma");
-        userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
-        userName.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+Label userName = new Label("Aarav Verma");
+userName.setFont(
+        Font.font(FONT, FontWeight.SEMI_BOLD, 13)
+);
+userName.setStyle(
+        "-fx-text-fill: " + TEXT_LIGHT + ";"
+);
 
-        Label dropDown = new Label("⌄");
-        dropDown.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+Label dropDown = new Label("⌄");
+dropDown.setStyle(
+        "-fx-text-fill: " + TEXT_MUTED_LIGHT + ";"
+);
 
-        HBox profileBox = new HBox(10, bellBtn, avatar, userName, dropDown);
-        profileBox.setAlignment(Pos.CENTER);
 
-        HBox topBar = new HBox(20, searchContainer, new Region(), profileBox);
-        HBox.setHgrow(topBar.getChildren().get(1), Priority.ALWAYS);
-        topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(16, 28, 14, 28));
-        topBar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
+// =========================================================
+// CLICKABLE PROFILE OPTION
+// =========================================================
+
+HBox profileOption =
+        new HBox(
+                8,
+                avatar,
+                userName,
+                dropDown
+        );
+
+profileOption.setAlignment(
+        Pos.CENTER
+);
+
+profileOption.setPadding(
+        new Insets(5, 8, 5, 8)
+);
+
+profileOption.setStyle(
+        "-fx-background-color: transparent;" +
+        "-fx-background-radius: 8;" +
+        "-fx-cursor: hand;"
+);
+
+
+// =========================================================
+// OPEN PROFILE PAGE WHEN CLICKED
+// =========================================================
+
+profileOption.setOnMouseClicked(e -> {
+    LandingPage.showUserProfilePage();
+});
+
+
+// =========================================================
+// HOVER EFFECT
+// =========================================================
+
+profileOption.setOnMouseEntered(e -> {
+    profileOption.setStyle(
+            "-fx-background-color: #26354A;" +
+            "-fx-background-radius: 8;" +
+            "-fx-cursor: hand;"
+    );
+});
+
+profileOption.setOnMouseExited(e -> {
+    profileOption.setStyle(
+            "-fx-background-color: transparent;" +
+            "-fx-background-radius: 8;" +
+            "-fx-cursor: hand;"
+    );
+});
+
+
+// =========================================================
+// TOP RIGHT
+// =========================================================
+
+HBox profileBox =
+        new HBox(
+                10,
+                bellBtn,
+                profileOption
+        );
+
+profileBox.setAlignment(
+        Pos.CENTER
+);
+
+
+// =========================================================
+// TOP BAR
+// =========================================================
+
+HBox topBar =
+        new HBox(
+                20,
+                searchContainer,
+                new Region(),
+                profileBox
+        );
+
+HBox.setHgrow(
+        topBar.getChildren().get(1),
+        Priority.ALWAYS
+);
+
+topBar.setAlignment(
+        Pos.CENTER_LEFT
+);
+
+topBar.setPadding(
+        new Insets(
+                16,
+                28,
+                14,
+                28
+        )
+);
+
+topBar.setStyle(
+        "-fx-background-color: " + BG_SIDEBAR + ";" +
+        "-fx-border-color: " + SIDEBAR_BORDER + ";" +
+        "-fx-border-width: 0 0 1 0;"
+);
+
+
 
         // =========================================================
         // HEADER & ACTION BAR
@@ -179,17 +294,20 @@ public class UserTrash {
 
         Label welcomeTitle = new Label("Trash Bin");
         welcomeTitle.setFont(Font.font(FONT, FontWeight.BOLD, 24));
-        welcomeTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        welcomeTitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 24px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label welcomeSub = new Label("Items in trash are permanently deleted after 30 days. Recover your system space.");
         welcomeSub.setFont(Font.font(FONT, 13));
-        welcomeSub.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-weight: 500;");
+        welcomeSub.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-weight: 500;");
 
         VBox greetingText = new VBox(4, welcomeTitle, welcomeSub);
 
         Button emptyTrashBtn = new Button("🗑  Empty Trash");
         emptyTrashBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
         emptyTrashBtn.setStyle(
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: 700;" +
                 "-fx-background-color: " + PRIMARY_BLUE + ";" +
                 "-fx-text-fill: #FFFFFF;" +
                 "-fx-background-radius: 10;" +
@@ -218,17 +336,20 @@ public class UserTrash {
 
         Label cardTitle = new Label("Removed Items");
         cardTitle.setFont(Font.font(FONT, FontWeight.BOLD, 17));
-        cardTitle.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        cardTitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 17px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
 
         Label cardSub = new Label("Manage or restore your recently removed files and folders.");
         cardSub.setFont(Font.font(FONT, 12));
-        cardSub.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        cardSub.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         VBox cardHeaderTitles = new VBox(2, cardTitle, cardSub);
 
         Button restoreAllBtn = new Button("Restore All");
         restoreAllBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         restoreAllBtn.setStyle(
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-font-size: 12px;" +
+                "-fx-font-weight: 600;" +
                 "-fx-background-color: " + BG_CARD_INNER + ";" +
                 "-fx-border-color: " + BORDER_CARD + ";" +
                 "-fx-border-radius: 8;" +
@@ -268,7 +389,7 @@ public class UserTrash {
 
         Label lastUpdated = new Label("🕒  Auto-delete schedule running every 24 hours");
         lastUpdated.setFont(Font.font(FONT, 11));
-        lastUpdated.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 500;");
+        lastUpdated.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 500;");
 
         VBox trashCard = new VBox(16, cardHeader, trashTableRows, lastUpdated);
         trashCard.setPadding(new Insets(24));
@@ -336,6 +457,7 @@ public class UserTrash {
 
         Label textLbl = new Label(label);
         textLbl.setFont(Font.font(FONT, isActive ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
+        textLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: " + (isActive ? "700" : "500") + "; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         HBox content = new HBox(12, iconLbl, textLbl);
         content.setAlignment(Pos.CENTER_LEFT);
@@ -349,11 +471,9 @@ public class UserTrash {
         if (isActive) {
             btn.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 8; -fx-cursor: hand;");
             iconLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-            textLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
         } else {
             btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;");
             iconLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-            textLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
 
             btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #26354A; -fx-background-radius: 8; -fx-cursor: hand;"));
             btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;"));
@@ -365,11 +485,11 @@ public class UserTrash {
     private HBox createMetricCard(String icon, String title, String value, String badgeText, String subText, String accentColor, String bgAccent, String textBadgeColor) {
         Label titleLbl = new Label(title);
         titleLbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        titleLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        titleLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         Label iconLbl = new Label(icon);
         iconLbl.setFont(Font.font(14));
-        iconLbl.setStyle("-fx-text-fill: " + accentColor + ";");
+        iconLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 14px; -fx-text-fill: " + accentColor + ";");
 
         Label iconBox = new Label("", iconLbl);
         iconBox.setPrefSize(32, 32);
@@ -382,15 +502,15 @@ public class UserTrash {
 
         Label valLbl = new Label(value);
         valLbl.setFont(Font.font(FONT, FontWeight.BOLD, 22));
-        valLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        valLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
 
         Label badgeLbl = new Label(badgeText);
         badgeLbl.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        badgeLbl.setStyle("-fx-text-fill: " + textBadgeColor + "; -fx-background-color: " + bgAccent + "; -fx-background-radius: 6; -fx-padding: 3 8;");
+        badgeLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: " + textBadgeColor + "; -fx-background-color: " + bgAccent + "; -fx-background-radius: 6; -fx-padding: 3 8;");
 
         Label subLbl = new Label(subText);
         subLbl.setFont(Font.font(FONT, 11));
-        subLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 600;");
+        subLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 600;");
 
         HBox bottomRow = new HBox(6, badgeLbl, subLbl);
         bottomRow.setAlignment(Pos.CENTER_LEFT);
@@ -414,7 +534,7 @@ public class UserTrash {
     private Label createHeaderLabel(String text, double width) {
         Label lbl = new Label(text);
         lbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        lbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        lbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
         lbl.setPrefWidth(width);
         return lbl;
     }
@@ -424,11 +544,11 @@ public class UserTrash {
         fileIconLbl.setFont(Font.font(12));
         fileIconLbl.setPrefSize(24, 24);
         fileIconLbl.setAlignment(Pos.CENTER);
-        fileIconLbl.setStyle("-fx-background-color: #CADDF2; -fx-background-radius: 6; -fx-text-fill: " + PRIMARY_BLUE + ";");
+        fileIconLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-background-color: #CADDF2; -fx-background-radius: 6; -fx-text-fill: " + PRIMARY_BLUE + ";");
 
         Label nameLbl = new Label(fileName);
         nameLbl.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        nameLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        nameLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
 
         HBox nameGroup = new HBox(10, fileIconLbl, nameLbl);
         nameGroup.setAlignment(Pos.CENTER_LEFT);
@@ -436,36 +556,36 @@ public class UserTrash {
 
         Label spaceLbl = new Label(originSpace);
         spaceLbl.setFont(Font.font(FONT, 12));
-        spaceLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 500;");
+        spaceLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 500;");
         spaceLbl.setPrefWidth(180);
 
         Label dateLbl = new Label(dateDeleted);
         dateLbl.setFont(Font.font(FONT, 12));
-        dateLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 500;");
+        dateLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 500;");
         dateLbl.setPrefWidth(140);
 
         Label sizeLbl = new Label(fileSize);
         sizeLbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        sizeLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        sizeLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
         sizeLbl.setPrefWidth(100);
 
         Label daysLbl = new Label(daysLeft);
         daysLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
         daysLbl.setStyle(isUrgent ?
-                "-fx-text-fill: #D97706; -fx-background-color: #FDE68A; -fx-padding: 2 6; -fx-background-radius: 4;" :
-                "-fx-text-fill: " + TEXT_MUTED_DARK + ";"
+                "-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #D97706; -fx-background-color: #FDE68A; -fx-padding: 2 6; -fx-background-radius: 4;" :
+                "-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_MUTED_DARK + ";"
         );
         daysLbl.setPrefWidth(100);
 
         Button restoreBtn = new Button("↺");
-        restoreBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + PRIMARY_BLUE + "; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;");
+        restoreBtn.setStyle("-fx-font-family: " + FONT + "; -fx-background-color: transparent; -fx-text-fill: " + PRIMARY_BLUE + "; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;");
         restoreBtn.setOnAction(e -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION, "Restored " + fileName);
             alert.showAndWait();
         });
 
         Button deleteBtn = new Button("✕");
-        deleteBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #EF4444; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 13px;");
+        deleteBtn.setStyle("-fx-font-family: " + FONT + "; -fx-background-color: transparent; -fx-text-fill: #EF4444; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 13px;");
         deleteBtn.setOnAction(e -> {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Permanently delete " + fileName + "?", ButtonType.YES, ButtonType.NO);
             alert.showAndWait();
