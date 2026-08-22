@@ -1,5 +1,6 @@
 package com.file_handlers.view.userView;
 
+import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 
 import javafx.geometry.Insets;
@@ -69,6 +70,20 @@ public class UserCalendar {
     private Button yearBtn;
 
     public Scene getCalendarPageScene() {
+         String activeUserName = "User";
+        String initials = "U";
+
+        if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
+                String fullName = UserSession.getInstance().getDisplayName().trim();
+                if (!fullName.isEmpty()) {
+                // Extract only the first name (everything before the first space)
+                        String[] parts = fullName.split("\\s+");
+                        activeUserName = parts[0];
+        
+                        // Grab the initial from the first name
+                        initials = activeUserName.substring(0, 1).toUpperCase();
+                }
+        }
 
         // =========================================================
         // SIDEBAR
@@ -181,7 +196,7 @@ public class UserCalendar {
         bellBtn.setOnAction(e -> LandingPage.showNotificationPage());
 
 
-        Label avatar = new Label("AV");
+        Label avatar = new Label(initials);
 avatar.setPrefSize(34, 34);
 avatar.setAlignment(Pos.CENTER);
 avatar.setStyle(
@@ -192,7 +207,7 @@ avatar.setStyle(
         "-fx-font-size: 12px;"
 );
 
-Label userName = new Label("Aarav Verma");
+Label userName = new Label(activeUserName);
 userName.setFont(
         Font.font(FONT, FontWeight.SEMI_BOLD, 13)
 );

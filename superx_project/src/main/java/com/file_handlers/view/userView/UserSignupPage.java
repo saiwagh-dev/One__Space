@@ -1,5 +1,7 @@
 package com.file_handlers.view.userView;
 
+import com.file_handlers.controller.AuthController;
+import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 
 import javafx.geometry.Insets;
@@ -35,10 +37,11 @@ public class UserSignupPage {
     private static final String TEXT_MUTED_DARK = "#506580";
     public static final String TEXT_LIGHT = "#FFFFFF";
     private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
+    private static final String ERROR_COLOR = "#DC2626";
 
     public Scene getUserSignupPageScene() {
 
-        // App Header (Logo removed from top left corner)
+        // App Header
         Button backBtn = new Button("← Back to home");
         backBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         backBtn.setTextFill(Color.web(TEXT_MUTED_LIGHT));
@@ -50,7 +53,7 @@ public class UserSignupPage {
         appHeader.setAlignment(Pos.CENTER_LEFT);
         appHeader.setPadding(new Insets(16, 24, 16, 24));
 
-        // Signup Card Header (Logo added above title with reduced spacing)
+        // Signup Card Header
         StackPane centerIconPane = createOneSpaceLogo(135);
 
         Label title = new Label("One Space");
@@ -61,7 +64,14 @@ public class UserSignupPage {
         subtitle.setFont(Font.font(FONT, 13));
         subtitle.setTextFill(Color.web(TEXT_MUTED_DARK));
 
-        VBox cardHeader = new VBox(-3, centerIconPane, title, subtitle);
+        // Error Feedback Label
+        Label errorLabel = new Label();
+        errorLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
+        errorLabel.setTextFill(Color.web(ERROR_COLOR));
+        errorLabel.setManaged(false);
+        errorLabel.setVisible(false);
+
+        VBox cardHeader = new VBox(-3, centerIconPane, title, subtitle, errorLabel);
         cardHeader.setAlignment(Pos.CENTER);
 
         // Name Field
@@ -94,7 +104,7 @@ public class UserSignupPage {
         passwordLabel.setTextFill(Color.web(TEXT_DARK));
 
         PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Create a password");
+        passwordField.setPromptText("At least 6 characters");
         passwordField.setPrefHeight(42);
         passwordField.setStyle(getFieldStyle());
 
@@ -111,7 +121,10 @@ public class UserSignupPage {
 
         VBox confirmBox = new VBox(6, confirmLabel, confirmField);
 
-        // Signup Button
+        // Controller Instantiation
+        AuthController authController = new AuthController();
+
+        // Signup Button & Action Logic
         Button signupButton = new Button("Create Account  →");
         signupButton.setFont(Font.font(FONT, FontWeight.BOLD, 13));
         signupButton.setTextFill(Color.WHITE);
@@ -123,8 +136,47 @@ public class UserSignupPage {
                 "-fx-cursor: hand;"
         );
 
-        // Temporary Navigation - connect to login after account creation
-        signupButton.setOnAction(e -> LandingPage.showUserLoginPage());
+        signupButton.setOnAction(e -> {
+            String fullName = nameField.getText().trim();
+            String email = emailField.getText().trim();
+            String password = passwordField.getText();
+            String confirmPassword = confirmField.getText();
+
+            if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                errorLabel.setText("Please fill out all fields.");
+                errorLabel.setManaged(true);
+                errorLabel.setVisible(true);
+                return;
+            }
+
+            if (password.length() < 6) {
+                errorLabel.setText("Password must be at least 6 characters.");
+                errorLabel.setManaged(true);
+                errorLabel.setVisible(true);
+                return;
+            }
+
+            if (!password.equals(confirmPassword)) {
+                errorLabel.setText("Passwords do not match.");
+                errorLabel.setManaged(true);
+                errorLabel.setVisible(true);
+                return;
+            }
+
+            String idToken = authController.signUpAndGetToken(email, password);
+            if (idToken != null) {
+                authController.updateProfile(idToken, fullName);
+                UserSession.setInstance(idToken, email, fullName, false);
+
+                errorLabel.setManaged(false);
+                errorLabel.setVisible(false);
+                LandingPage.showUserDashboard();
+            } else {
+                errorLabel.setText("Registration failed. Email may already be in use.");
+                errorLabel.setManaged(true);
+                errorLabel.setVisible(true);
+            }
+        });
 
         // Login Link
         Label accountText = new Label("Already have an account?");
