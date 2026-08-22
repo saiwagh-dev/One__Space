@@ -97,10 +97,10 @@ public class UserDashboard {
         searchBtn.setOnAction(e -> { LandingPage.showUserSearch(); });
         calendarBtn.setOnAction(e -> { LandingPage.showCalendarPage(); });
         collabBtn.setOnAction(e -> { LandingPage.showCollaborationPage();});
-        aiBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        aiBtn.setOnAction(e -> { LandingPage.showAiAssistantPage(); });
         recentBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
         trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
-        settingsBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        settingsBtn.setOnAction(e -> { LandingPage.showSettingPage(); });
 
          
         
@@ -338,9 +338,9 @@ public class UserDashboard {
 
         // Space Breakdown Table
         HBox tableHeader = new HBox(
-                createHeaderLabel("Space", 220),
-                createHeaderLabel("Storage Used", 130),
-                createHeaderLabel("Percentage", 160)
+                createHeaderLabel("Space", 200),
+                createHeaderLabel("Storage Used", 110),
+                createHeaderLabel("Percentage", 140)
         );
         tableHeader.setPadding(new Insets(0, 0, 8, 0));
 
@@ -353,7 +353,7 @@ public class UserDashboard {
                 createSpaceRow("📁", CHART_COLORS[4], "Others", "3.7 GB", 0.06, "6%", CHART_COLORS[4])
         );
 
-        HBox cardContent = new HBox(36, donutChartPane, spaceRows);
+        HBox cardContent = new HBox(28, donutChartPane, spaceRows);
         cardContent.setAlignment(Pos.CENTER_LEFT);
 
         Label lastUpdated = new Label("🕒  Last updated just now");
@@ -531,27 +531,27 @@ public class UserDashboard {
 
         HBox nameGroup = new HBox(10, folderIcon, spaceName);
         nameGroup.setAlignment(Pos.CENTER_LEFT);
-        nameGroup.setPrefWidth(220);
+        nameGroup.setPrefWidth(200);
 
         Label sizeLbl = new Label(storage);
         sizeLbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         sizeLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
-        sizeLbl.setPrefWidth(130);
+        sizeLbl.setPrefWidth(110);
 
         ProgressBar bar = new ProgressBar(progress);
-        bar.setPrefWidth(100);
+        bar.setPrefWidth(90);
         bar.setPrefHeight(6);
         bar.setStyle("-fx-accent: " + colorHex + "; -fx-control-inner-background: #B6CDE7;");
 
         Label percentLbl = new Label(percent);
         percentLbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         percentLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
-        percentLbl.setPrefWidth(45);
+        percentLbl.setPrefWidth(40);
         percentLbl.setAlignment(Pos.BASELINE_RIGHT);
 
         HBox progressGroup = new HBox(10, bar, percentLbl);
         progressGroup.setAlignment(Pos.CENTER_LEFT);
-        progressGroup.setPrefWidth(160);
+        progressGroup.setPrefWidth(140);
 
         HBox row = new HBox(nameGroup, sizeLbl, progressGroup);
         row.setAlignment(Pos.CENTER_LEFT);

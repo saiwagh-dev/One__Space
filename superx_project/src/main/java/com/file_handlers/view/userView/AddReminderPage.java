@@ -87,11 +87,11 @@ public class AddReminderPage {
         spaces.setOnAction(e -> LandingPage.showUserSpace());
         search.setOnAction(e -> LandingPage.showUserSearch());
         calendar.setOnAction(e -> LandingPage.showCalendarPage());
-        ai.setOnAction(e -> LandingPage.showLandingPage());
-        collab.setOnAction(e -> LandingPage.showLandingPage());
-        recent.setOnAction(e -> LandingPage.showLandingPage());
+        ai.setOnAction(e -> LandingPage.showAiAssistantPage());
+        collab.setOnAction(e -> LandingPage.showCollaborationPage());
+        recent.setOnAction(e -> LandingPage.showRecentPage());
         trash.setOnAction(e -> LandingPage.showTrashPage());
-        settings.setOnAction(e -> LandingPage.showLandingPage());
+        settings.setOnAction(e -> LandingPage.showSettingPage());
         logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
 
 

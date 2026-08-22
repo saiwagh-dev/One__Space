@@ -85,12 +85,12 @@ public class NotificationPage {
         spaces.setOnAction(e -> LandingPage.showUserSpace());
         search.setOnAction(e -> LandingPage.showUserSearch());
         calendar.setOnAction(e -> LandingPage.showCalendarPage());
-        ai.setOnAction(e -> LandingPage.showLandingPage());
+        ai.setOnAction(e -> LandingPage.showAiAssistantPage());
         collab.setOnAction(e -> LandingPage.showCollaborationPage());
         recent.setOnAction(e -> LandingPage.showRecentPage());
         trash.setOnAction(e -> LandingPage.showTrashPage());
         notifications.setOnAction(e -> LandingPage.showNotificationPage());
-        settings.setOnAction(e -> LandingPage.showLandingPage());
+        settings.setOnAction(e -> LandingPage.showSettingPage());
         logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
 
         VBox navList = new VBox(4, dashboard, spaces, search, calendar, ai, collab, recent,  trash, settings, logoutBtn);
