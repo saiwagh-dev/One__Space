@@ -2,13 +2,16 @@ package com.file_handlers.view;
 
 import com.file_handlers.view.adminView.*;
 import com.file_handlers.view.userView.AddReminderPage;
+import com.file_handlers.view.userView.AiAssistantPage;
 import com.file_handlers.view.userView.CollaborationPage;
 import com.file_handlers.view.userView.NotificationPage;
 import com.file_handlers.view.userView.RecentPage;
+import com.file_handlers.view.userView.UnifiedSpaceView;
 import com.file_handlers.view.userView.UserCalendar;
 import com.file_handlers.view.userView.UserDashboard;
 import com.file_handlers.view.userView.UserLoginPage;
 import com.file_handlers.view.userView.UserSearch;
+import com.file_handlers.view.userView.UserSettingPage;
 import com.file_handlers.view.userView.UserSignupPage;
 import com.file_handlers.view.userView.UserSpaces;
 import com.file_handlers.view.userView.UserTrash;
@@ -70,14 +73,9 @@ public class LandingPage extends Application {
     }
 
     public static void showLandingPage() {
-        if (primaryStage != null && primaryStage.getScene() != null) setScene(primaryStage.getScene());
+        if (primaryStage != null) primaryStage.setScene(new LandingPage().getLandingPageScene());
     }
-<<<<<<< HEAD
-    
-            
-=======
 
->>>>>>> origin/Development
     // User Pages
     public static void showUserLoginPage() { setScene(new UserLoginPage().getUserLoginPageScene()); }
     public static void showUserSignupPage() { setScene(new UserSignupPage().getUserSignupPageScene()); }
@@ -90,13 +88,18 @@ public class LandingPage extends Application {
     public static void showNotificationPage() { setScene(new NotificationPage().getNotificationsScene()); }
     public static void showCollaborationPage() { setScene(new CollaborationPage().getCollaborationPageScene()); }
     public static void showRecentPage() { setScene(new RecentPage().getRecentPageScene()); }
-<<<<<<< HEAD
-    //public static void showUserLoginPage() { setScene(new UserLoginPage().getUserLoginPageScene()); }
+    public static void showSettingPage() { setScene(new UserSettingPage().getSettingPageScene()); }
+    public static void showAiAssistantPage() { setScene(new AiAssistantPage().getAiAssistantPageScene()); }
+      
+    public static void showUnifiedSpaceView() {
+        try {
+            UnifiedSpaceView unifiedSpaceView = new UnifiedSpaceView();
+            primaryStage.setScene(unifiedSpaceView.getUnifiedSpaceScene());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-
-=======
-
->>>>>>> origin/Development
     // Admin Pages
     public static void showAdminLoginPage() { setScene(new AdminLoginPage().getAdminLoginPageScene()); }
     public static void showAdminDashboard() { setScene(new AdminDashboard().getAdminDashboardScene()); }
@@ -107,15 +110,10 @@ public class LandingPage extends Application {
     public static void showAdminSignUp() { setScene(new AdminSignUpPage().getAdminSignUpScene()); }
     public static void showAdminAISystem() { setScene(new AdminAISystem().getAdminAIScene()); }
     public static void showAdminSecurity() { setScene(new AdminSecurity().getSecurityScene()); }
-<<<<<<< HEAD
-=======
     public static void showAdminCollaboration() { setScene(new AdminCollaboration().getCollaborationScene()); }
-
->>>>>>> origin/Development
 
     // Landing Page
     public Scene getLandingPageScene() {
-
         StackPane centerIconPane = createOneSpaceLogo(200);
 
         Label title = label("Welcome to OneSpace", 28, FontWeight.BOLD, TEXT_LIGHT);
@@ -133,28 +131,17 @@ public class LandingPage extends Application {
         );
 
         VBox adminCard = createRoleCard(
-<<<<<<< HEAD
                 "🛡", "#BAE6FD", PRIMARY_BLUE,
                 "Admin Login",
                 "Manage users, oversee system\nactivities and configurations.",
-                "Continue as Admin  →", PRIMARY_BLUE,
-=======
-                "🛡️", "#BAE6FD", "#0284C7",
-                "Admin Login",
-                "Manage users, oversee system\nactivities and configurations.",
                 "Continue as Admin  →", "#0284C7",
->>>>>>> origin/Development
                 e -> showAdminLoginPage()
         );
 
         HBox cardsContainer = new HBox(28, userCard, adminCard);
         cardsContainer.setAlignment(Pos.CENTER);
 
-<<<<<<< HEAD
         Label footerIcon = new Label("🛡");
-=======
-        Label footerIcon = new Label("🛡️");
->>>>>>> origin/Development
         footerIcon.setFont(Font.font(14));
         footerIcon.setTextFill(Color.web(TEXT_MUTED_LIGHT));
 
@@ -190,7 +177,6 @@ public class LandingPage extends Application {
 
     // Landing Animation
     private void playLandingAnimation(StackPane logo, Label title, Label subtitle, HBox cards, VBox footer) {
-
         logo.setOpacity(0);
         logo.setScaleX(0.85);
         logo.setScaleY(0.85);

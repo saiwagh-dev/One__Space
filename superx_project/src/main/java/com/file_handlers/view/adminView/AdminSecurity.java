@@ -51,7 +51,7 @@ public class AdminSecurity {
     private static final String PURPLE = "#7C3AED";
     private static final String PURPLE_LIGHT = "#EDE9FE";
     private static final String GREEN = "#059669";
-    private static final String RED = "#DC2626";
+    public static final String RED = "#DC2626";
     private static final String ORANGE = "#D97706";
 
     public Scene getSecurityScene() {
@@ -599,7 +599,7 @@ public class AdminSecurity {
         bottomRow.setAlignment(Pos.CENTER_RIGHT);
         bottomRow.setPadding(new Insets(10, 0, 0, 0));
 
-        // Assemble Root Box
+        //Assemble Root Box
         VBox rootBox = new VBox(24, headerRow, contentNode, bottomRow);
         rootBox.setPadding(new Insets(32));
         rootBox.setStyle("-fx-background-color: " + SIDEBAR_BG + "; -fx-background-radius: 16; -fx-border-radius: 16; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 1;");
@@ -623,7 +623,7 @@ public class AdminSecurity {
         StackPane wrapper = new StackPane(rootBox);
         wrapper.setPadding(new Insets(30));
         wrapper.setStyle("-fx-background-color: transparent;");
-
+                                                            
         Scene modalScene = new Scene(wrapper, 650, 520);
         modalScene.setFill(Color.TRANSPARENT);
         modalScene.getStylesheets().add(createModalCss());
@@ -660,7 +660,7 @@ public class AdminSecurity {
     private TableView<AlertItem> createAlertsTable() {
         TableView<AlertItem> table = new TableView<>();
         table.setPrefHeight(260);
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+       // table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         TableColumn<AlertItem, String> timeCol = new TableColumn<>("Time");
         timeCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getTime()));
@@ -673,7 +673,7 @@ public class AdminSecurity {
         TableColumn<AlertItem, String> descCol = new TableColumn<>("Details");
         descCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getDescription()));
 
-        table.getColumns().addAll(timeCol, typeCol, descCol);
+       //table.getColumns().addAll(timeCol, typeCol, descCol);
         table.getItems().addAll(
                 new AlertItem("10 min ago", "Multiple failed login attempts", "User: aarav.verma@example.com (IP: 192.168.1.45)"),
                 new AlertItem("25 min ago", "Server connection interrupted", "Storage service disconnected unexpectedly"),
@@ -763,7 +763,7 @@ public class AdminSecurity {
         public String getTitle() { return title; }
         public String getDescription() { return description; }
     }
-    // --- END CREATIVE MODAL ---
+    //--- END CREATIVE MODAL ---
 
     private StackPane donut() {
         Arc backgroundArc = new Arc(0, 0, 52, 52, 0, 360);
@@ -871,7 +871,7 @@ public class AdminSecurity {
         label.setWrapText(true);
         label.setStyle("-fx-text-fill: " + hexColor + " !important;");
         return label;
-    }
+    }                
 
     private Label link(String text) {
         Label label = new Label(text);
