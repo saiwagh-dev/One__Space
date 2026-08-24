@@ -18,17 +18,16 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
+//import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import java.io.InputStream;
 import com.file_handlers.view.LandingPage;
 
 public class AdminFiles {
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
     private static final String SIDEBAR_BG = "#1E2A3A";
-    private static final String SIDEBAR_DARK = "#141D29";
+    public static final String SIDEBAR_DARK = "#141D29";
     private static final String SIDEBAR_BORDER = "#2D3D52";
     private static final String MAIN_BG = "#31435B";
     private static final String CARD_BG = "#DDE8F8";
@@ -77,6 +76,7 @@ public class AdminFiles {
         Label logoText = new Label("OneSpace");
         logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
         logoText.setTextFill(Color.web(WHITE));
+        logoText.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 19px; -fx-font-weight: 700; -fx-text-fill: #FFFFFF;");
 
         HBox logoRow = new HBox(10, createLogo(), logoText);
         logoRow.setAlignment(Pos.CENTER_LEFT);
@@ -119,25 +119,21 @@ public class AdminFiles {
         return sidebar;
     }
 
-    private StackPane createLogo() {
-        InputStream stream = getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png");
-        if (stream != null) {
-            Image logoImage = new Image(stream);
-            ImageView imageView = new ImageView(logoImage);
-            imageView.setFitWidth(42); 
-            imageView.setFitHeight(42); 
-            imageView.setPreserveRatio(true);
-            
-            StackPane logoPane = new StackPane(imageView);
-            logoPane.setPrefSize(42, 42);
-            logoPane.setAlignment(Pos.CENTER);
-            return logoPane;
-        }
-        Circle circle = new Circle(21, Color.web(BLUE));
-        Label fallback = new Label("O");
-        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 18));
-        fallback.setTextFill(Color.WHITE);
-        return new StackPane(circle, fallback);
+   private StackPane createLogo() {
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
+
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
+
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(42, 42);
+        logoPane.setAlignment(Pos.CENTER);
+
+        return logoPane;
     }
 
     private Button createSidebarButton(String type, String text, boolean active) {
@@ -151,6 +147,7 @@ public class AdminFiles {
         Label label = new Label(text);
         label.setFont(Font.font(FONT, active ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
         label.setTextFill(Color.web(WHITE));
+        label.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: " + (active ? "700" : "500") + "; -fx-text-fill: #FFFFFF;");
 
         HBox row = new HBox(12, iconBox, label);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -193,7 +190,7 @@ public class AdminFiles {
         search.setPromptText("Search in OneSpace...");
         search.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
         search.setPrefHeight(38);
-        search.setStyle("-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #94A3B8; -fx-border-color: transparent; -fx-padding: 0;");
+        search.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #94A3B8; -fx-border-color: transparent; -fx-padding: 0;");
 
         HBox searchBox = new HBox(8, searchIconBox, search);
         searchBox.setAlignment(Pos.CENTER_LEFT);
@@ -218,11 +215,12 @@ public class AdminFiles {
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-background-color: " + BLUE + "; -fx-background-radius: 50%;");
+        avatar.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-background-color: " + BLUE + "; -fx-background-radius: 50%; -fx-text-fill: #FFFFFF;");
 
         Label admin = new Label("Admin");
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
+        admin.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: 600; -fx-text-fill: #FFFFFF;");
 
         HBox profile = new HBox(10, notification, avatar, admin);
         profile.setAlignment(Pos.CENTER);
@@ -244,12 +242,11 @@ public class AdminFiles {
         Label title = new Label("Files");
         title.setFont(Font.font(FONT, FontWeight.BOLD, 24));
         title.setTextFill(Color.WHITE);
-        title.setStyle("-fx-text-fill: #FFFFFF; -fx-font-weight: 700;");
+        title.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 24px; -fx-text-fill: #FFFFFF; -fx-font-weight: 700;");
 
         Label subtitle = new Label("Manage and monitor all files stored in OneSpace.");
         subtitle.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
         subtitle.setTextFill(Color.web(LIGHT_SECONDARY));
-        subtitle.setStyle("-fx-text-fill: #94A3B8;");
 
         VBox heading = new VBox(4, title, subtitle);
 
@@ -267,24 +264,16 @@ public class AdminFiles {
 
     private VBox createFileTypesOverview() {
         Label title = new Label("File Types Overview");
-        title.setFont(Font.font(FONT, FontWeight.BOLD, 17));
-        title.setTextFill(Color.web(BLACK));
-        title.setStyle("-fx-text-fill: #0F172A; -fx-font-weight: 700;");
+        title.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 17px; -fx-font-weight: 700; -fx-text-fill: #0F172A;");
 
         Label totalFilesTitle = new Label("Total Files");
-        totalFilesTitle.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        totalFilesTitle.setTextFill(Color.web(BLACK));
-        totalFilesTitle.setStyle("-fx-text-fill: #0F172A;");
+        totalFilesTitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #0F172A;");
 
         Label totalFilesValue = new Label("3841");
-        totalFilesValue.setFont(Font.font(FONT, FontWeight.BOLD, 20));
-        totalFilesValue.setTextFill(Color.web(BLACK));
-        totalFilesValue.setStyle("-fx-text-fill: #0F172A; -fx-font-weight: 700;");
+        totalFilesValue.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: #0F172A;");
 
         Label totalFilesDescription = new Label("All uploaded files");
-        totalFilesDescription.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 10));
-        totalFilesDescription.setTextFill(Color.web(BLACK));
-        totalFilesDescription.setStyle("-fx-text-fill: #334155;");
+        totalFilesDescription.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-font-weight: 600; -fx-text-fill: #334155;");
 
         VBox totalFilesText = new VBox(2, totalFilesTitle, totalFilesValue, totalFilesDescription);
         totalFilesText.setAlignment(Pos.CENTER_LEFT);
@@ -348,22 +337,16 @@ public class AdminFiles {
         card.setMaxWidth(820);
         card.setPadding(new Insets(24));
         
-        String baseCardStyle = "-fx-background-color: linear-gradient(to bottom right, #FFFFFF, " + CARD_BG + "); " +
-                               "-fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1; -fx-border-radius: 16; -fx-background-radius: 16; " +
-                               "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 20, 0, 0, 8); -fx-transition: all 0.3s ease;";
-        card.setStyle(baseCardStyle);
-
-        card.setOnMouseEntered(e -> card.setStyle(baseCardStyle.replace("rgba(0,0,0,0.08), 20, 0, 0, 8", "rgba(37,99,235,0.15), 25, 0, 0, 12")));
-        card.setOnMouseExited(e -> card.setStyle(baseCardStyle));
+        card.setStyle("-fx-background-color: linear-gradient(to bottom right, #FFFFFF, " + CARD_BG + "); " +
+                      "-fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1; -fx-border-radius: 16; -fx-background-radius: 16; " +
+                      "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 20, 0, 0, 8);");
 
         return card;
     }
 
     private HBox createLegendRow(String name, String percentageText, double progress, String hexColor) {
         Label nameLabel = new Label(name);
-        nameLabel.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        nameLabel.setTextFill(Color.BLACK);
-        nameLabel.setStyle("-fx-text-fill: #0F172A;");
+        nameLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #0F172A;");
         nameLabel.setPrefWidth(85);
 
         StackPane progressBackground = new StackPane();
@@ -374,15 +357,14 @@ public class AdminFiles {
         Region progressFill = new Region();
         progressFill.setPrefHeight(8); progressFill.setMaxHeight(8);
         progressFill.setStyle("-fx-background-color: " + hexColor + "; -fx-background-radius: 6;");
+        // Dynamically binds width based on specific percentage progress value
         progressFill.prefWidthProperty().bind(progressBackground.widthProperty().multiply(progress));
         StackPane.setAlignment(progressFill, Pos.CENTER_LEFT);
 
         progressBackground.getChildren().add(progressFill);
 
         Label percentageLabel = new Label(percentageText);
-        percentageLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        percentageLabel.setTextFill(Color.BLACK);
-        percentageLabel.setStyle("-fx-text-fill: #334155;");
+        percentageLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: #334155;");
         percentageLabel.setPrefWidth(45);
         percentageLabel.setAlignment(Pos.CENTER_RIGHT);
 
@@ -394,9 +376,7 @@ public class AdminFiles {
 
     private VBox createMostUsedCategories() {
         Label title = new Label("Most Used Categories");
-        title.setFont(Font.font(FONT, FontWeight.BOLD, 17));
-        title.setTextFill(Color.BLACK);
-        title.setStyle("-fx-text-fill: #0F172A; -fx-font-weight: 700;");
+        title.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 17px; -fx-font-weight: 700; -fx-text-fill: #0F172A;");
 
         VBox categories = new VBox(16,
                 createCategoryRow("College", 1245, "32%", 0.32),
@@ -410,22 +390,16 @@ public class AdminFiles {
         card.setMaxWidth(820);
         card.setPadding(new Insets(24));
         
-        String baseCardStyle = "-fx-background-color: linear-gradient(to bottom right, #FFFFFF, " + CARD_BG + "); " +
-                               "-fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1; -fx-border-radius: 16; -fx-background-radius: 16; " +
-                               "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 20, 0, 0, 8);";
-        card.setStyle(baseCardStyle);
-
-        card.setOnMouseEntered(e -> card.setStyle(baseCardStyle.replace("rgba(0,0,0,0.08), 20, 0, 0, 8", "rgba(37,99,235,0.15), 25, 0, 0, 12")));
-        card.setOnMouseExited(e -> card.setStyle(baseCardStyle));
+        card.setStyle("-fx-background-color: linear-gradient(to bottom right, #FFFFFF, " + CARD_BG + "); " +
+                      "-fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1; -fx-border-radius: 16; -fx-background-radius: 16; " +
+                      "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 20, 0, 0, 8);");
 
         return card;
     }
 
     private HBox createCategoryRow(String category, int count, String percentageText, double progress) {
         Label categoryLabel = new Label(category);
-        categoryLabel.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        categoryLabel.setTextFill(Color.BLACK);
-        categoryLabel.setStyle("-fx-text-fill: #0F172A;");
+        categoryLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #0F172A;");
         categoryLabel.setPrefWidth(90);
 
         StackPane progressBackground = new StackPane();
@@ -443,9 +417,7 @@ public class AdminFiles {
         HBox.setHgrow(progressBackground, Priority.ALWAYS);
 
         Label countLabel = new Label(count + " (" + percentageText + ")");
-        countLabel.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        countLabel.setTextFill(Color.BLACK);
-        countLabel.setStyle("-fx-text-fill: #334155;");
+        countLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #334155;");
         countLabel.setPrefWidth(100);
         countLabel.setAlignment(Pos.CENTER_RIGHT);
 

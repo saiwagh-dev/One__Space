@@ -29,19 +29,18 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import java.io.InputStream;
 
 public class AdminAISystem {
 
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
     private static final String SIDEBAR_BG = "#1E2A3A";
-    private static final String SIDEBAR_DARK = "#141D29";
+    public static final String SIDEBAR_DARK = "#141D29";
     private static final String SIDEBAR_BORDER = "#2D3D52";
     private static final String MAIN_BG = "#31435B";
     private static final String CARD_BG = "#DDE8F8";
     private static final String CARD_BORDER = "#C3D6EC";
 
-    private static final String BLACK = "#000000";
+    public static final String BLACK = "#000000";
     private static final String WHITE = "#FFFFFF";
     private static final String LIGHT_SECONDARY = "#94A3B8";
     private static final String BLUE = "#2563EB";
@@ -134,26 +133,21 @@ public class AdminAISystem {
     }
 
     private StackPane createLogo() {
-        InputStream stream = getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png");
-        if (stream != null) {
-            Image logoImage = new Image(stream);
-            ImageView imageView = new ImageView(logoImage);
-            imageView.setFitWidth(42); 
-            imageView.setFitHeight(42); 
-            imageView.setPreserveRatio(true);
-            
-            StackPane logoPane = new StackPane(imageView);
-            logoPane.setPrefSize(42, 42);
-            logoPane.setAlignment(Pos.CENTER);
-            return logoPane;
-        }
-        Circle circle = new Circle(21, Color.web(BLUE));
-        Label fallback = new Label("O");
-        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 18));
-        fallback.setTextFill(Color.WHITE);
-        return new StackPane(circle, fallback);
-    }
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
 
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
+
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(42, 42);
+        logoPane.setAlignment(Pos.CENTER);
+
+        return logoPane;
+    }
     private Button createSidebarButton(String type, String text, boolean selected) {
         SVGPath icon = createIcon(type);
         icon.setStroke(Color.web(selected ? WHITE : LIGHT_SECONDARY));
