@@ -114,6 +114,7 @@ public class LandingPage extends Application {
     public static void showAdminAISystem() { setScene(new AdminAISystem().getAdminAIScene()); }
     public static void showAdminSecurity() { setScene(new AdminSecurity().getSecurityScene()); }
     public static void showAdminCollaboration() { setScene(new AdminCollaboration().getCollaborationScene()); }
+    public static void showAdminProfilePage() { setScene(new AdminProfilePage().getAdminProfileScene());}
 
     // Landing Page
     public Scene getLandingPageScene() {
