@@ -29,8 +29,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
-import java.io.InputStream;
-
 public class AdminSecurity {
 
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -51,7 +49,7 @@ public class AdminSecurity {
     private static final String PURPLE = "#7C3AED";
     private static final String PURPLE_LIGHT = "#EDE9FE";
     private static final String GREEN = "#059669";
-    private static final String RED = "#DC2626";
+    public static final String RED = "#DC2626";
     private static final String ORANGE = "#D97706";
 
     public Scene getSecurityScene() {
@@ -60,7 +58,7 @@ public class AdminSecurity {
         root.setLeft(createSidebar());
 
         VBox contentContainer = createSecurityContent();
-        
+
         ScrollPane scrollPane = new ScrollPane(contentContainer);
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -159,23 +157,20 @@ public class AdminSecurity {
     }
 
     private StackPane createLogo() {
-        InputStream stream = getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png");
-        if (stream != null) {
-            Image logoImage = new Image(stream);
-            ImageView imageView = new ImageView(logoImage);
-            imageView.setFitWidth(42);
-            imageView.setFitHeight(42);
-            imageView.setPreserveRatio(true);
-            StackPane logoPane = new StackPane(imageView);
-            logoPane.setPrefSize(42, 42);
-            logoPane.setAlignment(Pos.CENTER);
-            return logoPane;
-        }
-        Circle circle = new Circle(21, Color.web(BLUE));
-        Label fallback = new Label("O");
-        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 18));
-        fallback.setTextFill(Color.WHITE);
-        return new StackPane(circle, fallback);
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
+
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
+
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(42, 42);
+        logoPane.setAlignment(Pos.CENTER);
+
+        return logoPane;
     }
 
     private Button createSidebarButton(String type, String text, boolean selected) {
@@ -307,20 +302,20 @@ public class AdminSecurity {
     }
 
     private VBox createSecurityContent() {
-        VBox root = new VBox(24);
+        VBox root = new VBox(22);
         root.setFillWidth(true);
-        root.setPadding(new Insets(28, 32, 40, 32));
+        root.setPadding(new Insets(24, 28, 28, 28));
         root.setStyle("-fx-background-color: " + MAIN_BG + ";");
 
         Label title = new Label("Security Overview");
-        title.setFont(Font.font(FONT, FontWeight.BOLD, 26));
+        title.setFont(Font.font(FONT, FontWeight.BOLD, 24));
         title.setTextFill(Color.WHITE);
 
         Label subtitle = new Label("Monitor and manage the security of your OneSpace system with real-time diagnostics.");
         subtitle.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
         subtitle.setTextFill(Color.web(LIGHT_SECONDARY));
 
-        VBox headerText = new VBox(6, title, subtitle);
+        VBox headerText = new VBox(4, title, subtitle);
 
         ComboBox<String> date = new ComboBox<>();
         date.getItems().addAll(
@@ -331,16 +326,16 @@ public class AdminSecurity {
         );
         date.setValue("Last 30 Days");
         date.setPrefWidth(160);
-        date.setPrefHeight(36);
+        date.setPrefHeight(42);
         date.getStyleClass().add("slate-dark-combo");
         date.setStyle(
                 "-fx-background-color: #1E2A3A;" +
                 "-fx-border-color: #334155;" +
                 "-fx-border-width: 1.5;" +
-                "-fx-border-radius: 8;" +
-                "-fx-background-radius: 8;" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;" +
                 "-fx-font-family: " + FONT + ";" +
-                "-fx-font-size: 12px;" +
+                "-fx-font-size: 13px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-text-fill: #F8FAFC;" +
                 "-fx-cursor: hand;" +
@@ -540,13 +535,11 @@ public class AdminSecurity {
         return card;
     }
 
-    // --- CREATIVE MODAL IMPLEMENTATION ---
     private void openCreativeModalWindow(String windowTitle, String message, String type) {
         Stage modalStage = new Stage();
         modalStage.initModality(Modality.APPLICATION_MODAL);
         modalStage.initStyle(StageStyle.TRANSPARENT);
 
-        // Header Titles
         Label titleLabel = new Label(windowTitle);
         titleLabel.setFont(Font.font(FONT, FontWeight.BOLD, 22));
         titleLabel.setTextFill(Color.web(WHITE));
@@ -559,12 +552,11 @@ public class AdminSecurity {
         VBox headerText = new VBox(4, titleLabel, descLabel);
         HBox.setHgrow(headerText, Priority.ALWAYS);
 
-        // Custom Close Button
         SVGPath closeIcon = new SVGPath();
         closeIcon.setContent("M18 6 L6 18 M6 6 L18 18");
         closeIcon.setStroke(Color.web(LIGHT_SECONDARY));
         closeIcon.setStrokeWidth(2);
-        
+
         StackPane closeBtnPane = new StackPane(closeIcon);
         closeBtnPane.setPrefSize(34, 34);
         closeBtnPane.setStyle("-fx-background-radius: 8; -fx-cursor: hand; -fx-background-color: transparent;");
@@ -576,12 +568,10 @@ public class AdminSecurity {
             closeBtnPane.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;");
             closeIcon.setStroke(Color.web(LIGHT_SECONDARY));
         });
-        
-        // Header Row
+
         HBox headerRow = new HBox(headerText, closeBtnPane);
         headerRow.setAlignment(Pos.TOP_LEFT);
 
-        // Main Content Area based on Type
         Node contentNode;
         if ("alerts".equals(type)) {
             contentNode = createAlertsTable();
@@ -589,13 +579,11 @@ public class AdminSecurity {
             contentNode = create2FASettingsLayout();
         }
 
-        // Action Button Row
         Button actionBtn = new Button("Done & Close");
         actionBtn.setStyle("-fx-background-color: " + BLUE + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 24; -fx-font-size: 13px; -fx-cursor: hand;");
         actionBtn.setOnMouseEntered(e -> actionBtn.setStyle("-fx-background-color: #1D4ED8; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 24; -fx-font-size: 13px; -fx-cursor: hand;"));
         actionBtn.setOnMouseExited(e -> actionBtn.setStyle("-fx-background-color: " + BLUE + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 24; -fx-font-size: 13px; -fx-cursor: hand;"));
-        
-        // Handle Close Events
+
         closeBtnPane.setOnMouseClicked(e -> closeModalWithAnimation(modalStage, headerRow.getParent()));
         actionBtn.setOnAction(e -> closeModalWithAnimation(modalStage, headerRow.getParent()));
 
@@ -603,12 +591,11 @@ public class AdminSecurity {
         bottomRow.setAlignment(Pos.CENTER_RIGHT);
         bottomRow.setPadding(new Insets(10, 0, 0, 0));
 
-        // Assemble Root Box
+        //Assemble Root Box
         VBox rootBox = new VBox(24, headerRow, contentNode, bottomRow);
         rootBox.setPadding(new Insets(32));
         rootBox.setStyle("-fx-background-color: " + SIDEBAR_BG + "; -fx-background-radius: 16; -fx-border-radius: 16; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 1;");
-        
-        // Draggable Logic
+
         final double[] xOffset = {0};
         final double[] yOffset = {0};
         rootBox.setOnMousePressed(event -> {
@@ -620,31 +607,28 @@ public class AdminSecurity {
             modalStage.setY(event.getScreenY() - yOffset[0]);
         });
 
-        // Drop Shadow Effect
         rootBox.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0,0,0,0.5), 25, 0, 0, 10));
 
-        // Wrapper to give space for drop shadow
         StackPane wrapper = new StackPane(rootBox);
         wrapper.setPadding(new Insets(30));
         wrapper.setStyle("-fx-background-color: transparent;");
-
+                                                            
         Scene modalScene = new Scene(wrapper, 650, 520);
         modalScene.setFill(Color.TRANSPARENT);
         modalScene.getStylesheets().add(createModalCss());
 
         modalStage.setScene(modalScene);
-        
-        // Entry Animations
+
         rootBox.setOpacity(0);
         rootBox.setTranslateY(30);
         modalStage.show();
 
         FadeTransition ft = new FadeTransition(Duration.millis(300), rootBox);
         ft.setToValue(1.0);
-        
+
         TranslateTransition tt = new TranslateTransition(Duration.millis(300), rootBox);
         tt.setToY(0);
-        
+
         ParallelTransition pt = new ParallelTransition(ft, tt);
         pt.play();
     }
@@ -652,10 +636,10 @@ public class AdminSecurity {
     private void closeModalWithAnimation(Stage stage, Node rootBox) {
         FadeTransition ft = new FadeTransition(Duration.millis(200), rootBox);
         ft.setToValue(0.0);
-        
+
         TranslateTransition tt = new TranslateTransition(Duration.millis(200), rootBox);
         tt.setToY(20);
-        
+
         ParallelTransition pt = new ParallelTransition(ft, tt);
         pt.setOnFinished(e -> stage.close());
         pt.play();
@@ -664,7 +648,7 @@ public class AdminSecurity {
     private TableView<AlertItem> createAlertsTable() {
         TableView<AlertItem> table = new TableView<>();
         table.setPrefHeight(260);
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+       // table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         TableColumn<AlertItem, String> timeCol = new TableColumn<>("Time");
         timeCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getTime()));
@@ -673,11 +657,11 @@ public class AdminSecurity {
 
         TableColumn<AlertItem, String> typeCol = new TableColumn<>("Alert Type");
         typeCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getTitle()));
-        
+
         TableColumn<AlertItem, String> descCol = new TableColumn<>("Details");
         descCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getDescription()));
 
-        table.getColumns().addAll(timeCol, typeCol, descCol);
+       //table.getColumns().addAll(timeCol, typeCol, descCol);
         table.getItems().addAll(
                 new AlertItem("10 min ago", "Multiple failed login attempts", "User: aarav.verma@example.com (IP: 192.168.1.45)"),
                 new AlertItem("25 min ago", "Server connection interrupted", "Storage service disconnected unexpectedly"),
@@ -704,15 +688,15 @@ public class AdminSecurity {
         Label tLabel = new Label(title);
         tLabel.setFont(Font.font(FONT, FontWeight.BOLD, 14));
         tLabel.setTextFill(Color.web(WHITE));
-        
+
         Label dLabel = new Label(desc);
         dLabel.setFont(Font.font(FONT, FontWeight.NORMAL, 12));
         dLabel.setTextFill(Color.web(LIGHT_SECONDARY));
         dLabel.setWrapText(true);
-        
+
         VBox text = new VBox(4, tLabel, dLabel);
         HBox.setHgrow(text, Priority.ALWAYS);
-        
+
         ToggleButton toggle = new ToggleButton(defaultState ? "ON" : "OFF");
         toggle.setSelected(defaultState);
         toggle.setPrefWidth(60);
@@ -720,7 +704,7 @@ public class AdminSecurity {
             "-fx-background-color: " + GREEN + "; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-weight: bold; -fx-cursor: hand;" :
             "-fx-background-color: #334155; -fx-text-fill: #94A3B8; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-weight: bold; -fx-cursor: hand;"
         );
-        
+
         toggle.setOnAction(e -> {
             if (toggle.isSelected()) {
                 toggle.setText("ON");
@@ -730,7 +714,7 @@ public class AdminSecurity {
                 toggle.setStyle("-fx-background-color: #334155; -fx-text-fill: #94A3B8; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-weight: bold; -fx-cursor: hand;");
             }
         });
-        
+
         HBox row = new HBox(16, text, toggle);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(16));
@@ -740,16 +724,16 @@ public class AdminSecurity {
 
     private String createModalCss() {
         return "data:text/css," +
-               ".table-view { -fx-background-color: transparent; -fx-padding: 0; }" +
-               ".table-view .column-header-background { -fx-background-color: #141D29; -fx-background-radius: 8 8 0 0; }" +
-               ".table-view .column-header { -fx-background-color: transparent; -fx-size: 40; }" +
-               ".table-view .column-header .label { -fx-text-fill: #94A3B8; -fx-font-weight: bold; -fx-font-size: 13px; }" +
-               ".table-view .table-row-cell { -fx-background-color: #1E2A3A; -fx-border-color: #2D3D52; -fx-border-width: 0 0 1 0; }" +
-               ".table-view .table-row-cell:odd { -fx-background-color: #1A2433; }" +
-               ".table-view .table-row-cell:hover { -fx-background-color: #2563EB; }" +
-               ".table-view .table-cell { -fx-text-fill: #F8FAFC; -fx-padding: 10 12; -fx-font-size: 13px; -fx-border-width: 0; }" +
-               ".table-view .virtual-flow .scroll-bar:vertical, " +
-               ".table-view .virtual-flow .scroll-bar:horizontal { -fx-opacity: 0; -fx-padding: 0; -fx-pref-width: 0; -fx-pref-height: 0; }";
+                ".table-view { -fx-background-color: transparent; -fx-padding: 0; }" +
+                ".table-view .column-header-background { -fx-background-color: #141D29; -fx-background-radius: 8 8 0 0; }" +
+                ".table-view .column-header { -fx-background-color: transparent; -fx-size: 40; }" +
+                ".table-view .column-header .label { -fx-text-fill: #94A3B8; -fx-font-weight: bold; -fx-font-size: 13px; }" +
+                ".table-view .table-row-cell { -fx-background-color: #1E2A3A; -fx-border-color: #2D3D52; -fx-border-width: 0 0 1 0; }" +
+                ".table-view .table-row-cell:odd { -fx-background-color: #1A2433; }" +
+                ".table-view .table-row-cell:hover { -fx-background-color: #2563EB; }" +
+                ".table-view .table-cell { -fx-text-fill: #F8FAFC; -fx-padding: 10 12; -fx-font-size: 13px; -fx-border-width: 0; }" +
+                ".table-view .virtual-flow .scroll-bar:vertical, " +
+                ".table-view .virtual-flow .scroll-bar:horizontal { -fx-opacity: 0; -fx-padding: 0; -fx-pref-width: 0; -fx-pref-height: 0; }";
     }
 
     public static class AlertItem {
@@ -767,7 +751,7 @@ public class AdminSecurity {
         public String getTitle() { return title; }
         public String getDescription() { return description; }
     }
-    // --- END CREATIVE MODAL ---
+    //--- END CREATIVE MODAL ---
 
     private StackPane donut() {
         Arc backgroundArc = new Arc(0, 0, 52, 52, 0, 360);
@@ -875,7 +859,7 @@ public class AdminSecurity {
         label.setWrapText(true);
         label.setStyle("-fx-text-fill: " + hexColor + " !important;");
         return label;
-    }
+    }                
 
     private Label link(String text) {
         Label label = new Label(text);

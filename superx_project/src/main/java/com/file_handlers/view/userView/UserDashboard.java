@@ -1,5 +1,6 @@
 package com.file_handlers.view.userView;
 
+import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 
 import javafx.application.Platform;
@@ -63,6 +64,27 @@ public class UserDashboard {
     public Scene getDashboardScene() {
 
         // =========================================================
+        // FETCH USER SESSION DATA (Simpler Approach)
+        // =========================================================
+        // =========================================================
+// FETCH USER SESSION DATA (First Name Only)
+// =========================================================
+        String activeUserName = "User";
+        String initials = "U";
+
+        if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
+                String fullName = UserSession.getInstance().getDisplayName().trim();
+                if (!fullName.isEmpty()) {
+                // Extract only the first name (everything before the first space)
+                        String[] parts = fullName.split("\\s+");
+                        activeUserName = parts[0];
+        
+                        // Grab the initial from the first name
+                        initials = activeUserName.substring(0, 1).toUpperCase();
+                }
+        }
+
+        // =========================================================
         // SIDEBAR
         // =========================================================
 
@@ -70,7 +92,7 @@ public class UserDashboard {
 
         Label logoText = new Label("OneSpace");
         logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
-        logoText.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        logoText.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 19px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         HBox logoHeader = new HBox(10, logoIcon, logoText);
         logoHeader.setAlignment(Pos.CENTER_LEFT);
@@ -91,32 +113,23 @@ public class UserDashboard {
         // 1. Logout Button Created
         Button logoutBtn = createSidebarButton("🚪", "Logout", false);
 
-
         dashboardBtn.setOnAction(e -> { LandingPage.showUserDashboard(); });
         spacesBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
         searchBtn.setOnAction(e -> { LandingPage.showUserSearch(); });
         calendarBtn.setOnAction(e -> { LandingPage.showCalendarPage(); });
         collabBtn.setOnAction(e -> { LandingPage.showCollaborationPage();});
-        aiBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        aiBtn.setOnAction(e -> { LandingPage.showAiAssistantPage(); });
         recentBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
         trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
-        settingsBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
-       
+        settingsBtn.setOnAction(e -> { LandingPage.showSettingPage(); });
+
          
-        
         // =========================================================
         // 2. LOGOUT SET-ON-ACTION IMPLEMENTATION
         // =========================================================
         logoutBtn.setOnAction(e -> {
-            // Option A: If LandingPage has a method for showing the login screen, call it here.
-            // Example: LandingPage.showLoginPage();
-            
-            // Option B: Fallback navigation method routing back to landing/login view:
+            UserSession.clearSession();
             LandingPage.showUserLoginPage();
-            
-            // Optional: If you manage the stage directly from the button context:
-            // Stage currentStage = (Stage) logoutBtn.getScene().getWindow();
-            // currentStage.setScene(new LoginView().getLoginScene()); // Replace with your login scene class
         });
 
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
@@ -124,15 +137,15 @@ public class UserDashboard {
         // Sidebar Storage Card
         Label storageTitle = new Label("Storage Used");
         storageTitle.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        storageTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        storageTitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label storageVal = new Label("64.2 GB of 100 GB");
         storageVal.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        storageVal.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        storageVal.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label storagePercent = new Label("64%");
         storagePercent.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        storagePercent.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        storagePercent.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
 
         HBox storageValGroup = new HBox(storageVal, new Region(), storagePercent);
         HBox.setHgrow(storageValGroup.getChildren().get(1), Priority.ALWAYS);
@@ -145,7 +158,7 @@ public class UserDashboard {
 
         Button manageStorageBtn = new Button("Manage Storage ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
+        manageStorageBtn.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 600; -fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
         manageStorageBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
 
         VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
@@ -155,7 +168,6 @@ public class UserDashboard {
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
 
-        // Added logoutBtn right next to settingsBtn in the sidebar layout hierarchy
         VBox sidebar = new VBox(12, logoBox, navList, sidebarSpacer, settingsBtn, logoutBtn, storageCard);
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setPrefWidth(230);
@@ -168,16 +180,16 @@ public class UserDashboard {
 
         Label searchIcon = new Label("⌕");
         searchIcon.setFont(Font.font(FONT, 16));
-        searchIcon.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        searchIcon.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 16px; -fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
 
         TextField searchField = new TextField();
         searchField.setPromptText("Search in OneSpace...");
         searchField.setPrefHeight(38);
-        searchField.setStyle("-fx-background-color: transparent; -fx-prompt-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_LIGHT + ";");
+        searchField.setStyle("-fx-font-family: " + FONT + "; -fx-background-color: transparent; -fx-prompt-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label keyShortcut = new Label("⌘ K");
         keyShortcut.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 10));
-        keyShortcut.setStyle("-fx-background-color: #141E2C; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-padding: 3 6; -fx-background-radius: 4;");
+        keyShortcut.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-font-weight: 600; -fx-background-color: #141E2C; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-padding: 3 6; -fx-background-radius: 4;");
 
         HBox searchContainer = new HBox(8, searchIcon, searchField, keyShortcut);
         searchContainer.setAlignment(Pos.CENTER_LEFT);
@@ -191,7 +203,7 @@ public class UserDashboard {
         bellBtn.setOnAction(e -> { LandingPage.showNotificationPage(); });
 
 
-        Label avatar = new Label("AV");
+        Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
         avatar.setStyle(
@@ -202,7 +214,7 @@ public class UserDashboard {
             "-fx-font-size: 12px;"
         );
 
-        Label userName = new Label("Aarav Verma");
+        Label userName = new Label(activeUserName);
         userName.setFont(
                 Font.font(FONT, FontWeight.SEMI_BOLD, 13)
         );
@@ -325,22 +337,25 @@ public class UserDashboard {
                 "-fx-border-width: 0 0 1 0;"
         );
         // =========================================================
-        // GREETING & SCAN ACTION HEADER (File Upload Dialog via DirectoryChooser)
+        // GREETING & SCAN ACTION HEADER
         // =========================================================
 
-        Label welcomeTitle = new Label("Good afternoon, Aarav");
+        Label welcomeTitle = new Label("Good afternoon, " + activeUserName);
         welcomeTitle.setFont(Font.font(FONT, FontWeight.BOLD, 24));
-        welcomeTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        welcomeTitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 24px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label welcomeSub = new Label("OneSpace indexed 412 new files since yesterday — nothing was moved or renamed.");
         welcomeSub.setFont(Font.font(FONT, 13));
-        welcomeSub.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-weight: 500;");
+        welcomeSub.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-weight: 500;");
 
         VBox greetingText = new VBox(4, welcomeTitle, welcomeSub);
 
         Button scanFolderBtn = new Button("⛶  Scan folder");
         scanFolderBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
         scanFolderBtn.setStyle(
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: 700;" +
                 "-fx-background-color: " + PRIMARY_BLUE + ";" +
                 "-fx-text-fill: #FFFFFF;" +
                 "-fx-background-radius: 10;" +
@@ -348,7 +363,6 @@ public class UserDashboard {
                 "-fx-padding: 8 18;"
         );
         
-        // Scan folder action opens system window to pick folder for uploading/indexing
         scanFolderBtn.setOnAction(e -> {
             DirectoryChooser directoryChooser = new DirectoryChooser();
             directoryChooser.setTitle("Select Folder to Scan & Upload");
@@ -357,7 +371,6 @@ public class UserDashboard {
             
             if (selectedDirectory != null) {
                 System.out.println("Selected folder: " + selectedDirectory.getAbsolutePath());
-                // Add your custom logic here to push files into your indexing pipeline
             }
         });
 
@@ -392,17 +405,20 @@ public class UserDashboard {
 
         Label cardTitle = new Label("Space Occupancy");
         cardTitle.setFont(Font.font(FONT, FontWeight.BOLD, 17));
-        cardTitle.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        cardTitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 17px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
 
         Label cardSub = new Label("Overview of file storage across your spaces.");
         cardSub.setFont(Font.font(FONT, 12));
-        cardSub.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        cardSub.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         VBox cardHeaderTitles = new VBox(2, cardTitle, cardSub);
 
         Button viewAllBtn = new Button("View all spaces ›");
         viewAllBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         viewAllBtn.setStyle(
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-font-size: 12px;" +
+                "-fx-font-weight: 600;" +
                 "-fx-background-color: " + BG_CARD_INNER + ";" +
                 "-fx-border-color: " + BORDER_CARD + ";" +
                 "-fx-border-radius: 8;" +
@@ -436,11 +452,11 @@ public class UserDashboard {
 
         Label chartValText = new Label("64.2 GB");
         chartValText.setFont(Font.font(FONT, FontWeight.BOLD, 18));
-        chartValText.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        chartValText.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 18px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
 
         Label chartSubText = new Label("of 100 GB used");
         chartSubText.setFont(Font.font(FONT, 11));
-        chartSubText.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 600;");
+        chartSubText.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 600;");
 
         VBox chartCenterText = new VBox(2, chartValText, chartSubText);
         chartCenterText.setAlignment(Pos.CENTER);
@@ -450,9 +466,9 @@ public class UserDashboard {
 
         // Space Breakdown Table
         HBox tableHeader = new HBox(
-                createHeaderLabel("Space", 220),
-                createHeaderLabel("Storage Used", 130),
-                createHeaderLabel("Percentage", 160)
+                createHeaderLabel("Space", 200),
+                createHeaderLabel("Storage Used", 110),
+                createHeaderLabel("Percentage", 140)
         );
         tableHeader.setPadding(new Insets(0, 0, 8, 0));
 
@@ -465,12 +481,12 @@ public class UserDashboard {
                 createSpaceRow("📁", CHART_COLORS[4], "Others", "3.7 GB", 0.06, "6%", CHART_COLORS[4])
         );
 
-        HBox cardContent = new HBox(36, donutChartPane, spaceRows);
+        HBox cardContent = new HBox(28, donutChartPane, spaceRows);
         cardContent.setAlignment(Pos.CENTER_LEFT);
 
         Label lastUpdated = new Label("🕒  Last updated just now");
         lastUpdated.setFont(Font.font(FONT, 11));
-        lastUpdated.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 500;");
+        lastUpdated.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 500;");
 
         VBox occupancyCard = new VBox(16, cardHeader, cardContent, lastUpdated);
         occupancyCard.setPadding(new Insets(24));
@@ -542,6 +558,7 @@ public class UserDashboard {
 
         Label textLbl = new Label(label);
         textLbl.setFont(Font.font(FONT, isActive ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
+        textLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: " + (isActive ? "700" : "500") + "; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         HBox content = new HBox(12, iconLbl, textLbl);
         content.setAlignment(Pos.CENTER_LEFT);
@@ -555,11 +572,9 @@ public class UserDashboard {
         if (isActive) {
             btn.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 8; -fx-cursor: hand;");
             iconLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-            textLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
         } else {
             btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;");
             iconLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-            textLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
 
             btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #26354A; -fx-background-radius: 8; -fx-cursor: hand;"));
             btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;"));
@@ -571,7 +586,7 @@ public class UserDashboard {
     private HBox createMetricCard(String icon, String title, String value, String badgeText, String subText, String accentColor, String bgAccent, String textBadgeColor) {
         Label titleLbl = new Label(title);
         titleLbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        titleLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        titleLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         Label iconLbl = new Label(icon);
         iconLbl.setFont(Font.font(14));
@@ -588,16 +603,16 @@ public class UserDashboard {
 
         Label valLbl = new Label(value);
         valLbl.setFont(Font.font(FONT, FontWeight.BOLD, 22));
-        valLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        valLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 22px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
 
         Label subLbl = new Label(subText);
         subLbl.setFont(Font.font(FONT, 11));
-        subLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 600;");
+        subLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 600;");
         subLbl.setMinWidth(Region.USE_PREF_SIZE);
 
         Label badgeLbl = new Label(badgeText);
         badgeLbl.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        badgeLbl.setStyle("-fx-text-fill: " + textBadgeColor + "; -fx-background-color: " + bgAccent + "; -fx-background-radius: 6; -fx-padding: 3 8;");
+        badgeLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: " + textBadgeColor + "; -fx-background-color: " + bgAccent + "; -fx-background-radius: 6; -fx-padding: 3 8;");
         badgeLbl.setMinWidth(Region.USE_PREF_SIZE);
 
         HBox bottomRow = new HBox(6, badgeLbl, subLbl);
@@ -625,7 +640,7 @@ public class UserDashboard {
     private Label createHeaderLabel(String text, double width) {
         Label lbl = new Label(text);
         lbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        lbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        lbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
         lbl.setPrefWidth(width);
         return lbl;
     }
@@ -639,31 +654,31 @@ public class UserDashboard {
 
         Label spaceName = new Label(title);
         spaceName.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        spaceName.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        spaceName.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
 
         HBox nameGroup = new HBox(10, folderIcon, spaceName);
         nameGroup.setAlignment(Pos.CENTER_LEFT);
-        nameGroup.setPrefWidth(220);
+        nameGroup.setPrefWidth(200);
 
         Label sizeLbl = new Label(storage);
         sizeLbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         sizeLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
-        sizeLbl.setPrefWidth(130);
+        sizeLbl.setPrefWidth(110);
 
         ProgressBar bar = new ProgressBar(progress);
-        bar.setPrefWidth(100);
+        bar.setPrefWidth(90);
         bar.setPrefHeight(6);
         bar.setStyle("-fx-accent: " + colorHex + "; -fx-control-inner-background: #B6CDE7;");
 
         Label percentLbl = new Label(percent);
         percentLbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         percentLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
-        percentLbl.setPrefWidth(45);
+        percentLbl.setPrefWidth(40);
         percentLbl.setAlignment(Pos.BASELINE_RIGHT);
 
         HBox progressGroup = new HBox(10, bar, percentLbl);
         progressGroup.setAlignment(Pos.CENTER_LEFT);
-        progressGroup.setPrefWidth(160);
+        progressGroup.setPrefWidth(140);
 
         HBox row = new HBox(nameGroup, sizeLbl, progressGroup);
         row.setAlignment(Pos.CENTER_LEFT);

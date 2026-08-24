@@ -33,14 +33,13 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AdminUsers {
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
     private static final String SIDEBAR_BG = "#1E2A3A";
-    private static final String SIDEBAR_DARK = "#141D29";
+    public static final String SIDEBAR_DARK = "#141D29";
     private static final String SIDEBAR_BORDER = "#2D3D52";
     private static final String MAIN_BG = "#31435B";
     private static final String CARD_BG = "#DDE8F8";
@@ -247,7 +246,9 @@ public class AdminUsers {
 
     private VBox createUsersContent() {
         Label title = createLabel("Users", "-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;");
-        Label subtitle = createLabel("Manage your organization's users easily.", "-fx-font-size: 13px; -fx-font-weight: 500; -fx-text-fill: #94A3B8;");
+        Label subtitle = createLabel("Manage your organization's users easily.", "-fx-font-size: 13px; -fx-font-weight: 500;");
+        subtitle.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
+        subtitle.setTextFill(Color.web(LIGHT_SECONDARY));
         VBox titleBox = new VBox(4, title, subtitle);
 
         statusDropdown = createDropdown(160, "All Status", "All Status", "Active", "Inactive");
@@ -582,22 +583,20 @@ public class AdminUsers {
     }
 
     private StackPane createLogo() {
-        InputStream stream = getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png");
-        if (stream != null) {
-            Image logoImage = new Image(stream);
-            ImageView imageView = new ImageView(logoImage);
-            imageView.setFitWidth(42); imageView.setFitHeight(42); imageView.setPreserveRatio(true); imageView.setSmooth(true);
-            
-            StackPane logoPane = new StackPane(imageView);
-            logoPane.setPrefSize(42, 42);
-            logoPane.setAlignment(Pos.CENTER);
-            return logoPane;
-        }
-        Circle circle = new Circle(21, Color.web(BLUE));
-        Label fallback = new Label("O");
-        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 18));
-        fallback.setTextFill(Color.WHITE);
-        return new StackPane(circle, fallback);
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
+
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
+
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(42, 42);
+        logoPane.setAlignment(Pos.CENTER);
+
+        return logoPane;
     }
 
     private SVGPath createIcon(String type) {

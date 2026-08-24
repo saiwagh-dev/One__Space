@@ -1,5 +1,6 @@
 package com.file_handlers.view.userView;
 
+import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 
 import javafx.collections.FXCollections;
@@ -60,6 +61,20 @@ public class UserSpaces {
     private static final String PRIMARY_BLUE = "#2563EB";
 
     public Scene getUserSpacesScene() {
+        String activeUserName = "User";
+        String initials = "U";
+
+        if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
+                String fullName = UserSession.getInstance().getDisplayName().trim();
+                if (!fullName.isEmpty()) {
+                // Extract only the first name (everything before the first space)
+                        String[] parts = fullName.split("\\s+");
+                        activeUserName = parts[0];
+        
+                        // Grab the initial from the first name
+                        initials = activeUserName.substring(0, 1).toUpperCase();
+                }
+        }
 
         StackPane logoIcon = createOneSpaceLogo();
 
@@ -93,7 +108,7 @@ public class UserSpaces {
         collabBtn.setOnAction(e -> { LandingPage.showCollaborationPage(); });
         recentBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
         trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
-        settingsBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
+        settingsBtn.setOnAction(e -> { LandingPage.showSettingPage(); });
         logoutBtn.setOnAction(e -> { LandingPage.showUserLoginPage(); });
         
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
@@ -167,7 +182,7 @@ public class UserSpaces {
         bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
         bellBtn.setOnAction(event -> { LandingPage.showNotificationPage(); });
 
-        Label avatar = new Label("AV");
+        Label avatar = new Label(initials);
 avatar.setPrefSize(34, 34);
 avatar.setAlignment(Pos.CENTER);
 avatar.setStyle(
@@ -178,7 +193,7 @@ avatar.setStyle(
         "-fx-font-size: 12px;"
 );
 
-Label userName = new Label("Aarav Verma");
+Label userName = new Label(activeUserName);
 userName.setFont(
         Font.font(FONT, FontWeight.SEMI_BOLD, 13)
 );
@@ -510,7 +525,11 @@ topBar.setStyle(
         card.setStyle(styleIdle);
         card.setOnMouseEntered(e -> card.setStyle(styleHover));
         card.setOnMouseExited(e -> card.setStyle(styleIdle));
-        card.setOnMouseClicked(e -> { LandingPage.showLandingPage(); });
+        
+        // Updated action to route to UnifiedSpaceView instead of LandingPage
+        card.setOnMouseClicked(e -> { 
+            LandingPage.showUnifiedSpaceView(); 
+        });
 
         return card;
     }

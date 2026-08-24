@@ -1,5 +1,7 @@
 package com.file_handlers.view.adminView;
 
+import com.file_handlers.controller.AdminAuthController;
+import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 
 import javafx.geometry.Insets;
@@ -36,6 +38,7 @@ public class AdminSignUpPage {
     private static final String TEXT_DARK = "#142338";
     private static final String TEXT_MUTED_DARK = "#506580";
     private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
+    private static final String ERROR_COLOR = "#DC2626";
 
     public Scene getAdminSignUpScene() {
 
@@ -62,8 +65,15 @@ public class AdminSignUpPage {
         subtitle.setFont(Font.font(FONT, 13));
         subtitle.setTextFill(Color.web(TEXT_MUTED_DARK));
 
-        // Card Header - Direct assembly with 0 internal spacing
-        VBox cardHeader = new VBox(0, createLogo(), brandingText, subtitle);
+        // Error Feedback Label
+        Label errorLabel = new Label();
+        errorLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
+        errorLabel.setTextFill(Color.web(ERROR_COLOR));
+        errorLabel.setManaged(false);
+        errorLabel.setVisible(false);
+
+        // Card Header
+        VBox cardHeader = new VBox(4, createLogo(), brandingText, subtitle, errorLabel);
         cardHeader.setAlignment(Pos.CENTER);
 
         // Name Field
@@ -96,7 +106,7 @@ public class AdminSignUpPage {
         passwordLabel.setTextFill(Color.web(TEXT_DARK));
 
         PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Create a password");
+        passwordField.setPromptText("At least 6 characters");
         passwordField.setPrefHeight(42);
         passwordField.setStyle(getFieldStyle());
 
@@ -113,7 +123,10 @@ public class AdminSignUpPage {
 
         VBox confirmBox = new VBox(6, confirmLabel, confirmField);
 
-        // Signup Button
+        // Controller Instantiation
+        AdminAuthController adminController = new AdminAuthController();
+
+        // Signup Button & Action Logic
         Button signupButton = new Button("Create Admin Account  →");
         signupButton.setFont(Font.font(FONT, FontWeight.BOLD, 13));
         signupButton.setTextFill(Color.WHITE);
@@ -124,7 +137,36 @@ public class AdminSignUpPage {
                 "-fx-background-radius: 10;" +
                 "-fx-cursor: hand;"
         );
-        signupButton.setOnAction(e -> LandingPage.showAdminLoginPage());
+        
+        signupButton.setOnAction(e -> {
+            String fullName = nameField.getText().trim();
+            String email = emailField.getText().trim();
+            String password = passwordField.getText();
+            String confirmPassword = confirmField.getText();
+
+            if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                errorLabel.setText("Please fill out all fields.");
+                errorLabel.setManaged(true);
+                errorLabel.setVisible(true);
+                return;
+            }
+
+            if (password.length() < 6) {
+                errorLabel.setText("Password must be at least 6 characters.");
+                errorLabel.setManaged(true);
+                errorLabel.setVisible(true);
+                return;
+            }
+
+            if (!password.equals(confirmPassword)) {
+                errorLabel.setText("Passwords do not match.");
+                errorLabel.setManaged(true);
+                errorLabel.setVisible(true);
+                return;
+            }
+
+            
+        });
 
         // Login Link
         Label accountText = new Label("Already have an admin account?");
@@ -140,7 +182,7 @@ public class AdminSignUpPage {
         HBox loginBox = new HBox(4, accountText, loginLink);
         loginBox.setAlignment(Pos.CENTER);
 
-        // Card Assembly (Grid dimensions matched strictly to UserSignupPage)
+        // Card Assembly
         VBox card = new VBox(
                 16,
                 cardHeader,
@@ -199,7 +241,6 @@ public class AdminSignUpPage {
         Label fallback = new Label("O");
         fallback.setFont(Font.font(FONT, FontWeight.BOLD, 36));
         fallback.setTextFill(Color.WHITE);
-        
         return new StackPane(circle, fallback);
     }
 
