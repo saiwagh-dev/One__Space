@@ -67,11 +67,11 @@ public class CollaborationPage {
         if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
                 String fullName = UserSession.getInstance().getDisplayName().trim();
                 if (!fullName.isEmpty()) {
-                // Extract only the first name (everything before the first space)
+                
                         String[] parts = fullName.split("\\s+");
                         activeUserName = parts[0];
         
-                        // Grab the initial from the first name
+                        
                         initials = activeUserName.substring(0, 1).toUpperCase();
                 }
         }

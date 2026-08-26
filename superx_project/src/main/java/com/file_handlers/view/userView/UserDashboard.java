@@ -110,8 +110,7 @@ public class UserDashboard {
         Button trashBtn = createSidebarButton("🗑", "Trash", false);
         Button settingsBtn = createSidebarButton("⚙", "Settings", false);
         
-        // 1. Logout Button Created
-        Button logoutBtn = createSidebarButton("🚪", "Logout", false);
+        
 
         dashboardBtn.setOnAction(e -> { LandingPage.showUserDashboard(); });
         spacesBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
@@ -124,13 +123,7 @@ public class UserDashboard {
         settingsBtn.setOnAction(e -> { LandingPage.showSettingPage(); });
 
          
-        // =========================================================
-        // 2. LOGOUT SET-ON-ACTION IMPLEMENTATION
-        // =========================================================
-        logoutBtn.setOnAction(e -> {
-            UserSession.clearSession();
-            LandingPage.showUserLoginPage();
-        });
+        
 
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
 
@@ -168,7 +161,7 @@ public class UserDashboard {
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
 
-        VBox sidebar = new VBox(12, logoBox, navList, sidebarSpacer, settingsBtn, logoutBtn, storageCard);
+        VBox sidebar = new VBox(12, logoBox, navList, sidebarSpacer, settingsBtn, storageCard);
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setPrefWidth(230);
         sidebar.setMinWidth(230);
