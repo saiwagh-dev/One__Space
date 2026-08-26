@@ -135,7 +135,7 @@ public class RecentPage {
         Button manageStorageBtn = new Button("Manage Storage ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 600; -fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
-        manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
+        manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexedPage());
 
         VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
@@ -193,6 +193,8 @@ public class RecentPage {
 
         HBox profileBox = new HBox(10, bellBtn, avatar, userName, dropDown);
         profileBox.setAlignment(Pos.CENTER);
+        profileBox.setStyle("-fx-cursor: hand;");
+        profileBox.setOnMouseClicked(e -> LandingPage.showUserProfilePage());
 
         HBox topBar = new HBox(20, searchContainer, new Region(), profileBox);
         HBox.setHgrow(topBar.getChildren().get(1), Priority.ALWAYS);

@@ -70,17 +70,14 @@ public class UserCalendar {
     private Button yearBtn;
 
     public Scene getCalendarPageScene() {
-         String activeUserName = "User";
+        String activeUserName = "User";
         String initials = "U";
 
         if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
                 String fullName = UserSession.getInstance().getDisplayName().trim();
                 if (!fullName.isEmpty()) {
-                // Extract only the first name (everything before the first space)
                         String[] parts = fullName.split("\\s+");
                         activeUserName = parts[0];
-        
-                        // Grab the initial from the first name
                         initials = activeUserName.substring(0, 1).toUpperCase();
                 }
         }
@@ -112,7 +109,6 @@ public class UserCalendar {
         Button settingsBtn = createSidebarButton("⚙", "Settings", false);
         Button logoutBtn = createSidebarButton("🚪", "Logout", false);
 
-
         dashboardBtn.setOnAction(e -> { LandingPage.showUserDashboard(); });
         spacesBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
         searchBtn.setOnAction(e -> { LandingPage.showUserSearch(); });
@@ -123,7 +119,6 @@ public class UserCalendar {
         trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
         settingsBtn.setOnAction(e -> { LandingPage.showSettingPage(); });
         logoutBtn.setOnAction(e -> { LandingPage.showUserLoginPage(); });
-
 
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn, settingsBtn, logoutBtn);
 
@@ -152,7 +147,7 @@ public class UserCalendar {
         Button manageStorageBtn = new Button("Manage Storage ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
-        manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
+        manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexedPage());
 
         VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
@@ -195,141 +190,53 @@ public class UserCalendar {
         bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
         bellBtn.setOnAction(e -> LandingPage.showNotificationPage());
 
-
         Label avatar = new Label(initials);
-avatar.setPrefSize(34, 34);
-avatar.setAlignment(Pos.CENTER);
-avatar.setStyle(
-        "-fx-background-color: " + PRIMARY_BLUE + ";" +
-        "-fx-background-radius: 50%;" +
-        "-fx-text-fill: " + TEXT_LIGHT + ";" +
-        "-fx-font-weight: bold;" +
-        "-fx-font-size: 12px;"
-);
-
-Label userName = new Label(activeUserName);
-userName.setFont(
-        Font.font(FONT, FontWeight.SEMI_BOLD, 13)
-);
-userName.setStyle(
-        "-fx-text-fill: " + TEXT_LIGHT + ";"
-);
-
-Label dropDown = new Label("⌄");
-dropDown.setStyle(
-        "-fx-text-fill: " + TEXT_MUTED_LIGHT + ";"
-);
-
-
-// =========================================================
-// CLICKABLE PROFILE OPTION
-// =========================================================
-
-HBox profileOption =
-        new HBox(
-                8,
-                avatar,
-                userName,
-                dropDown
+        avatar.setPrefSize(34, 34);
+        avatar.setAlignment(Pos.CENTER);
+        avatar.setStyle(
+                "-fx-background-color: " + PRIMARY_BLUE + ";" +
+                "-fx-background-radius: 50%;" +
+                "-fx-text-fill: " + TEXT_LIGHT + ";" +
+                "-fx-font-weight: bold;" +
+                "-fx-font-size: 12px;"
         );
 
-profileOption.setAlignment(
-        Pos.CENTER
-);
+        Label userName = new Label(activeUserName);
+        userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
+        userName.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
 
-profileOption.setPadding(
-        new Insets(5, 8, 5, 8)
-);
+        Label dropDown = new Label("⌄");
+        dropDown.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
 
-profileOption.setStyle(
-        "-fx-background-color: transparent;" +
-        "-fx-background-radius: 8;" +
-        "-fx-cursor: hand;"
-);
-
-
-// =========================================================
-// OPEN PROFILE PAGE WHEN CLICKED
-// =========================================================
-
-profileOption.setOnMouseClicked(e -> {
-    LandingPage.showUserProfilePage();
-});
-
-
-// =========================================================
-// HOVER EFFECT
-// =========================================================
-
-profileOption.setOnMouseEntered(e -> {
-    profileOption.setStyle(
-            "-fx-background-color: #26354A;" +
-            "-fx-background-radius: 8;" +
-            "-fx-cursor: hand;"
-    );
-});
-
-profileOption.setOnMouseExited(e -> {
-    profileOption.setStyle(
-            "-fx-background-color: transparent;" +
-            "-fx-background-radius: 8;" +
-            "-fx-cursor: hand;"
-    );
-});
-
-
-// =========================================================
-// TOP RIGHT
-// =========================================================
-
-HBox profileBox =
-        new HBox(
-                10,
-                bellBtn,
-                profileOption
+        HBox profileOption = new HBox(8, avatar, userName, dropDown);
+        profileOption.setAlignment(Pos.CENTER);
+        profileOption.setPadding(new Insets(5, 8, 5, 8));
+        profileOption.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-background-radius: 8;" +
+                "-fx-cursor: hand;"
         );
 
-profileBox.setAlignment(
-        Pos.CENTER
-);
+        profileOption.setOnMouseClicked(e -> LandingPage.showUserProfilePage());
+        profileOption.setOnMouseEntered(e -> profileOption.setStyle(
+                "-fx-background-color: #26354A; -fx-background-radius: 8; -fx-cursor: hand;"
+        ));
+        profileOption.setOnMouseExited(e -> profileOption.setStyle(
+                "-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;"
+        ));
 
+        HBox profileBox = new HBox(10, bellBtn, profileOption);
+        profileBox.setAlignment(Pos.CENTER);
 
-// =========================================================
-// TOP BAR
-// =========================================================
-
-HBox topBar =
-        new HBox(
-                20,
-                searchContainer,
-                new Region(),
-                profileBox
+        HBox topBar = new HBox(20, searchContainer, new Region(), profileBox);
+        HBox.setHgrow(topBar.getChildren().get(1), Priority.ALWAYS);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setPadding(new Insets(16, 28, 14, 28));
+        topBar.setStyle(
+                "-fx-background-color: " + BG_SIDEBAR + ";" +
+                "-fx-border-color: " + SIDEBAR_BORDER + ";" +
+                "-fx-border-width: 0 0 1 0;"
         );
-
-HBox.setHgrow(
-        topBar.getChildren().get(1),
-        Priority.ALWAYS
-);
-
-topBar.setAlignment(
-        Pos.CENTER_LEFT
-);
-
-topBar.setPadding(
-        new Insets(
-                16,
-                28,
-                14,
-                28
-        )
-);
-
-topBar.setStyle(
-        "-fx-background-color: " + BG_SIDEBAR + ";" +
-        "-fx-border-color: " + SIDEBAR_BORDER + ";" +
-        "-fx-border-width: 0 0 1 0;"
-);
-
 
         // =========================================================
         // CALENDAR PAGE HEADER & ACTION BUTTON
@@ -412,14 +319,13 @@ topBar.setStyle(
         HBox.setHgrow(calendarSection, Priority.ALWAYS);
 
         // =========================================================
-        // UPCOMING REMINDERS SIDE PANEL (DISPLAYING DUMMY DATA)
+        // UPCOMING REMINDERS SIDE PANEL
         // =========================================================
 
         Label reminderTitle = new Label("Upcoming Reminders");
         reminderTitle.setFont(Font.font(FONT, FontWeight.BOLD, 17));
         reminderTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
 
-        // Populating dummy items matching the grid dates
         VBox reminderItem1 = createReminderCard("Aug 12, 2026", "📄 JavaFX Submission", "11:59 PM • Project Portal", DANGER_RED, "#FEE2E2");
         VBox reminderItem2 = createReminderCard("Aug 16, 2026", "👥 Team Sync 4PM", "04:00 PM • Google Meet", PRIMARY_BLUE, "#CADDF2");
         VBox reminderItem3 = createReminderCard("Aug 20, 2026", "📝 DBMS Mock Exam", "10:00 AM • Exam Hall B", "#D97706", "#FDE68A");
@@ -490,7 +396,6 @@ topBar.setStyle(
         card.setPadding(new Insets(10, 12, 10, 12));
         card.setStyle(
                 "-fx-background-color: " + BG_CARD_INNER + ";" +
-                "-fx-border-color: " + BORDER_CARD + ";" +
                 "-fx-border-radius: 10;" +
                 "-fx-background-radius: 10;" +
                 "-fx-border-width: 1 1 1 4;" +
@@ -572,7 +477,6 @@ topBar.setStyle(
         for (int day = 1; day <= daysInMonth; day++) {
             VBox cell = createDateCell(day, today);
 
-            // Add dummy events into specific date boxes
             if (day == 12) {
                 addEventBadge(cell, "📄 JavaFX Submission", DANGER_RED, "#FEE2E2");
             } else if (day == 16) {
@@ -617,7 +521,6 @@ topBar.setStyle(
         cell.setOnMouseEntered(e -> cell.setStyle(hoverStyle));
         cell.setOnMouseExited(e -> cell.setStyle(normalStyle));
 
-        // --- UPDATED: Open a large centered modal window on click ---
         LocalDate cellDate = LocalDate.of(year, month, day);
         cell.setOnMouseClicked(e -> showDayEventsWindow(cellDate));
 
@@ -629,7 +532,6 @@ topBar.setStyle(
         eventStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
         eventStage.setTitle("Scheduled Events");
 
-        // Header Title
         String formattedDate = date.format(java.time.format.DateTimeFormatter.ofPattern("MMMM d, yyyy"));
         Label headerTitle = new Label("Events for " + formattedDate);
         headerTitle.setFont(Font.font(FONT, FontWeight.BOLD, 18));
@@ -641,11 +543,9 @@ topBar.setStyle(
 
         VBox headerBox = new VBox(4, headerTitle, headerSubtitle);
 
-        // Events Container
         VBox eventsList = new VBox(12);
         eventsList.setPadding(new Insets(4));
 
-        // Match dummy data with clicked date
         if (date.getDayOfMonth() == 12 && date.getMonthValue() == 8 && date.getYear() == 2026) {
             eventsList.getChildren().add(createModalEventCard("📄 JavaFX Submission", "11:59 PM • Project Portal", "Ensure all controller logic and FXML files are properly linked and tested before submission.", DANGER_RED));
         } else if (date.getDayOfMonth() == 16 && date.getMonthValue() == 8 && date.getYear() == 2026) {
@@ -670,7 +570,6 @@ topBar.setStyle(
         scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
-        // Cancel / Close Button
         Button cancelBtn = new Button("Cancel");
         cancelBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
         cancelBtn.setPrefWidth(100);
@@ -688,7 +587,6 @@ topBar.setStyle(
         HBox footerBox = new HBox(cancelBtn);
         footerBox.setAlignment(Pos.CENTER_RIGHT);
 
-        // Main Layout Container
         VBox rootLayout = new VBox(16, headerBox, scrollPane, footerBox);
         rootLayout.setPadding(new Insets(24));
         rootLayout.setStyle("-fx-background-color: " + BG_CARD + ";");
@@ -715,10 +613,8 @@ topBar.setStyle(
         descLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
         VBox card = new VBox(6, titleLbl, metaLbl, descLbl);
-        //card.setPadding(14);
         card.setStyle(
                 "-fx-background-color: " + BG_CARD_INNER + ";" +
-                "-fx-border-color: " + BORDER_CARD + ";" +
                 "-fx-border-radius: 10;" +
                 "-fx-background-radius: 10;" +
                 "-fx-border-width: 1 1 1 4;" +
@@ -760,6 +656,59 @@ topBar.setStyle(
         yearBtn.setText(String.valueOf(year));
     }
 
+    // --- POPUP BUILDERS & STYLING (FIXED FONT SHIFT BUG) ---
+
+    private VBox createPickerPopupBox() {
+        VBox box = new VBox(4);
+        box.setPadding(new Insets(10));
+        box.setStyle(
+                "-fx-background-color: " + BG_CARD + ";" +
+                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 4);"
+        );
+        return box;
+    }
+
+    private void applyPickerButtonStyle(Button b, boolean isSelected) {
+        b.setMaxWidth(Double.MAX_VALUE);
+        b.setAlignment(Pos.CENTER_LEFT);
+        b.setPadding(new Insets(7, 12, 7, 12));
+        
+        // Locked Font Instance prevents layout clipping/jumping on state transitions
+        Font buttonFont = Font.font(FONT, isSelected ? FontWeight.BOLD : FontWeight.MEDIUM, 12);
+        b.setFont(buttonFont);
+
+        String normalStyle = "-fx-background-color: transparent; -fx-text-fill: " + TEXT_DARK + "; -fx-background-radius: 6; -fx-cursor: hand;";
+        String hoverStyle = "-fx-background-color: " + BG_CARD_INNER + "; -fx-text-fill: " + TEXT_DARK + "; -fx-background-radius: 6; -fx-cursor: hand;";
+        String selectedStyle = "-fx-background-color: " + ACCENT_LIGHT_BLUE + "; -fx-text-fill: " + PRIMARY_BLUE + "; -fx-background-radius: 6; -fx-cursor: hand;";
+
+        if (isSelected) {
+            b.setStyle(selectedStyle);
+        } else {
+            b.setStyle(normalStyle);
+            b.setOnMouseEntered(e -> {
+                b.setStyle(hoverStyle);
+                b.setFont(buttonFont);
+            });
+            b.setOnMouseExited(e -> {
+                b.setStyle(normalStyle);
+                b.setFont(buttonFont);
+            });
+        }
+    }
+
+    private void showPopupRelativeToControl(Popup popup, Control control) {
+        Point2D screenPos = control.localToScreen(0, control.getHeight());
+        popup.setAutoHide(true);
+        if (screenPos != null) {
+            popup.show(control, screenPos.getX(), screenPos.getY());
+        } else {
+            //popup.show(control);
+        }
+    }
+
     private void showMonthPicker() {
         Popup popup = new Popup();
         VBox box = createPickerPopupBox();
@@ -796,7 +745,6 @@ topBar.setStyle(
                 year = selectedYear;
                 popup.hide();
                 updateCalendarHeader();
-                createCalendarGrid();
             });
 
             box.getChildren().add(b);
@@ -806,49 +754,15 @@ topBar.setStyle(
         showPopupRelativeToControl(popup, yearBtn);
     }
 
-    private VBox createPickerPopupBox() {
-        VBox box = new VBox(4);
-        box.setPadding(new Insets(10));
-        box.setStyle(
-                "-fx-background-color: " + BG_CARD + ";" +
-                "-fx-border-color: " + BORDER_CARD + ";" +
-                "-fx-border-radius: 10;" +
-                "-fx-background-radius: 10;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 4);"
-        );
-        return box;
-    }
-
-    private void applyPickerButtonStyle(Button b, boolean isSelected) {
-        b.setMaxWidth(Double.MAX_VALUE);
-        b.setAlignment(Pos.CENTER_LEFT);
-        b.setPadding(new Insets(7, 12, 7, 12));
-        b.setFont(Font.font(FONT, isSelected ? FontWeight.BOLD : FontWeight.MEDIUM, 12));
-
-        if (isSelected) {
-            b.setStyle("-fx-background-color: " + ACCENT_LIGHT_BLUE + "; -fx-text-fill: " + PRIMARY_BLUE + "; -fx-background-radius: 6; -fx-cursor: hand;");
-        } else {
-            b.setStyle("-fx-background-color: transparent; -fx-text-fill: " + TEXT_DARK + "; -fx-background-radius: 6; -fx-cursor: hand;");
-            b.setOnMouseEntered(e -> b.setStyle("-fx-background-color: " + BG_CARD_INNER + "; -fx-text-fill: " + TEXT_DARK + "; -fx-background-radius: 6; -fx-cursor: hand;"));
-            b.setOnMouseExited(e -> b.setStyle("-fx-background-color: transparent; -fx-text-fill: " + TEXT_DARK + "; -fx-background-radius: 6; -fx-cursor: hand;"));
-        }
-    }
-
-    private void showPopupRelativeToControl(Popup popup, Control control) {
-        Point2D screenPos = control.localToScreen(0, control.getHeight());
-        popup.setAutoHide(true);
-        popup.show(control, screenPos.getX(), screenPos.getY());
-    }
-
     private void styleCalendarHeaderPickerBtn(Button b) {
-        b.setFont(Font.font(FONT, FontWeight.BOLD, 18));
+        b.setFont(Font.font(FONT, FontWeight.BOLD, 16));
         b.setStyle("-fx-background-color: transparent; -fx-text-fill: " + TEXT_DARK + "; -fx-cursor: hand; -fx-padding: 4 6;");
     }
 
     private Button createNavButton(String text) {
         Button b = new Button(text);
         b.setPrefSize(34, 34);
-        b.setFont(Font.font(FONT, FontWeight.BOLD, 16));
+        b.setFont(Font.font(FONT, FontWeight.BOLD, 14));
         b.setStyle(
                 "-fx-background-color: " + BG_INPUT + ";" +
                 "-fx-text-fill: " + TEXT_DARK + ";" +

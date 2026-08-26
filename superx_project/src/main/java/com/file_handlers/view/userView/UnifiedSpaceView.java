@@ -143,7 +143,7 @@ public class UnifiedSpaceView {
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color:transparent;-fx-text-fill:#60A5FA;" +
                 "-fx-padding:2 0 0 0;-fx-cursor:hand;");
-        manageStorageBtn.setOnAction(e -> LandingPage.showSettingPage());
+        manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexedPage());
 
         VBox storageCard = new VBox(8, storageTitle, storageTopRow, sidebarProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
