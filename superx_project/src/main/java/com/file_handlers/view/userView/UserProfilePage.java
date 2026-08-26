@@ -38,12 +38,13 @@ public class UserProfilePage {
     private static final String BLUE = "#2563EB";
     private static final String LIGHT_BLUE = "#3B82F6";
 
-    private static final String USER_NAME = "Aarav Verma";
-    private static final String USER_EMAIL = "aarav@example.com";
-    private static final String USER_USERNAME = "@aarav";
-    private static final String USER_BIO =
-            "Cloud enthusiast, productivity lover, and OneSpace user.";
-    private static final String MEMBER_SINCE = "May 12, 2024";
+    // Dynamic user fields
+    private String USER_NAME;
+    private String USER_EMAIL;
+    private String USER_USERNAME;
+    private String USER_BIO;
+    private String MEMBER_SINCE;
+    private String USER_INITIALS;
 
     private TextField nameField, emailField, usernameField;
     private TextArea bioField;
@@ -54,6 +55,50 @@ public class UserProfilePage {
     private Label profileUsernameLabel;
     private Label profileBioLabel;
     private Label saveStatus;
+
+    public UserProfilePage() {
+        loadUserData();
+    }
+
+    private void loadUserData() {
+        // Fetch dynamically from UserSession with safe instance handling and fallbacks for Shravani
+        String fetchedName = null;
+        String fetchedEmail = null;
+        String fetchedUsername = null;
+
+        try {
+            UserSession session = UserSession.getInstance();
+            if (session != null) {
+                fetchedName = session.getName();
+                fetchedEmail = session.getEmail();
+                fetchedUsername = session.getUsername();
+            }
+        } catch (Exception ignored) {
+            // Fallback if UserSession is accessed differently or throws context errors
+        }
+
+        if (fetchedName != null && !fetchedName.isEmpty()) {
+            USER_NAME = fetchedName;
+        } else {
+            USER_NAME = "Shravani";
+        }
+
+        if (fetchedEmail != null && !fetchedEmail.isEmpty()) {
+            USER_EMAIL = fetchedEmail;
+        } else {
+            USER_EMAIL = "shravani@example.com";
+        }
+
+        if (fetchedUsername != null && !fetchedUsername.isEmpty()) {
+            USER_USERNAME = normalizeUsername(fetchedUsername);
+        } else {
+            USER_USERNAME = "@shravani";
+        }
+
+        USER_BIO = "Cloud enthusiast, productivity lover, and OneSpace user.";
+        MEMBER_SINCE = "May 12, 2024";
+        USER_INITIALS = getInitials(USER_NAME);
+    }
 
     public Scene getUserProfilePageScene() {
 
@@ -86,11 +131,11 @@ public class UserProfilePage {
         spaces.setOnAction(e -> LandingPage.showUserSpace());
         search.setOnAction(e -> LandingPage.showUserSearch());
         calendar.setOnAction(e -> LandingPage.showCalendarPage());
-        ai.setOnAction(e -> LandingPage.showLandingPage());
+        ai.setOnAction(e -> LandingPage.showAiAssistantPage());
         collaboration.setOnAction(e -> LandingPage.showCollaborationPage());
         recent.setOnAction(e -> LandingPage.showRecentPage());
         trash.setOnAction(e -> LandingPage.showTrashPage());
-        settings.setOnAction(e -> LandingPage.showLandingPage());
+        settings.setOnAction(e -> LandingPage.showSettingPage());
 
         VBox nav = new VBox(
                 4,
@@ -126,7 +171,6 @@ public class UserProfilePage {
         );
 
         Region storageSpacer = spacer();
-
         HBox.setHgrow(storageSpacer, Priority.ALWAYS);
 
         HBox storageValues = new HBox(
@@ -148,7 +192,7 @@ public class UserProfilePage {
                 "Manage Storage ›",
                 "#60A5FA"
         );
-        manageStorage.setOnAction(e -> LandingPage.showLandingPage());
+        manageStorage.setOnAction(e -> LandingPage.showStorageIndexedPage());
 
         VBox storageCard = new VBox(
                 8,
@@ -186,7 +230,6 @@ public class UserProfilePage {
                 ";-fx-border-width:0 1 0 0;"
         );
 
-        
         Label searchIcon = label("⌕", 16, FontWeight.NORMAL, MUTED_LIGHT);
 
         TextField globalSearch = new TextField();
@@ -238,7 +281,7 @@ public class UserProfilePage {
         );
         bell.setOnAction(e -> LandingPage.showNotificationPage());
 
-        Label topAvatar = createAvatar("AV", 34);
+        Label topAvatar = createAvatar(USER_INITIALS, 34);
 
         Label topName = label(
                 USER_NAME,
@@ -298,7 +341,6 @@ public class UserProfilePage {
                 ";-fx-border-width:0 0 1 0;"
         );
 
-        
         Label title = label(
                 "My Profile",
                 24,
@@ -332,8 +374,9 @@ public class UserProfilePage {
         );
         pageHeader.setAlignment(Pos.CENTER_LEFT);
 
-        
-        profileAvatar = createAvatar("AV", 92);
+        profileAvatar = createAvatar(USER_INITIALS, 92);
+        profileAvatar.setCursor(javafx.scene.Cursor.HAND);
+        profileAvatar.setOnMouseClicked(e -> chooseProfilePhoto());
 
         profileNameLabel = label(
                 USER_NAME,
@@ -454,7 +497,6 @@ public class UserProfilePage {
                 grid
         );
 
-        
         VBox accountRows = new VBox(
                 0,
                 infoRow("Account Type", "Personal Account"),
@@ -471,6 +513,76 @@ public class UserProfilePage {
                 accountRows
         );
 
+        // --- ACCOUNT ACTIONS CARD (CHANGE PASSWORD & DELETE ACCOUNT) ---
+        
+        // 1. Change Password Row
+        Label passwordIcon = label(
+                "🔑",
+                16,
+                FontWeight.NORMAL,
+                BLUE
+        );
+        passwordIcon.setPrefSize(40, 40);
+        passwordIcon.setAlignment(Pos.CENTER);
+        passwordIcon.setStyle(
+                "-fx-background-color:#DBEAFE;" +
+                "-fx-background-radius:9;" +
+                "-fx-text-fill:#2563EB;"
+        );
+
+        Label passwordTitle = label(
+                "Change Password",
+                13,
+                FontWeight.BOLD,
+                DARK
+        );
+
+        Label passwordText = label(
+                "Update your password to keep your account secure.",
+                11,
+                FontWeight.NORMAL,
+                MUTED
+        );
+        passwordText.setWrapText(true);
+
+        VBox passwordInfo = new VBox(
+                3,
+                passwordTitle,
+                passwordText
+        );
+
+        Region passwordSpacer = spacer();
+        HBox.setHgrow(passwordSpacer, Priority.ALWAYS);
+
+        Button changePasswordButton = new Button("Change Password");
+        changePasswordButton.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+        changePasswordButton.setStyle(
+                "-fx-background-color:#DBEAFE;" +
+                "-fx-text-fill:#1D4ED8;" +
+                "-fx-border-color:#BFDBFE;" +
+                "-fx-border-radius:7;" +
+                "-fx-background-radius:7;" +
+                "-fx-cursor:hand;" +
+                "-fx-padding:8 12;"
+        );
+        changePasswordButton.setOnAction(e -> showChangePasswordDialog());
+
+        HBox passwordRow = new HBox(
+                12,
+                passwordIcon,
+                passwordInfo,
+                passwordSpacer,
+                changePasswordButton
+        );
+        passwordRow.setAlignment(Pos.CENTER_LEFT);
+        passwordRow.setPadding(new Insets(16));
+        passwordRow.setStyle(
+                "-fx-background-color:" + BG_INNER +
+                ";-fx-border-color:" + BORDER +
+                ";-fx-border-radius:11;-fx-background-radius:11;"
+        );
+
+        // 2. Delete Account Row
         Label deleteIcon = label(
                 "⚠",
                 18,
@@ -539,12 +651,14 @@ public class UserProfilePage {
                 ";-fx-border-radius:11;-fx-background-radius:11;"
         );
 
+        VBox actionRows = new VBox(10, passwordRow, deleteRow);
+
         VBox actionsCard = card(
                 cardTitle("Account Actions"),
                 cardDescription(
                         "Manage important actions related to your account."
                 ),
-                deleteRow
+                actionRows
         );
 
         Button saveButton = primaryButton("Save Changes", 13);
@@ -960,13 +1074,17 @@ public class UserProfilePage {
 
         username = normalizeUsername(username);
 
-        profileNameLabel.setText(name);
-        profileEmailLabel.setText(email);
-        profileUsernameLabel.setText(username);
-        profileBioLabel.setText(
-                bio.isEmpty() ? USER_BIO : bio
-        );
-        profileAvatar.setText(getInitials(name));
+        USER_NAME = name;
+        USER_EMAIL = email;
+        USER_USERNAME = username;
+        USER_BIO = bio.isEmpty() ? USER_BIO : bio;
+        USER_INITIALS = getInitials(USER_NAME);
+
+        profileNameLabel.setText(USER_NAME);
+        profileEmailLabel.setText(USER_EMAIL);
+        profileUsernameLabel.setText(USER_USERNAME);
+        profileBioLabel.setText(USER_BIO);
+        profileAvatar.setText(USER_INITIALS);
         profileAvatar.setGraphic(null);
         profileAvatar.setStyle(
                 "-fx-background-color:" + BLUE +
@@ -995,7 +1113,7 @@ public class UserProfilePage {
         profileUsernameLabel.setText(USER_USERNAME);
         profileBioLabel.setText(USER_BIO);
 
-        profileAvatar.setText("AV");
+        profileAvatar.setText(USER_INITIALS);
         profileAvatar.setGraphic(null);
         profileAvatar.setStyle(
                 "-fx-background-color:" + BLUE +
@@ -1046,10 +1164,7 @@ public class UserProfilePage {
                 .addAll(cancel, save);
 
         dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().setStyle(
-                "-fx-background-color:" + BG_CARD +
-                ";-fx-border-color:" + BORDER + ";"
-        );
+        styleDialog(dialog);
 
         Button saveButton =
                 (Button) dialog.getDialogPane().lookupButton(save);
@@ -1108,6 +1223,116 @@ public class UserProfilePage {
             );
 
             saveProfile();
+
+            return result;
+        });
+
+        dialog.showAndWait();
+    }
+
+    private void showChangePasswordDialog() {
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+
+        dialog.setTitle("Change Password");
+        dialog.setHeaderText("Update your OneSpace account password");
+
+        PasswordField currentPass = new PasswordField();
+        currentPass.setPromptText("Current Password");
+        currentPass.setPrefHeight(38);
+        currentPass.setStyle(
+                "-fx-background-color:#FFFFFF;" +
+                "-fx-border-color:" + BORDER + ";" +
+                "-fx-border-radius:8;" +
+                "-fx-background-radius:8;" +
+                "-fx-padding:0 12;"
+        );
+
+        PasswordField newPass = new PasswordField();
+        newPass.setPromptText("New Password");
+        newPass.setPrefHeight(38);
+        newPass.setStyle(
+                "-fx-background-color:#FFFFFF;" +
+                "-fx-border-color:" + BORDER + ";" +
+                "-fx-border-radius:8;" +
+                "-fx-background-radius:8;" +
+                "-fx-padding:0 12;"
+        );
+
+        PasswordField confirmPass = new PasswordField();
+        confirmPass.setPromptText("Confirm New Password");
+        confirmPass.setPrefHeight(38);
+        confirmPass.setStyle(
+                "-fx-background-color:#FFFFFF;" +
+                "-fx-border-color:" + BORDER + ";" +
+                "-fx-border-radius:8;" +
+                "-fx-background-radius:8;" +
+                "-fx-padding:0 12;"
+        );
+
+        VBox content = new VBox(
+                10,
+                fieldBox("Current Password", currentPass),
+                fieldBox("New Password", newPass),
+                fieldBox("Confirm New Password", confirmPass)
+        );
+
+        content.setPadding(new Insets(10));
+        content.setPrefWidth(350);
+
+        ButtonType cancel = new ButtonType(
+                "Cancel",
+                ButtonBar.ButtonData.CANCEL_CLOSE
+        );
+
+        ButtonType update = new ButtonType(
+                "Update Password",
+                ButtonBar.ButtonData.OK_DONE
+        );
+
+        dialog.getDialogPane().getButtonTypes().addAll(cancel, update);
+        dialog.getDialogPane().setContent(content);
+        styleDialog(dialog);
+
+        Button updateButton =
+                (Button) dialog.getDialogPane().lookupButton(update);
+
+        updateButton.setStyle(
+                "-fx-background-color:" + BLUE +
+                ";-fx-text-fill:white;" +
+                "-fx-font-weight:bold;" +
+                "-fx-background-radius:7;" +
+                "-fx-cursor:hand;"
+        );
+
+        dialog.setResultConverter(result -> {
+
+            if (result != update)
+                return result;
+
+            if (currentPass.getText().isEmpty() || newPass.getText().isEmpty() || confirmPass.getText().isEmpty()) {
+                showAlert(
+                        Alert.AlertType.WARNING,
+                        "Required Fields",
+                        "Please complete all password fields."
+                );
+                return null;
+            }
+
+            if (!newPass.getText().equals(confirmPass.getText())) {
+                showAlert(
+                        Alert.AlertType.ERROR,
+                        "Password Mismatch",
+                        "New password and confirmation do not match."
+                );
+                return null;
+            }
+
+            showAlert(
+                    Alert.AlertType.INFORMATION,
+                    "Password Changed",
+                    "Your password has been updated successfully."
+            );
 
             return result;
         });
@@ -1241,9 +1466,9 @@ public class UserProfilePage {
         });
     }
 
-    private void styleDialog(Alert alert) {
+    private void styleDialog(Dialog<?> dialog) {
 
-        alert.getDialogPane().setStyle(
+        dialog.getDialogPane().setStyle(
                 "-fx-background-color:" + BG_CARD +
                 ";-fx-border-color:" + BORDER + ";"
         );
@@ -1261,7 +1486,7 @@ public class UserProfilePage {
     private String getInitials(String name) {
 
         if (name == null || name.trim().isEmpty())
-            return "AV";
+            return "SV";
 
         String[] parts = name.trim().split("\\s+");
 

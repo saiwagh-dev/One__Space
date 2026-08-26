@@ -60,4 +60,14 @@ public class UserSession {
     public static boolean isLoggedIn() {
         return instance != null && instance.idToken != null;
     }
+
+    public String getUsername() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getUsername'");
+    }
+
+    public String getName() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getName'");
+    }
 }

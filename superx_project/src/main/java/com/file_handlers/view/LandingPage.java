@@ -6,6 +6,7 @@ import com.file_handlers.view.userView.AiAssistantPage;
 import com.file_handlers.view.userView.CollaborationPage;
 import com.file_handlers.view.userView.NotificationPage;
 import com.file_handlers.view.userView.RecentPage;
+import com.file_handlers.view.userView.StorageIndexed;
 import com.file_handlers.view.userView.UnifiedSpaceView;
 import com.file_handlers.view.userView.UserCalendar;
 import com.file_handlers.view.userView.UserDashboard;
@@ -93,7 +94,8 @@ public class LandingPage extends Application {
     public static void showAiAssistantPage() { setScene(new AiAssistantPage().getAiAssistantPageScene()); }
     public static void showUserProfilePage() {setScene(new UserProfilePage().getUserProfilePageScene());}
 
-      
+    public static void showStorageIndexedPage() {setScene(new StorageIndexed().getStorageIndexedScene());}
+
     public static void showUnifiedSpaceView() {
         try {
             UnifiedSpaceView unifiedSpaceView = new UnifiedSpaceView();
@@ -311,5 +313,10 @@ public class LandingPage extends Application {
         l.setFont(Font.font(FONT, weight, size));
         l.setTextFill(Color.web(color));
         return l;
+    }
+
+    public static Object showFolderSelection() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'showFolderSelection'");
     }
 }
