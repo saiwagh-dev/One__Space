@@ -2,8 +2,6 @@ package com.file_handlers.view.userView;
 
 import com.file_handlers.view.LandingPage;
 
-//import javafx.collections.FXCollections;
-//import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -26,7 +24,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
-//import javafx.stage.Stage;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,30 +31,22 @@ import java.util.List;
 
 public class AiAssistantPage {
 
-    // Style Constants - Exact Color Hierarchy from UserDashboard
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-    // 1. Sidebar & Top Bar: Deep Dark Slate
-    private static final String BG_SIDEBAR = "#1E2A3A";
-    private static final String BG_SIDEBAR_CARD = "#141D29";
-    private static final String SIDEBAR_BORDER = "#2D3D52";
+    // Palette & Glass Styling matching Reference UI
+    private static final String BG_ROOT = "radial-gradient(center 70% 20%, radius 80%, #0d1f3d 0%, #060b14 60%, #03060a 100%)";
+    private static final String BG_SIDEBAR = "#070c16";
+    private static final String SIDEBAR_BORDER = "rgba(255, 255, 255, 0.07)";
 
-    // 2. Center Workspace Canvas: Medium Slate Blue
-    private static final String BG_CENTER_CANVAS = "#31435B";
+    private static final String CARD_GLASS_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
+    private static final String CARD_BORDER = "linear-gradient(to bottom right, rgba(56, 189, 248, 0.35), rgba(37, 99, 235, 0.15))";
 
-    // 3. Main Cards: Soft Light Blue
-    private static final String BG_CARD = "#DDE8F8";
-    private static final String BG_CARD_INNER = "#CADDF2";
-    private static final String BORDER_CARD = "#C3D6EC";
+    private static final String INNER_CONTAINER_BG = "rgba(10, 18, 33, 0.8)";
+    private static final String INNER_BORDER = "rgba(56, 189, 248, 0.2)";
 
-    // 4. Contrast Typography
-    private static final String TEXT_DARK = "#0F172A";        
-    private static final String TEXT_MUTED_DARK = "#334155";  
-    private static final String TEXT_LIGHT = "#FFFFFF";       
-    private static final String TEXT_MUTED_LIGHT = "#94A3B8"; 
-
-    // Accent Colors
-    private static final String PRIMARY_BLUE = "#2563EB";
+    private static final String TEXT_LIGHT = "#FFFFFF";
+    private static final String TEXT_MUTED_LIGHT = "#94A3B8";
+    private static final String TEXT_SECONDARY = "#64748B";
 
     private final List<String> chatHistory = new ArrayList<>();
 
@@ -73,11 +62,17 @@ public class AiAssistantPage {
         logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
         logoText.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
 
-        HBox logoHeader = new HBox(10, logoIcon, logoText);
+        Label logoSub = new Label("Local • AI indexed");
+        logoSub.setFont(Font.font(FONT, FontWeight.MEDIUM, 10));
+        logoSub.setStyle("-fx-text-fill: " + TEXT_SECONDARY + ";");
+
+        VBox logoTextBox = new VBox(1, logoText, logoSub);
+
+        HBox logoHeader = new HBox(12, logoIcon, logoTextBox);
         logoHeader.setAlignment(Pos.CENTER_LEFT);
 
         VBox logoBox = new VBox(4, logoHeader);
-        logoBox.setPadding(new Insets(0, 0, 18, 6));
+        logoBox.setPadding(new Insets(6, 0, 18, 6));
 
         Button dashboardBtn = createSidebarButton("⌂", "Dashboard", false);
         Button spacesBtn = createSidebarButton("📁", "Spaces", false);
@@ -101,7 +96,7 @@ public class AiAssistantPage {
         settingsBtn.setOnAction(e -> LandingPage.showSettingPage());
         logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
 
-        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
+        VBox navList = new VBox(5, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
 
         // Sidebar Storage Card
         Label storageTitle = new Label("Storage Used");
@@ -123,24 +118,35 @@ public class AiAssistantPage {
         ProgressBar sidebarProgress = new ProgressBar(0.64);
         sidebarProgress.setMaxWidth(Double.MAX_VALUE);
         sidebarProgress.setPrefHeight(6);
-        sidebarProgress.setStyle("-fx-accent: " + PRIMARY_BLUE + "; -fx-control-inner-background: #0E1520;");
+        sidebarProgress.setStyle(
+                "-fx-accent: linear-gradient(to right, #0284c7, #38bdf8);" +
+                "-fx-control-inner-background: #0b1526;" +
+                "-fx-background-radius: 6;" +
+                "-fx-padding: 0;"
+        );
 
         Button manageStorageBtn = new Button("Manage Storage ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
-        manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
+        manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #38bdf8; -fx-padding: 3 0 0 0; -fx-cursor: hand;");
+        manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexedPage());
 
-        VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
+        VBox storageCard = new VBox(9, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
-        storageCard.setStyle("-fx-background-color: " + BG_SIDEBAR_CARD + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+        storageCard.setStyle(
+                "-fx-background-color: rgba(14, 24, 43, 0.9);" +
+                "-fx-border-color: rgba(255, 255, 255, 0.08);" +
+                "-fx-border-radius: 14;" +
+                "-fx-background-radius: 14;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 4);"
+        );
 
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
 
-        VBox sidebar = new VBox(12, logoBox, navList, sidebarSpacer, settingsBtn, logoutBtn, storageCard);
+        VBox sidebar = new VBox(10, logoBox, navList, sidebarSpacer, settingsBtn, logoutBtn, storageCard);
         sidebar.setPadding(new Insets(20, 14, 20, 14));
-        sidebar.setPrefWidth(230);
-        sidebar.setMinWidth(230);
+        sidebar.setPrefWidth(235);
+        sidebar.setMinWidth(235);
         sidebar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 1 0 0;");
 
         // =========================================================
@@ -149,32 +155,44 @@ public class AiAssistantPage {
 
         Label searchIcon = new Label("⌕");
         searchIcon.setFont(Font.font(FONT, 16));
-        searchIcon.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        searchIcon.setStyle("-fx-text-fill: " + TEXT_SECONDARY + ";");
 
         TextField searchField = new TextField();
-        searchField.setPromptText("Search in OneSpace...");
+        searchField.setPromptText("Ask OneSpace anything — \"invoices from June\", \"Java notes\"...");
         searchField.setPrefHeight(38);
-        searchField.setStyle("-fx-background-color: transparent; -fx-prompt-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_LIGHT + ";");
+        searchField.setStyle("-fx-background-color: transparent; -fx-prompt-text-fill: " + TEXT_SECONDARY + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label keyShortcut = new Label("⌘ K");
         keyShortcut.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 10));
-        keyShortcut.setStyle("-fx-background-color: #141E2C; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-padding: 3 6; -fx-background-radius: 4;");
+        keyShortcut.setStyle("-fx-background-color: rgba(255, 255, 255, 0.06); -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-padding: 3 7; -fx-background-radius: 5; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 5;");
 
-        HBox searchContainer = new HBox(8, searchIcon, searchField, keyShortcut);
+        HBox searchContainer = new HBox(10, searchIcon, searchField, keyShortcut);
         searchContainer.setAlignment(Pos.CENTER_LEFT);
         searchContainer.setPadding(new Insets(0, 12, 0, 14));
-        searchContainer.setPrefWidth(420);
-        searchContainer.setStyle("-fx-background-color: #141E2C; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
+        searchContainer.setPrefWidth(520);
+        searchContainer.setStyle(
+                "-fx-background-color: rgba(13, 22, 38, 0.85);" +
+                "-fx-border-color: rgba(255, 255, 255, 0.08);" +
+                "-fx-border-radius: 20;" +
+                "-fx-background-radius: 20;"
+        );
         HBox.setHgrow(searchField, Priority.ALWAYS);
 
         Button bellBtn = new Button("🔔");
-        bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
+        bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 15px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
         bellBtn.setOnAction(e -> LandingPage.showNotificationPage());
 
         Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
-        avatar.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 50%; -fx-text-fill: " + TEXT_LIGHT + "; -fx-font-weight: bold; -fx-font-size: 12px;");
+        avatar.setStyle(
+                "-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF);" +
+                "-fx-background-radius: 50%;" +
+                "-fx-text-fill: #FFFFFF;" +
+                "-fx-font-weight: bold;" +
+                "-fx-font-size: 12px;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(37, 99, 235, 0.5), 10, 0, 0, 2);"
+        );
 
         Label userName = new Label("Aarav Verma");
         userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
@@ -190,21 +208,21 @@ public class AiAssistantPage {
         HBox.setHgrow(topBar.getChildren().get(1), Priority.ALWAYS);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPadding(new Insets(16, 28, 14, 28));
-        topBar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
+        topBar.setStyle("-fx-background-color: transparent; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
 
         // =========================================================
         // AI HEADER
         // =========================================================
 
         Label aiTitle = new Label("AI Assistant");
-        aiTitle.setFont(Font.font(FONT, FontWeight.BOLD, 22));
+        aiTitle.setFont(Font.font(FONT, FontWeight.BOLD, 24));
         aiTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label aiSubtitle = new Label("Grounded in your local index — nothing uploaded to cloud");
         aiSubtitle.setFont(Font.font(FONT, 13));
-        aiSubtitle.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-weight: 500;");
+        aiSubtitle.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
 
-        VBox aiHeadingText = new VBox(2, aiTitle, aiSubtitle);
+        VBox aiHeadingText = new VBox(3, aiTitle, aiSubtitle);
         HBox aiHeader = new HBox(14, aiHeadingText);
         aiHeader.setAlignment(Pos.CENTER_LEFT);
 
@@ -213,15 +231,15 @@ public class AiAssistantPage {
         // =========================================================
 
         Button menuButton = new Button("☰  Menu");
-        menuButton.setPrefHeight(38);
+        menuButton.setPrefHeight(36);
         menuButton.setPadding(new Insets(0, 16, 0, 16));
-        menuButton.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
+        menuButton.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         menuButton.setStyle(
-                "-fx-background-color: " + BG_CARD_INNER + ";" +
-                "-fx-border-color: " + BORDER_CARD + ";" +
+                "-fx-background-color: rgba(255, 255, 255, 0.05);" +
+                "-fx-border-color: rgba(255, 255, 255, 0.12);" +
                 "-fx-border-radius: 10;" +
                 "-fx-background-radius: 10;" +
-                "-fx-text-fill: " + PRIMARY_BLUE + ";" +
+                "-fx-text-fill: " + TEXT_LIGHT + ";" +
                 "-fx-cursor: hand;"
         );
 
@@ -231,15 +249,22 @@ public class AiAssistantPage {
         menuPanel.setMinWidth(245);
         menuPanel.setMaxWidth(245);
         menuPanel.setPadding(new Insets(18));
-        menuPanel.setStyle("-fx-background-color: " + BG_CARD + "; -fx-border-color: " + BORDER_CARD + "; -fx-border-width: 0 1 0 0; -fx-background-radius: 16 0 0 16; -fx-border-radius: 16 0 0 16; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.14), 14, 0, 3, 0);");
+        menuPanel.setStyle(
+                "-fx-background-color: #0c1626;" +
+                "-fx-border-color: rgba(56, 189, 248, 0.2);" +
+                "-fx-border-width: 0 1 0 0;" +
+                "-fx-background-radius: 20 0 0 20;" +
+                "-fx-border-radius: 20 0 0 20;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 20, 0, 6, 0);"
+        );
 
         Label menuTitle = new Label("AI Assistant Menu");
         menuTitle.setFont(Font.font(FONT, FontWeight.BOLD, 15));
-        menuTitle.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        menuTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
 
         Label menuSub = new Label("Manage your conversation");
         menuSub.setFont(Font.font(FONT, 11));
-        menuSub.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        menuSub.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
 
         VBox menuTitleBox = new VBox(3, menuTitle, menuSub);
 
@@ -251,13 +276,13 @@ public class AiAssistantPage {
         Button[] aiMenuButtons = {newChatButton, chatHistoryButton, clearHistoryButton, pinChatButton};
         for (Button button : aiMenuButtons) {
             button.setMaxWidth(Double.MAX_VALUE);
-            button.setPrefHeight(40);
+            button.setPrefHeight(38);
             button.setAlignment(Pos.CENTER_LEFT);
             button.setPadding(new Insets(0, 12, 0, 12));
             button.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
-            button.setStyle("-fx-background-color: transparent; -fx-text-fill: " + TEXT_DARK + "; -fx-background-radius: 8; -fx-cursor: hand;");
-            button.setOnMouseEntered(e -> button.setStyle("-fx-background-color: " + BG_CARD_INNER + "; -fx-text-fill: " + TEXT_DARK + "; -fx-background-radius: 8; -fx-cursor: hand;"));
-            button.setOnMouseExited(e -> button.setStyle("-fx-background-color: transparent; -fx-text-fill: " + TEXT_DARK + "; -fx-background-radius: 8; -fx-cursor: hand;"));
+            button.setStyle("-fx-background-color: transparent; -fx-text-fill: " + TEXT_LIGHT + "; -fx-background-radius: 8; -fx-cursor: hand;");
+            button.setOnMouseEntered(e -> button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-text-fill: " + TEXT_LIGHT + "; -fx-background-radius: 8; -fx-cursor: hand;"));
+            button.setOnMouseExited(e -> button.setStyle("-fx-background-color: transparent; -fx-text-fill: " + TEXT_LIGHT + "; -fx-background-radius: 8; -fx-cursor: hand;"));
         }
 
         menuPanel.getChildren().addAll(menuTitleBox, newChatButton, chatHistoryButton, clearHistoryButton, pinChatButton);
@@ -265,16 +290,20 @@ public class AiAssistantPage {
         menuPanel.setManaged(false);
 
         // EMPTY STATE / SUGGESTIONS
-        Label chatIcon = new Label("💬");
-        chatIcon.setFont(Font.font(32));
+        Label chatIcon = new Label("✦");
+        chatIcon.setFont(Font.font(40));
+        chatIcon.setStyle(
+                "-fx-text-fill: #38bdf8;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(56, 189, 248, 0.7), 20, 0, 0, 0);"
+        );
 
         Label conversationTitle = new Label("Start a conversation with OneSpace AI");
-        conversationTitle.setFont(Font.font(FONT, FontWeight.BOLD, 20));
-        conversationTitle.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        conversationTitle.setFont(Font.font(FONT, FontWeight.BOLD, 22));
+        conversationTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + "; -fx-padding: 4 0 0 0;");
 
         Label conversationDescription = new Label("Ask questions about your files, extracted dates, people, or generate insights directly from your indexed storage.");
         conversationDescription.setFont(Font.font(FONT, 13));
-        conversationDescription.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        conversationDescription.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
         conversationDescription.setAlignment(Pos.CENTER);
 
         Button suggestion1 = createSuggestionButton("✧  When does my passport expire?");
@@ -282,23 +311,34 @@ public class AiAssistantPage {
         Button suggestion3 = createSuggestionButton("🎓  Find my internship certificate");
         Button suggestion4 = createSuggestionButton("☑  Generate a checklist from project files");
 
-        HBox suggestionRow1 = new HBox(10, suggestion1, suggestion2, suggestion3);
+        HBox suggestionRow1 = new HBox(12, suggestion1, suggestion2, suggestion3);
         suggestionRow1.setAlignment(Pos.CENTER);
-        HBox suggestionRow2 = new HBox(10, suggestion4);
+        HBox suggestionRow2 = new HBox(12, suggestion4);
         suggestionRow2.setAlignment(Pos.CENTER);
 
-        VBox suggestionsBox = new VBox(10, suggestionRow1, suggestionRow2);
+        VBox suggestionsBox = new VBox(12, suggestionRow1, suggestionRow2);
         suggestionsBox.setAlignment(Pos.CENTER);
+        suggestionsBox.setPadding(new Insets(10, 0, 0, 0));
 
-        VBox aiEmptyState = new VBox(16, chatIcon, conversationTitle, conversationDescription, suggestionsBox);
+        VBox aiEmptyState = new VBox(14, chatIcon, conversationTitle, conversationDescription, suggestionsBox);
         aiEmptyState.setAlignment(Pos.CENTER);
-        aiEmptyState.setPadding(new Insets(30, 10, 30, 10));
+        aiEmptyState.setPadding(new Insets(40, 10, 40, 10));
 
         // CHAT INPUT FIELD
         TextField aiInput = new TextField();
         aiInput.setPromptText("Ask about any file, date, or document...");
-        aiInput.setPrefHeight(48);
-        aiInput.setStyle("-fx-background-color: " + BG_CARD_INNER + "; -fx-border-color: " + BORDER_CARD + "; -fx-border-radius: 24; -fx-background-radius: 24; -fx-padding: 0 55px 0 55px; -fx-font-size: 13px; -fx-text-fill: " + TEXT_DARK + "; -fx-prompt-text-fill: " + TEXT_MUTED_DARK + ";");
+        aiInput.setPrefHeight(52);
+        aiInput.setStyle(
+                "-fx-background-color: " + INNER_CONTAINER_BG + ";" +
+                "-fx-border-color: " + INNER_BORDER + ";" +
+                "-fx-border-radius: 26;" +
+                "-fx-background-radius: 26;" +
+                "-fx-padding: 0 58px 0 58px;" +
+                "-fx-font-size: 13px;" +
+                "-fx-text-fill: " + TEXT_LIGHT + ";" +
+                "-fx-prompt-text-fill: " + TEXT_SECONDARY + ";" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 12, 0, 0, 4);"
+        );
 
         suggestion1.setOnAction(e -> aiInput.setText("When does my passport expire?"));
         suggestion2.setOnAction(e -> aiInput.setText("Summarize recent document"));
@@ -307,13 +347,27 @@ public class AiAssistantPage {
 
         // PLUS BUTTON & UPLOAD MENU
         Button plusButton = new Button("+");
-        plusButton.setPrefSize(34, 34);
+        plusButton.setPrefSize(36, 36);
         plusButton.setFont(Font.font(FONT, FontWeight.NORMAL, 20));
-        plusButton.setStyle("-fx-background-color: " + BG_CARD + "; -fx-background-radius: 50%; -fx-border-color: " + BORDER_CARD + "; -fx-border-radius: 50%; -fx-text-fill: " + TEXT_DARK + "; -fx-cursor: hand; -fx-padding: 0;");
+        plusButton.setStyle(
+                "-fx-background-color: rgba(255, 255, 255, 0.08);" +
+                "-fx-background-radius: 50%;" +
+                "-fx-border-color: rgba(255, 255, 255, 0.12);" +
+                "-fx-border-radius: 50%;" +
+                "-fx-text-fill: " + TEXT_LIGHT + ";" +
+                "-fx-cursor: hand;" +
+                "-fx-padding: 0;"
+        );
 
         MenuItem uploadFileItem = new MenuItem("📎  Upload File");
         ContextMenu uploadMenu = new ContextMenu(uploadFileItem);
-        uploadMenu.setStyle("-fx-background-color: " + BG_CARD + "; -fx-background-radius: 10; -fx-border-color: " + BORDER_CARD + "; -fx-border-radius: 10; -fx-padding: 5;");
+        uploadMenu.setStyle(
+                "-fx-background-color: #0d1a2d;" +
+                "-fx-background-radius: 10;" +
+                "-fx-border-color: rgba(56, 189, 248, 0.2);" +
+                "-fx-border-radius: 10;" +
+                "-fx-padding: 4;"
+        );
 
         uploadFileItem.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
@@ -334,9 +388,15 @@ public class AiAssistantPage {
 
         // SEND BUTTON
         Button sendButton = new Button("➔");
-        sendButton.setPrefSize(34, 34);
-        sendButton.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        sendButton.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 50%; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
+        sendButton.setPrefSize(36, 36);
+        sendButton.setFont(Font.font(FONT, FontWeight.BOLD, 14));
+        sendButton.setStyle(
+                "-fx-background-color: linear-gradient(to right, #1d4ed8, #0284c7);" +
+                "-fx-background-radius: 50%;" +
+                "-fx-text-fill: #FFFFFF;" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(2, 132, 199, 0.6), 14, 0, 0, 2);"
+        );
 
         sendButton.setOnAction(e -> {
             String question = aiInput.getText().trim();
@@ -348,16 +408,16 @@ public class AiAssistantPage {
 
         StackPane inputContainer = new StackPane(aiInput, plusButton, sendButton);
         StackPane.setAlignment(plusButton, Pos.CENTER_LEFT);
-        StackPane.setMargin(plusButton, new Insets(0, 0, 0, 10));
+        StackPane.setMargin(plusButton, new Insets(0, 0, 0, 8));
         StackPane.setAlignment(sendButton, Pos.CENTER_RIGHT);
         StackPane.setMargin(sendButton, new Insets(0, 8, 0, 0));
 
         Label disclaimer = new Label("OneSpace AI uses local neural indexing. Always verify important documents.");
         disclaimer.setFont(Font.font(FONT, 11));
-        disclaimer.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 500;");
+        disclaimer.setStyle("-fx-text-fill: " + TEXT_SECONDARY + "; -fx-font-weight: 500;");
         disclaimer.setAlignment(Pos.CENTER);
 
-        VBox promptArea = new VBox(10, inputContainer, disclaimer);
+        VBox promptArea = new VBox(12, inputContainer, disclaimer);
         promptArea.setAlignment(Pos.CENTER);
 
         // AI CARD CONTAINER
@@ -366,13 +426,14 @@ public class AiAssistantPage {
 
         VBox aiCard = new VBox(16, menuRow, aiEmptyState, promptArea);
         aiCard.setAlignment(Pos.CENTER);
-        aiCard.setPadding(new Insets(24));
+        aiCard.setPadding(new Insets(26));
         aiCard.setStyle(
-                "-fx-background-color: " + BG_CARD + ";" +
-                "-fx-border-color: " + BORDER_CARD + ";" +
-                "-fx-border-radius: 16;" +
-                "-fx-background-radius: 16;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.18), 16, 0, 0, 6);"
+                "-fx-background-color: " + CARD_GLASS_BG + ";" +
+                "-fx-border-color: " + CARD_BORDER + ";" +
+                "-fx-border-radius: 20;" +
+                "-fx-background-radius: 20;" +
+                "-fx-border-width: 1.2;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.6), 24, 0, 0, 10);"
         );
         VBox.setVgrow(aiEmptyState, Priority.ALWAYS);
         VBox.setVgrow(aiCard, Priority.ALWAYS);
@@ -426,21 +487,21 @@ public class AiAssistantPage {
 
         VBox contentBody = new VBox(22, aiHeader, chatCardContainer);
         contentBody.setPadding(new Insets(24, 28, 28, 28));
-        contentBody.setStyle("-fx-background-color: " + BG_CENTER_CANVAS + ";");
+        contentBody.setStyle("-fx-background-color: transparent;");
         VBox.setVgrow(contentBody, Priority.ALWAYS);
 
         ScrollPane scrollPane = new ScrollPane(contentBody);
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle(
-                "-fx-background-color: " + BG_CENTER_CANVAS + ";" +
-                "-fx-background: " + BG_CENTER_CANVAS + ";" +
+                "-fx-background-color: transparent;" +
+                "-fx-background: transparent;" +
                 "-fx-background-insets: 0;" +
                 "-fx-padding: 0;"
         );
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
         VBox mainArea = new VBox(topBar, scrollPane);
-        mainArea.setStyle("-fx-background-color: " + BG_CENTER_CANVAS + ";");
+        mainArea.setStyle("-fx-background: " + BG_ROOT + "; -fx-background-color: " + BG_ROOT + ";");
         VBox.setVgrow(mainArea, Priority.ALWAYS);
 
         BorderPane root = new BorderPane();
@@ -457,12 +518,12 @@ public class AiAssistantPage {
         );
 
         ImageView logoView = new ImageView(logoImage);
-        logoView.setFitWidth(42);
-        logoView.setFitHeight(42);
+        logoView.setFitWidth(38);
+        logoView.setFitHeight(38);
         logoView.setPreserveRatio(true);
 
         StackPane logoPane = new StackPane(logoView);
-        logoPane.setPrefSize(42, 42);
+        logoPane.setPrefSize(38, 38);
         logoPane.setAlignment(Pos.CENTER);
 
         return logoPane;
@@ -480,21 +541,37 @@ public class AiAssistantPage {
 
         Button btn = new Button("", content);
         btn.setMaxWidth(Double.MAX_VALUE);
-        btn.setPrefHeight(38);
+        btn.setPrefHeight(40);
         btn.setAlignment(Pos.CENTER_LEFT);
-        btn.setPadding(new Insets(0, 12, 0, 12));
+        btn.setPadding(new Insets(0, 14, 0, 14));
 
         if (isActive) {
-            btn.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 8; -fx-cursor: hand;");
-            iconLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-            textLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+            btn.setStyle(
+                    "-fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);" +
+                    "-fx-background-radius: 12;" +
+                    "-fx-border-color: rgba(96, 165, 250, 0.6);" +
+                    "-fx-border-radius: 12;" +
+                    "-fx-border-width: 1;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(37, 99, 235, 0.55), 14, 0, 0, 2);"
+            );
+            iconLbl.setStyle("-fx-text-fill: #FFFFFF;");
+            textLbl.setStyle("-fx-text-fill: #FFFFFF;");
         } else {
-            btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;");
+            btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand;");
             iconLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-            textLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+            textLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
 
-            btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #26354A; -fx-background-radius: 8; -fx-cursor: hand;"));
-            btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;"));
+            btn.setOnMouseEntered(e -> {
+                btn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand;");
+                iconLbl.setStyle("-fx-text-fill: #FFFFFF;");
+                textLbl.setStyle("-fx-text-fill: #FFFFFF;");
+            });
+            btn.setOnMouseExited(e -> {
+                btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand;");
+                iconLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+                textLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+            });
         }
 
         return btn;
@@ -502,17 +579,39 @@ public class AiAssistantPage {
 
     private Button createSuggestionButton(String text) {
         Button button = new Button(text);
-        button.setPrefHeight(36);
-        button.setPadding(new Insets(0, 14, 0, 14));
+        button.setPrefHeight(38);
+        button.setPadding(new Insets(0, 16, 0, 16));
         button.setFont(Font.font(FONT, FontWeight.MEDIUM, 12));
         button.setStyle(
-                "-fx-background-color: " + BG_CARD_INNER + ";" +
-                "-fx-border-color: " + BORDER_CARD + ";" +
-                "-fx-border-radius: 18;" +
-                "-fx-background-radius: 18;" +
-                "-fx-text-fill: " + PRIMARY_BLUE + ";" +
-                "-fx-cursor: hand;"
+                "-fx-background-color: rgba(14, 26, 46, 0.9);" +
+                "-fx-border-color: rgba(56, 189, 248, 0.25);" +
+                "-fx-border-radius: 19;" +
+                "-fx-background-radius: 19;" +
+                "-fx-text-fill: " + TEXT_LIGHT + ";" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.25), 8, 0, 0, 2);"
         );
+
+        button.setOnMouseEntered(e -> button.setStyle(
+                "-fx-background-color: rgba(23, 42, 77, 0.95);" +
+                "-fx-border-color: #38bdf8;" +
+                "-fx-border-radius: 19;" +
+                "-fx-background-radius: 19;" +
+                "-fx-text-fill: #38bdf8;" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(56, 189, 248, 0.35), 10, 0, 0, 2);"
+        ));
+
+        button.setOnMouseExited(e -> button.setStyle(
+                "-fx-background-color: rgba(14, 26, 46, 0.9);" +
+                "-fx-border-color: rgba(56, 189, 248, 0.25);" +
+                "-fx-border-radius: 19;" +
+                "-fx-background-radius: 19;" +
+                "-fx-text-fill: " + TEXT_LIGHT + ";" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.25), 8, 0, 0, 2);"
+        ));
+
         return button;
     }
 

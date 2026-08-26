@@ -139,7 +139,7 @@ public class CollaborationPage {
         Button manageStorageBtn = new Button("Manage Storage ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color:transparent;-fx-text-fill:#60A5FA;-fx-padding:2 0 0 0;-fx-cursor:hand;");
-        manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
+        manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexedPage());
 
         VBox storageCard = new VBox(8, storageTitle, storageValueGroup, storageProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
@@ -303,6 +303,7 @@ public class CollaborationPage {
 
         VBox workspacesBox = new VBox(14, workspaceHeaderBox, workspaceListPane, viewAllWorkspaces);
         workspacesBox.setPadding(new Insets(24));
+        workspacesBox.setMaxWidth(Double.MAX_VALUE);
         workspacesBox.setStyle(cardContainerStyle());
 
         Label activityTitle = new Label("Recent Activity");
@@ -360,11 +361,19 @@ public class CollaborationPage {
         mainArea.setStyle("-fx-background-color:" + BG_CENTER_CANVAS + ";");
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
-        root.setStyle("-fx-background-color:" + BG_SIDEBAR + ";");
+        root.setStyle("-fx-background-color:" + BG_SIDEBAR + ";" +
+                "-fx-font-family:" + FONT + ";");
         root.setLeft(sidebar);
         root.setCenter(mainArea);
 
-        return new Scene(root, 1200, 750);
+        Scene scene = new Scene(root, 1200, 750);
+
+        // Keep the page typography stable when controls receive focus/clicks.
+        scene.getStylesheets().add("data:text/css," +
+                ".button:focused,.button:pressed,.toggle-button:focused,.toggle-button:pressed," +
+                ".text-field:focused,.text-area:focused{-fx-font-family:'Inter';}");
+
+        return scene;
     }
 
     private StackPane createOneSpaceLogo() {
@@ -416,24 +425,42 @@ public class CollaborationPage {
             workspaceListPane.getChildren().add(list);
         } else {
             GridPane grid = new GridPane();
-            grid.setHgap(12);
-            grid.setVgap(12);
+            grid.setHgap(16);
+            grid.setVgap(16);
+            grid.setMaxWidth(Double.MAX_VALUE);
+            grid.setPrefWidth(Double.MAX_VALUE);
+
+            // Make the grid use the complete available workspace width.
+            // Each column grows equally, so cards expand with the window.
+            int columnCount = Math.min(3, Math.max(1, workspaces.size()));
+
+            for (int i = 0; i < columnCount; i++) {
+                ColumnConstraints column = new ColumnConstraints();
+                column.setPercentWidth(100.0 / columnCount);
+                column.setHgrow(Priority.ALWAYS);
+                column.setFillWidth(true);
+                grid.getColumnConstraints().add(column);
+            }
 
             int col = 0, row = 0;
 
             for (WorkspaceData workspace : workspaces) {
                 VBox card = createWorkspaceGridCard(workspace);
+                card.setMaxWidth(Double.MAX_VALUE);
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
 
                 grid.add(card, col++, row);
+                GridPane.setHgrow(card, Priority.ALWAYS);
+                GridPane.setFillWidth(card, true);
 
-                if (col > 1) {
+                if (col >= columnCount) {
                     col = 0;
                     row++;
                 }
             }
 
+            workspaceListPane.setMaxWidth(Double.MAX_VALUE);
             workspaceListPane.getChildren().add(grid);
         }
     }
@@ -496,8 +523,9 @@ public class CollaborationPage {
 
         VBox card = new VBox(10, top, title, subtitle);
         card.setPadding(new Insets(16));
-        card.setPrefWidth(280);
         card.setMaxWidth(Double.MAX_VALUE);
+        card.setPrefWidth(0);
+        card.setMinWidth(0);
         applyHover(card);
 
         return card;

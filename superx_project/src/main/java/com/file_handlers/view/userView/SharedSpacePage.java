@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 
 import javafx.geometry.Insets;
@@ -32,19 +33,21 @@ import javafx.stage.FileChooser;
 
 public class SharedSpacePage {
 
-    private static final String FONT = "Inter";
-    private static final String BG_APP = "#3A4D67";
-    private static final String BG_CARD = "#DDE8F5";
-    private static final String BG_CARD_INNER = "#D1E1F1";
+    private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    private static final String BG_APP = "#31435B";
+    private static final String BG_CARD = "#DDE8F8";
+    private static final String BG_CARD_INNER = "#CADDF2";
     private static final String BG_INPUT = "#EDF3FA";
-    private static final String BG_SIDEBAR_CARD = "#2E3F55";
-    private static final String BORDER_COLOR = "#C9DAEE";
+    private static final String BG_SIDEBAR_CARD = "#141D29";
+    private static final String BG_SIDEBAR = "#1E2A3A";
+    private static final String SIDEBAR_BORDER = "#2D3D52";
+    private static final String BORDER_COLOR = "#C3D6EC";
     private static final String PRIMARY_BLUE = "#2563EB";
     private static final String PRIMARY_LIGHT_BLUE = "#BFDBFE";
-    private static final String TEXT_DARK = "#142338";
-    private static final String TEXT_MUTED_DARK = "#506580";
+    private static final String TEXT_DARK = "#0F172A";
+    private static final String TEXT_MUTED_DARK = "#334155";
     private static final String TEXT_LIGHT = "#FFFFFF";
-    private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
+    private static final String TEXT_MUTED_LIGHT = "#94A3B8";
     private static final String SUCCESS = "#16A34A";
     private static final String SUCCESS_LIGHT = "#DCFCE7";
     private static final String ORANGE = "#EA580C";
@@ -162,7 +165,7 @@ public class SharedSpacePage {
 
     public VBox getSharedSpaceContent() {
         VBox content = new VBox(20);
-        content.setPadding(new Insets(28));
+        content.setPadding(new Insets(24, 28, 28, 28));
         content.setStyle("-fx-background-color:" + BG_APP + ";");
 
         Button back = createBackButton();
@@ -186,6 +189,8 @@ public class SharedSpacePage {
 
         HBox center = new HBox(20, files, members);
         HBox.setHgrow(files, Priority.ALWAYS);
+        center.setFillHeight(true);
+        files.setMaxWidth(Double.MAX_VALUE);
 
         members.setPrefWidth(315);
         members.setMinWidth(290);
@@ -229,6 +234,7 @@ public class SharedSpacePage {
     private HBox createSummaryCard() {
         HBox card = new HBox(14);
         card.setPrefHeight(150);
+        card.setMaxWidth(Double.MAX_VALUE);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(15));
         card.setStyle(
@@ -1436,103 +1442,148 @@ public class SharedSpacePage {
 
     public Scene getSharedSpacePageScene() {
         BorderPane root = new BorderPane();
-
-        root.setStyle(
-                "-fx-background-color:" + BG_APP + ";");
-
+        root.setStyle("-fx-background-color:" + BG_SIDEBAR + ";");
         root.setLeft(createSidebar());
 
-        ScrollPane scroll = new ScrollPane(
-                getSharedSpaceContent());
-
+        ScrollPane scroll = new ScrollPane(getSharedSpaceContent());
         scroll.setFitToWidth(true);
         scroll.setFitToHeight(true);
-        scroll.setHbarPolicy(
-                ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.setVbarPolicy(
-                ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scroll.setStyle(
-                "-fx-background-color:" + BG_APP + ";" +
-                "-fx-border-color:transparent;");
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroll.setStyle("-fx-background-color:" + BG_APP + ";-fx-background:" + BG_APP + ";-fx-border-color:transparent;-fx-padding:0;");
 
-        root.setCenter(scroll);
+        VBox mainArea = new VBox(createTopBar(), scroll);
+        mainArea.setStyle("-fx-background-color:" + BG_APP + ";");
+        VBox.setVgrow(scroll, Priority.ALWAYS);
+        root.setCenter(mainArea);
+        return new Scene(root, 1200, 750);
+    }
 
-        return new Scene(root, 1280, 800);
+    private HBox createTopBar() {
+        String activeUserName = "User";
+        String initials = "U";
+        if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
+            String fullName = UserSession.getInstance().getDisplayName().trim();
+            if (!fullName.isEmpty()) {
+                String[] parts = fullName.split("\\s+");
+                activeUserName = parts[0];
+                initials = activeUserName.substring(0, 1).toUpperCase();
+            }
+        }
+
+        Label searchIcon = new Label("⌕");
+        searchIcon.setFont(Font.font(FONT, 16));
+        searchIcon.setTextFill(Color.web(TEXT_MUTED_LIGHT));
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Search in OneSpace...");
+        searchField.setPrefHeight(38);
+        searchField.setStyle("-fx-font-family:" + FONT + ";-fx-background-color:transparent;-fx-prompt-text-fill:" + TEXT_MUTED_LIGHT + ";-fx-font-size:13px;-fx-text-fill:" + TEXT_LIGHT + ";");
+
+        Label keyShortcut = new Label("⌘ K");
+        keyShortcut.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 10));
+        keyShortcut.setStyle("-fx-background-color:#141E2C;-fx-text-fill:" + TEXT_MUTED_LIGHT + ";-fx-padding:3 6;-fx-background-radius:4;");
+
+        HBox searchContainer = new HBox(8, searchIcon, searchField, keyShortcut);
+        searchContainer.setAlignment(Pos.CENTER_LEFT);
+        searchContainer.setPadding(new Insets(0, 12, 0, 14));
+        searchContainer.setPrefWidth(420);
+        searchContainer.setStyle("-fx-background-color:#141E2C;-fx-border-color:" + SIDEBAR_BORDER + ";-fx-border-radius:10;-fx-background-radius:10;");
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+
+        Button bellBtn = new Button("🔔");
+        bellBtn.setStyle("-fx-background-color:transparent;-fx-font-size:16px;-fx-text-fill:" + TEXT_LIGHT + ";-fx-cursor:hand;");
+        bellBtn.setOnAction(e -> LandingPage.showNotificationPage());
+
+        Label avatar = new Label(initials);
+        avatar.setPrefSize(34, 34);
+        avatar.setAlignment(Pos.CENTER);
+        avatar.setStyle("-fx-background-color:" + PRIMARY_BLUE + ";-fx-background-radius:50%;-fx-text-fill:" + TEXT_LIGHT + ";-fx-font-weight:bold;-fx-font-size:12px;");
+
+        Label userName = new Label(activeUserName);
+        userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
+        userName.setTextFill(Color.web(TEXT_LIGHT));
+
+        Label dropDown = new Label("⌄");
+        dropDown.setTextFill(Color.web(TEXT_MUTED_LIGHT));
+
+        HBox profileOption = new HBox(8, avatar, userName, dropDown);
+        profileOption.setAlignment(Pos.CENTER);
+        profileOption.setPadding(new Insets(5, 8, 5, 8));
+        profileOption.setStyle("-fx-background-color:transparent;-fx-background-radius:8;-fx-cursor:hand;");
+        profileOption.setOnMouseClicked(e -> LandingPage.showUserProfilePage());
+        profileOption.setOnMouseEntered(e -> profileOption.setStyle("-fx-background-color:#26354A;-fx-background-radius:8;-fx-cursor:hand;"));
+        profileOption.setOnMouseExited(e -> profileOption.setStyle("-fx-background-color:transparent;-fx-background-radius:8;-fx-cursor:hand;"));
+
+        HBox profileBox = new HBox(10, bellBtn, profileOption);
+        profileBox.setAlignment(Pos.CENTER);
+
+        Region spacer = new Region();
+        HBox topBar = new HBox(20, searchContainer, spacer, profileBox);
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setPadding(new Insets(16, 28, 14, 28));
+        topBar.setStyle("-fx-background-color:" + BG_SIDEBAR + ";-fx-border-color:" + SIDEBAR_BORDER + ";-fx-border-width:0 0 1 0;");
+        return topBar;
     }
 
     private VBox createSidebar() {
         VBox sidebar = new VBox(8);
         sidebar.setPrefWidth(230);
         sidebar.setMinWidth(230);
-        sidebar.setPadding(
-                new Insets(22, 14, 20, 14));
+        sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setStyle(
-                "-fx-background-color:" +
-                BG_SIDEBAR_CARD + ";" +
-                "-fx-border-color:transparent;");
+                "-fx-background-color:" + BG_SIDEBAR + ";" +
+                "-fx-border-color:" + SIDEBAR_BORDER + ";" +
+                "-fx-border-width:0 1 0 0;");
 
+        // Same OneSpace header structure as UserDashboard.
         Label logoIcon = new Label("◉");
-        logoIcon.setFont(
-                Font.font(FONT, FontWeight.BOLD, 20));
-        logoIcon.setTextFill(
-                Color.web(PRIMARY_LIGHT_BLUE));
+        logoIcon.setFont(Font.font(FONT, FontWeight.BOLD, 20));
+        logoIcon.setTextFill(Color.web(PRIMARY_BLUE));
 
         Label logo = new Label("OneSpace");
-        logo.setFont(
-                Font.font(FONT, FontWeight.BOLD, 18));
+        logo.setFont(Font.font(FONT, FontWeight.BOLD, 19));
         logo.setTextFill(Color.web(TEXT_LIGHT));
 
-        HBox logoRow = new HBox(9, logoIcon, logo);
+        HBox logoRow = new HBox(10, logoIcon, logo);
         logoRow.setAlignment(Pos.CENTER_LEFT);
 
         Label local = new Label("Local • AI Indexed");
         local.setFont(Font.font(FONT, 11));
-        local.setTextFill(
-                Color.web(TEXT_MUTED_LIGHT));
+        local.setTextFill(Color.web(TEXT_MUTED_LIGHT));
 
-        VBox logoBox = new VBox(
-                4,
-                logoRow,
-                local);
+        VBox logoBox = new VBox(4, logoRow, local);
+        logoBox.setPadding(new Insets(0, 6, 18, 6));
 
-        logoBox.setPadding(
-                new Insets(0, 8, 25, 8));
+        Button dashboard = createSidebarButton("⌂", "Dashboard", false);
+        dashboard.setOnAction(e -> LandingPage.showUserDashboard());
 
-        Button dashboard = createSidebarButton(
-                "⌂", "Dashboard", false);
-        dashboard.setOnAction(e ->
-                LandingPage.showUserDashboard());
+        Button spaces = createSidebarButton("📁", "Spaces", false);
+        spaces.setOnAction(e -> LandingPage.showUserSpace());
 
-        Button spaces = createSidebarButton(
-                "▦", "Spaces", false);
-        spaces.setOnAction(e ->
-                LandingPage.showUserSpace());
+        Button search = createSidebarButton("⌕", "Search", false);
 
-        Button search = createSidebarButton(
-                "⌕", "Search", false);
+        Button calendar = createSidebarButton("📅", "Calendar", false);
+        calendar.setOnAction(e -> LandingPage.showCalendarPage());
 
-        Button calendar = createSidebarButton(
-                "□", "Calendar", false);
+        Button aiAssistant = createSidebarButton("✧", "AI Assistant", false);
+        aiAssistant.setOnAction(e -> LandingPage.showAiAssistantPage());
 
-        Button aiAssistant = createSidebarButton(
-                "✧", "AI Assistant", false);
+        Button collaboration = createSidebarButton("👥", "Collaboration", true);
+        collaboration.setOnAction(e -> LandingPage.showCollaborationPage());
 
-        Button collaboration = createSidebarButton(
-                "♧", "Collaboration", true);
-        collaboration.setOnAction(e ->
-                LandingPage.showCollaborationPage());
+        Button recent = createSidebarButton("🕒", "Recent", false);
+        recent.setOnAction(e -> LandingPage.showRecentPage());
 
-        Button recent = createSidebarButton(
-                "◷", "Recent", false);
-
-        Button trash = createSidebarButton(
-                "♧", "Trash", false);
+        Button trash = createSidebarButton("🗑", "Trash", false);
+        trash.setOnAction(e -> LandingPage.showTrashPage());
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
-        Button settings = createSidebarButton(
-                "⚙", "Settings", false);
+        Button settings = createSidebarButton("⚙", "Settings", false);
+        settings.setOnAction(e -> LandingPage.showSettingPage());
 
         VBox storage = createStorageCard();
 
@@ -1558,44 +1609,44 @@ public class SharedSpacePage {
             String text,
             boolean selected) {
 
-        Button button = new Button(
-                icon + "    " + text);
+        Label iconLbl = new Label(icon);
+        iconLbl.setFont(Font.font(FONT, 14));
 
+        Label textLbl = new Label(text);
+        textLbl.setFont(Font.font(FONT, selected ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
+        textLbl.setTextFill(Color.web(TEXT_LIGHT));
+
+        HBox content = new HBox(12, iconLbl, textLbl);
+        content.setAlignment(Pos.CENTER_LEFT);
+
+        Button button = new Button("", content);
         button.setAlignment(Pos.CENTER_LEFT);
         button.setMaxWidth(Double.MAX_VALUE);
-        button.setPrefHeight(42);
-        button.setPadding(
-                new Insets(0, 10, 0, 10));
-        button.setFont(Font.font(FONT, 12));
+        button.setPrefHeight(38);
+        button.setPadding(new Insets(0, 12, 0, 12));
 
         if (selected) {
-            button.setTextFill(
-                    Color.web(TEXT_LIGHT));
             button.setStyle(
-                    "-fx-background-color:" +
-                    PRIMARY_BLUE + ";" +
+                    "-fx-background-color:" + PRIMARY_BLUE + ";" +
                     "-fx-background-radius:8;" +
                     "-fx-cursor:hand;");
+            iconLbl.setTextFill(Color.web(TEXT_LIGHT));
         } else {
-            button.setTextFill(
-                    Color.web(TEXT_MUTED_LIGHT));
             button.setStyle(
                     "-fx-background-color:transparent;" +
                     "-fx-background-radius:8;" +
                     "-fx-cursor:hand;");
+            iconLbl.setTextFill(Color.web(TEXT_MUTED_LIGHT));
 
-            button.setOnMouseEntered(e ->
-                    button.setStyle(
-                            "-fx-background-color:" +
-                            "rgba(191,219,254,0.12);" +
-                            "-fx-background-radius:8;" +
-                            "-fx-cursor:hand;"));
+            button.setOnMouseEntered(e -> button.setStyle(
+                    "-fx-background-color:#26354A;" +
+                    "-fx-background-radius:8;" +
+                    "-fx-cursor:hand;"));
 
-            button.setOnMouseExited(e ->
-                    button.setStyle(
-                            "-fx-background-color:transparent;" +
-                            "-fx-background-radius:8;" +
-                            "-fx-cursor:hand;"));
+            button.setOnMouseExited(e -> button.setStyle(
+                    "-fx-background-color:transparent;" +
+                    "-fx-background-radius:8;" +
+                    "-fx-cursor:hand;"));
         }
 
         return button;
@@ -1603,67 +1654,61 @@ public class SharedSpacePage {
 
     private VBox createStorageCard() {
         VBox card = new VBox(8);
-        card.setMinHeight(150);
-        card.setPrefHeight(150);
-        card.setMaxHeight(150);
-        card.setPadding(new Insets(15));
+        card.setPadding(new Insets(14));
         card.setStyle(
-                "-fx-background-color:" + BG_CARD + ";" +
-                "-fx-border-color:" + BORDER_COLOR + ";" +
-                "-fx-border-radius:10;" +
-                "-fx-background-radius:10;");
+                "-fx-background-color:" + BG_SIDEBAR_CARD + ";" +
+                "-fx-border-color:" + SIDEBAR_BORDER + ";" +
+                "-fx-border-radius:12;" +
+                "-fx-background-radius:12;");
 
-        Label title = new Label(
-                "✧  Storage indexed");
-        title.setFont(
-                Font.font(FONT, FontWeight.BOLD, 11));
-        title.setTextFill(
-                Color.web(PRIMARY_BLUE));
+        Label title = new Label("Storage Used");
+        title.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+        title.setTextFill(Color.web(TEXT_LIGHT));
 
-        Label amount = new Label("64.2 GB");
-        amount.setFont(
-                Font.font(FONT, FontWeight.BOLD, 19));
-        amount.setTextFill(Color.web(TEXT_DARK));
+        Label amount = new Label("64.2 GB of 100 GB");
+        amount.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        amount.setTextFill(Color.web(TEXT_LIGHT));
 
-        Label used = new Label("of 100 GB used");
-        used.setFont(Font.font(FONT, 10));
-        used.setTextFill(
-                Color.web(TEXT_MUTED_DARK));
+        Label used = new Label("64%");
+        used.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+        used.setTextFill(Color.web(TEXT_MUTED_LIGHT));
+
+        HBox valueGroup = new HBox(amount, new Region(), used);
+        HBox.setHgrow(valueGroup.getChildren().get(1), Priority.ALWAYS);
+        valueGroup.setAlignment(Pos.CENTER_LEFT);
 
         HBox progressBox = new HBox();
-        progressBox.setPrefHeight(7);
-        progressBox.setMinHeight(7);
+        progressBox.setPrefHeight(6);
+        progressBox.setMinHeight(6);
         progressBox.setMaxWidth(Double.MAX_VALUE);
         progressBox.setStyle(
-                "-fx-background-color:" +
-                BORDER_COLOR + ";" +
+                "-fx-background-color:#0E1520;" +
                 "-fx-background-radius:10;");
 
         Region progress = new Region();
-        progress.setPrefWidth(105);
-        progress.setPrefHeight(7);
+        progress.setPrefWidth(100);
+        progress.setPrefHeight(6);
         progress.setStyle(
-                "-fx-background-color:" +
-                PRIMARY_BLUE + ";" +
+                "-fx-background-color:" + PRIMARY_BLUE + ";" +
                 "-fx-background-radius:10;");
-
         progressBox.getChildren().add(progress);
 
-        Label bottom = new Label(
-                "Files stay in place —\n" +
-                "nothing was moved or renamed.");
-
-        bottom.setFont(Font.font(FONT, 9));
-        bottom.setTextFill(
-                Color.web(TEXT_MUTED_DARK));
-        bottom.setWrapText(true);
+        Button manageStorageBtn = new Button("Manage Storage ›");
+        manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
+        manageStorageBtn.setTextFill(Color.web("#60A5FA"));
+        manageStorageBtn.setStyle(
+                "-fx-background-color:transparent;" +
+                "-fx-padding:2 0 0 0;" +
+                "-fx-cursor:hand;");
+        manageStorageBtn.setOnAction(e -> {
+            LandingPage.showStorageIndexedPage();
+        });
 
         card.getChildren().addAll(
                 title,
-                amount,
-                used,
+                valueGroup,
                 progressBox,
-                bottom);
+                manageStorageBtn);
 
         return card;
     }

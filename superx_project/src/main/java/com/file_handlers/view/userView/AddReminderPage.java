@@ -122,7 +122,7 @@ public class AddReminderPage {
         Button manageStorageBtn = new Button("Manage Storage ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
-        manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
+        manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexedPage());
 
         VBox storage = new VBox(8, storageTitle, storageValGroup, progress, manageStorageBtn);
         storage.setPadding(new Insets(14));
