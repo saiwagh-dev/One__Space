@@ -187,6 +187,7 @@ public class LandingPage extends Application {
         setScene(new AdminProfilePage().getAdminProfileScene());
     }
 
+    
     // ================= LANDING PAGE =================
 
     public Scene getLandingPageScene() {
