@@ -1,7 +1,5 @@
 package com.file_handlers.view.userView;
 
-import com.file_handlers.model.UserSession;
-import com.file_handlers.view.LandingPage;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -15,6 +13,9 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 
 import java.io.File;
+
+import com.file_handlers.model.UserSession;
+import com.file_handlers.view.LandingPage;
 
 public class UserProfilePage {
 

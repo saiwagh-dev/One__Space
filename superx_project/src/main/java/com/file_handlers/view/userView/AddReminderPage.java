@@ -1,6 +1,5 @@
 package com.file_handlers.view.userView;
 
-import com.file_handlers.view.LandingPage;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -15,6 +14,8 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.time.format.DateTimeFormatter;
+
+import com.file_handlers.view.LandingPage;
 
 public class AddReminderPage {
 

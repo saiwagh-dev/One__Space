@@ -1,5 +1,7 @@
 package com.file_handlers.view.adminView;
 
+import com.file_handlers.view.LandingPage;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -23,7 +25,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import com.file_handlers.view.LandingPage;
 
 public class AdminProfilePage {
 

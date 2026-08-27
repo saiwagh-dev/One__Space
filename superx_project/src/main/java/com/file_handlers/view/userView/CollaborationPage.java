@@ -1,7 +1,5 @@
 package com.file_handlers.view.userView;
 
-import com.file_handlers.model.UserSession;
-import com.file_handlers.view.LandingPage;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -16,6 +14,9 @@ import javafx.stage.FileChooser;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.file_handlers.model.UserSession;
+import com.file_handlers.view.LandingPage;
 
 public class CollaborationPage {
 

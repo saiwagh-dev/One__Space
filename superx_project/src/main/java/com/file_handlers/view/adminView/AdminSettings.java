@@ -1,6 +1,7 @@
 package com.file_handlers.view.adminView;
 
 import com.file_handlers.view.LandingPage;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;

@@ -1,785 +1,506 @@
 package com.file_handlers.view.userView;
 
+import com.file_handlers.dao.FileDAO;
+import com.file_handlers.model.FileData;
+import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
-
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.stage.FileChooser;
-
+import java.awt.Desktop;
 import java.io.File;
+import java.time.Instant;
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UnifiedSpaceView {
+    private static final String FONT="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    private static final String BG_SIDEBAR="#1E2A3A",BG_CENTER="#31435B",BG_CARD="#DDE8F8",BG_INNER="#CADDF2",BORDER="#C3D6EC",TEXT="#0F172A",MUTED="#334155",LIGHT="#FFFFFF",MUTED_LIGHT="#94A3B8",BLUE="#2563EB";
+    private final String spaceId,spaceName;
+    private final FileDAO fileDAO=new FileDAO();
+    private List<FileData> files=new ArrayList<>();
+    private FlowPane filePane;
+    private Label countLabel,storageLabel,updatedLabel,previewIcon,previewName,previewDate,previewType,previewSize;
+    private Button previewButton,detailsButton;
+    private FileData selectedFile;
 
-    private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-
-    // Style Constants - Exact Color Hierarchy synced with UserDashboard
-    private static final String BG_SIDEBAR = "#1E2A3A";
-    private static final String BG_SIDEBAR_CARD = "#141D29";
-    private static final String SIDEBAR_BORDER = "#2D3D52";
-    private static final String BG_CENTER_CANVAS = "#31435B";
-
-    private static final String BG_CARD = "#DDE8F8";
-    private static final String BG_CARD_INNER = "#CADDF2";
-    private static final String BORDER_CARD = "#C3D6EC";
-
-    private static final String TEXT_DARK = "#0F172A";
-    private static final String TEXT_MUTED_DARK = "#334155";
-    private static final String TEXT_LIGHT = "#FFFFFF";
-    private static final String TEXT_MUTED_LIGHT = "#94A3B8";
-
-    private static final String PRIMARY_BLUE = "#2563EB";
-    private static final String ACCENT_GREEN = "#059669";
-    private static final String ACCENT_YELLOW = "#D97706";
-
-    private final List<FileData> fileData = new ArrayList<>();
-
-    private String selectedSpace = "All Spaces";
-    private String selectedFileType = "All Files";
-    private String selectedViewType = "List View";
-
-    private FlowPane currentFileCards;
-    private Label currentImagePreview, currentFileNameValue, currentDateValue;
-    private Label currentTypeValue, currentSizeDetailValue;
-
-    public UnifiedSpaceView() {
-        this("All Spaces");
+    public UnifiedSpaceView(){this("all","All Spaces");}
+    public UnifiedSpaceView(String spaceId,String spaceName){
+        this.spaceId=spaceId==null||spaceId.isBlank()?"all":spaceId;
+        this.spaceName=spaceName==null||spaceName.isBlank()?"All Spaces":spaceName;
     }
 
-    public UnifiedSpaceView(String initialSpace) {
-        if (initialSpace != null && !initialSpace.isEmpty()) {
-            this.selectedSpace = initialSpace;
-        }
-    }
+    public Scene getUnifiedSpaceScene(){
+        UserSession session=UserSession.getInstance();
+        String user=session!=null&&session.getDisplayName()!=null?session.getDisplayName().trim():"User";
+        VBox sidebar=createSidebar();
 
-    public Scene getUnifiedSpaceScene() {
+        TextField search=new TextField();
+        search.setPromptText("Search in "+spaceName+"...");
+        search.setPrefHeight(38);
+        search.setStyle("-fx-background-color:transparent;-fx-text-fill:"+LIGHT+";-fx-prompt-text-fill:"+MUTED_LIGHT+";-fx-font-size:13px;");
+        search.textProperty().addListener((obs,o,n)->refreshFiles(n));
 
-        // =========================================================
-        // SIDEBAR
-        // =========================================================
-        StackPane logoIcon = createOneSpaceLogo();
-
-        Label logoText = new Label("OneSpace");
-        logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
-        logoText.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-
-        HBox logoRow = new HBox(10, logoIcon, logoText);
-        logoRow.setAlignment(Pos.CENTER_LEFT);
-
-        VBox logoBox = new VBox(4, logoRow);
-        logoBox.setPadding(new Insets(0, 0, 18, 6));
-
-        Button dashboardBtn = createSidebarButton("⌂", "Dashboard", false);
-        Button spacesBtn = createSidebarButton("📁", "Spaces", true);
-        Button searchBtn = createSidebarButton("⌕", "Search", false);
-        Button calendarBtn = createSidebarButton("📅", "Calendar", false);
-        Button aiBtn = createSidebarButton("✧", "AI Assistant", false);
-        Button collaborationBtn = createSidebarButton("👥", "Collaboration", false);
-        Button recentBtn = createSidebarButton("🕒", "Recent", false);
-        Button trashBtn = createSidebarButton("🗑", "Trash", false);
-        Button settingsBtn = createSidebarButton("⚙", "Settings", false);
-
-        dashboardBtn.setOnAction(e -> LandingPage.showUserDashboard());
-        spacesBtn.setOnAction(e -> LandingPage.showUserSpace());
-        searchBtn.setOnAction(e -> LandingPage.showUserSearch());
-        calendarBtn.setOnAction(e -> LandingPage.showCalendarPage());
-        aiBtn.setOnAction(e -> LandingPage.showAiAssistantPage());
-        collaborationBtn.setOnAction(e -> LandingPage.showCollaborationPage());
-        recentBtn.setOnAction(e -> LandingPage.showRecentPage());
-        trashBtn.setOnAction(e -> LandingPage.showTrashPage());
-        settingsBtn.setOnAction(e -> LandingPage.showSettingPage());
-
-        VBox navigation = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn,
-                collaborationBtn, recentBtn, trashBtn);
-
-        Region sidebarSpacer = new Region();
-        VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
-
-        // Sidebar Bottom Storage Card
-        Label storageTitle = new Label("Storage Used");
-        storageTitle.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        storageTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-
-        Label storageValue = new Label("64.2 GB of 100 GB");
-        storageValue.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        storageValue.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-
-        Label storagePct = new Label("64%");
-        storagePct.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        storagePct.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-
-        HBox storageTopRow = new HBox(storageValue, new Region(), storagePct);
-        HBox.setHgrow(storageTopRow.getChildren().get(1), Priority.ALWAYS);
-        storageTopRow.setAlignment(Pos.CENTER_LEFT);
-
-        ProgressBar sidebarProgress = new ProgressBar(0.64);
-        sidebarProgress.setMaxWidth(Double.MAX_VALUE);
-        sidebarProgress.setPrefHeight(6);
-        sidebarProgress.setStyle("-fx-accent: " + PRIMARY_BLUE + "; -fx-control-inner-background: #0E1520;");
-
-        Button manageStorageBtn = new Button("Manage Storage ›");
-        manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        manageStorageBtn.setStyle("-fx-background-color:transparent;-fx-text-fill:#60A5FA;" +
-                "-fx-padding:2 0 0 0;-fx-cursor:hand;");
-        manageStorageBtn.setOnAction(e -> LandingPage.showSettingPage());
-
-        VBox storageCard = new VBox(8, storageTitle, storageTopRow, sidebarProgress, manageStorageBtn);
-        storageCard.setPadding(new Insets(14));
-        storageCard.setStyle("-fx-background-color:" + BG_SIDEBAR_CARD + ";-fx-border-color:" + SIDEBAR_BORDER +
-                ";-fx-border-radius:12;-fx-background-radius:12;");
-
-        VBox sidebar = new VBox(12, logoBox, navigation, sidebarSpacer, settingsBtn, storageCard);
-        sidebar.setPadding(new Insets(20, 14, 20, 14));
-        sidebar.setPrefWidth(230);
-        sidebar.setMinWidth(230);
-        sidebar.setStyle("-fx-background-color:" + BG_SIDEBAR + ";-fx-border-color:" + SIDEBAR_BORDER +
-                ";-fx-border-width:0 1 0 0;");
-
-        // =========================================================
-        // TOP SEARCH BAR & PROFILE
-        // =========================================================
-        TextField searchField = new TextField();
-        searchField.setPromptText("Search in " + selectedSpace + "...");
-        searchField.setPrefHeight(38);
-        searchField.setStyle("-fx-background-color:transparent;-fx-prompt-text-fill:" + TEXT_MUTED_LIGHT + ";" +
-                "-fx-text-fill:" + TEXT_LIGHT + ";-fx-font-size:13px;");
-
-        Label searchIcon = new Label("⌕");
-        searchIcon.setFont(Font.font(FONT, 16));
-        searchIcon.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-
-        Label shortcut = new Label("⌘ K");
-        shortcut.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 10));
-        shortcut.setStyle("-fx-background-color:#141E2C;-fx-text-fill:" + TEXT_MUTED_LIGHT + ";-fx-padding:3 6;-fx-background-radius:4;");
-
-        HBox searchBox = new HBox(8, searchIcon, searchField, shortcut);
+        HBox searchBox=new HBox(8,new Label("⌕"),search);
         searchBox.setAlignment(Pos.CENTER_LEFT);
-        searchBox.setPadding(new Insets(0, 12, 0, 14));
-        searchBox.setStyle("-fx-background-color:#141E2C;-fx-border-color:" + SIDEBAR_BORDER +
-                ";-fx-border-radius:10;-fx-background-radius:10;");
-        HBox.setHgrow(searchField, Priority.ALWAYS);
+        searchBox.setPadding(new Insets(0,14,0,14));
         searchBox.setPrefWidth(420);
+        searchBox.setStyle("-fx-background-color:#141E2C;-fx-border-color:#2D3D52;-fx-border-radius:10;-fx-background-radius:10;");
+        HBox.setHgrow(search,Priority.ALWAYS);
 
-        Button notificationButton = new Button("🔔");
-        notificationButton.setStyle("-fx-background-color:transparent;-fx-font-size:16px;-fx-cursor:hand;-fx-text-fill:" + TEXT_LIGHT + ";");
-        notificationButton.setOnAction(e -> LandingPage.showNotificationPage());
+        Button notification=new Button("🔔");
+        notification.setStyle("-fx-background-color:transparent;-fx-text-fill:"+LIGHT+";-fx-font-size:16px;");
+        notification.setOnAction(e->LandingPage.showNotificationPage());
 
-        Label avatar = new Label("AV");
-        avatar.setPrefSize(34, 34);
+        Label avatar=new Label(user.isBlank()?"U":user.substring(0,1).toUpperCase());
+        avatar.setPrefSize(34,34);
         avatar.setAlignment(Pos.CENTER);
-        avatar.setStyle("-fx-background-color:" + PRIMARY_BLUE + ";-fx-background-radius:50%;" +
-                "-fx-text-fill:" + TEXT_LIGHT + ";-fx-font-weight:bold;-fx-font-size:12px;");
+        avatar.setStyle("-fx-background-color:"+BLUE+";-fx-background-radius:50%;-fx-text-fill:white;-fx-font-weight:bold;");
 
-        Label userName = new Label("Aarav Verma");
-        userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
-        userName.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        Label userName=new Label(user.isBlank()?"User":user);
+        userName.setStyle("-fx-text-fill:"+LIGHT+";-fx-font-weight:bold;");
 
-        Label arrow = new Label("⌄");
-        arrow.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-
-        HBox profile = new HBox(10, notificationButton, avatar, userName, arrow);
+        HBox profile=new HBox(8,avatar,userName);
         profile.setAlignment(Pos.CENTER);
+        profile.setOnMouseClicked(e->LandingPage.showUserProfilePage());
 
-        Region topSpacer = new Region();
-        HBox topBar = new HBox(20, searchBox, topSpacer, profile);
-        HBox.setHgrow(topSpacer, Priority.ALWAYS);
+        Region topGap=new Region();
+        HBox.setHgrow(topGap,Priority.ALWAYS);
+
+        HBox topBar=new HBox(20,searchBox,topGap,notification,profile);
         topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(16, 28, 14, 28));
-        topBar.setStyle("-fx-background-color:" + BG_SIDEBAR + ";-fx-border-color:" + SIDEBAR_BORDER + ";-fx-border-width:0 0 1 0;");
+        topBar.setPadding(new Insets(16,28,14,28));
+        topBar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:#2D3D52;-fx-border-width:0 0 1 0;");
 
-        // =========================================================
-        // HEADER TITLE AREA
-        // =========================================================
-        Label pageIcon = new Label("📁");
-        pageIcon.setPrefSize(42, 42);
-        pageIcon.setAlignment(Pos.CENTER);
-        pageIcon.setStyle("-fx-background-color:" + BG_CARD_INNER + ";-fx-background-radius:10;" +
-                "-fx-text-fill:" + PRIMARY_BLUE + ";-fx-font-size:18px;");
+        Label spaceIcon=new Label("📁");
+        spaceIcon.setPrefSize(42,42);
+        spaceIcon.setAlignment(Pos.CENTER);
+        spaceIcon.setStyle("-fx-background-color:"+BG_INNER+";-fx-background-radius:10;-fx-font-size:18px;");
 
-        Label pageTitle = new Label(selectedSpace.equals("All Spaces") ? "Unified Space View" : selectedSpace + " Space");
-        pageTitle.setFont(Font.font(FONT, FontWeight.BOLD, 22));
-        pageTitle.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
-
-        Label pageDescription = new Label("Access and filter all your virtual spaces and their files.");
-        pageDescription.setFont(Font.font(FONT, 12));
-        pageDescription.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
-
-        VBox titleBox = new VBox(2, pageTitle, pageDescription);
-        HBox titleArea = new HBox(12, pageIcon, titleBox);
+        Label title=label(spaceName+" Space",22,FontWeight.BOLD,TEXT);
+        Label subtitle=label("Files automatically organized into "+spaceName+".",12,FontWeight.NORMAL,MUTED);
+        VBox titleBox=new VBox(3,title,subtitle);
+        HBox titleArea=new HBox(12,spaceIcon,titleBox);
         titleArea.setAlignment(Pos.CENTER_LEFT);
 
-        Button backButton = new Button("← Back");
-        backButton.setStyle("-fx-background-color:" + BG_CARD_INNER + ";-fx-text-fill:" + TEXT_DARK +
-                ";-fx-border-color:" + BORDER_CARD + ";-fx-border-radius:8;-fx-background-radius:8;" +
-                "-fx-padding:8 14;-fx-cursor:hand;-fx-font-weight:bold;");
-        backButton.setOnAction(e -> LandingPage.showUserSpace());
+        Button back=new Button("← Back");
+        back.setStyle("-fx-background-color:"+BG_INNER+";-fx-text-fill:"+TEXT+";-fx-border-color:"+BORDER+";-fx-border-radius:8;-fx-background-radius:8;-fx-padding:8 14;");
+        back.setOnAction(e->LandingPage.showUserSpace());
 
-        Button addFilesButton = new Button("+ Add Files");
-        addFilesButton.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        addFilesButton.setStyle("-fx-background-color:" + PRIMARY_BLUE +
-                ";-fx-text-fill:#FFFFFF;-fx-background-radius:8;-fx-cursor:hand;-fx-padding:8 16;");
-
-        HBox headerButtons = new HBox(10, backButton, addFilesButton);
-        headerButtons.setAlignment(Pos.CENTER_RIGHT);
-
-        Region headerSpacer = new Region();
-        HBox header = new HBox(titleArea, headerSpacer, headerButtons);
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+        Region headerGap=new Region();
+        HBox.setHgrow(headerGap,Priority.ALWAYS);
+        HBox header=new HBox(titleArea,headerGap,back);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        // =========================================================
-        // STATS GRID (Metric Cards matching UserDashboard style)
-        // =========================================================
-        VBox totalFiles = createDashboardCard("Indexing Activity", "7,032", "📁", PRIMARY_BLUE, "• 84 auto-tagged", "+412 files today");
-        VBox folders = createDashboardCard("Active Spaces", "8 Spaces", "▦", PRIMARY_BLUE, "2 AI generated", "Java Project (64%)");
-        VBox size = createDashboardCard("Indexed Storage", "64.2 GB", "💾", ACCENT_GREEN, "• Synced 2m ago", "4.2 GB recoverable");
-        VBox updated = createDashboardCard("AI Actions Live", "126 Actions", "✦", ACCENT_YELLOW, "⚡ Live pipeline", "12 summaries · 8 links");
+        countLabel=statValue("Loading...");
+        storageLabel=statValue("Loading...");
+        updatedLabel=statValue("Loading...");
 
-        GridPane statsGrid = new GridPane();
-        statsGrid.setHgap(14);
-        statsGrid.add(totalFiles, 0, 0);
-        statsGrid.add(folders, 1, 0);
-        statsGrid.add(size, 2, 0);
-        statsGrid.add(updated, 3, 0);
+        GridPane stats=new GridPane();
+        stats.setHgap(14);
+        stats.add(statCard("Files",countLabel,"📁"),0,0);
+        stats.add(statCard("Storage",storageLabel,"💾"),1,0);
+        stats.add(statCard("Last Updated",updatedLabel,"🕒"),2,0);
 
-        for (int i = 0; i < 4; i++) {
-            ColumnConstraints column = new ColumnConstraints();
-            column.setPercentWidth(25);
-            statsGrid.getColumnConstraints().add(column);
-        }
+        filePane=new FlowPane(12,12);
+        filePane.setPadding(new Insets(4));
 
-        // =========================================================
-        // FILTER BUTTONS & CONTROLS
-        // =========================================================
-        Button allSpacesButton = createFilterButton(selectedSpace);
-        Button filtersButton = createFilterButton("All Files");
-        Button viewTypeButton = createFilterButton("List View");
+        ScrollPane fileScroll=new ScrollPane(filePane);
+        fileScroll.setFitToWidth(true);
+        fileScroll.setStyle("-fx-background-color:transparent;-fx-background:transparent;-fx-border-color:transparent;");
+        VBox.setVgrow(fileScroll,Priority.ALWAYS);
 
-        createMenu(allSpacesButton, "SPACE", "All Spaces", "Personal", "College", "Work",
-                "Finance", "Friends & Family", "Travel");
-        createMenu(filtersButton, "TYPE", "All Files", "Documents", "Photos",
-                "IDs & Certificates", "PDFs", "Videos", "Other");
-        createMenu(viewTypeButton, "VIEW", "Grid View", "List View", "Compact View");
+        VBox fileArea=new VBox(12,label("Files",17,FontWeight.BOLD,LIGHT),fileScroll);
+        fileArea.setPadding(new Insets(18));
+        fileArea.setStyle("-fx-background-color:"+BG_CARD+";-fx-border-color:"+BORDER+";-fx-border-radius:16;-fx-background-radius:16;");
+        HBox.setHgrow(fileArea,Priority.ALWAYS);
 
-        HBox fileAreaTitle = new HBox(10, allSpacesButton, filtersButton, viewTypeButton);
-        fileAreaTitle.setAlignment(Pos.CENTER_RIGHT);
+        previewIcon=label("📄",48,FontWeight.NORMAL,BLUE);
+        previewIcon.setPrefSize(330,160);
+        previewIcon.setAlignment(Pos.CENTER);
+        previewIcon.setStyle("-fx-background-color:"+BG_INNER+";-fx-background-radius:10;");
 
-        // =========================================================
-        // PREVIEW SECTION (Right Panel - Card Surface)
-        // =========================================================
-        Label previewTitle = new Label("File Preview");
-        previewTitle.setFont(Font.font(FONT, FontWeight.BOLD, 16));
-        previewTitle.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        previewName=detailValue("Select a file");
+        previewDate=detailValue("—");
+        previewType=detailValue("—");
+        previewSize=detailValue("—");
 
-        Button previewButton = new Button("Preview");
-        Button shareButton = new Button("Share");
-        styleActionButton(previewButton, true);
-        styleActionButton(shareButton, false);
+        Label previewTitle=label("File Preview",17,FontWeight.BOLD,TEXT);
 
-        HBox previewButtons = new HBox(8, previewButton, shareButton);
-        previewButtons.setAlignment(Pos.CENTER_RIGHT);
+        previewButton=new Button("Preview");
+        previewButton.setDisable(true);
+        previewButton.setStyle("-fx-background-color:"+BLUE+";-fx-text-fill:white;-fx-font-weight:bold;-fx-background-radius:8;-fx-padding:8 16;-fx-cursor:hand;");
+        previewButton.setOnAction(e->{if(selectedFile!=null)openFile(selectedFile.getLocalPath());});
 
-        Region previewSpacer = new Region();
-        HBox previewHeader = new HBox(previewTitle, previewSpacer, previewButtons);
-        HBox.setHgrow(previewSpacer, Priority.ALWAYS);
+        detailsButton=new Button("More details");
+        detailsButton.setStyle("-fx-background-color:transparent;-fx-text-fill:"+BLUE+";-fx-font-size:11px;-fx-font-weight:bold;-fx-padding:5 8;-fx-cursor:hand;");
+        detailsButton.setOnMouseEntered(e->detailsButton.setStyle("-fx-background-color:#D5E5FA;-fx-text-fill:"+BLUE+";-fx-font-size:11px;-fx-font-weight:bold;-fx-background-radius:6;-fx-padding:5 8;-fx-cursor:hand;"));
+        detailsButton.setOnMouseExited(e->detailsButton.setStyle("-fx-background-color:transparent;-fx-text-fill:"+BLUE+";-fx-font-size:11px;-fx-font-weight:bold;-fx-padding:5 8;-fx-cursor:hand;"));
+        detailsButton.setOnAction(e->{if(selectedFile!=null)loadFullDetails(selectedFile);});
+
+        Region previewGap=new Region();
+        HBox.setHgrow(previewGap,Priority.ALWAYS);
+        HBox previewHeader=new HBox(previewTitle,previewGap,previewButton);
         previewHeader.setAlignment(Pos.CENTER_LEFT);
 
-        Label imagePreview = new Label("🖼");
-        imagePreview.setPrefSize(380, 210);
-        imagePreview.setAlignment(Pos.CENTER);
-        imagePreview.setFont(Font.font(FONT, 56));
-        imagePreview.setStyle("-fx-background-color:" + BG_CARD_INNER + ";-fx-border-color:" + BORDER_CARD +
-                ";-fx-border-radius:10;-fx-background-radius:10;-fx-text-fill:" + PRIMARY_BLUE + ";");
+        VBox preview=new VBox(12,previewHeader,previewIcon,detailBox("File Name",previewName),detailBox("Date",previewDate),detailBox("Type",previewType),detailBox("Size",previewSize),detailsButton);
+        preview.setPadding(new Insets(20));
+        preview.setPrefWidth(370);
+        preview.setStyle("-fx-background-color:"+BG_CARD+";-fx-border-color:"+BORDER+";-fx-border-radius:16;-fx-background-radius:16;");
 
-        Label fileNameTitle = new Label("File Name");
-        Label fileNameValue = new Label("Personal_Photo.jpg");
-        Label dateTitle = new Label("Date");
-        Label dateValue = new Label("13 Aug 2026");
-        Label typeTitle = new Label("File Type");
-        Label typeValue = new Label("JPG");
-        Label sizeDetailTitle = new Label("Size");
-        Label sizeDetailValue = new Label("3.2 MB");
+        HBox main=new HBox(16,fileArea,preview);
+        VBox.setVgrow(main,Priority.ALWAYS);
 
-        styleDetailTitle(fileNameTitle);
-        styleDetailTitle(dateTitle);
-        styleDetailTitle(typeTitle);
-        styleDetailTitle(sizeDetailTitle);
-        styleDetailValue(fileNameValue);
-        styleDetailValue(dateValue);
-        styleDetailValue(typeValue);
-        styleDetailValue(sizeDetailValue);
+        VBox content=new VBox(20,header,stats,main);
+        content.setPadding(new Insets(24,28,28,28));
+        content.setStyle("-fx-background-color:"+BG_CENTER+";");
 
-        GridPane fileOverview = new GridPane();
-        fileOverview.setHgap(20);
-        fileOverview.setVgap(12);
-        fileOverview.add(createFileDetail(fileNameTitle, fileNameValue), 0, 0);
-        fileOverview.add(createFileDetail(dateTitle, dateValue), 1, 0);
-        fileOverview.add(createFileDetail(typeTitle, typeValue), 0, 1);
-        fileOverview.add(createFileDetail(sizeDetailTitle, sizeDetailValue), 1, 1);
-        fileOverview.setPadding(new Insets(14));
-        fileOverview.setStyle("-fx-background-color:" + BG_CARD_INNER + ";-fx-border-color:" + BORDER_CARD +
-                ";-fx-border-radius:10;-fx-background-radius:10;");
-
-        VBox previewSection = new VBox(14, previewHeader, imagePreview, fileOverview);
-        previewSection.setPadding(new Insets(20));
-        previewSection.setPrefWidth(430);
-        previewSection.setMinWidth(430);
-        previewSection.setMaxWidth(430);
-        previewSection.setStyle("-fx-background-color:" + BG_CARD + ";-fx-border-color:" + BORDER_CARD +
-                ";-fx-border-radius:16;-fx-background-radius:16;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.18), 16, 0, 0, 6);");
-
-        // =========================================================
-        // FILE LIST / CARDS CONTAINER
-        // =========================================================
-        FlowPane fileCards = new FlowPane();
-        fileCards.setHgap(12);
-        fileCards.setVgap(12);
-        fileCards.setPadding(new Insets(4));
-        fileCards.setPrefWrapLength(600);
-
-        currentFileCards = fileCards;
-        currentImagePreview = imagePreview;
-        currentFileNameValue = fileNameValue;
-        currentDateValue = dateValue;
-        currentTypeValue = typeValue;
-        currentSizeDetailValue = sizeDetailValue;
-
-        addInitialData();
-        refreshFileCards(fileCards, imagePreview, fileNameValue, dateValue, typeValue, sizeDetailValue);
-
-        ScrollPane fileScrollPane = new ScrollPane(fileCards);
-        fileScrollPane.setFitToWidth(true);
-        fileScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        fileScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        fileScrollPane.setPannable(true);
-        fileScrollPane.setStyle("-fx-background-color:transparent;-fx-background:transparent;-fx-border-color:transparent;");
-
-        VBox fileListArea = new VBox(12, fileAreaTitle, fileScrollPane);
-        fileListArea.setPadding(new Insets(18));
-        fileListArea.setStyle("-fx-background-color:" + BG_CARD + ";-fx-border-color:" + BORDER_CARD +
-                ";-fx-border-radius:16;-fx-background-radius:16;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.18), 16, 0, 0, 6);");
-        VBox.setVgrow(fileScrollPane, Priority.ALWAYS);
-
-        HBox mainHBox = new HBox(16, fileListArea, previewSection);
-        HBox.setHgrow(fileListArea, Priority.ALWAYS);
-        VBox.setVgrow(mainHBox, Priority.ALWAYS);
-
-        VBox mainContent = new VBox(20, header, statsGrid, mainHBox);
-        mainContent.setPadding(new Insets(24, 28, 28, 28));
-        mainContent.setStyle("-fx-background-color:" + BG_CENTER_CANVAS + ";");
-        VBox.setVgrow(mainHBox, Priority.ALWAYS);
-
-        ScrollPane centerScroll = new ScrollPane(mainContent);
+        ScrollPane centerScroll=new ScrollPane(content);
         centerScroll.setFitToWidth(true);
-        centerScroll.setStyle("-fx-background-color:" + BG_CENTER_CANVAS + ";-fx-background:" + BG_CENTER_CANVAS + ";");
+        centerScroll.setStyle("-fx-background-color:"+BG_CENTER+";-fx-background:"+BG_CENTER+";");
 
-        VBox center = new VBox(topBar, centerScroll);
-        VBox.setVgrow(centerScroll, Priority.ALWAYS);
-        VBox.setVgrow(center, Priority.ALWAYS);
-        center.setStyle("-fx-background-color:" + BG_CENTER_CANVAS + ";");
+        VBox center=new VBox(topBar,centerScroll);
+        VBox.setVgrow(centerScroll,Priority.ALWAYS);
 
-        addFilesButton.setOnAction(e -> {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Add Files");
-
-            File selectedFile = fileChooser.showOpenDialog(
-                    addFilesButton.getScene().getWindow());
-
-            if (selectedFile != null) {
-                String fileName = selectedFile.getName();
-                int dot = fileName.lastIndexOf(".");
-                String fileType = dot > 0
-                        ? fileName.substring(dot + 1).toUpperCase()
-                        : "FILE";
-
-                String fileSize = formatFileSize(selectedFile.length());
-                String category = determineCategory(fileType);
-                String icon = getFileIcon(fileType);
-
-                String targetSpace = selectedSpace.equals("All Spaces") ? "Personal" : selectedSpace;
-
-                fileData.add(new FileData(
-                        fileName, "18 Aug 2026", fileType, fileSize,
-                        targetSpace, category, icon));
-
-                refreshFileCards(fileCards, imagePreview, fileNameValue,
-                        dateValue, typeValue, sizeDetailValue);
-            }
-        });
-
-        BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color:" + BG_SIDEBAR + ";");
+        BorderPane root=new BorderPane();
         root.setLeft(sidebar);
         root.setCenter(center);
+        root.setStyle("-fx-background-color:"+BG_SIDEBAR+";");
 
-        return new Scene(root, 1200, 750);
+        loadFiles();
+        return new Scene(root,1200,750);
     }
 
-    private void addInitialData() {
-        fileData.clear();
-        fileData.add(new FileData("Personal_Photo.jpg", "13 Aug 2026", "JPG",
-                "3.2 MB", "Personal", "Photos", "🖼"));
-        fileData.add(new FileData("Aadhaar_Card.pdf", "12 Aug 2026", "PDF",
-                "1.8 MB", "Personal", "IDs & Certificates", "📄"));
-        fileData.add(new FileData("Resume_2026.pdf", "10 Aug 2026", "PDF",
-                "2.5 MB", "Personal", "Documents", "📄"));
-        fileData.add(new FileData("Family_Photo.jpg", "08 Aug 2026", "JPG",
-                "6.7 MB", "Friends & Family", "Photos", "🖼"));
-        fileData.add(new FileData("Personal_Notes.docx", "05 Aug 2026", "DOCX",
-                "4.4 MB", "Personal", "Documents", "📝"));
+    private void loadFiles(){
+        UserSession session=UserSession.getInstance();
+        if(session==null||!UserSession.isLoggedIn()||session.getUid()==null||session.getUid().isBlank()){
+            Platform.runLater(()->showEmpty("No authenticated user."));
+            return;
+        }
+        String uid=session.getUid();
+        Thread thread=new Thread(()->{
+            try{
+                List<FileData> loaded=spaceId.equals("all")?fileDAO.getFileSummaries(uid):fileDAO.getFileSummariesBySpace(uid,spaceId);
+                loaded.sort((a,b)->{
+                    if(a.getUploadedAt()==null)return 1;
+                    if(b.getUploadedAt()==null)return -1;
+                    return b.getUploadedAt().compareTo(a.getUploadedAt());
+                });
+                files=loaded;
+                Platform.runLater(()->{updateStats();refreshFiles("");});
+            }catch(Exception e){Platform.runLater(()->showEmpty("Unable to load files."));}
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
-    private void refreshFileCards(FlowPane fileCards, Label imagePreview,
-                                    Label fileNameValue, Label dateValue,
-                                    Label typeValue, Label sizeDetailValue) {
+    private void refreshFiles(String query){
+        filePane.getChildren().clear();
+        String search=query==null?"":query.trim().toLowerCase();
+        int shown=0;
+        for(FileData file:files){
+            String name=file.getFileName()==null?"Unnamed file":file.getFileName();
+            if(!search.isEmpty()&&!name.toLowerCase().contains(search))continue;
+            filePane.getChildren().add(createFileCard(file));
+            shown++;
+        }
+        if(shown==0)showEmpty(search.isEmpty()?"No files in this Space.":"No matching files.");
+    }
 
-        fileCards.getChildren().clear();
+    private VBox createFileCard(FileData file){
+        String name=file.getFileName()==null?"Unnamed file":file.getFileName();
+        Label icon=label(fileIcon(name),20,FontWeight.NORMAL,BLUE);
+        icon.setPrefSize(40,40);
+        icon.setAlignment(Pos.CENTER);
+        icon.setStyle("-fx-background-color:"+BG_INNER+";-fx-background-radius:8;");
 
-        for (FileData file : fileData) {
-            boolean spaceMatches = selectedSpace.equals("All Spaces")
-                    || file.space.equalsIgnoreCase(selectedSpace);
+        Label title=label(name,12,FontWeight.BOLD,TEXT);
+        Label meta=label((file.getFileType()==null?"":file.getFileType())+" • "+formatSize(file.getFileSize()),10,FontWeight.NORMAL,MUTED);
 
-            boolean typeMatches = selectedFileType.equals("All Files")
-                    || file.category.equals(selectedFileType)
-                    || (selectedFileType.equals("PDFs")
-                    && file.type.equalsIgnoreCase("PDF"));
+        VBox text=new VBox(3,title,meta);
+        HBox card=new HBox(10,icon,text);
+        card.setPrefWidth(420);
+        card.setMinHeight(64);
+        card.setPadding(new Insets(12));
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setStyle("-fx-background-color:"+BG_INNER+";-fx-border-color:"+BORDER+";-fx-border-radius:10;-fx-background-radius:10;-fx-cursor:hand;");
+        card.setOnMouseEntered(e->card.setStyle("-fx-background-color:#D7E7F8;-fx-border-color:"+BLUE+";-fx-border-radius:10;-fx-background-radius:10;-fx-cursor:hand;"));
+        card.setOnMouseExited(e->card.setStyle("-fx-background-color:"+BG_INNER+";-fx-border-color:"+BORDER+";-fx-border-radius:10;-fx-background-radius:10;-fx-cursor:hand;"));
+        card.setOnMouseClicked(e->selectFile(file));
+        return new VBox(card);
+    }
 
-            if (spaceMatches && typeMatches) {
-                addFileCard(fileCards, file, imagePreview, fileNameValue,
-                        dateValue, typeValue, sizeDetailValue);
+    private void selectFile(FileData file){
+        selectedFile=file;
+        previewButton.setDisable(false);
+        detailsButton.setDisable(false);
+        previewIcon.setText(fileIcon(file.getFileName()));
+        previewName.setText(file.getFileName()==null?"Unnamed file":file.getFileName());
+        previewType.setText(file.getFileType()==null?"—":file.getFileType());
+        previewSize.setText(formatSize(file.getFileSize()));
+        previewDate.setText(file.getUploadedAt()==null?"—":formatDate(file.getUploadedAt()));
+    }
+
+    private void loadFullDetails(FileData summary){
+        UserSession session=UserSession.getInstance();
+        if(session==null||session.getUid()==null||session.getUid().isBlank()){
+            showAlert("No authenticated user.");
+            return;
+        }
+        if(summary.getFileHash()==null||summary.getFileHash().isBlank()){
+            showDetails(summary);
+            return;
+        }
+        detailsButton.setDisable(true);
+        detailsButton.setText("Loading...");
+        Thread thread=new Thread(()->{
+            try{
+                FileData full=fileDAO.getFile(session.getUid(),summary.getFileHash());
+                Platform.runLater(()->{
+                    detailsButton.setDisable(false);
+                    detailsButton.setText("More details");
+                    showDetails(full==null?summary:full);
+                });
+            }catch(Exception e){
+                Platform.runLater(()->{
+                    detailsButton.setDisable(false);
+                    detailsButton.setText("More details");
+                    showAlert("Unable to load file details.");
+                });
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void showDetails(FileData file){
+        if(file==null)return;
+
+        Dialog<Void> dialog=new Dialog<>();
+        dialog.setTitle("File Details");
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+
+        String name=file.getFileName()==null?"Unnamed file":file.getFileName();
+        String description=file.getDescription();
+        if(description==null||description.isBlank())description="No description available.";
+
+        VBox box=new VBox(14);
+        box.setPadding(new Insets(18));
+        box.setStyle("-fx-background-color:"+BG_CARD+";");
+
+        Label heading=label(name,18,FontWeight.BOLD,TEXT);
+        Label type=detailLine("File Type",safe(file.getFileType()));
+        Label size=detailLine("File Size",formatSize(file.getFileSize()));
+        Label date=detailLine("Uploaded",file.getUploadedAt()==null?"—":formatDate(file.getUploadedAt()));
+        Label path=detailLine("Local Path",safe(file.getLocalPath()));
+
+        Label descriptionTitle=label("Description",11,FontWeight.BOLD,MUTED);
+        Label descriptionValue=label(description,12,FontWeight.NORMAL,TEXT);
+        descriptionValue.setWrapText(true);
+        descriptionValue.setMaxWidth(460);
+
+        VBox descriptionBox=new VBox(4,descriptionTitle,descriptionValue);
+        descriptionBox.setPadding(new Insets(10));
+        descriptionBox.setStyle("-fx-background-color:"+BG_INNER+";-fx-background-radius:10;");
+
+        Label tagsTitle=label("Smart Tags",11,FontWeight.BOLD,MUTED);
+        FlowPane tagsPane=new FlowPane(7,7);
+
+        List<String> tags=file.getSmartTags();
+        if(tags==null||tags.isEmpty()){
+            tagsPane.getChildren().add(tag("No smart tags available."));
+        }else{
+            for(String tag:tags)if(tag!=null&&!tag.isBlank())tagsPane.getChildren().add(tag(tag));
+        }
+
+        VBox tagsBox=new VBox(6,tagsTitle,tagsPane);
+        tagsBox.setPadding(new Insets(10));
+        tagsBox.setStyle("-fx-background-color:"+BG_INNER+";-fx-background-radius:10;");
+
+        box.getChildren().addAll(heading,type,size,date,path,descriptionBox,tagsBox);
+
+        ScrollPane scroll=new ScrollPane(box);
+        scroll.setFitToWidth(true);
+        scroll.setPrefViewportWidth(500);
+        scroll.setPrefViewportHeight(430);
+        scroll.setStyle("-fx-background-color:"+BG_CARD+";-fx-background:"+BG_CARD+";-fx-border-color:transparent;");
+
+        dialog.getDialogPane().setContent(scroll);
+        dialog.getDialogPane().setStyle("-fx-background-color:"+BG_CARD+";");
+        dialog.showAndWait();
+    }
+
+    private Label detailLine(String title,String value){
+        Label l=label(title+"   "+value,11,FontWeight.NORMAL,TEXT);
+        l.setWrapText(true);
+        return l;
+    }
+
+    private Label tag(String text){
+        Label l=label(text,10,FontWeight.BOLD,BLUE);
+        l.setPadding(new Insets(5,9,5,9));
+        l.setStyle("-fx-background-color:#D6E6FA;-fx-background-radius:12;-fx-text-fill:"+BLUE+";-fx-font-weight:bold;");
+        return l;
+    }
+
+    private String safe(String value){return value==null||value.isBlank()?"—":value;}
+
+    private void updateStats(){
+        long total=0;
+        Instant latest=null;
+        for(FileData file:files){
+            total+=file.getFileSize();
+            if(file.getUploadedAt()!=null){
+                Instant time=file.getUploadedAt().toDate().toInstant();
+                if(latest==null||time.isAfter(latest))latest=time;
             }
         }
+        countLabel.setText(files.size()+" files");
+        storageLabel.setText(formatSize(total));
+        updatedLabel.setText(latest==null?"—":relativeTime(latest));
     }
 
-    private void addFileCard(FlowPane fileCards, FileData file, Label imagePreview,
-                           Label fileNameValue, Label dateValue,
-                           Label typeValue, Label sizeDetailValue) {
-
-        Label icon = new Label(file.icon);
-        icon.setFont(Font.font(FONT, 20));
-        icon.setPrefSize(38, 38);
-        icon.setMinSize(38, 38);
-        icon.setMaxSize(38, 38);
-        icon.setAlignment(Pos.CENTER);
-        icon.setStyle("-fx-background-color:" + BG_CARD_INNER +
-                ";-fx-background-radius:8;-fx-text-fill:" + PRIMARY_BLUE + ";");
-
-        Label nameLabel = new Label(file.name);
-        nameLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        nameLabel.setStyle("-fx-text-fill:" + TEXT_DARK + ";-fx-font-size:12px;-fx-font-weight:600;");
-        nameLabel.setWrapText(true);
-
-        Label infoLabel = new Label(file.type + " • " + file.date + " • " + file.size);
-        infoLabel.setFont(Font.font(FONT, 10));
-        infoLabel.setStyle("-fx-text-fill:" + TEXT_MUTED_DARK + ";-fx-font-size:10px;-fx-font-weight:600;");
-        infoLabel.setWrapText(true);
-
-        VBox details = new VBox(3, nameLabel, infoLabel);
-        details.setAlignment(Pos.CENTER_LEFT);
-
-        HBox card = new HBox(12, icon, details);
-        card.setAlignment(Pos.CENTER_LEFT);
-
-        if (selectedViewType.equals("Grid View")) {
-            card.setPrefSize(240, 120);
-            card.setMinSize(240, 120);
-            card.setMaxSize(240, 120);
-            card.setAlignment(Pos.CENTER);
-            card.setSpacing(7);
-            card.setPadding(new Insets(12));
-            details.setAlignment(Pos.CENTER);
-            details.setPrefWidth(200);
-            details.setMaxWidth(200);
-            nameLabel.setMaxWidth(200);
-            infoLabel.setMaxWidth(200);
-            nameLabel.setAlignment(Pos.CENTER);
-            infoLabel.setAlignment(Pos.CENTER);
-        } else if (selectedViewType.equals("Compact View")) {
-            card.setPrefWidth(980);
-            card.setMinWidth(980);
-            card.setPrefHeight(46);
-            card.setMinHeight(46);
-            card.setPadding(new Insets(5, 10, 5, 10));
-            icon.setPrefSize(30, 30);
-            icon.setMinSize(30, 30);
-            icon.setMaxSize(30, 30);
-            icon.setFont(Font.font(FONT, 14));
-            details.setPrefWidth(900);
-            details.setMaxWidth(900);
-        } else {
-            card.setPrefWidth(980);
-            card.setMinWidth(980);
-            card.setPrefHeight(68);
-            card.setMinHeight(68);
-            card.setPadding(new Insets(12));
-            details.setPrefWidth(900);
-            details.setMaxWidth(900);
-        }
-
-        String normalStyle = "-fx-background-color:" + BG_CARD_INNER + ";-fx-border-color:" + BORDER_CARD +
-                ";-fx-border-radius:10;-fx-background-radius:10;-fx-cursor:hand;";
-
-        card.setStyle(normalStyle);
-
-        card.setOnMouseEntered(e -> card.setStyle(
-                "-fx-background-color:" + BG_CARD_INNER + ";-fx-border-color:" + PRIMARY_BLUE +
-                ";-fx-border-radius:10;-fx-background-radius:10;-fx-cursor:hand;"));
-
-        card.setOnMouseExited(e -> card.setStyle(normalStyle));
-
-        card.setOnMouseClicked(e -> {
-            imagePreview.setText(file.icon);
-            fileNameValue.setText(file.name);
-            dateValue.setText(file.date);
-            typeValue.setText(file.type);
-            sizeDetailValue.setText(file.size);
-        });
-
-        fileCards.getChildren().add(card);
+    private void openFile(String path){
+        if(path==null||path.isBlank())return;
+        try{
+            File file=new File(path);
+            if(!file.exists()){showAlert("The file no longer exists at its stored location.");return;}
+            if(!Desktop.isDesktopSupported()){showAlert("Opening files is not supported on this system.");return;}
+            Desktop.getDesktop().open(file);
+        }catch(Exception e){showAlert("Unable to open the selected file.");}
     }
 
-    private String determineCategory(String fileType) {
-        if (fileType.equals("DOC") || fileType.equals("DOCX") ||
-                fileType.equals("TXT") || fileType.equals("ODT")) return "Documents";
-
-        if (fileType.equals("JPG") || fileType.equals("JPEG") ||
-                fileType.equals("PNG") || fileType.equals("GIF") ||
-                fileType.equals("WEBP")) return "Photos";
-
-        if (fileType.equals("MP4") || fileType.equals("AVI") ||
-                fileType.equals("MKV") || fileType.equals("MOV")) return "Videos";
-
-        if (fileType.equals("PDF")) return "PDFs";
-        return "Other";
+    private void showEmpty(String text){
+        if(filePane==null)return;
+        filePane.getChildren().clear();
+        filePane.getChildren().add(label(text,13,FontWeight.NORMAL,MUTED));
     }
 
-    private String getFileIcon(String fileType) {
-        if (fileType.equals("JPG") || fileType.equals("JPEG") ||
-                fileType.equals("PNG") || fileType.equals("GIF") ||
-                fileType.equals("WEBP")) return "🖼";
+    private String formatDate(Instant instant){
+        return DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm").withZone(ZoneId.systemDefault()).format(instant);
+    }
 
-        if (fileType.equals("PDF")) return "📄";
+    private String relativeTime(Instant time){
+        long minutes=Math.max(0,Duration.between(time,Instant.now()).toMinutes());
+        if(minutes<1)return "Just now";
+        if(minutes<60)return minutes+" min ago";
+        long hours=minutes/60;
+        if(hours<24)return hours+" hr ago";
+        long days=hours/24;
+        return days+" day"+(days==1?"":"s")+" ago";
+    }
 
-        if (fileType.equals("MP4") || fileType.equals("AVI") ||
-                fileType.equals("MKV") || fileType.equals("MOV")) return "🎬";
+    private String formatDate(com.google.cloud.Timestamp timestamp){
+        return timestamp==null?"—":formatDate(timestamp.toDate().toInstant());
+    }
 
-        if (fileType.equals("DOC") || fileType.equals("DOCX")) return "📝";
+    private void showAlert(String message){
+        Alert alert=new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("OneSpace");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private String formatSize(long bytes){
+        if(bytes<=0)return "0 B";
+        if(bytes<1024)return bytes+" B";
+        if(bytes<1048576)return String.format("%.1f KB",bytes/1024.0);
+        if(bytes<1073741824L)return String.format("%.1f MB",bytes/1048576.0);
+        return String.format("%.1f GB",bytes/1073741824.0);
+    }
+
+    private String fileIcon(String name){
+        if(name==null)return "📄";
+        String n=name.toLowerCase();
+        if(n.matches(".*\\.(jpg|jpeg|png|gif|webp)$"))return "🖼";
+        if(n.endsWith(".pdf"))return "📄";
+        if(n.matches(".*\\.(doc|docx)$"))return "📝";
+        if(n.matches(".*\\.(xls|xlsx)$"))return "📊";
+        if(n.matches(".*\\.(ppt|pptx)$"))return "📽";
+        if(n.matches(".*\\.(mp4|avi|mkv|mov)$"))return "🎬";
+        if(n.matches(".*\\.(mp3|wav|m4a)$"))return "🎵";
         return "📁";
     }
 
-    private String formatFileSize(long bytes) {
-        if (bytes < 1024) return bytes + " B";
-        if (bytes < 1024 * 1024)
-            return String.format("%.1f KB", bytes / 1024.0);
-        return String.format("%.1f MB", bytes / (1024.0 * 1024.0));
+    private VBox createSidebar(){
+        Image image=new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
+        ImageView logoImage=new ImageView(image);
+        logoImage.setFitWidth(42);
+        logoImage.setFitHeight(42);
+        logoImage.setPreserveRatio(true);
+
+        HBox logo=new HBox(10,logoImage,label("OneSpace",19,FontWeight.BOLD,LIGHT));
+        logo.setAlignment(Pos.CENTER_LEFT);
+
+        Button dashboard=side("⌂","Dashboard",false,e->LandingPage.showUserDashboard());
+        Button spaces=side("📁","Spaces",true,e->LandingPage.showUserSpace());
+        Button search=side("⌕","Search",false,e->LandingPage.showUserSearch());
+        Button calendar=side("📅","Calendar",false,e->LandingPage.showCalendarPage());
+        Button ai=side("✧","AI Assistant",false,e->LandingPage.showAiAssistantPage());
+        Button collab=side("👥","Collaboration",false,e->LandingPage.showCollaborationPage());
+        Button recent=side("🕒","Recent",false,e->LandingPage.showRecentPage());
+        Button trash=side("🗑","Trash",false,e->LandingPage.showTrashPage());
+        Button settings=side("⚙","Settings",false,e->LandingPage.showSettingPage());
+
+        Region gap=new Region();
+        VBox.setVgrow(gap,Priority.ALWAYS);
+
+        VBox sidebar=new VBox(8,logo,dashboard,spaces,search,calendar,ai,collab,recent,trash,gap,settings);
+        sidebar.setPadding(new Insets(20,14,20,14));
+        sidebar.setPrefWidth(230);
+        sidebar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:#2D3D52;-fx-border-width:0 1 0 0;");
+        return sidebar;
     }
 
-    private Button createFilterButton(String text) {
-        Button button = new Button(text + " ▼");
-        button.setPrefHeight(34);
-        button.setPadding(new Insets(0, 14, 0, 14));
-        button.setStyle("-fx-background-color:" + BG_CARD_INNER + ";-fx-text-fill:" + TEXT_DARK +
-                ";-fx-font-size:11px;-fx-font-weight:bold;-fx-background-radius:8;" +
-                "-fx-border-color:" + BORDER_CARD + ";-fx-border-radius:8;-fx-cursor:hand;");
-        return button;
+    private Button side(String icon,String text,boolean active,javafx.event.EventHandler<javafx.event.ActionEvent> action){
+        HBox h=new HBox(12,label(icon,14,FontWeight.NORMAL,active?LIGHT:MUTED_LIGHT),label(text,13,active?FontWeight.BOLD:FontWeight.MEDIUM,LIGHT));
+        h.setAlignment(Pos.CENTER_LEFT);
+        Button b=new Button("",h);
+        b.setMaxWidth(Double.MAX_VALUE);
+        b.setPrefHeight(38);
+        b.setAlignment(Pos.CENTER_LEFT);
+        b.setPadding(new Insets(0,12,0,12));
+        b.setStyle("-fx-background-color:"+(active?BLUE:"transparent")+";-fx-background-radius:8;");
+        b.setOnAction(action);
+        return b;
     }
 
-    private ContextMenu createMenu(Button button, String menuType, String... options) {
-        ContextMenu menu = new ContextMenu();
-        menu.setStyle("-fx-background-color:" + BG_CARD + ";-fx-background-radius:8;" +
-                "-fx-border-color:" + BORDER_CARD + ";-fx-border-radius:8;");
-
-        for (String option : options) {
-            MenuItem item = new MenuItem(option);
-            item.setStyle("-fx-font-size:12px;-fx-padding:8 18 8 18;-fx-text-fill:" + TEXT_DARK + ";");
-
-            item.setOnAction(e -> {
-                button.setText(option + " ▼");
-
-                if (menuType.equals("SPACE")) selectedSpace = option;
-                if (menuType.equals("TYPE")) selectedFileType = option;
-                if (menuType.equals("VIEW")) selectedViewType = option;
-
-                refreshFileCards(currentFileCards, currentImagePreview,
-                        currentFileNameValue, currentDateValue,
-                        currentTypeValue, currentSizeDetailValue);
-
-                menu.hide();
-            });
-
-            menu.getItems().add(item);
-        }
-
-        button.setOnAction(e -> {
-            if (menu.isShowing()) menu.hide();
-            else menu.show(button, javafx.geometry.Side.BOTTOM, 0, 3);
-        });
-
-        return menu;
-    }
-
-    private VBox createFileDetail(Label title, Label value) {
-        return new VBox(2, title, value);
-    }
-
-    private void styleDetailTitle(Label label) {
-        label.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        label.setStyle("-fx-text-fill:" + TEXT_MUTED_DARK + ";-fx-font-weight:600;");
-    }
-
-    private void styleDetailValue(Label label) {
-        label.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        label.setStyle("-fx-text-fill:" + TEXT_DARK + ";");
-    }
-
-    private void styleActionButton(Button button, boolean primary) {
-        button.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        button.setPadding(new Insets(7, 14, 7, 14));
-
-        if (primary) {
-            button.setStyle("-fx-background-color:" + PRIMARY_BLUE +
-                    ";-fx-text-fill:#FFFFFF;-fx-background-radius:8;-fx-cursor:hand;");
-        } else {
-            button.setStyle("-fx-background-color:" + BG_CARD_INNER +
-                    ";-fx-text-fill:" + TEXT_DARK + ";-fx-border-color:" + BORDER_CARD +
-                    ";-fx-border-radius:8;-fx-background-radius:8;-fx-cursor:hand;-fx-font-weight:bold;");
-        }
-    }
-
-    private VBox createDashboardCard(String title, String mainValue, String symbol, String symbolColor, String tag1Text, String tag2Text) {
-        Label titleLabel = new Label(title);
-        titleLabel.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        titleLabel.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
-
-        Label symbolIcon = new Label(symbol);
-        symbolIcon.setFont(Font.font(FONT, 12));
-        symbolIcon.setStyle("-fx-text-fill: " + symbolColor + ";");
-
-        StackPane iconBadge = new StackPane(symbolIcon);
-        iconBadge.setPrefSize(26, 26);
-        iconBadge.setStyle("-fx-background-color:" + BG_CARD_INNER + ";-fx-background-radius:6;");
-
-        HBox topRow = new HBox(titleLabel, new Region(), iconBadge);
-        HBox.setHgrow(topRow.getChildren().get(1), Priority.ALWAYS);
-        topRow.setAlignment(Pos.CENTER_LEFT);
-
-        Label valueLabel = new Label(mainValue);
-        valueLabel.setFont(Font.font(FONT, FontWeight.BOLD, 20));
-        valueLabel.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
-
-        Label tag1 = new Label(tag1Text);
-        tag1.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 10));
-        tag1.setPadding(new Insets(3, 8, 3, 8));
-        tag1.setStyle("-fx-background-color:" + BG_CARD_INNER + ";-fx-text-fill:" + PRIMARY_BLUE + ";-fx-background-radius:6;");
-
-        Label tag2 = new Label(tag2Text);
-        tag2.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 10));
-        tag2.setPadding(new Insets(3, 8, 3, 8));
-        tag2.setStyle("-fx-background-color:" + BG_CARD_INNER + ";-fx-text-fill:" + TEXT_MUTED_DARK + ";-fx-background-radius:6;");
-
-        HBox tagsRow = new HBox(6, tag1, tag2);
-        tagsRow.setAlignment(Pos.CENTER_LEFT);
-
-        VBox card = new VBox(8, topRow, valueLabel, tagsRow);
+    private VBox statCard(String title,Label value,String icon){
+        Label heading=label(title,11,FontWeight.BOLD,MUTED);
+        Label symbol=label(icon,14,FontWeight.NORMAL,BLUE);
+        Region gap=new Region();
+        HBox.setHgrow(gap,Priority.ALWAYS);
+        HBox row=new HBox(heading,gap,symbol);
+        VBox card=new VBox(8,row,value);
         card.setPadding(new Insets(14));
-        card.setMinHeight(105);
-        card.setPrefHeight(105);
-        card.setStyle("-fx-background-color:" + BG_CARD + ";-fx-border-color:" + BORDER_CARD +
-                ";-fx-border-radius:14;-fx-background-radius:14;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.14), 12, 0, 0, 4);");
-
+        card.setMinHeight(85);
+        card.setStyle("-fx-background-color:"+BG_CARD+";-fx-border-color:"+BORDER+";-fx-border-radius:14;-fx-background-radius:14;");
         return card;
     }
 
-    private Button createSidebarButton(String icon, String text, boolean active) {
-        Label iconLabel = new Label(icon);
-        iconLabel.setFont(Font.font(FONT, 14));
+    private Label statValue(String text){return label(text,19,FontWeight.BOLD,TEXT);}
 
-        Label textLabel = new Label(text);
-        textLabel.setFont(Font.font(FONT,
-                active ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
-
-        HBox content = new HBox(12, iconLabel, textLabel);
-        content.setAlignment(Pos.CENTER_LEFT);
-
-        Button button = new Button("", content);
-        button.setMaxWidth(Double.MAX_VALUE);
-        button.setPrefHeight(38);
-        button.setAlignment(Pos.CENTER_LEFT);
-        button.setPadding(new Insets(0, 12, 0, 12));
-
-        if (active) {
-            button.setStyle("-fx-background-color:" + PRIMARY_BLUE + ";-fx-background-radius:8;-fx-cursor:hand;");
-            iconLabel.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-            textLabel.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-        } else {
-            button.setStyle("-fx-background-color:transparent;-fx-background-radius:8;-fx-cursor:hand;");
-            iconLabel.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-            textLabel.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-
-            button.setOnMouseEntered(e ->
-                    button.setStyle("-fx-background-color:#26354A;-fx-background-radius:8;-fx-cursor:hand;"));
-
-            button.setOnMouseExited(e ->
-                    button.setStyle("-fx-background-color:transparent;-fx-background-radius:8;-fx-cursor:hand;"));
-        }
-
-        return button;
+    private VBox detailBox(String title,Label value){
+        return new VBox(2,label(title,10,FontWeight.BOLD,MUTED),value);
     }
 
-    private StackPane createOneSpaceLogo() {
-        Image logoImage = new Image(
-                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
-        );
+    private Label detailValue(String text){return label(text,12,FontWeight.BOLD,TEXT);}
 
-        ImageView logoView = new ImageView(logoImage);
-        logoView.setFitWidth(38);
-        logoView.setFitHeight(38);
-        logoView.setPreserveRatio(true);
-
-        StackPane logoPane = new StackPane(logoView);
-        logoPane.setPrefSize(38, 38);
-        logoPane.setAlignment(Pos.CENTER);
-
-        return logoPane;
-    }
-
-    private static class FileData {
-        String name, date, type, size, space, category, icon;
-
-        FileData(String name, String date, String type, String size,
-                   String space, String category, String icon) {
-            this.name = name;
-            this.date = date;
-            this.type = type;
-            this.size = size;
-            this.space = space;
-            this.category = category;
-            this.icon = icon;
-        }
+    private Label label(String text,double size,FontWeight weight,String color){
+        Label l=new Label(text);
+        l.setFont(Font.font(FONT,weight,size));
+        l.setStyle("-fx-text-fill:"+color+";");
+        return l;
     }
 }

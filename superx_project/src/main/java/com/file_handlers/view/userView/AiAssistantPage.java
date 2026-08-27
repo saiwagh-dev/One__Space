@@ -1,7 +1,5 @@
 package com.file_handlers.view.userView;
 
-import com.file_handlers.view.LandingPage;
-
 //import javafx.collections.FXCollections;
 //import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -31,6 +29,8 @@ import javafx.stage.FileChooser;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.file_handlers.view.LandingPage;
 
 public class AiAssistantPage {
 

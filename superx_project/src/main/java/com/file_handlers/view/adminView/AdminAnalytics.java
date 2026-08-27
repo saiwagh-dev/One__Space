@@ -1,6 +1,5 @@
 package com.file_handlers.view.adminView;
 
-import com.file_handlers.view.LandingPage;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -27,6 +26,8 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import java.io.InputStream;
+
+import com.file_handlers.view.LandingPage;
 
 public class AdminAnalytics {
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
