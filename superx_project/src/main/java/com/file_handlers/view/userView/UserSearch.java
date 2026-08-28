@@ -1,8 +1,11 @@
 package com.file_handlers.view.userView;
 
+import com.file_handlers.dao.FileDAO;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.model.FileData;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -24,569 +27,1264 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 
-import java.util.Arrays;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserSearch {
+    private final FileDAO fileDAO=new FileDAO();
+    private int searchVersion=0;
 
-    // Style Constants - Exact Color Hierarchy matching UserDashboard
-    private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    // ---------------------------------------------------------
+    // Style
+    // ---------------------------------------------------------
 
-    // 1. Sidebar & Top Bar: Deep Dark Slate
+    private static final String FONT =
+            "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
     private static final String BG_SIDEBAR = "#1E2A3A";
     private static final String BG_SIDEBAR_CARD = "#141D29";
     private static final String SIDEBAR_BORDER = "#2D3D52";
 
-    // 2. Center Workspace Canvas: Medium Slate Blue
     private static final String BG_CENTER_CANVAS = "#31435B";
 
-    // 3. Main Cards: Soft Light Blue
     private static final String BG_CARD = "#DDE8F8";
     private static final String BG_CARD_INNER = "#CADDF2";
     private static final String BORDER_CARD = "#C3D6EC";
 
-    // 4. Contrast Typography
-    private static final String TEXT_DARK = "#0F172A";        // Deep Navy for headings / big numbers
-    private static final String TEXT_MUTED_DARK = "#334155";  // Slate for subtext / labels inside cards
-    private static final String TEXT_LIGHT = "#FFFFFF";       // Main white text on dark surfaces
-    private static final String TEXT_MUTED_LIGHT = "#94A3B8"; // Subtext on dark surfaces
+    private static final String TEXT_DARK = "#0F172A";
+    private static final String TEXT_MUTED_DARK = "#334155";
+    private static final String TEXT_LIGHT = "#FFFFFF";
+    private static final String TEXT_MUTED_LIGHT = "#94A3B8";
 
-    // Accent Colors
     private static final String PRIMARY_BLUE = "#2563EB";
 
-    // File Data Model
-    private final List<FileInfo> files = Arrays.asList(
-            new FileInfo("PDF", "Aadhaar_Card_Scan.pdf", "C:/Users/you/Documents/IDs", "1.2 MB", "12 Mar 2026"),
-            new FileInfo("PDF", "Java_Unit3_Notes.pdf", "C:/Users/you/College/Notes", "4.6 MB", "02 Jul 2026"),
-            new FileInfo("DOCX", "DBMS_Assignment_4.docx", "C:/Users/you/College/Assignments", "780 KB", "27 Jun 2026"),
-            new FileInfo("PPTX", "Computer_Graphics.pptx", "C:/Users/you/College/Presentations", "3.8 MB", "18 Jul 2026"),
-            new FileInfo("XLSX", "College_Expenses.xlsx", "C:/Users/you/Finance", "620 KB", "22 Jul 2026"),
-            new FileInfo("JPG", "College_Event.jpg", "C:/Users/you/Pictures/College", "2.4 MB", "20 Jul 2026"),
-            new FileInfo("PNG", "OneSpace_Logo.png", "C:/Users/you/Pictures/Projects", "850 KB", "10 Aug 2026"),
-            new FileInfo("MP4", "Project_Demo.mp4", "C:/Users/you/Videos/Projects", "24.5 MB", "12 Aug 2026"),
-            new FileInfo("AVI", "College_Event.avi", "C:/Users/you/Videos/College", "18.2 MB", "05 Aug 2026")
-    );
+    // ---------------------------------------------------------
+    // File data
+    // ---------------------------------------------------------
+
+    private final List<FileInfo> files =
+            new ArrayList<>();
 
     private VBox listContainer;
     private GridPane gridContainer;
     private StackPane contentBox;
+
     private String selectedType = "All";
     private String searchQuery = "";
     private boolean isGridView = false;
 
+    // ---------------------------------------------------------
+    // Main scene
+    // ---------------------------------------------------------
+
     public Scene getUserSearchScene() {
-         String activeUserName = "User";
+
+        String activeUserName = "User";
         String initials = "U";
 
-        if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
-                String fullName = UserSession.getInstance().getDisplayName().trim();
-                if (!fullName.isEmpty()) {
-                // Extract only the first name (everything before the first space)
-                        String[] parts = fullName.split("\\s+");
-                        activeUserName = parts[0];
-        
-                        // Grab the initial from the first name
-                        initials = activeUserName.substring(0, 1).toUpperCase();
-                }
+        if (UserSession.getInstance() != null &&
+                UserSession.getInstance().getDisplayName() != null) {
+
+            String fullName =
+                    UserSession.getInstance()
+                            .getDisplayName()
+                            .trim();
+
+            if (!fullName.isEmpty()) {
+                activeUserName =
+                        fullName.split("\\s+")[0];
+
+                initials =
+                        activeUserName
+                                .substring(0, 1)
+                                .toUpperCase();
+            }
         }
 
-        // =========================================================
+        // =====================================================
         // SIDEBAR
-        // =========================================================
+        // =====================================================
 
-        StackPane logoIcon = createOneSpaceLogo();
+        StackPane logoIcon =
+                createOneSpaceLogo();
 
-        Label logoText = new Label("OneSpace");
-        logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
-        logoText.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 19px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_LIGHT + ";");
+        Label logoText =
+                new Label("OneSpace");
 
-        HBox logoHeader = new HBox(10, logoIcon, logoText);
-        logoHeader.setAlignment(Pos.CENTER_LEFT);
+        logoText.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.BOLD,
+                        19
+                )
+        );
 
-        VBox logoBox = new VBox(4, logoHeader);
-        logoBox.setPadding(new Insets(0, 0, 18, 6));
+        logoText.setStyle(
+                "-fx-text-fill:" +
+                TEXT_LIGHT +
+                ";"
+        );
 
-        Button dashboardBtn = createSidebarButton("⌂", "Dashboard", false);
-        Button spacesBtn = createSidebarButton("📁", "Spaces", false);
-        Button searchBtn = createSidebarButton("⌕", "Search", true);
-        Button calendarBtn = createSidebarButton("📅", "Calendar", false);
-        Button aiBtn = createSidebarButton("✧", "AI Assistant", false);
-        Button collabBtn = createSidebarButton("👥", "Collaboration", false);
-        Button recentBtn = createSidebarButton("🕒", "Recent", false);
-        Button trashBtn = createSidebarButton("🗑", "Trash", false);
-        Button settingsBtn = createSidebarButton("⚙", "Settings", false);
-        Button logoutBtn = createSidebarButton("🚪", "Logout", false);
+        HBox logoHeader =
+                new HBox(
+                        10,
+                        logoIcon,
+                        logoText
+                );
 
-        dashboardBtn.setOnAction(e -> LandingPage.showUserDashboard());
-        spacesBtn.setOnAction(e -> LandingPage.showUserSpace());
-        searchBtn.setOnAction(e -> LandingPage.showUserSearch());
-        calendarBtn.setOnAction(e -> LandingPage.showCalendarPage());
-        aiBtn.setOnAction(e -> LandingPage.showAiAssistantPage());
-        collabBtn.setOnAction(e -> LandingPage.showCollaborationPage());
-        recentBtn.setOnAction(e -> LandingPage.showRecentPage());
-        trashBtn.setOnAction(e -> LandingPage.showTrashPage());
-        settingsBtn.setOnAction(e -> LandingPage.showSettingPage());
-        logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
+        logoHeader.setAlignment(
+                Pos.CENTER_LEFT
+        );
 
-        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
+        VBox logoBox =
+                new VBox(logoHeader);
 
-        // Sidebar Storage Card
-        Label storageTitle = new Label("Storage Used");
-        storageTitle.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        storageTitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: " + TEXT_LIGHT + ";");
+        logoBox.setPadding(
+                new Insets(0, 0, 18, 6)
+        );
 
-        Label storageVal = new Label("64.2 GB of 100 GB");
-        storageVal.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        storageVal.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_LIGHT + ";");
+        Button dashboardBtn =
+                createSidebarButton(
+                        "⌂",
+                        "Dashboard",
+                        false
+                );
 
-        Label storagePercent = new Label("64%");
-        storagePercent.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        storagePercent.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        Button spacesBtn =
+                createSidebarButton(
+                        "📁",
+                        "Spaces",
+                        false
+                );
 
-        HBox storageValGroup = new HBox(storageVal, new Region(), storagePercent);
-        HBox.setHgrow(storageValGroup.getChildren().get(1), Priority.ALWAYS);
-        storageValGroup.setAlignment(Pos.CENTER_LEFT);
+        Button searchBtn =
+                createSidebarButton(
+                        "⌕",
+                        "Search",
+                        true
+                );
 
-        ProgressBar sidebarProgress = new ProgressBar(0.64);
-        sidebarProgress.setMaxWidth(Double.MAX_VALUE);
+        Button calendarBtn =
+                createSidebarButton(
+                        "📅",
+                        "Calendar",
+                        false
+                );
+
+        Button aiBtn =
+                createSidebarButton(
+                        "✧",
+                        "AI Assistant",
+                        false
+                );
+
+        Button collabBtn =
+                createSidebarButton(
+                        "👥",
+                        "Collaboration",
+                        false
+                );
+
+        Button recentBtn =
+                createSidebarButton(
+                        "🕒",
+                        "Recent",
+                        false
+                );
+
+        Button trashBtn =
+                createSidebarButton(
+                        "🗑",
+                        "Trash",
+                        false
+                );
+
+        Button settingsBtn =
+                createSidebarButton(
+                        "⚙",
+                        "Settings",
+                        false
+                );
+
+        Button logoutBtn =
+                createSidebarButton(
+                        "🚪",
+                        "Logout",
+                        false
+                );
+
+        dashboardBtn.setOnAction(
+                e -> LandingPage.showUserDashboard()
+        );
+
+        spacesBtn.setOnAction(
+                e -> LandingPage.showUserSpace()
+        );
+
+        searchBtn.setOnAction(
+                e -> LandingPage.showUserSearch()
+        );
+
+        calendarBtn.setOnAction(
+                e -> LandingPage.showCalendarPage()
+        );
+
+        aiBtn.setOnAction(
+                e -> LandingPage.showAiAssistantPage()
+        );
+
+        collabBtn.setOnAction(
+                e -> LandingPage.showCollaborationPage()
+        );
+
+        recentBtn.setOnAction(
+                e -> LandingPage.showRecentPage()
+        );
+
+        trashBtn.setOnAction(
+                e -> LandingPage.showTrashPage()
+        );
+
+        settingsBtn.setOnAction(
+                e -> LandingPage.showSettingPage()
+        );
+
+        logoutBtn.setOnAction(
+                e -> LandingPage.showUserLoginPage()
+        );
+
+        VBox navList =
+                new VBox(
+                        4,
+                        dashboardBtn,
+                        spacesBtn,
+                        searchBtn,
+                        calendarBtn,
+                        aiBtn,
+                        collabBtn,
+                        recentBtn,
+                        trashBtn
+                );
+
+        // -----------------------------------------------------
+        // Storage
+        // -----------------------------------------------------
+
+        Label storageTitle =
+                new Label("Storage Used");
+
+        storageTitle.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.SEMI_BOLD,
+                        12
+                )
+        );
+
+        storageTitle.setStyle(
+                "-fx-text-fill:" +
+                TEXT_LIGHT +
+                ";"
+        );
+
+        Label storageVal =
+                new Label("64.2 GB of 100 GB");
+
+        storageVal.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.BOLD,
+                        12
+                )
+        );
+
+        storageVal.setStyle(
+                "-fx-text-fill:" +
+                TEXT_LIGHT +
+                ";"
+        );
+
+        Label storagePercent =
+                new Label("64%");
+
+        storagePercent.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.BOLD,
+                        11
+                )
+        );
+
+        storagePercent.setStyle(
+                "-fx-text-fill:" +
+                TEXT_MUTED_LIGHT +
+                ";"
+        );
+
+        Region storageSpacer =
+                new Region();
+
+        HBox.setHgrow(
+                storageSpacer,
+                Priority.ALWAYS
+        );
+
+        HBox storageValGroup =
+                new HBox(
+                        storageVal,
+                        storageSpacer,
+                        storagePercent
+                );
+
+        storageValGroup.setAlignment(
+                Pos.CENTER_LEFT
+        );
+
+        ProgressBar sidebarProgress =
+                new ProgressBar(0.64);
+
+        sidebarProgress.setMaxWidth(
+                Double.MAX_VALUE
+        );
+
         sidebarProgress.setPrefHeight(6);
-        sidebarProgress.setStyle("-fx-accent: " + PRIMARY_BLUE + "; -fx-control-inner-background: #0E1520;");
 
-        Button manageStorageBtn = new Button("Manage Storage ›");
-        manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        manageStorageBtn.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 600; -fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
-        manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
+        sidebarProgress.setStyle(
+                "-fx-accent:" +
+                PRIMARY_BLUE +
+                ";" +
+                "-fx-control-inner-background:#0E1520;"
+        );
 
-        VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
-        storageCard.setPadding(new Insets(14));
-        storageCard.setStyle("-fx-background-color: " + BG_SIDEBAR_CARD + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+        Button manageStorageBtn =
+                new Button("Manage Storage ›");
 
-        Region sidebarSpacer = new Region();
-        VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
+        manageStorageBtn.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.SEMI_BOLD,
+                        11
+                )
+        );
 
-        VBox sidebar = new VBox(8, logoBox, navList, sidebarSpacer, settingsBtn, logoutBtn, storageCard);
-        sidebar.setPadding(new Insets(20, 14, 20, 14));
+        manageStorageBtn.setStyle(
+                "-fx-background-color:transparent;" +
+                "-fx-text-fill:#60A5FA;" +
+                "-fx-padding:2 0 0 0;" +
+                "-fx-cursor:hand;"
+        );
+
+        manageStorageBtn.setOnAction(
+                e -> LandingPage.showLandingPage()
+        );
+
+        VBox storageCard =
+                new VBox(
+                        8,
+                        storageTitle,
+                        storageValGroup,
+                        sidebarProgress,
+                        manageStorageBtn
+                );
+
+        storageCard.setPadding(
+                new Insets(14)
+        );
+
+        storageCard.setStyle(
+                "-fx-background-color:" +
+                BG_SIDEBAR_CARD +
+                ";" +
+                "-fx-border-color:" +
+                SIDEBAR_BORDER +
+                ";" +
+                "-fx-border-radius:12;" +
+                "-fx-background-radius:12;"
+        );
+
+        Region sidebarSpacer =
+                new Region();
+
+        VBox.setVgrow(
+                sidebarSpacer,
+                Priority.ALWAYS
+        );
+
+        VBox sidebar =
+                new VBox(
+                        8,
+                        logoBox,
+                        navList,
+                        sidebarSpacer,
+                        settingsBtn,
+                        logoutBtn,
+                        storageCard
+                );
+
+        sidebar.setPadding(
+                new Insets(
+                        20,
+                        14,
+                        20,
+                        14
+                )
+        );
+
         sidebar.setPrefWidth(230);
         sidebar.setMinWidth(230);
-        sidebar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 1 0 0;");
 
-        // =========================================================
-        // TOP SEARCH BAR & PROFILE
-        // =========================================================
+        sidebar.setStyle(
+                "-fx-background-color:" +
+                BG_SIDEBAR +
+                ";" +
+                "-fx-border-color:" +
+                SIDEBAR_BORDER +
+                ";" +
+                "-fx-border-width:0 1 0 0;"
+        );
 
-        Label searchIcon = new Label("⌕");
-        searchIcon.setFont(Font.font(FONT, 16));
-        searchIcon.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 16px; -fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        // =====================================================
+        // TOP SEARCH BAR
+        // =====================================================
 
-        TextField topSearchField = new TextField();
-        topSearchField.setPromptText("Search in OneSpace...");
+        Label searchIcon =
+                new Label("⌕");
+
+        searchIcon.setFont(
+                Font.font(FONT, 16)
+        );
+
+        searchIcon.setStyle(
+                "-fx-text-fill:" +
+                TEXT_MUTED_LIGHT +
+                ";"
+        );
+
+        TextField topSearchField =
+                new TextField();
+
+        topSearchField.setPromptText(
+                "Search in OneSpace..."
+        );
+
         topSearchField.setPrefHeight(38);
-        topSearchField.setStyle("-fx-font-family: " + FONT + "; -fx-background-color: transparent; -fx-prompt-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_LIGHT + ";");
 
-        Label keyShortcut = new Label("⌘ K");
-        keyShortcut.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 10));
-        keyShortcut.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-font-weight: 600; -fx-background-color: #141E2C; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-padding: 3 6; -fx-background-radius: 4;");
+        topSearchField.setStyle(
+                "-fx-background-color:transparent;" +
+                "-fx-prompt-text-fill:" +
+                TEXT_MUTED_LIGHT +
+                ";" +
+                "-fx-font-size:13px;" +
+                "-fx-text-fill:" +
+                TEXT_LIGHT +
+                ";"
+        );
 
-        HBox topSearchContainer = new HBox(8, searchIcon, topSearchField, keyShortcut);
-        topSearchContainer.setAlignment(Pos.CENTER_LEFT);
-        topSearchContainer.setPadding(new Insets(0, 12, 0, 14));
+        Label keyShortcut =
+                new Label("⌘ K");
+
+        keyShortcut.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.SEMI_BOLD,
+                        10
+                )
+        );
+
+        keyShortcut.setStyle(
+                "-fx-background-color:#141E2C;" +
+                "-fx-text-fill:" +
+                TEXT_MUTED_LIGHT +
+                ";" +
+                "-fx-padding:3 6;" +
+                "-fx-background-radius:4;"
+        );
+
+        HBox topSearchContainer =
+                new HBox(
+                        8,
+                        searchIcon,
+                        topSearchField,
+                        keyShortcut
+                );
+
+        topSearchContainer.setAlignment(
+                Pos.CENTER_LEFT
+        );
+
+        topSearchContainer.setPadding(
+                new Insets(0, 12, 0, 14)
+        );
+
         topSearchContainer.setPrefWidth(420);
-        topSearchContainer.setStyle("-fx-background-color: #141E2C; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
-        HBox.setHgrow(topSearchField, Priority.ALWAYS);
 
-        Button bellBtn = new Button("🔔");
-        bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
-        bellBtn.setOnAction(e -> LandingPage.showNotificationPage());
-
-        Label avatar = new Label(initials);
-avatar.setPrefSize(34, 34);
-avatar.setAlignment(Pos.CENTER);
-avatar.setStyle(
-        "-fx-background-color: " + PRIMARY_BLUE + ";" +
-        "-fx-background-radius: 50%;" +
-        "-fx-text-fill: " + TEXT_LIGHT + ";" +
-        "-fx-font-weight: bold;" +
-        "-fx-font-size: 12px;"
-);
-
-Label userName = new Label(activeUserName);
-userName.setFont(
-        Font.font(FONT, FontWeight.SEMI_BOLD, 13)
-);
-userName.setStyle(
-        "-fx-text-fill: " + TEXT_LIGHT + ";"
-);
-
-Label dropDown = new Label("⌄");
-dropDown.setStyle(
-        "-fx-text-fill: " + TEXT_MUTED_LIGHT + ";"
-);
-
-
-// =========================================================
-// CLICKABLE PROFILE OPTION
-// =========================================================
-
-HBox profileOption =
-        new HBox(
-                8,
-                avatar,
-                userName,
-                dropDown
+        topSearchContainer.setStyle(
+                "-fx-background-color:#141E2C;" +
+                "-fx-border-color:" +
+                SIDEBAR_BORDER +
+                ";" +
+                "-fx-border-radius:10;" +
+                "-fx-background-radius:10;"
         );
 
-profileOption.setAlignment(
-        Pos.CENTER
-);
-
-profileOption.setPadding(
-        new Insets(5, 8, 5, 8)
-);
-
-profileOption.setStyle(
-        "-fx-background-color: transparent;" +
-        "-fx-background-radius: 8;" +
-        "-fx-cursor: hand;"
-);
-
-
-// =========================================================
-// OPEN PROFILE PAGE WHEN CLICKED
-// =========================================================
-
-profileOption.setOnMouseClicked(e -> {
-    LandingPage.showUserProfilePage();
-});
-
-
-// =========================================================
-// HOVER EFFECT
-// =========================================================
-
-profileOption.setOnMouseEntered(e -> {
-    profileOption.setStyle(
-            "-fx-background-color: #26354A;" +
-            "-fx-background-radius: 8;" +
-            "-fx-cursor: hand;"
-    );
-});
-
-profileOption.setOnMouseExited(e -> {
-    profileOption.setStyle(
-            "-fx-background-color: transparent;" +
-            "-fx-background-radius: 8;" +
-            "-fx-cursor: hand;"
-    );
-});
-
-
-// =========================================================
-// TOP RIGHT
-// =========================================================
-
-HBox profileBox =
-        new HBox(
-                10,
-                bellBtn,
-                profileOption
+        HBox.setHgrow(
+                topSearchField,
+                Priority.ALWAYS
         );
 
-profileBox.setAlignment(
-        Pos.CENTER
-);
+        Button bellBtn =
+                new Button("🔔");
 
-
-// =========================================================
-// TOP BAR
-// =========================================================
-
-HBox topBar =
-        new HBox(
-                20,
-                topSearchContainer,
-                new Region(),
-                profileBox
+        bellBtn.setStyle(
+                "-fx-background-color:transparent;" +
+                "-fx-font-size:16px;" +
+                "-fx-text-fill:" +
+                TEXT_LIGHT +
+                ";" +
+                "-fx-cursor:hand;"
         );
 
-HBox.setHgrow(
-        topBar.getChildren().get(1),
-        Priority.ALWAYS
-);
+        bellBtn.setOnAction(
+                e -> LandingPage.showNotificationPage()
+        );
 
-topBar.setAlignment(
-        Pos.CENTER_LEFT
-);
+        Label avatar =
+                new Label(initials);
 
-topBar.setPadding(
-        new Insets(
-                16,
-                28,
-                14,
-                28
-        )
-);
+        avatar.setPrefSize(34, 34);
+        avatar.setAlignment(Pos.CENTER);
 
-topBar.setStyle(
-        "-fx-background-color: " + BG_SIDEBAR + ";" +
-        "-fx-border-color: " + SIDEBAR_BORDER + ";" +
-        "-fx-border-width: 0 0 1 0;"
-);
+        avatar.setStyle(
+                "-fx-background-color:" +
+                PRIMARY_BLUE +
+                ";" +
+                "-fx-background-radius:50%;" +
+                "-fx-text-fill:" +
+                TEXT_LIGHT +
+                ";" +
+                "-fx-font-weight:bold;" +
+                "-fx-font-size:12px;"
+        );
 
+        Label userName =
+                new Label(activeUserName);
 
+        userName.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.SEMI_BOLD,
+                        13
+                )
+        );
 
-        // =========================================================
-        // SEARCH HEADER & CONTROLS
-        // =========================================================
+        userName.setStyle(
+                "-fx-text-fill:" +
+                TEXT_LIGHT +
+                ";"
+        );
 
-        Label titleLabel = new Label("Search files");
-        titleLabel.setFont(Font.font(FONT, FontWeight.BOLD, 24));
-        titleLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 24px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_LIGHT + ";");
+        Label dropDown =
+                new Label("⌄");
 
-        Label subLabel = new Label("Search and discover files indexed by OneSpace.");
-        subLabel.setFont(Font.font(FONT, 13));
-        subLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-weight: 500;");
+        dropDown.setStyle(
+                "-fx-text-fill:" +
+                TEXT_MUTED_LIGHT +
+                ";"
+        );
 
-        VBox titleBox = new VBox(4, titleLabel, subLabel);
+        HBox profileOption =
+                new HBox(
+                        8,
+                        avatar,
+                        userName,
+                        dropDown
+                );
 
-        Label mainSearchIcon = new Label("⌕");
-        mainSearchIcon.setFont(Font.font(FONT, 18));
-        mainSearchIcon.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 18px; -fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        profileOption.setAlignment(
+                Pos.CENTER
+        );
 
-        TextField mainSearchField = new TextField();
-        mainSearchField.setPromptText("Search anything about your files...");
+        profileOption.setPadding(
+                new Insets(5, 8, 5, 8)
+        );
+
+        profileOption.setStyle(
+                "-fx-background-color:transparent;" +
+                "-fx-background-radius:8;" +
+                "-fx-cursor:hand;"
+        );
+
+        profileOption.setOnMouseClicked(
+                e -> LandingPage.showUserProfilePage()
+        );
+
+        profileOption.setOnMouseEntered(
+                e -> profileOption.setStyle(
+                        "-fx-background-color:#26354A;" +
+                        "-fx-background-radius:8;" +
+                        "-fx-cursor:hand;"
+                )
+        );
+
+        profileOption.setOnMouseExited(
+                e -> profileOption.setStyle(
+                        "-fx-background-color:transparent;" +
+                        "-fx-background-radius:8;" +
+                        "-fx-cursor:hand;"
+                )
+        );
+
+        HBox profileBox =
+                new HBox(
+                        10,
+                        bellBtn,
+                        profileOption
+                );
+
+        profileBox.setAlignment(
+                Pos.CENTER
+        );
+
+        Region topSpacer =
+                new Region();
+
+        HBox.setHgrow(
+                topSpacer,
+                Priority.ALWAYS
+        );
+
+        HBox topBar =
+                new HBox(
+                        20,
+                        topSearchContainer,
+                        topSpacer,
+                        profileBox
+                );
+
+        topBar.setAlignment(
+                Pos.CENTER_LEFT
+        );
+
+        topBar.setPadding(
+                new Insets(
+                        16,
+                        28,
+                        14,
+                        28
+                )
+        );
+
+        topBar.setStyle(
+                "-fx-background-color:" +
+                BG_SIDEBAR +
+                ";" +
+                "-fx-border-color:" +
+                SIDEBAR_BORDER +
+                ";" +
+                "-fx-border-width:0 0 1 0;"
+        );
+
+        // =====================================================
+        // SEARCH HEADER
+        // =====================================================
+
+        Label titleLabel =
+                new Label("Search files");
+
+        titleLabel.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.BOLD,
+                        24
+                )
+        );
+
+        titleLabel.setStyle(
+                "-fx-text-fill:" +
+                TEXT_LIGHT +
+                ";"
+        );
+
+        Label subLabel =
+                new Label(
+                        "Search and discover files indexed by OneSpace."
+                );
+
+        subLabel.setFont(
+                Font.font(FONT, 13)
+        );
+
+        subLabel.setStyle(
+                "-fx-text-fill:" +
+                TEXT_MUTED_LIGHT +
+                ";"
+        );
+
+        VBox titleBox =
+                new VBox(
+                        4,
+                        titleLabel,
+                        subLabel
+                );
+
+        // =====================================================
+        // MAIN SEARCH FIELD
+        // =====================================================
+
+        Label mainSearchIcon =
+                new Label("⌕");
+
+        mainSearchIcon.setFont(
+                Font.font(FONT, 18)
+        );
+
+        mainSearchIcon.setStyle(
+                "-fx-text-fill:" +
+                TEXT_MUTED_LIGHT +
+                ";"
+        );
+
+        TextField mainSearchField =
+                new TextField();
+
+        mainSearchField.setPromptText(
+                "Search anything about your files..."
+        );
+
         mainSearchField.setPrefHeight(44);
-        mainSearchField.setStyle("-fx-font-family: " + FONT + "; -fx-background-color: transparent; -fx-text-fill: " + TEXT_LIGHT + "; -fx-prompt-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-size: 14px;");
-        mainSearchField.textProperty().addListener((o, x, y) -> {
-            searchQuery = y.toLowerCase();
+
+        mainSearchField.setStyle(
+                "-fx-background-color:transparent;" +
+                "-fx-text-fill:" +
+                TEXT_LIGHT +
+                ";" +
+                "-fx-prompt-text-fill:" +
+                TEXT_MUTED_LIGHT +
+                ";" +
+                "-fx-font-size:14px;"
+        );
+
+        PauseTransition searchDelay=new PauseTransition(Duration.millis(300));
+        mainSearchField.textProperty().addListener((o,oldValue,newValue)->{
+            searchQuery=newValue==null?"":newValue.trim().toLowerCase();
+            searchDelay.stop();
+            searchDelay.setOnFinished(e->loadSearchResults(searchQuery));
+            searchDelay.playFromStart();
+        });
+
+        HBox searchBarBox =
+                new HBox(
+                        10,
+                        mainSearchIcon,
+                        mainSearchField
+                );
+
+        searchBarBox.setAlignment(
+                Pos.CENTER_LEFT
+        );
+
+        searchBarBox.setPadding(
+                new Insets(0, 16, 0, 16)
+        );
+
+        searchBarBox.setStyle(
+                "-fx-background-color:" +
+                BG_SIDEBAR_CARD +
+                ";" +
+                "-fx-border-color:" +
+                SIDEBAR_BORDER +
+                ";" +
+                "-fx-border-radius:12;" +
+                "-fx-background-radius:12;"
+        );
+
+        HBox.setHgrow(
+                mainSearchField,
+                Priority.ALWAYS
+        );
+
+        // =====================================================
+        // FILTER
+        // =====================================================
+
+        MenuButton filterBtn =
+                new MenuButton("Filter: All");
+
+        styleDropdownMenu(filterBtn);
+
+        MenuItem filterAll =
+                new MenuItem("All Files");
+
+        MenuItem filterDocs =
+                new MenuItem("Documents");
+
+        MenuItem filterImgs =
+                new MenuItem("Images");
+
+        MenuItem filterVids =
+                new MenuItem("Videos");
+
+        MenuItem filterPdfs =
+                new MenuItem("PDFs");
+
+        filterBtn.getItems().addAll(
+                filterAll,
+                filterDocs,
+                filterImgs,
+                filterVids,
+                filterPdfs
+        );
+
+        filterAll.setOnAction(
+                e -> applyFilter(
+                        filterBtn,
+                        "All",
+                        "Filter: All"
+                )
+        );
+
+        filterDocs.setOnAction(
+                e -> applyFilter(
+                        filterBtn,
+                        "Documents",
+                        "Filter: Documents"
+                )
+        );
+
+        filterImgs.setOnAction(
+                e -> applyFilter(
+                        filterBtn,
+                        "Images",
+                        "Filter: Images"
+                )
+        );
+
+        filterVids.setOnAction(
+                e -> applyFilter(
+                        filterBtn,
+                        "Videos",
+                        "Filter: Videos"
+                )
+        );
+
+        filterPdfs.setOnAction(
+                e -> applyFilter(
+                        filterBtn,
+                        "PDFs",
+                        "Filter: PDFs"
+                )
+        );
+
+        // =====================================================
+        // AI ANSWER CARD
+        // =====================================================
+
+        Label aiTitle =
+                new Label("✦ AI Answer");
+
+        aiTitle.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.BOLD,
+                        15
+                )
+        );
+
+        aiTitle.setStyle(
+                "-fx-text-fill:" +
+                TEXT_DARK +
+                ";"
+        );
+
+        Label confidenceBadge =
+                new Label("Search ready");
+
+        confidenceBadge.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.BOLD,
+                        10
+                )
+        );
+
+        confidenceBadge.setStyle(
+                "-fx-text-fill:#15803D;" +
+                "-fx-background-color:#DCFCE7;" +
+                "-fx-background-radius:6;" +
+                "-fx-padding:3 8;"
+        );
+
+        Region aiSpacer =
+                new Region();
+
+        HBox.setHgrow(
+                aiSpacer,
+                Priority.ALWAYS
+        );
+
+        HBox aiHeader =
+                new HBox(
+                        aiTitle,
+                        aiSpacer,
+                        confidenceBadge
+                );
+
+        aiHeader.setAlignment(
+                Pos.CENTER_LEFT
+        );
+
+        Label aiText =
+                new Label(
+                        "Search results are loaded from your personal Firestore file collection."
+                );
+
+        aiText.setFont(
+                Font.font(FONT, 13)
+        );
+
+        aiText.setWrapText(true);
+
+        aiText.setStyle(
+                "-fx-text-fill:" +
+                TEXT_MUTED_DARK +
+                ";"
+        );
+
+        Button actionBtn1 =
+                createCardActionButton(
+                        "Open best match"
+                );
+
+        Button actionBtn2 =
+                createCardActionButton(
+                        "Create reminder"
+                );
+
+        Button actionBtn3 =
+                createCardActionButton(
+                        "Add to Space"
+                );
+
+        HBox actionRow =
+                new HBox(
+                        8,
+                        actionBtn1,
+                        actionBtn2,
+                        actionBtn3
+                );
+
+        VBox aiCard =
+                new VBox(
+                        12,
+                        aiHeader,
+                        aiText,
+                        actionRow
+                );
+
+        aiCard.setPadding(
+                new Insets(18)
+        );
+
+        aiCard.setStyle(
+                "-fx-background-color:" +
+                BG_CARD +
+                ";" +
+                "-fx-border-color:" +
+                BORDER_CARD +
+                ";" +
+                "-fx-border-radius:14;" +
+                "-fx-background-radius:14;" +
+                "-fx-effect:dropshadow(three-pass-box,rgba(0,0,0,0.14),12,0,0,4);"
+        );
+
+        // =====================================================
+        // RESULTS
+        // =====================================================
+
+        Label resultsHeader =
+                new Label("Results");
+
+        resultsHeader.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.BOLD,
+                        18
+                )
+        );
+
+        resultsHeader.setStyle(
+                "-fx-text-fill:" +
+                TEXT_LIGHT +
+                ";"
+        );
+
+        MenuButton viewBtn =
+                new MenuButton("List View");
+
+        styleDropdownMenu(viewBtn);
+
+        MenuItem listViewOption =
+                new MenuItem("List View");
+
+        MenuItem gridViewOption =
+                new MenuItem("Grid View");
+
+        viewBtn.getItems().addAll(
+                listViewOption,
+                gridViewOption
+        );
+
+        listViewOption.setOnAction(e -> {
+            isGridView = false;
+            viewBtn.setText("List View");
             updateResultsView();
         });
 
-        HBox searchBarBox = new HBox(10, mainSearchIcon, mainSearchField);
-        searchBarBox.setAlignment(Pos.CENTER_LEFT);
-        searchBarBox.setPadding(new Insets(0, 16, 0, 16));
-        searchBarBox.setStyle("-fx-background-color: " + BG_SIDEBAR_CARD + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
-        HBox.setHgrow(mainSearchField, Priority.ALWAYS);
+        gridViewOption.setOnAction(e -> {
+            isGridView = true;
+            viewBtn.setText("Grid View");
+            updateResultsView();
+        });
 
-        // Filter Controls
-        MenuButton filterBtn = new MenuButton("Filter: All");
-        styleDropdownMenu(filterBtn);
+        HBox rightControls =
+                new HBox(
+                        10,
+                        filterBtn,
+                        viewBtn
+                );
 
-        MenuItem filterAll = new MenuItem("All Files");
-        MenuItem filterDocs = new MenuItem("Documents");
-        MenuItem filterImgs = new MenuItem("Images");
-        MenuItem filterVids = new MenuItem("Videos");
-        MenuItem filterPdfs = new MenuItem("PDFs");
-
-        filterBtn.getItems().addAll(filterAll, filterDocs, filterImgs, filterVids, filterPdfs);
-
-        filterAll.setOnAction(e -> applyFilter(filterBtn, "All", "Filter: All"));
-        filterDocs.setOnAction(e -> applyFilter(filterBtn, "Documents", "Filter: Documents"));
-        filterImgs.setOnAction(e -> applyFilter(filterBtn, "Images", "Filter: Images"));
-        filterVids.setOnAction(e -> applyFilter(filterBtn, "Videos", "Filter: Videos"));
-        filterPdfs.setOnAction(e -> applyFilter(filterBtn, "PDFs", "Filter: PDFs"));
-
-        // =========================================================
-        // AI ASSISTANT ANSWER CARD
-        // =========================================================
-
-        Label aiTitle = new Label("✦ AI Answer");
-        aiTitle.setFont(Font.font(FONT, FontWeight.BOLD, 15));
-        aiTitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 15px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
-
-        Label confidenceBadge = new Label("94% confidence");
-        confidenceBadge.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        confidenceBadge.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: #15803D; -fx-background-color: #DCFCE7; -fx-background-radius: 6; -fx-padding: 3 8;");
-
-        HBox aiHeader = new HBox(aiTitle, new Region(), confidenceBadge);
-        HBox.setHgrow(aiHeader.getChildren().get(1), Priority.ALWAYS);
-        aiHeader.setAlignment(Pos.CENTER_LEFT);
-
-        Label aiText = new Label("Found matches for your query. The strongest match is Aadhaar_Card_Scan.pdf stored in your Documents folder.");
-        aiText.setFont(Font.font(FONT, 13));
-        aiText.setWrapText(true);
-        aiText.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-weight: 500;");
-
-        Button actionBtn1 = createCardActionButton("Open best match");
-        Button actionBtn2 = createCardActionButton("Create reminder");
-        Button actionBtn3 = createCardActionButton("Add to Space");
-
-        HBox actionRow = new HBox(8, actionBtn1, actionBtn2, actionBtn3);
-
-        VBox aiCard = new VBox(12, aiHeader, aiText, actionRow);
-        aiCard.setPadding(new Insets(18));
-        aiCard.setStyle(
-                "-fx-background-color: " + BG_CARD + ";" +
-                "-fx-border-color: " + BORDER_CARD + ";" +
-                "-fx-border-radius: 14;" +
-                "-fx-background-radius: 14;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.14), 12, 0, 0, 4);"
+        rightControls.setAlignment(
+                Pos.CENTER_RIGHT
         );
 
-        // =========================================================
-        // RESULTS CONTAINER & VIEW SWITCHER
-        // =========================================================
+        Region resultsSpacer =
+                new Region();
 
-        Label resultsHeader = new Label("Results");
-        resultsHeader.setFont(Font.font(FONT, FontWeight.BOLD, 18));
-        resultsHeader.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 18px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_LIGHT + ";");
+        HBox.setHgrow(
+                resultsSpacer,
+                Priority.ALWAYS
+        );
 
-        MenuButton viewBtn = new MenuButton("List View");
-        styleDropdownMenu(viewBtn);
+        HBox resultsBar =
+                new HBox(
+                        resultsHeader,
+                        resultsSpacer,
+                        rightControls
+                );
 
-        MenuItem listViewOption = new MenuItem("List View");
-        MenuItem gridViewOption = new MenuItem("Grid View");
-        viewBtn.getItems().addAll(listViewOption, gridViewOption);
+        resultsBar.setAlignment(
+                Pos.CENTER_LEFT
+        );
 
-        listViewOption.setOnAction(e -> {
-                isGridView = false;
-                viewBtn.setText("List View");
-                updateResultsView();
-        });
+        listContainer =
+                new VBox(12);
 
-        gridViewOption.setOnAction(e -> {
-                isGridView = true;
-                viewBtn.setText("Grid View");
-                updateResultsView();
-        });
+        gridContainer =
+                new GridPane();
 
-        HBox rightControls = new HBox(10, filterBtn, viewBtn);
-        rightControls.setAlignment(Pos.CENTER_RIGHT);
-
-        HBox resultsBar = new HBox(resultsHeader, new Region(), rightControls);
-        HBox.setHgrow(resultsBar.getChildren().get(1), Priority.ALWAYS);
-        resultsBar.setAlignment(Pos.CENTER_LEFT);
-
-        listContainer = new VBox(12);
-        gridContainer = new GridPane();
         gridContainer.setHgap(14);
         gridContainer.setVgap(14);
 
-        contentBox = new StackPane();
-        updateResultsView();
+        contentBox =
+                new StackPane();
 
-        // =========================================================
-        // SCROLLABLE CONTAINER
-        // =========================================================
+        Label loadingLabel =
+                new Label("Loading your files...");
 
-        VBox contentBody = new VBox(20, titleBox, searchBarBox, aiCard, resultsBar, contentBox);
-        contentBody.setPadding(new Insets(24, 28, 28, 28));
-        contentBody.setStyle("-fx-background-color: " + BG_CENTER_CANVAS + ";");
-
-        ScrollPane scrollPane = new ScrollPane(contentBody);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setStyle(
-                "-fx-background-color: " + BG_CENTER_CANVAS + ";" +
-                "-fx-background: " + BG_CENTER_CANVAS + ";" +
-                "-fx-background-insets: 0;" +
-                "-fx-padding: 0;"
+        loadingLabel.setStyle(
+                "-fx-text-fill:" +
+                TEXT_MUTED_LIGHT +
+                ";"
         );
 
-        VBox mainArea = new VBox(topBar, scrollPane);
-        mainArea.setStyle("-fx-background-color: " + BG_CENTER_CANVAS + ";");
-        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        contentBox.getChildren().add(
+                loadingLabel
+        );
 
-        BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: " + BG_SIDEBAR + ";");
+        // =====================================================
+        // CONTENT
+        // =====================================================
+
+        VBox contentBody =
+                new VBox(
+                        20,
+                        titleBox,
+                        searchBarBox,
+                        aiCard,
+                        resultsBar,
+                        contentBox
+                );
+
+        contentBody.setPadding(
+                new Insets(
+                        24,
+                        28,
+                        28,
+                        28
+                )
+        );
+
+        contentBody.setStyle(
+                "-fx-background-color:" +
+                BG_CENTER_CANVAS +
+                ";"
+        );
+
+        ScrollPane scrollPane =
+                new ScrollPane(contentBody);
+
+        scrollPane.setFitToWidth(true);
+
+        scrollPane.setStyle(
+                "-fx-background-color:" +
+                BG_CENTER_CANVAS +
+                ";" +
+                "-fx-background:" +
+                BG_CENTER_CANVAS +
+                ";" +
+                "-fx-background-insets:0;" +
+                "-fx-padding:0;"
+        );
+
+        VBox mainArea =
+                new VBox(
+                        topBar,
+                        scrollPane
+                );
+
+        mainArea.setStyle(
+                "-fx-background-color:" +
+                BG_CENTER_CANVAS +
+                ";"
+        );
+
+        VBox.setVgrow(
+                scrollPane,
+                Priority.ALWAYS
+        );
+
+        BorderPane root =
+                new BorderPane();
+
+        root.setStyle(
+                "-fx-background-color:" +
+                BG_SIDEBAR +
+                ";"
+        );
+
         root.setLeft(sidebar);
         root.setCenter(mainArea);
 
-        return new Scene(root, 1200, 750);
-    }
+        // =====================================================
+        // LOAD REAL USER FILES
+        // =====================================================
 
-    // =========================================================
-    // HELPER BUILDERS & ACTIONS
-    // =========================================================
+        loadFilesFromFirestore();
 
-    private StackPane createOneSpaceLogo() {
-        Image logoImage = new Image(
-                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        return new Scene(
+                root,
+                1200,
+                750
         );
-
-        ImageView logoView = new ImageView(logoImage);
-        logoView.setFitWidth(42);
-        logoView.setFitHeight(42);
-        logoView.setPreserveRatio(true);
-
-        StackPane logoPane = new StackPane(logoView);
-        logoPane.setPrefSize(42, 42);
-        logoPane.setAlignment(Pos.CENTER);
-
-        return logoPane;
     }
 
-    private Button createSidebarButton(String icon, String label, boolean isActive) {
-        Label iconLbl = new Label(icon);
-        iconLbl.setFont(Font.font(FONT, 14));
+    // =========================================================
+    // FIRESTORE
+    // =========================================================
 
-        Label textLbl = new Label(label);
-        textLbl.setFont(Font.font(FONT, isActive ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
-        textLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: " + (isActive ? "700" : "500") + "; -fx-text-fill: " + TEXT_LIGHT + ";");
+    private void loadFilesFromFirestore(){
+        UserSession session=UserSession.getInstance();
+        if(session==null||!UserSession.isLoggedIn()){
+            files.clear(); updateResultsView(); return;
+        }
+        loadSearchResults("");
+    }
 
-        HBox content = new HBox(12, iconLbl, textLbl);
-        content.setAlignment(Pos.CENTER_LEFT);
+    private void loadSearchResults(String query){
+        UserSession session=UserSession.getInstance();
+        if(session==null||!UserSession.isLoggedIn()) return;
+        int version=++searchVersion;
+        Thread thread=new Thread(()->{
+            try{
+                List<FileData> data=query==null||query.isBlank()
+                        ? fileDAO.getFileSummaries(session.getUid())
+                        : fileDAO.searchFileSummaries(session.getUid(),query);
+                List<FileInfo> loaded=new ArrayList<>();
+                for(FileData file:data){
+                    String name=file.getFileName();
+                    loaded.add(new FileInfo(getExtension(file.getFileType(),name),name,file.getLocalPath(),formatSize(file.getFileSize()),formatDate(file.getUploadedAt())));
+                }
+                Platform.runLater(()->{
+                    if(version!=searchVersion) return;
+                    files.clear(); files.addAll(loaded); updateResultsView();
+                });
+            }catch(Exception e){
+                Platform.runLater(()->{
+                    if(version!=searchVersion) return;
+                    files.clear(); updateResultsView();
+                });
+                System.out.println("[Search] Unable to load files: "+e.getMessage());
+            }
+        });
+        thread.setDaemon(true); thread.start();
+    }
 
-        Button btn = new Button("", content);
-        btn.setMaxWidth(Double.MAX_VALUE);
-        btn.setPrefHeight(38);
-        btn.setAlignment(Pos.CENTER_LEFT);
-        btn.setPadding(new Insets(0, 12, 0, 12));
+    // =========================================================
+    // SEARCH
+    // =========================================================
 
-        if (isActive) {
-            btn.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 8; -fx-cursor: hand;");
-            iconLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-        } else {
-            btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;");
-            iconLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+    private boolean matchesSearchQuery(FileInfo file){ return true; }
 
-            btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #26354A; -fx-background-radius: 8; -fx-cursor: hand;"));
-            btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;"));
+    private boolean matchesType(
+            FileInfo file
+    ) {
+
+        if (selectedType.equals("All")) {
+            return true;
         }
 
-        return btn;
+        if (selectedType.equals("PDFs")) {
+            return file.type.equals("PDF");
+        }
+
+        if (selectedType.equals("Documents")) {
+            return file.type.equals("DOC")
+                    || file.type.equals("DOCX")
+                    || file.type.equals("PPT")
+                    || file.type.equals("PPTX")
+                    || file.type.equals("XLS")
+                    || file.type.equals("XLSX")
+                    || file.type.equals("TXT");
+        }
+
+        if (selectedType.equals("Images")) {
+            return file.type.equals("JPG")
+                    || file.type.equals("JPEG")
+                    || file.type.equals("PNG")
+                    || file.type.equals("GIF")
+                    || file.type.equals("WEBP");
+        }
+
+        if (selectedType.equals("Videos")) {
+            return file.type.equals("MP4")
+                    || file.type.equals("AVI")
+                    || file.type.equals("MKV")
+                    || file.type.equals("MOV");
+        }
+
+        return true;
     }
 
-    private Button createCardActionButton(String text) {
-        Button btn = new Button(text);
-        btn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        btn.setStyle(
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-font-size: 12px;" +
-                "-fx-font-weight: 600;" +
-                "-fx-background-color: " + BG_CARD_INNER + ";" +
-                "-fx-border-color: " + BORDER_CARD + ";" +
-                "-fx-border-radius: 8;" +
-                "-fx-background-radius: 8;" +
-                "-fx-text-fill: " + PRIMARY_BLUE + ";" +
-                "-fx-padding: 6 12;" +
-                "-fx-cursor: hand;"
-        );
-        return btn;
-    }
-
-    private void styleDropdownMenu(MenuButton btn) {
-        btn.setPrefHeight(36);
-        btn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        btn.setStyle(
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-font-size: 12px;" +
-                "-fx-font-weight: 600;" +
-                "-fx-background-color: " + BG_CARD + ";" +
-                "-fx-border-color: " + BORDER_CARD + ";" +
-                "-fx-border-radius: 8;" +
-                "-fx-background-radius: 8;" +
-                "-fx-text-fill: " + TEXT_DARK + ";" +
-                "-fx-cursor: hand;"
-        );
-    }
-
-    private void applyFilter(MenuButton button, String type, String displayLabel) {
-        this.selectedType = type;
-        button.setText(displayLabel);
-        updateResultsView();
-    }
+    // =========================================================
+    // RESULTS
+    // =========================================================
 
     private void updateResultsView() {
+
         if (isGridView) {
             renderGrid();
         } else {
@@ -595,138 +1293,615 @@ topBar.setStyle(
     }
 
     private void renderList() {
-        listContainer.getChildren().clear();
 
-        for (FileInfo f : files) {
-            if (matchesType(f) && matchesSearchQuery(f)) {
-                listContainer.getChildren().add(createFileCard(f, false));
+        listContainer
+                .getChildren()
+                .clear();
+
+        int count = 0;
+
+        for (FileInfo file : files) {
+
+            if (matchesType(file) &&
+                    matchesSearchQuery(file)) {
+
+                listContainer
+                        .getChildren()
+                        .add(
+                                createFileCard(
+                                        file,
+                                        false
+                                )
+                        );
+
+                count++;
             }
         }
 
-        if (listContainer.getChildren().isEmpty()) {
-            Label emptyLbl = new Label("No files found matching your query.");
-            emptyLbl.setFont(Font.font(FONT, 13));
-            emptyLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-            listContainer.getChildren().add(emptyLbl);
+        if (count == 0) {
+            listContainer
+                    .getChildren()
+                    .add(
+                            createEmptyLabel()
+                    );
         }
 
-        contentBox.getChildren().setAll(listContainer);
+        contentBox
+                .getChildren()
+                .setAll(
+                        listContainer
+                );
     }
 
     private void renderGrid() {
-        gridContainer.getChildren().clear();
+
+        gridContainer
+                .getChildren()
+                .clear();
+
         int col = 0;
         int row = 0;
+        int count = 0;
 
-        for (FileInfo f : files) {
-            if (matchesType(f) && matchesSearchQuery(f)) {
-                VBox card = createFileCard(f, true);
-                gridContainer.add(card, col, row);
+        for (FileInfo file : files) {
+
+            if (matchesType(file) &&
+                    matchesSearchQuery(file)) {
+
+                gridContainer.add(
+                        createFileCard(
+                                file,
+                                true
+                        ),
+                        col,
+                        row
+                );
 
                 col++;
+
                 if (col == 2) {
                     col = 0;
                     row++;
                 }
+
+                count++;
             }
         }
 
-        if (gridContainer.getChildren().isEmpty()) {
-            Label emptyLbl = new Label("No files found matching your query.");
-            emptyLbl.setFont(Font.font(FONT, 13));
-            emptyLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-            gridContainer.add(emptyLbl, 0, 0);
+        if (count == 0) {
+            gridContainer.add(
+                    createEmptyLabel(),
+                    0,
+                    0
+            );
         }
 
-        contentBox.getChildren().setAll(gridContainer);
+        contentBox
+                .getChildren()
+                .setAll(
+                        gridContainer
+                );
     }
 
-    private VBox createFileCard(FileInfo file, boolean isGrid) {
-        Label typeBadge = new Label(file.type);
-        typeBadge.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        typeBadge.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-font-weight: 700; -fx-background-color: #DBEAFE; -fx-text-fill: " + PRIMARY_BLUE + "; -fx-background-radius: 5; -fx-padding: 2 6;");
+    private Label createEmptyLabel() {
 
-        Label sizeLbl = new Label(file.size);
-        sizeLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        sizeLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        Label label =
+                new Label(
+                        searchQuery.isBlank()
+                                ? "No files found."
+                                : "No files found matching your search."
+                );
 
-        HBox topRow = new HBox(typeBadge, new Region(), sizeLbl);
-        HBox.setHgrow(topRow.getChildren().get(1), Priority.ALWAYS);
-        topRow.setAlignment(Pos.CENTER_LEFT);
+        label.setFont(
+                Font.font(FONT, 13)
+        );
 
-        Label previewText = new Label("FILE PREVIEW");
-        previewText.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        previewText.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: " + PRIMARY_BLUE + ";");
+        label.setStyle(
+                "-fx-text-fill:" +
+                TEXT_MUTED_LIGHT +
+                ";"
+        );
 
-        StackPane previewPane = new StackPane(previewText);
-        previewPane.setPrefHeight(isGrid ? 42 : 32); 
-        previewPane.setStyle("-fx-background-color: " + BG_CARD_INNER + "; -fx-background-radius: 6;");
+        return label;
+    }
 
-        Label nameLbl = new Label(file.name);
-        nameLbl.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        nameLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_DARK + ";");
+    // =========================================================
+    // FILE CARD
+    // =========================================================
 
-        Label pathLbl = new Label(file.path);
-        pathLbl.setFont(Font.font(FONT, 10));
-        pathLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
+    private VBox createFileCard(
+            FileInfo file,
+            boolean isGrid
+    ) {
 
-        Label dateLbl = new Label(file.date);
-        dateLbl.setFont(Font.font(FONT, 10));
-        dateLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        Label typeBadge =
+                new Label(file.type);
 
-        Label optionsBtn = new Label("⋮");
-        optionsBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        optionsBtn.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-cursor: hand;");
+        typeBadge.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.BOLD,
+                        10
+                )
+        );
 
-        HBox bottomRow = new HBox(dateLbl, new Region(), optionsBtn);
-        HBox.setHgrow(bottomRow.getChildren().get(1), Priority.ALWAYS);
-        bottomRow.setAlignment(Pos.CENTER_LEFT);
+        typeBadge.setStyle(
+                "-fx-background-color:#DBEAFE;" +
+                "-fx-text-fill:" +
+                PRIMARY_BLUE +
+                ";" +
+                "-fx-background-radius:5;" +
+                "-fx-padding:2 6;"
+        );
 
-        VBox card = new VBox(6, topRow, previewPane, nameLbl, pathLbl, bottomRow);
-        card.setPadding(new Insets(10));
+        Label sizeLbl =
+                new Label(file.size);
+
+        sizeLbl.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.BOLD,
+                        11
+                )
+        );
+
+        sizeLbl.setStyle(
+                "-fx-text-fill:" +
+                TEXT_MUTED_DARK +
+                ";"
+        );
+
+        Region topSpacer =
+                new Region();
+
+        HBox.setHgrow(
+                topSpacer,
+                Priority.ALWAYS
+        );
+
+        HBox topRow =
+                new HBox(
+                        typeBadge,
+                        topSpacer,
+                        sizeLbl
+                );
+
+        topRow.setAlignment(
+                Pos.CENTER_LEFT
+        );
+
+        Label previewText =
+                new Label("FILE PREVIEW");
+
+        previewText.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.BOLD,
+                        10
+                )
+        );
+
+        previewText.setStyle(
+                "-fx-text-fill:" +
+                PRIMARY_BLUE +
+                ";"
+        );
+
+        StackPane previewPane =
+                new StackPane(
+                        previewText
+                );
+
+        previewPane.setPrefHeight(
+                isGrid ? 42 : 32
+        );
+
+        previewPane.setStyle(
+                "-fx-background-color:" +
+                BG_CARD_INNER +
+                ";" +
+                "-fx-background-radius:6;"
+        );
+
+        Label nameLbl =
+                new Label(file.name);
+
+        nameLbl.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.BOLD,
+                        13
+                )
+        );
+
+        nameLbl.setStyle(
+                "-fx-text-fill:" +
+                TEXT_DARK +
+                ";"
+        );
+
+        nameLbl.setWrapText(true);
+
+        Label pathLbl =
+                new Label(file.path);
+
+        pathLbl.setFont(
+                Font.font(FONT, 10)
+        );
+
+        pathLbl.setStyle(
+                "-fx-text-fill:" +
+                TEXT_MUTED_DARK +
+                ";"
+        );
+
+        pathLbl.setWrapText(true);
+
+        Label dateLbl =
+                new Label(file.date);
+
+        dateLbl.setFont(
+                Font.font(FONT, 10)
+        );
+
+        dateLbl.setStyle(
+                "-fx-text-fill:" +
+                TEXT_MUTED_DARK +
+                ";"
+        );
+
+        Label optionsBtn =
+                new Label("⋮");
+
+        optionsBtn.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.BOLD,
+                        13
+                )
+        );
+
+        optionsBtn.setStyle(
+                "-fx-text-fill:" +
+                TEXT_MUTED_DARK +
+                ";" +
+                "-fx-cursor:hand;"
+        );
+
+        Region bottomSpacer =
+                new Region();
+
+        HBox.setHgrow(
+                bottomSpacer,
+                Priority.ALWAYS
+        );
+
+        HBox bottomRow =
+                new HBox(
+                        dateLbl,
+                        bottomSpacer,
+                        optionsBtn
+                );
+
+        bottomRow.setAlignment(
+                Pos.CENTER_LEFT
+        );
+
+        VBox card =
+                new VBox(
+                        6,
+                        topRow,
+                        previewPane,
+                        nameLbl,
+                        pathLbl,
+                        bottomRow
+                );
+
+        card.setPadding(
+                new Insets(10)
+        );
+
         card.setStyle(
-                "-fx-background-color: " + BG_CARD + ";" +
-                "-fx-border-color: " + BORDER_CARD + ";" +
-                "-fx-border-radius: 10;" +
-                "-fx-background-radius: 10;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 6, 0, 0, 2);"
+                "-fx-background-color:" +
+                BG_CARD +
+                ";" +
+                "-fx-border-color:" +
+                BORDER_CARD +
+                ";" +
+                "-fx-border-radius:10;" +
+                "-fx-background-radius:10;" +
+                "-fx-effect:dropshadow(three-pass-box,rgba(0,0,0,0.08),6,0,0,2);"
         );
 
         if (isGrid) {
             card.setPrefWidth(300);
         } else {
-            card.setMaxWidth(Double.MAX_VALUE);
+            card.setMaxWidth(
+                    Double.MAX_VALUE
+            );
         }
 
         return card;
     }
 
-    private boolean matchesSearchQuery(FileInfo f) {
-        if (searchQuery.isEmpty()) return true;
-        return f.name.toLowerCase().contains(searchQuery) ||
-               f.type.toLowerCase().contains(searchQuery) ||
-               f.path.toLowerCase().contains(searchQuery);
+    // =========================================================
+    // HELPERS
+    // =========================================================
+
+    private void applyFilter(
+            MenuButton button,
+            String type,
+            String displayLabel
+    ) {
+
+        selectedType = type;
+        button.setText(displayLabel);
+
+        updateResultsView();
     }
 
-    private boolean matchesType(FileInfo f) {
-        if (selectedType.equals("All")) return true;
-        if (selectedType.equals("PDFs")) return f.type.equals("PDF");
-        if (selectedType.equals("Documents"))
-            return f.type.equals("DOCX") || f.type.equals("PPTX") || f.type.equals("XLSX");
-        if (selectedType.equals("Images"))
-            return f.type.equals("JPG") || f.type.equals("PNG") || f.type.equals("JPEG");
-        return selectedType.equals("Videos") &&
-               (f.type.equals("MP4") || f.type.equals("AVI") || f.type.equals("MKV"));
+    private void styleDropdownMenu(
+            MenuButton button
+    ) {
+
+        button.setPrefHeight(36);
+
+        button.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.SEMI_BOLD,
+                        12
+                )
+        );
+
+        button.setStyle(
+                "-fx-background-color:" +
+                BG_CARD +
+                ";" +
+                "-fx-border-color:" +
+                BORDER_CARD +
+                ";" +
+                "-fx-border-radius:8;" +
+                "-fx-background-radius:8;" +
+                "-fx-text-fill:" +
+                TEXT_DARK +
+                ";" +
+                "-fx-cursor:hand;"
+        );
     }
+
+    private Button createCardActionButton(
+            String text
+    ) {
+
+        Button button =
+                new Button(text);
+
+        button.setFont(
+                Font.font(
+                        FONT,
+                        FontWeight.SEMI_BOLD,
+                        12
+                )
+        );
+
+        button.setStyle(
+                "-fx-background-color:" +
+                BG_CARD_INNER +
+                ";" +
+                "-fx-border-color:" +
+                BORDER_CARD +
+                ";" +
+                "-fx-border-radius:8;" +
+                "-fx-background-radius:8;" +
+                "-fx-text-fill:" +
+                PRIMARY_BLUE +
+                ";" +
+                "-fx-padding:6 12;" +
+                "-fx-cursor:hand;"
+        );
+
+        return button;
+    }
+
+    private Button createSidebarButton(
+            String icon,
+            String label,
+            boolean active
+    ) {
+
+        Label iconLabel =
+                new Label(icon);
+
+        iconLabel.setFont(
+                Font.font(FONT, 14)
+        );
+
+        Label textLabel =
+                new Label(label);
+
+        textLabel.setFont(
+                Font.font(
+                        FONT,
+                        active
+                                ? FontWeight.BOLD
+                                : FontWeight.MEDIUM,
+                        13
+                )
+        );
+
+        textLabel.setStyle(
+                "-fx-text-fill:" +
+                TEXT_LIGHT +
+                ";"
+        );
+
+        HBox content =
+                new HBox(
+                        12,
+                        iconLabel,
+                        textLabel
+                );
+
+        content.setAlignment(
+                Pos.CENTER_LEFT
+        );
+
+        Button button =
+                new Button(
+                        "",
+                        content
+                );
+
+        button.setMaxWidth(
+                Double.MAX_VALUE
+        );
+
+        button.setPrefHeight(38);
+
+        button.setAlignment(
+                Pos.CENTER_LEFT
+        );
+
+        button.setPadding(
+                new Insets(0, 12, 0, 12)
+        );
+
+        if (active) {
+
+            button.setStyle(
+                    "-fx-background-color:" +
+                    PRIMARY_BLUE +
+                    ";" +
+                    "-fx-background-radius:8;" +
+                    "-fx-cursor:hand;"
+            );
+
+        } else {
+
+            button.setStyle(
+                    "-fx-background-color:transparent;" +
+                    "-fx-background-radius:8;" +
+                    "-fx-cursor:hand;"
+            );
+
+            iconLabel.setStyle(
+                    "-fx-text-fill:" +
+                    TEXT_MUTED_LIGHT +
+                    ";"
+            );
+
+            button.setOnMouseEntered(
+                    e -> button.setStyle(
+                            "-fx-background-color:#26354A;" +
+                            "-fx-background-radius:8;" +
+                            "-fx-cursor:hand;"
+                    )
+            );
+
+            button.setOnMouseExited(
+                    e -> button.setStyle(
+                            "-fx-background-color:transparent;" +
+                            "-fx-background-radius:8;" +
+                            "-fx-cursor:hand;"
+                    )
+            );
+        }
+
+        return button;
+    }
+
+    private StackPane createOneSpaceLogo() {
+
+        Image logoImage =
+                new Image(
+                        getClass()
+                                .getResourceAsStream(
+                                        "/assets/logo/OneSpace_logo.png"
+                                )
+                );
+
+        ImageView logoView =
+                new ImageView(
+                        logoImage
+                );
+
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
+
+        StackPane logoPane =
+                new StackPane(
+                        logoView
+                );
+
+        logoPane.setPrefSize(
+                42,
+                42
+        );
+
+        logoPane.setAlignment(
+                Pos.CENTER
+        );
+
+        return logoPane;
+    }
+
+    private String getExtension(String type,String name){
+        if(type!=null&&!type.isBlank()){
+            String value=type.toUpperCase();
+            if(value.contains("/")) value=value.substring(value.lastIndexOf('/')+1);
+            if(!value.equals("OCTET-STREAM")) return value;
+        }
+        if(name!=null&&name.contains(".")) return name.substring(name.lastIndexOf('.')+1).toUpperCase();
+        return "FILE";
+    }
+
+    private String formatSize(long bytes){
+        if(bytes<=0) return "—";
+        if(bytes<1024) return bytes+" B";
+        double value=bytes/1024.0;
+        if(value<1024) return String.format("%.1f KB",value);
+        value/=1024;
+        if(value<1024) return String.format("%.1f MB",value);
+        return String.format("%.1f GB",value/1024);
+    }
+
+    private String formatDate(com.google.cloud.Timestamp value){
+        return value==null?"—":new SimpleDateFormat("dd MMM yyyy").format(value.toDate());
+    }
+
+    // =========================================================
+    // FILE MODEL
+    // =========================================================
 
     private static class FileInfo {
-        String type, name, path, size, date;
-        FileInfo(String t, String n, String p, String s, String d) {
-            this.type = t;
-            this.name = n;
-            this.path = p;
-            this.size = s;
-            this.date = d;
+
+        String type;
+        String name;
+        String path;
+        String size;
+        String date;
+
+        FileInfo(String type,String name,String path,String size,String date) {
+
+            this.type = type == null
+                    ? ""
+                    : type;
+
+            this.name = name == null
+                    ? ""
+                    : name;
+
+            this.path = path == null
+                    ? ""
+                    : path;
+
+            this.size = size == null
+                    ? "—"
+                    : size;
+
+            this.date = date == null ? "—" : date;
         }
     }
 }

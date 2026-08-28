@@ -1,8 +1,5 @@
 package com.file_handlers.view.userView;
 
-import com.file_handlers.model.UserSession;
-import com.file_handlers.view.LandingPage;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Point2D;
@@ -31,6 +28,9 @@ import java.time.Month;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.Locale;
+
+import com.file_handlers.model.UserSession;
+import com.file_handlers.view.LandingPage;
 
 public class UserCalendar {
 

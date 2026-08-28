@@ -1,7 +1,5 @@
 package com.file_handlers.view.userView;
 
-import com.file_handlers.model.UserSession;
-import com.file_handlers.view.LandingPage;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -16,6 +14,9 @@ import javafx.stage.FileChooser;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.file_handlers.model.UserSession;
+import com.file_handlers.view.LandingPage;
 
 public class CollaborationPage {
 
@@ -67,11 +68,11 @@ public class CollaborationPage {
         if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
                 String fullName = UserSession.getInstance().getDisplayName().trim();
                 if (!fullName.isEmpty()) {
-                
+                // Extract only the first name (everything before the first space)
                         String[] parts = fullName.split("\\s+");
                         activeUserName = parts[0];
         
-                        
+                        // Grab the initial from the first name
                         initials = activeUserName.substring(0, 1).toUpperCase();
                 }
         }

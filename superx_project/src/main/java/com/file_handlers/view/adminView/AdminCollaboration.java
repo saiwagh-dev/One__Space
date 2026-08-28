@@ -1,7 +1,5 @@
 package com.file_handlers.view.adminView;
 
-import com.file_handlers.view.LandingPage;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -19,6 +17,8 @@ import javafx.stage.Stage;
 
 import java.util.Arrays;
 import java.util.List;
+
+import com.file_handlers.view.LandingPage;
 
 public class AdminCollaboration {
 

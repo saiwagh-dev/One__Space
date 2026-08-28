@@ -1,716 +1,476 @@
 package com.file_handlers.view.userView;
 
+import com.file_handlers.dao.FileDAO;
+import com.file_handlers.model.FileData;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
+import com.google.cloud.Timestamp;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.stage.FileChooser;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
 
-import java.io.File;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UserSpaces {
+    private static final String FONT="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    private static final String BG_SIDEBAR="#1E2A3A",BG_SIDEBAR_CARD="#141D29",SIDEBAR_BORDER="#2D3D52",BG_CENTER="#31435B";
+    private static final String BG_CARD="#DDE8F8",BG_CARD_HOVER="#EBF2FC",BORDER="#C3D6EC",TEXT="#0F172A",MUTED="#334155",LIGHT="#FFFFFF",MUTED_LIGHT="#94A3B8",BLUE="#2563EB";
+    private final FileDAO fileDAO=new FileDAO();
 
-    // Style Constants - Exact Theme Hierarchy
-    private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    private final List<SpaceInfo> spaces=List.of(
+        new SpaceInfo("Personal","personal","IDs, certificates, personal photos and everyday documents.","👤","#F3E8FF","#7C3AED"),
+        new SpaceInfo("College","college","Notes, assignments, lab records, presentations and projects.","🎓","#BAE6FD","#0284C7"),
+        new SpaceInfo("Office","office","Contracts, reports, decks and client deliverables.","💼","#A7F3D0","#059669"),
+        new SpaceInfo("Finance","finance","Invoices, tax filings, statements and receipts.","💳","#FDE68A","#D97706"),
+        new SpaceInfo("Entertainment","entertainment","Photos, videos, movies, music and other entertainment files.","💖","#FBCFE8","#DB2777"),
+        new SpaceInfo("Others","other","Files that do not clearly belong to another space.","📁","#BFDBFE","#2563EB")
+    );
 
-    // 1. Sidebar & Top Bar: Deep Dark Slate
-    private static final String BG_SIDEBAR = "#1E2A3A";
-    private static final String BG_SIDEBAR_CARD = "#141D29";
-    private static final String SIDEBAR_BORDER = "#2D3D52";
+    public Scene getUserSpacesScene(){
+        UserSession session=UserSession.getInstance();
+        String user="User",initials="U";
 
-    // 2. Center Workspace Canvas: Medium Slate Blue
-    private static final String BG_CENTER_CANVAS = "#31435B";
-
-    // 3. Main Cards: Soft Light Blue
-    private static final String BG_CARD = "#DDE8F8";
-    private static final String BORDER_CARD = "#C3D6EC";
-
-    // 4. Contrast Typography
-    private static final String TEXT_DARK = "#0F172A";        // Deep Navy
-    private static final String TEXT_MUTED_DARK = "#334155";  // Slate
-    private static final String TEXT_LIGHT = "#FFFFFF";       // White text for dark surfaces
-    private static final String TEXT_MUTED_LIGHT = "#94A3B8"; // Subtext for dark surfaces
-
-    // Accent Colors
-    private static final String PRIMARY_BLUE = "#2563EB";
-
-    public Scene getUserSpacesScene() {
-        String activeUserName = "User";
-        String initials = "U";
-
-        if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
-                String fullName = UserSession.getInstance().getDisplayName().trim();
-                if (!fullName.isEmpty()) {
-                // Extract only the first name (everything before the first space)
-                        String[] parts = fullName.split("\\s+");
-                        activeUserName = parts[0];
-        
-                        // Grab the initial from the first name
-                        initials = activeUserName.substring(0, 1).toUpperCase();
-                }
+        if(session!=null&&session.getDisplayName()!=null&&!session.getDisplayName().isBlank()){
+            user=session.getDisplayName().trim().split("\\s+")[0];
+            initials=user.substring(0,1).toUpperCase();
         }
 
-        StackPane logoIcon = createOneSpaceLogo();
+        VBox sidebar=createSidebar();
 
-        Label logoText = new Label("OneSpace");
-        logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
-        logoText.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-
-        HBox logoHeader = new HBox(10, logoIcon, logoText);
-        logoHeader.setAlignment(Pos.CENTER_LEFT);
-
-        VBox logoBox = new VBox(4, logoHeader);
-        logoBox.setPadding(new Insets(0, 0, 18, 6));
-
-        // Sidebar Navigation
-        Button dashboardBtn = createSidebarButton("⌂", "Dashboard", false);
-        Button spacesBtn = createSidebarButton("📁", "Spaces", true);
-        Button searchBtn = createSidebarButton("⌕", "Search", false);
-        Button calendarBtn = createSidebarButton("📅", "Calendar", false);
-        Button aiBtn = createSidebarButton("✧", "AI Assistant", false);
-        Button collabBtn = createSidebarButton("👥", "Collaboration", false);
-        Button recentBtn = createSidebarButton("🕒", "Recent", false);
-        Button trashBtn = createSidebarButton("🗑", "Trash", false);
-        Button settingsBtn = createSidebarButton("⚙", "Settings", false);
-        Button logoutBtn = createSidebarButton("🚪", "Logout", false);
-
-        dashboardBtn.setOnAction(e -> { LandingPage.showUserDashboard(); });
-        spacesBtn.setOnAction(e -> { LandingPage.showUserSpace(); });
-        searchBtn.setOnAction(e -> { LandingPage.showUserSearch(); });
-        calendarBtn.setOnAction(e -> { LandingPage.showCalendarPage(); });
-        aiBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
-        collabBtn.setOnAction(e -> { LandingPage.showCollaborationPage(); });
-        recentBtn.setOnAction(e -> { LandingPage.showRecentPage(); });
-        trashBtn.setOnAction(e -> { LandingPage.showTrashPage(); });
-        settingsBtn.setOnAction(e -> { LandingPage.showSettingPage(); });
-        logoutBtn.setOnAction(e -> { LandingPage.showUserLoginPage(); });
-        
-        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
-
-        // Sidebar Storage Card
-        Label storageTitle = new Label("Storage Used");
-        storageTitle.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        storageTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-
-        Label storageVal = new Label("64.2 GB of 100 GB");
-        storageVal.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        storageVal.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-
-        Label storagePercent = new Label("64%");
-        storagePercent.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        storagePercent.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-
-        HBox storageValGroup = new HBox(storageVal, new Region(), storagePercent);
-        HBox.setHgrow(storageValGroup.getChildren().get(1), Priority.ALWAYS);
-        storageValGroup.setAlignment(Pos.CENTER_LEFT);
-
-        ProgressBar sidebarProgress = new ProgressBar(0.64);
-        sidebarProgress.setMaxWidth(Double.MAX_VALUE);
-        sidebarProgress.setPrefHeight(6);
-        sidebarProgress.setStyle("-fx-accent: " + PRIMARY_BLUE + "; -fx-control-inner-background: #0E1520;");
-
-        Button manageStorageBtn = new Button("Manage Storage ›");
-        manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
-        manageStorageBtn.setOnAction(e -> { LandingPage.showLandingPage(); });
-
-        VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
-        storageCard.setPadding(new Insets(14));
-        storageCard.setStyle("-fx-background-color: " + BG_SIDEBAR_CARD + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
-
-        Region sidebarSpacer = new Region();
-        VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
-
-        // Sidebar layout placing logout directly below settings
-        VBox sidebar = new VBox(8, logoBox, navList, sidebarSpacer, settingsBtn, logoutBtn, storageCard);
-        sidebar.setPadding(new Insets(20, 14, 20, 14));
-        sidebar.setPrefWidth(230);
-        sidebar.setMinWidth(230);
-        sidebar.setStyle("-fx-background-color: " + BG_SIDEBAR + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 1 0 0;");
-
-        // =========================================================
-        // TOP SEARCH BAR & PROFILE
-        // =========================================================
-
-        Label searchIcon = new Label("⌕");
-        searchIcon.setFont(Font.font(FONT, 16));
-        searchIcon.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-
-        TextField searchField = new TextField();
+        TextField searchField=new TextField();
         searchField.setPromptText("Search in OneSpace...");
-        searchField.setPrefHeight(38);
-        searchField.setStyle("-fx-background-color: transparent; -fx-prompt-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-size: 13px; -fx-text-fill: " + TEXT_LIGHT + ";");
+        searchField.setPrefWidth(540);
+        searchField.setStyle("-fx-background-color:#141E2C;-fx-text-fill:white;-fx-prompt-text-fill:#94A3B8;-fx-background-radius:10;-fx-border-color:"+SIDEBAR_BORDER+";-fx-padding:0 14;");
 
-        Label keyShortcut = new Label("⌘ K");
-        keyShortcut.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 10));
-        keyShortcut.setStyle("-fx-background-color: #141E2C; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-padding: 3 6; -fx-background-radius: 4;");
+        Button notification=new Button("🔔");
+        notification.setStyle("-fx-background-color:transparent;-fx-text-fill:white;-fx-font-size:16px;");
+        notification.setOnAction(e->LandingPage.showNotificationPage());
 
-        HBox searchContainer = new HBox(8, searchIcon, searchField, keyShortcut);
-        searchContainer.setAlignment(Pos.CENTER_LEFT);
-        searchContainer.setPadding(new Insets(0, 12, 0, 14));
-        searchContainer.setPrefWidth(420);
-        searchContainer.setStyle("-fx-background-color: #141E2C; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
-        HBox.setHgrow(searchField, Priority.ALWAYS);
+        Label avatar=new Label(initials);
+        avatar.setPrefSize(34,34);
+        avatar.setAlignment(Pos.CENTER);
+        avatar.setStyle("-fx-background-color:"+BLUE+";-fx-background-radius:50%;-fx-text-fill:white;-fx-font-weight:bold;");
 
-        Button bellBtn = new Button("🔔");
-        bellBtn.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + TEXT_LIGHT + "; -fx-cursor: hand;");
-        bellBtn.setOnAction(event -> { LandingPage.showNotificationPage(); });
+        Label userLabel=label(user,13,FontWeight.SEMI_BOLD,LIGHT);
+        HBox profile=new HBox(8,avatar,userLabel,new Label("⌄"));
+        profile.setAlignment(Pos.CENTER);
+        profile.setOnMouseClicked(e->LandingPage.showUserProfilePage());
 
-        Label avatar = new Label(initials);
-avatar.setPrefSize(34, 34);
-avatar.setAlignment(Pos.CENTER);
-avatar.setStyle(
-        "-fx-background-color: " + PRIMARY_BLUE + ";" +
-        "-fx-background-radius: 50%;" +
-        "-fx-text-fill: " + TEXT_LIGHT + ";" +
-        "-fx-font-weight: bold;" +
-        "-fx-font-size: 12px;"
-);
+        Region topGap=new Region();
+        HBox.setHgrow(topGap,Priority.ALWAYS);
 
-Label userName = new Label(activeUserName);
-userName.setFont(
-        Font.font(FONT, FontWeight.SEMI_BOLD, 13)
-);
-userName.setStyle(
-        "-fx-text-fill: " + TEXT_LIGHT + ";"
-);
+        HBox topBar=new HBox(20,searchField,topGap,notification,profile);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setPadding(new Insets(16,28,14,28));
+        topBar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 0 1 0;");
 
-Label dropDown = new Label("⌄");
-dropDown.setStyle(
-        "-fx-text-fill: " + TEXT_MUTED_LIGHT + ";"
-);
+        Label title=label("Spaces",24,FontWeight.BOLD,LIGHT);
+        Label description=label("Virtual groupings built by AI. Files remain in their original folders.",13,FontWeight.NORMAL,MUTED_LIGHT);
+        VBox titleBox=new VBox(4,title,description);
 
-
-// =========================================================
-// CLICKABLE PROFILE OPTION
-// =========================================================
-
-HBox profileOption =
-        new HBox(
-                8,
-                avatar,
-                userName,
-                dropDown
-        );
-
-profileOption.setAlignment(
-        Pos.CENTER
-);
-
-profileOption.setPadding(
-        new Insets(5, 8, 5, 8)
-);
-
-profileOption.setStyle(
-        "-fx-background-color: transparent;" +
-        "-fx-background-radius: 8;" +
-        "-fx-cursor: hand;"
-);
-
-
-// =========================================================
-// OPEN PROFILE PAGE WHEN CLICKED
-// =========================================================
-
-profileOption.setOnMouseClicked(e -> {
-    LandingPage.showUserProfilePage();
-});
-
-
-// =========================================================
-// HOVER EFFECT
-// =========================================================
-
-profileOption.setOnMouseEntered(e -> {
-    profileOption.setStyle(
-            "-fx-background-color: #26354A;" +
-            "-fx-background-radius: 8;" +
-            "-fx-cursor: hand;"
-    );
-});
-
-profileOption.setOnMouseExited(e -> {
-    profileOption.setStyle(
-            "-fx-background-color: transparent;" +
-            "-fx-background-radius: 8;" +
-            "-fx-cursor: hand;"
-    );
-});
-
-
-// =========================================================
-// TOP RIGHT
-// =========================================================
-
-HBox profileBox =
-        new HBox(
-                10,
-                bellBtn,
-                profileOption
-        );
-
-profileBox.setAlignment(
-        Pos.CENTER
-);
-
-
-// =========================================================
-// TOP BAR
-// =========================================================
-
-HBox topBar =
-        new HBox(
-                20,
-                searchContainer,
-                new Region(),
-                profileBox
-        );
-
-HBox.setHgrow(
-        topBar.getChildren().get(1),
-        Priority.ALWAYS
-);
-
-topBar.setAlignment(
-        Pos.CENTER_LEFT
-);
-
-topBar.setPadding(
-        new Insets(
-                16,
-                28,
-                14,
-                28
-        )
-);
-
-topBar.setStyle(
-        "-fx-background-color: " + BG_SIDEBAR + ";" +
-        "-fx-border-color: " + SIDEBAR_BORDER + ";" +
-        "-fx-border-width: 0 0 1 0;"
-);
-
-
-        // =========================================================
-        // PAGE HEADER
-        // =========================================================
-
-        Label pageTitle = new Label("Spaces");
-        pageTitle.setFont(Font.font(FONT, FontWeight.BOLD, 24));
-        pageTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-
-        Label pageDescription = new Label("Virtual groupings built by AI. Files remain in their original folders.");
-        pageDescription.setFont(Font.font(FONT, 13));
-        pageDescription.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-weight: 500;");
-
-        VBox headerTitleBox = new VBox(4, pageTitle, pageDescription);
-
-        Button newSpaceButton = new Button("+  New Space");
-        newSpaceButton.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        newSpaceButton.setStyle(
-                "-fx-background-color: " + PRIMARY_BLUE + ";" +
-                "-fx-text-fill: #FFFFFF;" +
-                "-fx-background-radius: 10;" +
-                "-fx-cursor: hand;" +
-                "-fx-padding: 8 18;"
-        );
-        newSpaceButton.setOnAction(e -> openNewSpaceWindow());
-
-        HBox pageHeader = new HBox(headerTitleBox, new Region(), newSpaceButton);
-        HBox.setHgrow(pageHeader.getChildren().get(1), Priority.ALWAYS);
-        pageHeader.setAlignment(Pos.CENTER_LEFT);
-
-        // =========================================================
-        // SPACES GRID (3 COLUMNS x 2 ROWS)
-        // =========================================================
-
-        GridPane grid = new GridPane();
+        GridPane grid=new GridPane();
         grid.setHgap(16);
         grid.setVgap(16);
 
-        ColumnConstraints col1 = new ColumnConstraints(); col1.setPercentWidth(33.33);
-        ColumnConstraints col2 = new ColumnConstraints(); col2.setPercentWidth(33.33);
-        ColumnConstraints col3 = new ColumnConstraints(); col3.setPercentWidth(33.33);
-        grid.getColumnConstraints().addAll(col1, col2, col3);
-
-        VBox personalCard = createSpaceCard("👤", "#F3E8FF", "#7C3AED", "Personal",
-                "IDs, certificates, personal photos and everyday documents.",
-                "1,284 files", "8.2 GB", "Updated 2 minutes ago");
-
-        VBox collegeCard = createSpaceCard("🎓", "#BAE6FD", "#0284C7", "College",
-                "Notes, assignments, lab records, presentations and projects.",
-                "946 files", "12.7 GB", "Updated 18 minutes ago");
-
-        VBox workCard = createSpaceCard("💼", "#A7F3D0", "#059669", "Work",
-                "Contracts, reports, decks and client deliverables.",
-                "612 files", "6.4 GB", "Updated 1 hour ago");
-
-        VBox financeCard = createSpaceCard("💳", "#FDE68A", "#D97706", "Finance",
-                "Invoices, tax filings, statements and receipts.",
-                "318 files", "1.9 GB", "Updated Yesterday");
-
-        VBox familyCard = createSpaceCard("💖", "#FBCFE8", "#DB2777", "Friends & Family",
-                "Photos, videos, memories and shared moments.",
-                "587 files", "9.3 GB", "Updated 3 days ago");
-
-        VBox travelCard = createSpaceCard("✈", "#BFDBFE", "#2563EB", "Travel",
-                "Tickets, visas, itineraries and trip albums.",
-                "487 files", "9.1 GB", "Updated 5 days ago");
-
-        grid.add(personalCard, 0, 0);
-        grid.add(collegeCard, 1, 0);
-        grid.add(workCard, 2, 0);
-        grid.add(financeCard, 0, 1);
-        grid.add(familyCard, 1, 1);
-        grid.add(travelCard, 2, 1);
-
-        // Footer Summary Indicator
-        Label footerText = new Label("ⓘ  Total 6 spaces  ·  64.2 GB of 100 GB used");
-        footerText.setFont(Font.font(FONT, 12));
-        footerText.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-font-weight: 500;");
-
-        // =========================================================
-        // SCROLLABLE BODY
-        // =========================================================
-
-        VBox contentBody = new VBox(22, pageHeader, grid, footerText);
-        contentBody.setPadding(new Insets(24, 28, 28, 28));
-        contentBody.setStyle("-fx-background-color: " + BG_CENTER_CANVAS + ";");
-
-        ScrollPane scrollPane = new ScrollPane(contentBody);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setStyle(
-                "-fx-background-color: " + BG_CENTER_CANVAS + ";" +
-                "-fx-background: " + BG_CENTER_CANVAS + ";" +
-                "-fx-background-insets: 0;" +
-                "-fx-padding: 0;"
-        );
-
-        VBox mainArea = new VBox(topBar, scrollPane);
-        mainArea.setStyle("-fx-background-color: " + BG_CENTER_CANVAS + ";");
-        VBox.setVgrow(scrollPane, Priority.ALWAYS);
-
-        BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: " + BG_SIDEBAR + ";");
-        root.setLeft(sidebar);
-        root.setCenter(mainArea);
-
-        return new Scene(root, 1200, 750);
-    }
-
-    // =========================================================
-    // HELPER BUILDERS
-    // =========================================================
-
-    private StackPane createOneSpaceLogo() {
-        Image logoImage = new Image(
-                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
-        );
-
-        ImageView logoView = new ImageView(logoImage);
-        logoView.setFitWidth(42);
-        logoView.setFitHeight(42);
-        logoView.setPreserveRatio(true);
-
-        StackPane logoPane = new StackPane(logoView);
-        logoPane.setPrefSize(42, 42);
-        logoPane.setAlignment(Pos.CENTER);
-
-        return logoPane;
-    }
-
-    private Button createSidebarButton(String icon, String label, boolean isActive) {
-        Label iconLbl = new Label(icon);
-        iconLbl.setFont(Font.font(FONT, 14));
-
-        Label textLbl = new Label(label);
-        textLbl.setFont(Font.font(FONT, isActive ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
-
-        HBox content = new HBox(12, iconLbl, textLbl);
-        content.setAlignment(Pos.CENTER_LEFT);
-
-        Button btn = new Button("", content);
-        btn.setMaxWidth(Double.MAX_VALUE);
-        btn.setPrefHeight(38);
-        btn.setAlignment(Pos.CENTER_LEFT);
-        btn.setPadding(new Insets(0, 12, 0, 12));
-
-        if (isActive) {
-            btn.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 8; -fx-cursor: hand;");
-            iconLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-            textLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-        } else {
-            btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;");
-            iconLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
-            textLbl.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
-
-            btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: #26354A; -fx-background-radius: 8; -fx-cursor: hand;"));
-            btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;"));
+        for(int i=0;i<3;i++){
+            ColumnConstraints c=new ColumnConstraints();
+            c.setPercentWidth(33.33);
+            grid.getColumnConstraints().add(c);
         }
 
-        return btn;
+        Map<String,SpaceCardView> cards=new HashMap<>();
+
+        for(int i=0;i<spaces.size();i++){
+            SpaceInfo info=spaces.get(i);
+            SpaceCardView card=createSpaceCard(info);
+            cards.put(info.spaceId,card);
+            grid.add(card.card,i%3,i/3);
+        }
+
+        Label footer=label("ⓘ Loading spaces...",12,FontWeight.NORMAL,MUTED_LIGHT);
+
+        VBox content=new VBox(22,titleBox,grid,footer);
+        content.setPadding(new Insets(24,28,28,28));
+        content.setStyle("-fx-background-color:"+BG_CENTER+";");
+
+        ScrollPane scroll=new ScrollPane(content);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color:"+BG_CENTER+";-fx-background:"+BG_CENTER+";-fx-padding:0;");
+
+        VBox center=new VBox(topBar,scroll);
+        VBox.setVgrow(scroll,Priority.ALWAYS);
+
+        BorderPane root=new BorderPane();
+        root.setLeft(sidebar);
+        root.setCenter(center);
+        root.setStyle("-fx-background-color:"+BG_CENTER+";");
+
+        loadSpaceStatistics(cards,footer);
+
+        return new Scene(root,1200,750);
     }
 
-    private VBox createSpaceCard(String icon, String iconBgHex, String iconTextHex,
-                                 String title, String description,
-                                 String filesCount, String sizeText, String updatedTime) {
+    private VBox createSidebar(){
+        Image image=new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
+        ImageView view=new ImageView(image);
+        view.setFitWidth(42);
+        view.setFitHeight(42);
+        view.setPreserveRatio(true);
 
-        Label iconLbl = new Label(icon);
-        iconLbl.setFont(Font.font(16));
-        iconLbl.setStyle("-fx-text-fill: " + iconTextHex + "; -fx-background-color: " + iconBgHex + "; -fx-background-radius: 50%;");
-        iconLbl.setPrefSize(38, 38);
-        iconLbl.setAlignment(Pos.CENTER);
+        HBox logoRow=new HBox(10,view,label("OneSpace",19,FontWeight.BOLD,LIGHT));
+        logoRow.setAlignment(Pos.CENTER_LEFT);
 
-        Label cardTitle = new Label(title);
-        cardTitle.setFont(Font.font(FONT, FontWeight.BOLD, 16));
-        cardTitle.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        Button dashboard=side("⌂","Dashboard",false,e->LandingPage.showUserDashboard());
+        Button spacesBtn=side("📁","Spaces",true,e->LandingPage.showUserSpace());
+        Button search=side("⌕","Search",false,e->LandingPage.showUserSearch());
+        Button calendar=side("📅","Calendar",false,e->LandingPage.showCalendarPage());
+        Button ai=side("✧","AI Assistant",false,e->LandingPage.showAiAssistantPage());
+        Button collab=side("👥","Collaboration",false,e->LandingPage.showCollaborationPage());
+        Button recent=side("🕒","Recent",false,e->LandingPage.showRecentPage());
+        Button trash=side("🗑","Trash",false,e->LandingPage.showTrashPage());
+        Button settings=side("⚙","Settings",false,e->LandingPage.showSettingPage());
+        Button logout=side("🚪","Logout",false,e->LandingPage.showUserLoginPage());
 
-        Label cardDesc = new Label(description);
-        cardDesc.setFont(Font.font(FONT, 12));
-        cardDesc.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
-        cardDesc.setWrapText(true);
-        cardDesc.setMinHeight(36);
+        Region gap=new Region();
+        VBox.setVgrow(gap,Priority.ALWAYS);
 
-        Label filesLbl = new Label(filesCount);
-        filesLbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        filesLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        Label storageTitle=label("Storage Used",12,FontWeight.SEMI_BOLD,LIGHT);
+        Label storageValue=label("Loading...",12,FontWeight.BOLD,LIGHT);
 
-        Label sizeLbl = new Label(sizeText);
-        sizeLbl.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        sizeLbl.setStyle("-fx-text-fill: " + TEXT_DARK + ";");
+        ProgressBar storageBar=new ProgressBar(0);
+        storageBar.setMaxWidth(Double.MAX_VALUE);
+        storageBar.setPrefHeight(6);
+        storageBar.setStyle("-fx-accent:"+BLUE+";-fx-control-inner-background:#0E1520;");
 
-        HBox statsTopRow = new HBox(filesLbl, new Region(), sizeLbl);
-        HBox.setHgrow(statsTopRow.getChildren().get(1), Priority.ALWAYS);
+        VBox storageCard=new VBox(8,storageTitle,storageValue,storageBar);
+        storageCard.setPadding(new Insets(14));
+        storageCard.setStyle("-fx-background-color:"+BG_SIDEBAR_CARD+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-radius:12;-fx-background-radius:12;");
 
-        Label updatedLbl = new Label(updatedTime);
-        updatedLbl.setFont(Font.font(FONT, 11));
-        updatedLbl.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + ";");
+        VBox sidebar=new VBox(
+                8,logoRow,dashboard,spacesBtn,search,calendar,ai,collab,recent,trash,
+                gap,settings,logout,storageCard
+        );
 
-        VBox statsBox = new VBox(2, statsTopRow, updatedLbl);
-        statsBox.setPadding(new Insets(10, 0, 0, 0));
-        statsBox.setStyle("-fx-border-color: " + BORDER_CARD + "; -fx-border-width: 1 0 0 0;");
+        sidebar.setPadding(new Insets(20,14,20,14));
+        sidebar.setPrefWidth(230);
+        sidebar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 1 0 0;");
 
-        VBox card = new VBox(10, iconLbl, cardTitle, cardDesc, statsBox);
+        return sidebar;
+    }
+
+    private Button side(String icon,String text,boolean active,javafx.event.EventHandler<javafx.event.ActionEvent> action){
+        HBox h=new HBox(
+                12,
+                label(icon,14,FontWeight.NORMAL,active?LIGHT:MUTED_LIGHT),
+                label(text,13,active?FontWeight.BOLD:FontWeight.MEDIUM,LIGHT)
+        );
+        h.setAlignment(Pos.CENTER_LEFT);
+
+        Button b=new Button("",h);
+        b.setMaxWidth(Double.MAX_VALUE);
+        b.setPrefHeight(38);
+        b.setAlignment(Pos.CENTER_LEFT);
+        b.setPadding(new Insets(0,12,0,12));
+        b.setStyle("-fx-background-color:"+(active?BLUE:"transparent")+";-fx-background-radius:8;-fx-cursor:hand;");
+        b.setOnAction(action);
+
+        if(!active){
+            b.setOnMouseEntered(e->b.setStyle("-fx-background-color:#26354A;-fx-background-radius:8;"));
+            b.setOnMouseExited(e->b.setStyle("-fx-background-color:transparent;-fx-background-radius:8;"));
+        }
+
+        return b;
+    }
+
+    private SpaceCardView createSpaceCard(SpaceInfo info){
+        Label icon=label(info.icon,16,FontWeight.NORMAL,info.iconTextColor);
+        icon.setPrefSize(38,38);
+        icon.setAlignment(Pos.CENTER);
+        icon.setStyle("-fx-background-color:"+info.iconBackground+";-fx-background-radius:50%;-fx-text-fill:"+info.iconTextColor+";");
+
+        Label title=label(info.name,16,FontWeight.BOLD,TEXT);
+
+        Label description=label(info.description,12,FontWeight.NORMAL,MUTED);
+        description.setWrapText(true);
+        description.setMinHeight(36);
+
+        Label files=label("0 files",12,FontWeight.BOLD,TEXT);
+        Label size=label("—",12,FontWeight.BOLD,TEXT);
+        Label updated=label("No files yet",11,FontWeight.NORMAL,MUTED);
+
+        Region spacer=new Region();
+        HBox.setHgrow(spacer,Priority.ALWAYS);
+
+        HBox statsRow=new HBox(files,spacer,size);
+
+        VBox stats=new VBox(2,statsRow,updated);
+        stats.setPadding(new Insets(10,0,0,0));
+        stats.setStyle("-fx-border-color:"+BORDER+";-fx-border-width:1 0 0 0;");
+
+        VBox card=new VBox(10,icon,title,description,stats);
         card.setPadding(new Insets(18));
 
-        String styleIdle = "-fx-background-color: " + BG_CARD + "; -fx-border-color: " + BORDER_CARD + "; -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.14), 12, 0, 0, 4); -fx-cursor: hand;";
-        String styleHover = "-fx-background-color: #EBF2FC; -fx-border-color: " + PRIMARY_BLUE + "; -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.22), 16, 0, 0, 6); -fx-cursor: hand;";
+        String normal="-fx-background-color:"+BG_CARD+";-fx-border-color:"+BORDER+";-fx-border-radius:14;-fx-background-radius:14;-fx-effect:dropshadow(three-pass-box,rgba(0,0,0,0.14),12,0,0,4);-fx-cursor:hand;";
+        String hover="-fx-background-color:"+BG_CARD_HOVER+";-fx-border-color:"+BLUE+";-fx-border-radius:14;-fx-background-radius:14;-fx-effect:dropshadow(three-pass-box,rgba(37,99,235,0.22),16,0,0,6);-fx-cursor:hand;";
 
-        card.setStyle(styleIdle);
-        card.setOnMouseEntered(e -> card.setStyle(styleHover));
-        card.setOnMouseExited(e -> card.setStyle(styleIdle));
-        
-        // Updated action to route to UnifiedSpaceView instead of LandingPage
-        card.setOnMouseClicked(e -> { 
-            LandingPage.showUnifiedSpaceView(); 
-        });
+        card.setStyle(normal);
+        card.setOnMouseEntered(e->card.setStyle(hover));
+        card.setOnMouseExited(e->card.setStyle(normal));
+        card.setOnMouseClicked(e->LandingPage.showUnifiedSpace(info.spaceId,info.name));
 
-        return card;
+        return new SpaceCardView(card,files,size,updated);
     }
 
-    // =========================================================
-    // PREMIUM DESIGNED, LARGE NEW SPACE CREATION WINDOW
-    // =========================================================
-    private void openNewSpaceWindow() {
-        Stage newSpaceStage = new Stage();
-        newSpaceStage.initModality(Modality.APPLICATION_MODAL);
-        newSpaceStage.setTitle("Create New Space");
+    private void loadSpaceStatistics(
+            Map<String,SpaceCardView> cards,
+            Label footer){
 
-        // Top Header Section with Accent Indicator Line
-        Label windowTitle = new Label("Create New Space");
-        windowTitle.setFont(Font.font(FONT, FontWeight.BOLD, 22));
-        windowTitle.setStyle("-fx-text-fill: " + TEXT_LIGHT + ";");
+        UserSession session=UserSession.getInstance();
 
-        Label windowSub = new Label("Group your important documents securely into an intelligent virtual folder.");
-        windowSub.setFont(Font.font(FONT, 13));
-        windowSub.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + ";");
+        if(session==null||!UserSession.isLoggedIn()||
+                session.getUid()==null||
+                session.getUid().isBlank()){
 
-        VBox titleContainer = new VBox(4, windowTitle, windowSub);
+            footer.setText("ⓘ No authenticated user");
+            return;
+        }
 
-        // Input Fields Styled with Refined Accents
-        Label nameLabel = new Label("SPACE NAME");
-        nameLabel.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        nameLabel.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-letter-spacing: 1px;");
+        Thread thread=new Thread(()->{
+            try{
+                List<FileData> files=
+                        fileDAO.getFileSummaries(
+                                session.getUid()
+                        );
 
-        TextField nameField = new TextField();
-        nameField.setPromptText("e.g. Tax Records 2026, Thesis Project...");
-        nameField.setPrefHeight(42);
-        nameField.setStyle(
-                "-fx-background-color: #141D29; " +
-                "-fx-text-fill: " + TEXT_LIGHT + "; " +
-                "-fx-prompt-text-fill: #64748B; " +
-                "-fx-font-size: 13px; " +
-                "-fx-background-radius: 10; " +
-                "-fx-border-color: " + SIDEBAR_BORDER + "; " +
-                "-fx-border-radius: 10; " +
-                "-fx-padding: 0 14;"
-        );
+                Map<String,SpaceStats> stats=
+                        new HashMap<>();
 
-        Label descLabel = new Label("DESCRIPTION");
-        descLabel.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        descLabel.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-letter-spacing: 1px;");
+                long totalSize=0;
 
-        TextField descField = new TextField();
-        descField.setPromptText("What kind of files will live in this space?");
-        descField.setPrefHeight(42);
-        descField.setStyle(
-                "-fx-background-color: #141D29; " +
-                "-fx-text-fill: " + TEXT_LIGHT + "; " +
-                "-fx-prompt-text-fill: #64748B; " +
-                "-fx-font-size: 13px; " +
-                "-fx-background-radius: 10; " +
-                "-fx-border-color: " + SIDEBAR_BORDER + "; " +
-                "-fx-border-radius: 10; " +
-                "-fx-padding: 0 14;"
-        );
+                for(FileData file:files){
 
-        // File Management Section
-        Label filesLabel = new Label("ATTACHED FILES");
-        filesLabel.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        filesLabel.setStyle("-fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-letter-spacing: 1px;");
+                    String spaceId=file.getSpaceId();
 
-        ObservableList<File> uploadedFiles = FXCollections.observableArrayList();
-        ListView<File> fileListView = new ListView<>(uploadedFiles);
-        fileListView.setPrefHeight(160);
-        fileListView.setStyle(
-                "-fx-background-color: #141D29; " +
-                "-fx-control-inner-background: #141D29; " +
-                "-fx-border-color: " + SIDEBAR_BORDER + "; " +
-                "-fx-border-radius: 10; " +
-                "-fx-background-radius: 10;"
-        );
-        
-        fileListView.setCellFactory(param -> new ListCell<File>() {
-            @Override
-            protected void updateItem(File item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                    setGraphic(null);
-                    setStyle("-fx-background-color: transparent;");
-                } else {
-                    setText("📄  " + item.getName() + "  (" + (item.length() / 1024) + " KB)");
-                    setStyle("-fx-background-color: #141D29; -fx-text-fill: #E2E8F0; -fx-font-size: 13px; -fx-padding: 6 10;");
+                    if(spaceId==null||spaceId.isBlank())
+                        continue;
+
+                    SpaceStats stat=
+                            stats.computeIfAbsent(
+                                    spaceId,
+                                    key->new SpaceStats()
+                            );
+
+                    stat.fileCount++;
+                    stat.totalSize+=file.getFileSize();
+                    totalSize+=file.getFileSize();
+
+                    Timestamp uploadedAt=
+                            file.getUploadedAt();
+
+                    Instant time=
+                            uploadedAt==null
+                                    ? null
+                                    : uploadedAt
+                                            .toDate()
+                                            .toInstant();
+
+                    if(time!=null&&(
+                            stat.latestUpdate==null||
+                            time.isAfter(stat.latestUpdate))){
+
+                        stat.latestUpdate=time;
+                    }
                 }
+
+                final long finalTotalSize=totalSize;
+
+                Platform.runLater(()->{
+
+                    for(SpaceInfo info:spaces){
+
+                        SpaceStats stat=
+                                stats.getOrDefault(
+                                        info.spaceId,
+                                        new SpaceStats()
+                                );
+
+                        SpaceCardView card=
+                                cards.get(info.spaceId);
+
+                        if(card!=null){
+
+                            card.setStats(
+                                    stat.fileCount,
+                                    formatUpdated(
+                                            stat.latestUpdate
+                                    ),
+                                    formatSize(
+                                            stat.totalSize
+                                    )
+                            );
+                        }
+                    }
+
+                    footer.setText(
+                            "ⓘ "+
+                            files.size()+
+                            " files  ·  "+
+                            formatSize(finalTotalSize)+
+                            " used"
+                    );
+                });
+
+            }catch(Exception e){
+
+                Platform.runLater(()->{
+                    footer.setText(
+                            "ⓘ Unable to load space statistics"
+                    );
+                });
             }
         });
 
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Add Files to Space");
+        thread.setDaemon(true);
+        thread.start();
+    }
 
-        Button uploadBtn = new Button("＋ Add Files");
-        uploadBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        uploadBtn.setStyle(
-                "-fx-background-color: #2D3D52; " +
-                "-fx-text-fill: " + TEXT_LIGHT + "; " +
-                "-fx-background-radius: 8; " +
-                "-fx-cursor: hand; " +
-                "-fx-padding: 8 16;"
+    private String formatUpdated(Instant time){
+        if(time==null)
+            return "No files yet";
+
+        long minutes=Math.max(
+                0,
+                Duration.between(
+                        time,
+                        Instant.now()
+                ).toMinutes()
         );
-        uploadBtn.setOnMouseEntered(e -> uploadBtn.setStyle("-fx-background-color: #3B4D66; -fx-text-fill: #FFFFFF; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16;"));
-        uploadBtn.setOnMouseExited(e -> uploadBtn.setStyle("-fx-background-color: #2D3D52; -fx-text-fill: " + TEXT_LIGHT + "; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16;"));
-        
-        uploadBtn.setOnAction(e -> {
-            List<File> selectedFiles = fileChooser.showOpenMultipleDialog(newSpaceStage);
-            if (selectedFiles != null) {
-                uploadedFiles.addAll(selectedFiles);
-            }
-        });
 
-        Button removeBtn = new Button("✕ Remove File");
-        removeBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        removeBtn.setStyle(
-                "-fx-background-color: rgba(239, 68, 68, 0.15); " +
-                "-fx-text-fill: #F87171; " +
-                "-fx-background-radius: 8; " +
-                "-fx-cursor: hand; " +
-                "-fx-padding: 8 16;"
+        if(minutes<1)
+            return "Updated just now";
+
+        if(minutes<60)
+            return "Updated "+minutes+" min ago";
+
+        long hours=minutes/60;
+
+        if(hours<24)
+            return "Updated "+hours+" hr ago";
+
+        long days=hours/24;
+
+        if(days==1)
+            return "Updated yesterday";
+
+        return "Updated "+days+" days ago";
+    }
+
+    private String formatSize(long bytes){
+        if(bytes<=0)
+            return "—";
+        if(bytes<1024)
+            return bytes+" B";
+        if(bytes<1048576)
+            return String.format(
+                    "%.1f KB",
+                    bytes/1024.0
+            );
+        if(bytes<1073741824L)
+            return String.format(
+                    "%.1f MB",
+                    bytes/1048576.0
+            );
+        return String.format(
+                "%.1f GB",
+                bytes/1073741824.0
         );
-        removeBtn.setOnMouseEntered(e -> removeBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.25); -fx-text-fill: #FCA5A5; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16;"));
-        removeBtn.setOnMouseExited(e -> removeBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-text-fill: #F87171; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16;"));
-        
-        removeBtn.setOnAction(e -> {
-            File selectedFile = fileListView.getSelectionModel().getSelectedItem();
-            if (selectedFile != null) {
-                uploadedFiles.remove(selectedFile);
-            }
-        });
+    }
 
-        HBox fileActionBox = new HBox(10, uploadBtn, removeBtn);
-        fileActionBox.setAlignment(Pos.CENTER_LEFT);
+    private Label label(
+            String text,
+            double size,
+            FontWeight weight,
+            String color){
 
-        VBox fileSection = new VBox(8, filesLabel, fileListView, fileActionBox);
-
-        // Dialog Footer Controls
-        Button cancelBtn = new Button("Cancel");
-        cancelBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
-        cancelBtn.setStyle(
-                "-fx-background-color: transparent; " +
-                "-fx-text-fill: " + TEXT_MUTED_LIGHT + "; " +
-                "-fx-cursor: hand; " +
-                "-fx-padding: 10 18;"
+        Label label=new Label(text);
+        label.setFont(
+                Font.font(
+                        FONT,
+                        weight,
+                        size
+                )
         );
-        cancelBtn.setOnMouseEntered(e -> cancelBtn.setStyle("-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: #FFFFFF; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 10 18;"));
-        cancelBtn.setOnMouseExited(e -> cancelBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + TEXT_MUTED_LIGHT + "; -fx-cursor: hand; -fx-padding: 10 18;"));
-        cancelBtn.setOnAction(event -> newSpaceStage.close());
-
-        Button createBtn = new Button("Create Space");
-        createBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        createBtn.setStyle(
-                "-fx-background-color: " + PRIMARY_BLUE + "; " +
-                "-fx-text-fill: #FFFFFF; " +
-                "-fx-background-radius: 10; " +
-                "-fx-cursor: hand; " +
-                "-fx-padding: 10 24;"
+        label.setStyle(
+                "-fx-text-fill:"+color+";"
         );
-        createBtn.setOnMouseEntered(e -> createBtn.setStyle("-fx-background-color: #1D4ED8; -fx-text-fill: #FFFFFF; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 10 24;"));
-        createBtn.setOnMouseExited(e -> createBtn.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-text-fill: #FFFFFF; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 10 24;"));
-        
-        createBtn.setOnAction(event -> {
-            System.out.println("New Space Created: " + nameField.getText() + " with " + uploadedFiles.size() + " files.");
-            newSpaceStage.close();
-        });
+        return label;
+    }
 
-        Region footerSpacer = new Region();
-        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
+    private static class SpaceInfo{
+        final String name,spaceId,description,icon,iconBackground,iconTextColor;
 
-        HBox buttonBox = new HBox(12, cancelBtn, footerSpacer, createBtn);
-        buttonBox.setAlignment(Pos.CENTER_RIGHT);
-        buttonBox.setPadding(new Insets(10, 0, 0, 0));
+        SpaceInfo(
+                String name,
+                String spaceId,
+                String description,
+                String icon,
+                String iconBackground,
+                String iconTextColor){
 
-        // Main Layout Panel matching precise dark theme depth
-        VBox layout = new VBox(16, titleContainer, nameLabel, nameField, descLabel, descField, fileSection, buttonBox);
-        layout.setPadding(new Insets(30));
-        layout.setStyle("-fx-background-color: " + BG_SIDEBAR + ";");
+            this.name=name;
+            this.spaceId=spaceId;
+            this.description=description;
+            this.icon=icon;
+            this.iconBackground=iconBackground;
+            this.iconTextColor=iconTextColor;
+        }
+    }
 
-        Scene scene = new Scene(layout, 560, 640);
-        newSpaceStage.setScene(scene);
-        newSpaceStage.showAndWait();
+    private static class SpaceStats{
+        int fileCount;
+        long totalSize;
+        Instant latestUpdate;
+    }
+
+    private static class SpaceCardView{
+        final VBox card;
+        final Label filesLabel,sizeLabel,updatedLabel;
+
+        SpaceCardView(
+                VBox card,
+                Label filesLabel,
+                Label sizeLabel,
+                Label updatedLabel){
+
+            this.card=card;
+            this.filesLabel=filesLabel;
+            this.sizeLabel=sizeLabel;
+            this.updatedLabel=updatedLabel;
+        }
+
+        void setStats(
+                int count,
+                String updated,
+                String size){
+
+            filesLabel.setText(
+                    count+" files"
+            );
+
+            sizeLabel.setText(size);
+            updatedLabel.setText(updated);
+        }
     }
 }

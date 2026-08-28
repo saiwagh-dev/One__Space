@@ -26,6 +26,7 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import java.io.InputStream;
+
 import com.file_handlers.view.LandingPage;
 
 public class AdminDashboard {
