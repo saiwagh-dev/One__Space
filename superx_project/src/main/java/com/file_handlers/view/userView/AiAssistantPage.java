@@ -1,5 +1,8 @@
 package com.file_handlers.view.userView;
 
+import com.file_handlers.dao.FileDAO;
+import com.file_handlers.model.FileData;
+import com.file_handlers.model.UserSession;
 import com.file_handlers.service.GeminiClient;
 import com.file_handlers.view.LandingPage;
 import javafx.animation.TranslateTransition;
@@ -15,6 +18,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.util.Duration;
+import java.awt.Desktop;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,14 +32,12 @@ public class AiAssistantPage{
     private final List<String> chatHistory=new ArrayList<>();
     private final List<String> recentQueries=new ArrayList<>();
     private final GeminiClient geminiClient=new GeminiClient();
-    private VBox chatMessages;
-    private VBox aiEmptyState;
+    private final FileDAO fileDAO=new FileDAO();
+    private VBox chatMessages,aiEmptyState,menuPanel,recentList;
     private TextField aiInput;
     private Button sendButton;
     private ScrollPane chatScroll;
     private HBox processingRow;
-    private VBox menuPanel;
-    private VBox recentList;
 
     public Scene getAiAssistantPageScene(){
         StackPane logoIcon=createOneSpaceLogo();
@@ -177,12 +179,12 @@ public class AiAssistantPage{
         ProgressIndicator processingIndicator=new ProgressIndicator();
         processingIndicator.setPrefSize(18,18);
 
-        Label processingLabel=label("OneSpace AI is thinking...",13,FontWeight.NORMAL,TEXT_MUTED_DARK);
+        Label processingLabel=label("Searching OneSpace and thinking...",13,FontWeight.NORMAL,TEXT_MUTED_DARK);
 
         processingRow=new HBox(8,processingIndicator,processingLabel);
         processingRow.setAlignment(Pos.CENTER_LEFT);
         processingRow.setPadding(new Insets(10,15,10,15));
-        processingRow.setMaxWidth(300);
+        processingRow.setMaxWidth(320);
         processingRow.setStyle("-fx-background-color:"+BG_CARD_INNER+";-fx-background-radius:16 16 16 4;");
         processingRow.setVisible(false);
         processingRow.setManaged(false);
@@ -304,11 +306,19 @@ public class AiAssistantPage{
 
         Thread thread=new Thread(()->{
             try{
-                String response=geminiClient.chat(question,context);
+                UserSession session=UserSession.getInstance();
+                if(session==null||session.getUid()==null||session.getUid().isBlank())
+                    throw new IllegalStateException("No active user session.");
+
+                List<FileData> files=fileDAO.searchFilesForAI(session.getUid(),question);
+                String fileContext=buildFileContext(files);
+                String response=geminiClient.chat(question,context,fileContext);
+
                 Platform.runLater(()->{
                     setProcessing(false);
                     chatHistory.add("AI: "+response);
                     addMessage(response,false);
+                    addReferencedFiles(files);
                     aiInput.setDisable(false);
                     sendButton.setDisable(false);
                     sendButton.setText("➔");
@@ -316,7 +326,7 @@ public class AiAssistantPage{
                     scrollToBottom();
                 });
             }catch(Exception e){
-                String error=e.getMessage()==null?"Unknown Gemini error":e.getMessage();
+                String error=e.getMessage()==null?"Unknown error":e.getMessage();
                 Platform.runLater(()->{
                     setProcessing(false);
                     addMessage("Unable to get a response.\n\n"+error,false);
@@ -331,6 +341,69 @@ public class AiAssistantPage{
 
         thread.setDaemon(true);
         thread.start();
+    }
+
+    private String buildFileContext(List<FileData> files){
+        if(files==null||files.isEmpty())return "";
+
+        StringBuilder context=new StringBuilder();
+
+        for(FileData file:files){
+            context.append("File: ").append(safe(file.getFileName())).append("\n");
+            context.append("Description: ").append(safe(file.getDescription())).append("\n");
+            context.append("Category: ").append(safe(file.getAiCategory())).append("\n");
+            context.append("Tags: ").append(file.getSmartTags()==null?"":String.join(", ",file.getSmartTags())).append("\n");
+            context.append("Content: ").append(safe(file.getExtractedSnippet())).append("\n\n");
+        }
+
+        return context.toString();
+    }
+
+    private void addReferencedFiles(List<FileData> files){
+        if(files==null||files.isEmpty())return;
+
+        Label title=label("Referenced from OneSpace",11,FontWeight.BOLD,TEXT_MUTED_DARK);
+        VBox fileList=new VBox(6);
+        fileList.setPadding(new Insets(8,0,0,0));
+
+        for(FileData file:files){
+            Button fileButton=new Button("📄  "+safe(file.getFileName()));
+            fileButton.setMaxWidth(500);
+            fileButton.setAlignment(Pos.CENTER_LEFT);
+            fileButton.setPrefHeight(34);
+            fileButton.setPadding(new Insets(0,12,0,12));
+            fileButton.setFont(Font.font(FONT,FontWeight.MEDIUM,12));
+            fileButton.setStyle("-fx-background-color:"+BG_CARD+";-fx-border-color:"+BORDER_CARD+";-fx-border-radius:8;-fx-background-radius:8;-fx-text-fill:"+PRIMARY_BLUE+";-fx-cursor:hand;");
+            fileButton.setOnAction(e->openFile(file));
+            fileList.getChildren().add(fileButton);
+        }
+
+        VBox referenceBox=new VBox(3,title,fileList);
+        referenceBox.setPadding(new Insets(8,12,10,12));
+        referenceBox.setMaxWidth(540);
+        referenceBox.setStyle("-fx-background-color:"+BG_CARD_INNER+";-fx-background-radius:10;");
+
+        HBox row=new HBox(referenceBox);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(0,0,0,10));
+        chatMessages.getChildren().add(row);
+    }
+
+    private void openFile(FileData file){
+        try{
+            File selected=new File(file.getLocalPath());
+            if(!selected.exists()){
+                showInfo("File Not Found","The referenced file is no longer available at its saved location.");
+                return;
+            }
+            Desktop.getDesktop().open(selected);
+        }catch(Exception e){
+            showInfo("Unable to Open File","Could not open the referenced file.");
+        }
+    }
+
+    private String safe(String value){
+        return value==null?"":value;
     }
 
     private void addRecentQuery(String query){
@@ -382,10 +455,13 @@ public class AiAssistantPage{
 
     private String buildContext(){
         if(chatHistory.isEmpty())return "";
+
         StringBuilder context=new StringBuilder();
         int start=Math.max(0,chatHistory.size()-8);
+
         for(int i=start;i<chatHistory.size();i++)
             context.append(chatHistory.get(i)).append("\n");
+
         return context.toString();
     }
 
@@ -508,7 +584,6 @@ public class AiAssistantPage{
         clear.setPadding(new Insets(0,10,0,10));
         clear.setFont(Font.font(FONT,FontWeight.MEDIUM,12));
         clear.setStyle("-fx-background-color:transparent;-fx-text-fill:"+TEXT_MUTED_DARK+";-fx-background-radius:8;-fx-cursor:hand;");
-
         clear.setOnMouseEntered(e->clear.setStyle("-fx-background-color:"+BG_CARD_INNER+";-fx-text-fill:"+TEXT_DARK+";-fx-background-radius:8;-fx-cursor:hand;"));
         clear.setOnMouseExited(e->clear.setStyle("-fx-background-color:transparent;-fx-text-fill:"+TEXT_MUTED_DARK+";-fx-background-radius:8;-fx-cursor:hand;"));
 

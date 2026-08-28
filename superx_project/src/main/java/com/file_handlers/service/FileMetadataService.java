@@ -8,21 +8,12 @@ import java.security.MessageDigest;
 
 import com.google.cloud.Timestamp;
 
-import org.apache.tika.Tika;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.TikaCoreProperties;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.sax.BodyContentHandler;
-
 import com.file_handlers.model.FileData;
 
 public class FileMetadataService {
     private static final int FULL_SNIPPET_LIMIT=30000;
     private static final int LARGE_FILE_SECTIONS=20;
     private static final int SECTION_SNIPPET_LENGTH=1500;
-    private final Tika tika=new Tika();
-
     public FileData extractMetadata(Path path,String uploadedBy) {
         validatePath(path);
         try {
@@ -50,11 +41,7 @@ public class FileMetadataService {
             String text;
             try(InputStream raw=Files.newInputStream(path);
                 DigestInputStreamWithHash input=new DigestInputStreamWithHash(raw,digest)) {
-                Metadata metadata=new Metadata();
-                metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY,path.getFileName().toString());
-                BodyContentHandler handler=new BodyContentHandler(-1);
-                new AutoDetectParser().parse(input,handler,metadata,new ParseContext());
-                text=handler.toString().trim();
+                text=new String(input.readAllBytes(),java.nio.charset.StandardCharsets.UTF_8).trim();
             }
             return new ProcessingData(toHex(digest.digest()),text);
         } catch(Exception e) {
@@ -64,7 +51,8 @@ public class FileMetadataService {
 
     private String detectFileType(Path path) {
         try {
-            return tika.detect(path);
+            String detectedType=Files.probeContentType(path);
+            return detectedType==null?"application/octet-stream":detectedType;
         } catch(Exception e) {
             return "application/octet-stream";
         }

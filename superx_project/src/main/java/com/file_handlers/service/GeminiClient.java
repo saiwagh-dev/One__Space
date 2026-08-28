@@ -18,8 +18,11 @@ public class GeminiClient{
 
     public GeminiClient(){
         apiKey=System.getenv("GEMINI_API_KEY");
-        if(apiKey==null||apiKey.isBlank())throw new IllegalStateException("GEMINI_API_KEY environment variable is not set.");
-        client=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(15)).build();
+        if(apiKey==null||apiKey.isBlank())
+            throw new IllegalStateException("GEMINI_API_KEY environment variable is not set.");
+        client=HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(15))
+                .build();
     }
 
     public String classify(String fileName,String extractedText)throws IOException,InterruptedException{
@@ -36,12 +39,24 @@ public class GeminiClient{
         return sendRequest(prompt);
     }
 
-    public String chat(String userMessage,String conversationContext)throws IOException,InterruptedException{
-        String prompt="You are OneSpace AI Assistant, a helpful and concise assistant inside a desktop file-management application.\n"
-                +"Answer the user's question naturally and clearly.\n"
-                +"Do not claim access to files unless their content is provided.\n\n"
-                +"Conversation:\n"+(conversationContext==null?"":conversationContext)
-                +"\nUser: "+userMessage+"\nAssistant:";
+    public String chat(String userMessage,String conversationContext,String fileContext)throws IOException,InterruptedException{
+        String prompt="You are OneSpace AI, a helpful assistant inside the user's OneSpace application.\n\n"
+                +"Answer the user's question naturally, clearly and concisely.\n"
+                +"You may use the conversation context for continuity.\n\n"
+                +"IMPORTANT RULES FOR ONESPACE FILES:\n"
+                +"1. The section called Relevant OneSpace Files contains information extracted from the user's files.\n"
+                +"2. If the user's question is about their personal files, use the supplied file information as the primary source.\n"
+                +"3. Do not invent, guess or assume information that is not present in the supplied file information.\n"
+                +"4. If the requested information is not available in the supplied files, clearly say that you could not find it in the available OneSpace files.\n"
+                +"5. When answering a file-related question, mention the relevant file name when useful.\n"
+                +"6. For sensitive values such as identification numbers, policy numbers, account numbers or dates, only provide them when they are explicitly present in the supplied file content.\n"
+                +"7. Do not claim that you accessed a file directly. You only have access to the extracted information provided below.\n\n"
+                +"Relevant OneSpace Files:\n"
+                +(fileContext==null||fileContext.isBlank()?"No relevant files were found.":fileContext)
+                +"\nConversation Context:\n"
+                +(conversationContext==null||conversationContext.isBlank()?"No previous conversation.":conversationContext)
+                +"\n\nUser Question:\n"+userMessage
+                +"\n\nAssistant:";
         return sendRequest(prompt);
     }
 
@@ -78,7 +93,8 @@ public class GeminiClient{
 
         for(int i=0;i<parts.length();i++){
             JSONObject part=parts.getJSONObject(i);
-            if(part.has("text"))return part.getString("text").trim();
+            if(part.has("text"))
+                return part.getString("text").trim();
         }
 
         throw new IOException("Gemini response contained no text.");
