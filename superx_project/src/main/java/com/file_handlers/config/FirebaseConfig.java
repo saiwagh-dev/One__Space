@@ -1,6 +1,5 @@
 package com.file_handlers.config;
 
-
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -14,82 +13,210 @@ import com.google.firebase.cloud.FirestoreClient;
 
 public final class FirebaseConfig {
 
-    private static final String SERVICE_ACCOUNT_ENV = "FIREBASE_SERVICE_ACCOUNT";
-    
-    // You can keep your preferred credentials file name or support both
-    private static final String CREDENTIALS_FILE = "java26.json"; 
+    // =========================================================
+    // CONSTANTS
+    // =========================================================
 
+    private static final String SERVICE_ACCOUNT_ENV =
+            "FIREBASE_SERVICE_ACCOUNT";
+
+    private static final String CREDENTIALS_FILE =
+            "onespace_firebase_credentials.json";
+
+    // =========================================================
+    // FIREBASE INITIALIZATION
+    // =========================================================
+
+    /*
+     * Firebase is initialized automatically when this class
+     * is first loaded.
+     */
     static {
         initialize();
     }
 
+    /**
+     * Initializes the Firebase DEFAULT application.
+     *
+     * If Firebase has already been initialized, nothing happens.
+     */
     private static synchronized void initialize() {
+
         try {
+
+            // -------------------------------------------------
+            // Prevent duplicate Firebase initialization
+            // -------------------------------------------------
+
             if (!FirebaseApp.getApps().isEmpty()) {
                 return;
             }
 
-            GoogleCredentials credentials = loadCredentials();
+            // -------------------------------------------------
+            // Load Firebase credentials
+            // -------------------------------------------------
 
-            FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(credentials)
-                    .build();
+            GoogleCredentials credentials =
+                    loadCredentials();
+
+            // -------------------------------------------------
+            // Build Firebase configuration
+            // -------------------------------------------------
+
+            FirebaseOptions options =
+                    FirebaseOptions.builder()
+                            .setCredentials(credentials)
+                            .build();
+
+            // -------------------------------------------------
+            // Initialize Firebase DEFAULT app
+            // -------------------------------------------------
 
             FirebaseApp.initializeApp(options);
-            System.out.println("[FIREBASE] Initialized successfully!");
+
+            System.out.println(
+                    "[FIREBASE] Initialized"
+            );
 
         } catch (Exception e) {
-            throw new RuntimeException("[FIREBASE] Initialization failed.", e);
+
+            throw new RuntimeException(
+                    "[FIREBASE] Initialization failed.",
+                    e
+            );
         }
     }
 
-    private static GoogleCredentials loadCredentials() throws Exception {
-        // Option 1: Environment variable check
-        String credentialsPath = System.getenv(SERVICE_ACCOUNT_ENV);
-        if (credentialsPath != null && !credentialsPath.isBlank()) {
-            Path credentialsFile = Path.of(credentialsPath);
-            if (Files.exists(credentialsFile)) {
-                try (InputStream input = new FileInputStream(credentialsFile.toFile())) {
-                    return GoogleCredentials.fromStream(input);
-                }
+    // =========================================================
+    // LOAD CREDENTIALS
+    // =========================================================
+
+    private static GoogleCredentials loadCredentials()
+            throws Exception {
+
+        // -----------------------------------------------------
+        // OPTION 1
+        // Environment variable
+        // -----------------------------------------------------
+
+        String credentialsPath =
+                System.getenv(
+                        SERVICE_ACCOUNT_ENV
+                );
+
+        if (credentialsPath != null &&
+                !credentialsPath.isBlank()) {
+
+            Path credentialsFile =
+                    Path.of(
+                            credentialsPath
+                    );
+
+            if (!Files.exists(credentialsFile)) {
+
+                throw new IllegalStateException(
+                        "Firebase credentials file not found: "
+                                + credentialsFile
+                );
+            }
+
+            try (InputStream input =
+                         new FileInputStream(
+                                 credentialsFile.toFile()
+                         )) {
+
+                return GoogleCredentials.fromStream(
+                        input
+                );
             }
         }
 
-        // Option 2: Load safely from src/main/resources using ClassLoader
-        InputStream input = FirebaseConfig.class
-                .getClassLoader()
-                .getResourceAsStream(CREDENTIALS_FILE);
+        // -----------------------------------------------------
+        // OPTION 2
+        // src/main/resources
+        // -----------------------------------------------------
+
+        InputStream input =
+                FirebaseConfig.class
+                        .getClassLoader()
+                        .getResourceAsStream(
+                                CREDENTIALS_FILE
+                        );
 
         if (input != null) {
+
             try (InputStream stream = input) {
-                return GoogleCredentials.fromStream(stream);
+
+                return GoogleCredentials.fromStream(
+                        stream
+                );
             }
         }
 
+        // -----------------------------------------------------
+        // No credentials found
+        // -----------------------------------------------------
+
         throw new IllegalStateException(
-                "Firebase credentials not found. Place " + CREDENTIALS_FILE + 
-                " inside src/main/resources or set " + SERVICE_ACCOUNT_ENV + "."
+                "Firebase credentials not found.\n"
+                        + "Place "
+                        + CREDENTIALS_FILE
+                        + " inside src/main/resources "
+                        + "or set "
+                        + SERVICE_ACCOUNT_ENV
+                        + "."
         );
     }
 
+    // =========================================================
+    // FIRESTORE
+    // =========================================================
+
     /**
-     * Main method used across your views (SharedSpacePage, CollaborationPage, etc.)
+     * Returns the Firestore instance associated with the
+     * Firebase DEFAULT application.
+     *
+     * FileDAO and other database classes should use this
+     * method instead of calling FirestoreClient directly.
      */
-    public static Firestore getFireStore() {
+    public static Firestore getFirestore() {
+
+        /*
+         * Accessing FirebaseConfig guarantees that the static
+         * initialization block has already executed.
+         */
         initialize();
+
         return FirestoreClient.getFirestore();
     }
 
-    // Optional alias if any class calls getFirestore() with a lowercase 't'
-    public static Firestore getFirestore() {
-        return getFireStore();
-    }
+    // =========================================================
+    // FIREBASE APP
+    // =========================================================
 
+    /**
+     * Returns the Firebase DEFAULT application.
+     *
+     * Useful when another Firebase service needs the
+     * initialized application.
+     */
     public static FirebaseApp getFirebaseApp() {
+
         initialize();
+
         return FirebaseApp.getInstance();
     }
 
+    // =========================================================
+    // PRIVATE CONSTRUCTOR
+    // =========================================================
+
+    /*
+     * Prevent creating FirebaseConfig objects.
+     *
+     * This class only provides static Firebase configuration
+     * methods.
+     */
     private FirebaseConfig() {
     }
 }

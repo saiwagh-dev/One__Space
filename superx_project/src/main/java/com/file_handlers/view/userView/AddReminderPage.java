@@ -1,6 +1,5 @@
 package com.file_handlers.view.userView;
 
-import com.file_handlers.view.LandingPage;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -15,6 +14,8 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.time.format.DateTimeFormatter;
+
+import com.file_handlers.view.LandingPage;
 
 public class AddReminderPage {
 
@@ -122,7 +123,7 @@ public class AddReminderPage {
         Button manageStorageBtn = new Button("Manage Storage ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
-        manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexedPage());
+        manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
 
         VBox storage = new VBox(8, storageTitle, storageValGroup, progress, manageStorageBtn);
         storage.setPadding(new Insets(14));

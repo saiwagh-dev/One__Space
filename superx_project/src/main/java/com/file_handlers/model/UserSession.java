@@ -1,73 +1,245 @@
 package com.file_handlers.model;
 
-public class UserSession {
-    private static UserSession instance;
-    
-    private String idToken;
-    private String email;
-    private String displayName;
-    private boolean isAdmin; // Added admin flag
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
-    // Updated constructor to accept 4 parameters
-    private UserSession(String idToken, String email, String displayName, boolean isAdmin) {
+import org.json.JSONObject;
+
+public class UserSession {
+
+    // ---------------------------------------------------------
+    // Current session
+    // ---------------------------------------------------------
+
+    private static UserSession instance;
+
+    private final String uid;
+    private final String idToken;
+    private final String email;
+    private String displayName;
+    private final boolean admin;
+
+    // ---------------------------------------------------------
+    // Constructor
+    // ---------------------------------------------------------
+
+    private UserSession(
+            String uid,
+            String idToken,
+            String email,
+            String displayName,
+            boolean admin
+    ) {
+
+        this.uid = uid;
         this.idToken = idToken;
         this.email = email;
         this.displayName = displayName;
-        this.isAdmin = isAdmin;
+        this.admin = admin;
     }
 
-    // Updated setInstance method accepting 4 parameters
-    public static void setInstance(String idToken, String email, String displayName, boolean isAdmin) {
-        if (instance == null) {
-            instance = new UserSession(idToken, email, displayName, isAdmin);
-        } else {
-            instance.idToken = idToken;
-            instance.email = email;
-            instance.displayName = displayName;
-            instance.isAdmin = isAdmin;
-        }
+    // ---------------------------------------------------------
+    // NEW SESSION METHOD
+    //
+    // Use this when UID is already available.
+    // ---------------------------------------------------------
+
+    public static void setInstance(
+            String uid,
+            String idToken,
+            String email,
+            String displayName,
+            boolean admin
+    ) {
+
+        instance = new UserSession(
+                uid,
+                idToken,
+                email,
+                displayName,
+                admin
+        );
     }
 
-    // Overloaded 3-parameter version for standard regular users (defaults isAdmin to false)
-    public static void setInstance(String idToken, String email, String displayName) {
-        setInstance(idToken, email, displayName, false);
+    // ---------------------------------------------------------
+    // BACKWARD-COMPATIBLE SESSION METHOD
+    //
+    // Existing AdminAuthController and UserSignupPage
+    // can continue using this method.
+    //
+    // UID is extracted from the Firebase ID token.
+    // ---------------------------------------------------------
+
+    public static void setInstance(
+            String idToken,
+            String email,
+            String displayName,
+            boolean admin
+    ) {
+
+        String uid = extractUidFromToken(idToken);
+
+        instance = new UserSession(
+                uid,
+                idToken,
+                email,
+                displayName,
+                admin
+        );
     }
+
+    // ---------------------------------------------------------
+    // Get current session
+    // ---------------------------------------------------------
 
     public static UserSession getInstance() {
+
         return instance;
     }
 
+    // ---------------------------------------------------------
+    // UID
+    // ---------------------------------------------------------
+
+    public String getUid() {
+
+        return uid;
+    }
+
+    // ---------------------------------------------------------
+    // ID Token
+    // ---------------------------------------------------------
+
+    public String getIdToken() {
+
+        return idToken;
+    }
+
+    // ---------------------------------------------------------
+    // Email
+    // ---------------------------------------------------------
+
+    public String getEmail() {
+
+        return email;
+    }
+
+    // ---------------------------------------------------------
+    // Display Name
+    // ---------------------------------------------------------
+
+    public String getDisplayName() {
+
+        return displayName;
+    }
+
+    public void setDisplayName(
+            String displayName
+    ) {
+
+        this.displayName = displayName;
+    }
+
+    // ---------------------------------------------------------
+    // Admin
+    // ---------------------------------------------------------
+
+    public boolean isAdmin() {
+
+        return admin;
+    }
+
+    // ---------------------------------------------------------
+    // Login check
+    // ---------------------------------------------------------
+
+    public static boolean isLoggedIn() {
+
+        return instance != null
+                && instance.uid != null
+                && !instance.uid.isBlank();
+    }
+
+    // ---------------------------------------------------------
+    // Logout
+    // ---------------------------------------------------------
+
     public static void clearSession() {
+
         instance = null;
     }
 
-    public String getIdToken() { 
-        return idToken; 
-    }
-    
-    public String getEmail() { 
-        return email; 
-    }
-    
-    public String getDisplayName() { 
-        return displayName; 
-    }
-    
-    public boolean isAdmin() { 
-        return isAdmin; 
-    }
-    
-    public static boolean isLoggedIn() {
-        return instance != null && instance.idToken != null;
-    }
+    // ---------------------------------------------------------
+    // Extract Firebase UID from ID token
+    // ---------------------------------------------------------
 
-    public String getUsername() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getUsername'");
-    }
+    private static String extractUidFromToken(
+            String idToken
+    ) {
 
-    public String getName() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getName'");
+        if (idToken == null ||
+                idToken.isBlank()) {
+
+            return null;
+        }
+
+        try {
+
+            String[] parts =
+                    idToken.split("\\.");
+
+            if (parts.length < 2) {
+
+                return null;
+            }
+
+            String payload =
+                    parts[1];
+
+            byte[] decoded =
+                    Base64.getUrlDecoder()
+                            .decode(payload);
+
+            String json =
+                    new String(
+                            decoded,
+                            StandardCharsets.UTF_8
+                    );
+
+            JSONObject payloadJson =
+                    new JSONObject(json);
+
+            // Firebase UID is normally available
+            // as "user_id".
+
+            String uid =
+                    payloadJson.optString(
+                            "user_id",
+                            null
+                    );
+
+            if (uid == null ||
+                    uid.isBlank()) {
+
+                // "sub" is also the Firebase
+                // authenticated user's UID.
+
+                uid =
+                        payloadJson.optString(
+                                "sub",
+                                null
+                        );
+            }
+
+            return uid;
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "Unable to extract user UID."
+            );
+
+            return null;
+        }
     }
 }
