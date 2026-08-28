@@ -31,10 +31,11 @@ public class UnifiedSpaceView {
     private List<FileData> files=new ArrayList<>();
     private FlowPane filePane;
     private Label countLabel,storageLabel,updatedLabel,previewIcon,previewName,previewDate,previewType,previewSize;
-    private Button previewButton,detailsButton;
+    private Button previewButton,detailsButton,removeButton;
     private FileData selectedFile;
 
     public UnifiedSpaceView(){this("all","All Spaces");}
+
     public UnifiedSpaceView(String spaceId,String spaceName){
         this.spaceId=spaceId==null||spaceId.isBlank()?"all":spaceId;
         this.spaceName=spaceName==null||spaceName.isBlank()?"All Spaces":spaceName;
@@ -140,20 +141,26 @@ public class UnifiedSpaceView {
         previewButton=new Button("Preview");
         previewButton.setDisable(true);
         previewButton.setStyle("-fx-background-color:"+BLUE+";-fx-text-fill:white;-fx-font-weight:bold;-fx-background-radius:8;-fx-padding:8 16;-fx-cursor:hand;");
-        previewButton.setOnAction(e->{if(selectedFile!=null)openFile(selectedFile.getLocalPath());});
+        previewButton.setOnAction(e->{if(selectedFile!=null)openFile(selectedFile);});
 
         detailsButton=new Button("More details");
         detailsButton.setStyle("-fx-background-color:transparent;-fx-text-fill:"+BLUE+";-fx-font-size:11px;-fx-font-weight:bold;-fx-padding:5 8;-fx-cursor:hand;");
-        detailsButton.setOnMouseEntered(e->detailsButton.setStyle("-fx-background-color:#D5E5FA;-fx-text-fill:"+BLUE+";-fx-font-size:11px;-fx-font-weight:bold;-fx-background-radius:6;-fx-padding:5 8;-fx-cursor:hand;"));
-        detailsButton.setOnMouseExited(e->detailsButton.setStyle("-fx-background-color:transparent;-fx-text-fill:"+BLUE+";-fx-font-size:11px;-fx-font-weight:bold;-fx-padding:5 8;-fx-cursor:hand;"));
         detailsButton.setOnAction(e->{if(selectedFile!=null)loadFullDetails(selectedFile);});
+
+        removeButton=new Button("Remove");
+        removeButton.setDisable(true);
+        removeButton.setStyle("-fx-background-color:#FEE2E2;-fx-text-fill:#B91C1C;-fx-border-color:#FECACA;-fx-border-radius:7;-fx-background-radius:7;-fx-font-size:11px;-fx-font-weight:bold;-fx-padding:5 10;-fx-cursor:hand;");
+        removeButton.setOnAction(e->{if(selectedFile!=null)removeFile(selectedFile);});
 
         Region previewGap=new Region();
         HBox.setHgrow(previewGap,Priority.ALWAYS);
         HBox previewHeader=new HBox(previewTitle,previewGap,previewButton);
         previewHeader.setAlignment(Pos.CENTER_LEFT);
 
-        VBox preview=new VBox(12,previewHeader,previewIcon,detailBox("File Name",previewName),detailBox("Date",previewDate),detailBox("Type",previewType),detailBox("Size",previewSize),detailsButton);
+        HBox previewActions=new HBox(8,detailsButton,removeButton);
+        previewActions.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox preview=new VBox(12,previewHeader,previewIcon,detailBox("File Name",previewName),detailBox("Date",previewDate),detailBox("Type",previewType),detailBox("Size",previewSize),previewActions);
         preview.setPadding(new Insets(20));
         preview.setPrefWidth(370);
         preview.setStyle("-fx-background-color:"+BG_CARD+";-fx-border-color:"+BORDER+";-fx-border-radius:16;-fx-background-radius:16;");
@@ -187,7 +194,9 @@ public class UnifiedSpaceView {
             Platform.runLater(()->showEmpty("No authenticated user."));
             return;
         }
+
         String uid=session.getUid();
+
         Thread thread=new Thread(()->{
             try{
                 List<FileData> loaded=spaceId.equals("all")?fileDAO.getFileSummaries(uid):fileDAO.getFileSummariesBySpace(uid,spaceId);
@@ -198,8 +207,11 @@ public class UnifiedSpaceView {
                 });
                 files=loaded;
                 Platform.runLater(()->{updateStats();refreshFiles("");});
-            }catch(Exception e){Platform.runLater(()->showEmpty("Unable to load files."));}
+            }catch(Exception e){
+                Platform.runLater(()->showEmpty("Unable to load files."));
+            }
         });
+
         thread.setDaemon(true);
         thread.start();
     }
@@ -208,17 +220,20 @@ public class UnifiedSpaceView {
         filePane.getChildren().clear();
         String search=query==null?"":query.trim().toLowerCase();
         int shown=0;
+
         for(FileData file:files){
             String name=file.getFileName()==null?"Unnamed file":file.getFileName();
             if(!search.isEmpty()&&!name.toLowerCase().contains(search))continue;
             filePane.getChildren().add(createFileCard(file));
             shown++;
         }
+
         if(shown==0)showEmpty(search.isEmpty()?"No files in this Space.":"No matching files.");
     }
 
     private VBox createFileCard(FileData file){
         String name=file.getFileName()==null?"Unnamed file":file.getFileName();
+
         Label icon=label(fileIcon(name),20,FontWeight.NORMAL,BLUE);
         icon.setPrefSize(40,40);
         icon.setAlignment(Pos.CENTER);
@@ -237,6 +252,7 @@ public class UnifiedSpaceView {
         card.setOnMouseEntered(e->card.setStyle("-fx-background-color:#D7E7F8;-fx-border-color:"+BLUE+";-fx-border-radius:10;-fx-background-radius:10;-fx-cursor:hand;"));
         card.setOnMouseExited(e->card.setStyle("-fx-background-color:"+BG_INNER+";-fx-border-color:"+BORDER+";-fx-border-radius:10;-fx-background-radius:10;-fx-cursor:hand;"));
         card.setOnMouseClicked(e->selectFile(file));
+
         return new VBox(card);
     }
 
@@ -244,28 +260,97 @@ public class UnifiedSpaceView {
         selectedFile=file;
         previewButton.setDisable(false);
         detailsButton.setDisable(false);
+        removeButton.setDisable(false);
         previewIcon.setText(fileIcon(file.getFileName()));
         previewName.setText(file.getFileName()==null?"Unnamed file":file.getFileName());
         previewType.setText(file.getFileType()==null?"—":file.getFileType());
         previewSize.setText(formatSize(file.getFileSize()));
-        previewDate.setText(file.getUploadedAt()==null?"—":formatDate(file.getUploadedAt()));
+        previewDate.setText(file.getUploadedAt()==null?"—":formatDate(file.getUploadedAt().toDate().toInstant()));
     }
 
-    private void loadFullDetails(FileData summary){
+    private void removeFile(FileData file){
         UserSession session=UserSession.getInstance();
+
         if(session==null||session.getUid()==null||session.getUid().isBlank()){
             showAlert("No authenticated user.");
             return;
         }
+
+        Alert alert=new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Remove File");
+        alert.setHeaderText("Remove \""+file.getFileName()+"\" from OneSpace?");
+        alert.setContentText("The file will disappear from this Space and appear in Trash. The actual file on your computer will not be deleted.");
+
+        ButtonType remove=new ButtonType("Remove",ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancel=new ButtonType("Cancel",ButtonBar.ButtonData.CANCEL_CLOSE);
+        alert.getButtonTypes().setAll(cancel,remove);
+
+        alert.showAndWait().ifPresent(result->{
+            if(result!=remove)return;
+
+            String fileId=file.getFileHash();
+
+            if(fileId==null||fileId.isBlank()){
+                showAlert("Unable to identify this file.");
+                return;
+            }
+
+            removeButton.setDisable(true);
+            removeButton.setText("Removing...");
+
+            Thread thread=new Thread(()->{
+                try{
+                    fileDAO.softDeleteFile(session.getUid(),fileId);
+
+                    Platform.runLater(()->{
+                        files.remove(file);
+                        selectedFile=null;
+                        previewButton.setDisable(true);
+                        detailsButton.setDisable(true);
+                        removeButton.setDisable(true);
+                        removeButton.setText("Remove");
+                        previewIcon.setText("📄");
+                        previewName.setText("Select a file");
+                        previewDate.setText("—");
+                        previewType.setText("—");
+                        previewSize.setText("—");
+                        updateStats();
+                        refreshFiles("");
+                    });
+                }catch(Exception e){
+                    Platform.runLater(()->{
+                        removeButton.setDisable(false);
+                        removeButton.setText("Remove");
+                        showAlert("Unable to remove the file from OneSpace.");
+                    });
+                }
+            });
+
+            thread.setDaemon(true);
+            thread.start();
+        });
+    }
+
+    private void loadFullDetails(FileData summary){
+        UserSession session=UserSession.getInstance();
+
+        if(session==null||session.getUid()==null||session.getUid().isBlank()){
+            showAlert("No authenticated user.");
+            return;
+        }
+
         if(summary.getFileHash()==null||summary.getFileHash().isBlank()){
             showDetails(summary);
             return;
         }
+
         detailsButton.setDisable(true);
         detailsButton.setText("Loading...");
+
         Thread thread=new Thread(()->{
             try{
                 FileData full=fileDAO.getFile(session.getUid(),summary.getFileHash());
+
                 Platform.runLater(()->{
                     detailsButton.setDisable(false);
                     detailsButton.setText("More details");
@@ -279,6 +364,7 @@ public class UnifiedSpaceView {
                 });
             }
         });
+
         thread.setDaemon(true);
         thread.start();
     }
@@ -292,6 +378,7 @@ public class UnifiedSpaceView {
 
         String name=file.getFileName()==null?"Unnamed file":file.getFileName();
         String description=file.getDescription();
+
         if(description==null||description.isBlank())description="No description available.";
 
         VBox box=new VBox(14);
@@ -301,7 +388,7 @@ public class UnifiedSpaceView {
         Label heading=label(name,18,FontWeight.BOLD,TEXT);
         Label type=detailLine("File Type",safe(file.getFileType()));
         Label size=detailLine("File Size",formatSize(file.getFileSize()));
-        Label date=detailLine("Uploaded",file.getUploadedAt()==null?"—":formatDate(file.getUploadedAt()));
+        Label date=detailLine("Uploaded",file.getUploadedAt()==null?"—":formatDate(file.getUploadedAt().toDate().toInstant()));
         Label path=detailLine("Local Path",safe(file.getLocalPath()));
 
         Label descriptionTitle=label("Description",11,FontWeight.BOLD,MUTED);
@@ -317,10 +404,12 @@ public class UnifiedSpaceView {
         FlowPane tagsPane=new FlowPane(7,7);
 
         List<String> tags=file.getSmartTags();
+
         if(tags==null||tags.isEmpty()){
             tagsPane.getChildren().add(tag("No smart tags available."));
         }else{
-            for(String tag:tags)if(tag!=null&&!tag.isBlank())tagsPane.getChildren().add(tag(tag));
+            for(String tag:tags)
+                if(tag!=null&&!tag.isBlank())tagsPane.getChildren().add(tag(tag));
         }
 
         VBox tagsBox=new VBox(6,tagsTitle,tagsPane);
@@ -358,26 +447,57 @@ public class UnifiedSpaceView {
     private void updateStats(){
         long total=0;
         Instant latest=null;
+
         for(FileData file:files){
             total+=file.getFileSize();
+
             if(file.getUploadedAt()!=null){
                 Instant time=file.getUploadedAt().toDate().toInstant();
                 if(latest==null||time.isAfter(latest))latest=time;
             }
         }
+
         countLabel.setText(files.size()+" files");
         storageLabel.setText(formatSize(total));
         updatedLabel.setText(latest==null?"—":relativeTime(latest));
     }
 
-    private void openFile(String path){
-        if(path==null||path.isBlank())return;
+    private void openFile(FileData file){
+        if(file==null||file.getLocalPath()==null||file.getLocalPath().isBlank())return;
+
         try{
-            File file=new File(path);
-            if(!file.exists()){showAlert("The file no longer exists at its stored location.");return;}
-            if(!Desktop.isDesktopSupported()){showAlert("Opening files is not supported on this system.");return;}
-            Desktop.getDesktop().open(file);
-        }catch(Exception e){showAlert("Unable to open the selected file.");}
+            File localFile=new File(file.getLocalPath());
+
+            if(!localFile.exists()){
+                showAlert("The file no longer exists at its stored location.");
+                return;
+            }
+
+            if(!Desktop.isDesktopSupported()){
+                showAlert("Opening files is not supported on this system.");
+                return;
+            }
+
+            UserSession session=UserSession.getInstance();
+
+            if(session!=null&&session.getUid()!=null&&!session.getUid().isBlank()
+                    &&file.getFileHash()!=null&&!file.getFileHash().isBlank()){
+                Thread thread=new Thread(()->{
+                    try{
+                        fileDAO.touchFile(session.getUid(),file.getFileHash());
+                    }catch(Exception e){
+                        e.printStackTrace();
+                    }
+                });
+                thread.setDaemon(true);
+                thread.start();
+            }
+
+            Desktop.getDesktop().open(localFile);
+
+        }catch(Exception e){
+            showAlert("Unable to open the selected file.");
+        }
     }
 
     private void showEmpty(String text){
@@ -392,24 +512,15 @@ public class UnifiedSpaceView {
 
     private String relativeTime(Instant time){
         long minutes=Math.max(0,Duration.between(time,Instant.now()).toMinutes());
+
         if(minutes<1)return "Just now";
         if(minutes<60)return minutes+" min ago";
+
         long hours=minutes/60;
         if(hours<24)return hours+" hr ago";
+
         long days=hours/24;
         return days+" day"+(days==1?"":"s")+" ago";
-    }
-
-    private String formatDate(com.google.cloud.Timestamp timestamp){
-        return timestamp==null?"—":formatDate(timestamp.toDate().toInstant());
-    }
-
-    private void showAlert(String message){
-        Alert alert=new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("OneSpace");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 
     private String formatSize(long bytes){
@@ -422,7 +533,9 @@ public class UnifiedSpaceView {
 
     private String fileIcon(String name){
         if(name==null)return "📄";
+
         String n=name.toLowerCase();
+
         if(n.matches(".*\\.(jpg|jpeg|png|gif|webp)$"))return "🖼";
         if(n.endsWith(".pdf"))return "📄";
         if(n.matches(".*\\.(doc|docx)$"))return "📝";
@@ -430,6 +543,7 @@ public class UnifiedSpaceView {
         if(n.matches(".*\\.(ppt|pptx)$"))return "📽";
         if(n.matches(".*\\.(mp4|avi|mkv|mov)$"))return "🎬";
         if(n.matches(".*\\.(mp3|wav|m4a)$"))return "🎵";
+
         return "📁";
     }
 
@@ -460,12 +574,14 @@ public class UnifiedSpaceView {
         sidebar.setPadding(new Insets(20,14,20,14));
         sidebar.setPrefWidth(230);
         sidebar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:#2D3D52;-fx-border-width:0 1 0 0;");
+
         return sidebar;
     }
 
     private Button side(String icon,String text,boolean active,javafx.event.EventHandler<javafx.event.ActionEvent> action){
         HBox h=new HBox(12,label(icon,14,FontWeight.NORMAL,active?LIGHT:MUTED_LIGHT),label(text,13,active?FontWeight.BOLD:FontWeight.MEDIUM,LIGHT));
         h.setAlignment(Pos.CENTER_LEFT);
+
         Button b=new Button("",h);
         b.setMaxWidth(Double.MAX_VALUE);
         b.setPrefHeight(38);
@@ -473,19 +589,23 @@ public class UnifiedSpaceView {
         b.setPadding(new Insets(0,12,0,12));
         b.setStyle("-fx-background-color:"+(active?BLUE:"transparent")+";-fx-background-radius:8;");
         b.setOnAction(action);
+
         return b;
     }
 
     private VBox statCard(String title,Label value,String icon){
         Label heading=label(title,11,FontWeight.BOLD,MUTED);
         Label symbol=label(icon,14,FontWeight.NORMAL,BLUE);
+
         Region gap=new Region();
         HBox.setHgrow(gap,Priority.ALWAYS);
+
         HBox row=new HBox(heading,gap,symbol);
         VBox card=new VBox(8,row,value);
         card.setPadding(new Insets(14));
         card.setMinHeight(85);
         card.setStyle("-fx-background-color:"+BG_CARD+";-fx-border-color:"+BORDER+";-fx-border-radius:14;-fx-background-radius:14;");
+
         return card;
     }
 
@@ -502,5 +622,13 @@ public class UnifiedSpaceView {
         l.setFont(Font.font(FONT,weight,size));
         l.setStyle("-fx-text-fill:"+color+";");
         return l;
+    }
+
+    private void showAlert(String message){
+        Alert alert=new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("OneSpace");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

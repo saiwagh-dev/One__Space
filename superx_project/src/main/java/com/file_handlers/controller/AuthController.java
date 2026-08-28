@@ -402,4 +402,76 @@ public class AuthController {
 
         return false;
     }
+
+       // ---------------------------------------------------------
+        // Change Password
+        // ---------------------------------------------------------
+
+        public boolean changePassword(
+                String email,
+                String currentPassword,
+                String newPassword
+        ) {
+        try {
+                HttpClient client=HttpClient.newHttpClient();
+
+                JSONObject loginPayload=new JSONObject()
+                        .put("email",email.trim())
+                        .put("password",currentPassword)
+                        .put("returnSecureToken",true);
+
+                URI loginUri=URI.create(
+                        "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="
+                                +API_KEY
+                );
+
+                HttpRequest loginRequest=HttpRequest.newBuilder()
+                        .uri(loginUri)
+                        .header("Content-Type","application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(loginPayload.toString()))
+                        .build();
+
+                HttpResponse<String> loginResponse=client.send(
+                        loginRequest,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+                if(loginResponse.statusCode()!=200)
+                return false;
+
+                JSONObject loginJson=new JSONObject(loginResponse.body());
+                String freshToken=loginJson.optString("idToken",null);
+
+                if(freshToken==null||freshToken.isBlank())
+                return false;
+
+                JSONObject updatePayload=new JSONObject()
+                        .put("idToken",freshToken)
+                        .put("password",newPassword)
+                        .put("returnSecureToken",true);
+
+                URI updateUri=URI.create(
+                        "https://identitytoolkit.googleapis.com/v1/accounts:update?key="
+                                +API_KEY
+                );
+
+                HttpRequest updateRequest=HttpRequest.newBuilder()
+                        .uri(updateUri)
+                        .header("Content-Type","application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(updatePayload.toString()))
+                        .build();
+
+                HttpResponse<String> updateResponse=client.send(
+                        updateRequest,
+                        HttpResponse.BodyHandlers.ofString()
+                );
+
+                return updateResponse.statusCode()==200;
+
+        }catch(Exception e){
+                e.printStackTrace();
+        }
+
+        return false;
+        }
 }

@@ -12,14 +12,16 @@ import com.google.cloud.Timestamp;
 import com.google.cloud.firestore.CollectionReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QuerySnapshot;
 
-public class FileDAO {
+public class FileDAO{
     private static final String USERS_COLLECTION="users";
     private static final String FILES_COLLECTION="files";
     private static final String[] SUMMARY_FIELDS={
         "fileName","fileNameLower","localPath","fileSize","fileType",
-        "fileHash","uploadedBy","uploadedAt","aiCategory","aiConfidence","spaceId"
+        "fileHash","uploadedBy","uploadedAt","aiCategory","aiConfidence",
+        "spaceId","deleted","deletedAt","lastAccessedAt"
     };
 
     private Firestore getFirestore(){return FirebaseConfig.getFirestore();}
@@ -43,6 +45,8 @@ public class FileDAO {
         data.put("uploadedAt",Timestamp.now());
         if(file.getFileName()!=null)data.put("fileNameLower",file.getFileName().trim().toLowerCase());
         data.put("fileHash",file.getFileHash());
+        data.put("deleted",false);
+        data.put("deletedAt",null);
 
         getUserFilesCollection(uid).document(fileId).set(data).get();
         FileCache.invalidate(uid);
@@ -60,15 +64,12 @@ public class FileDAO {
     public List<FileData> getFileSummaries(String uid)throws Exception{
         validateUid(uid);
         List<FileData> cached=FileCache.get(uid);
-        if(cached!=null){
-            System.out.println("[CACHE] File summaries loaded for "+uid);
-            return cached;
-        }
+        if(cached!=null)return cached;
 
         QuerySnapshot snapshot=getUserFilesCollection(uid).select(SUMMARY_FIELDS).get().get();
         List<FileData> files=convertDocuments(snapshot);
+        files.removeIf(FileData::isDeleted);
         FileCache.put(uid,files);
-        System.out.println("[FIRESTORE] Loaded "+files.size()+" file summaries for "+uid);
         return files;
     }
 
@@ -79,9 +80,9 @@ public class FileDAO {
         List<FileData> files=getFileSummaries(uid);
         List<FileData> result=new ArrayList<>();
 
-        for(FileData file:files){
+        for(FileData file:files)
             if(spaceId.equals(file.getSpaceId()))result.add(file);
-        }
+
         return result;
     }
 
@@ -93,35 +94,29 @@ public class FileDAO {
         String end=search+"\uf8ff";
 
         QuerySnapshot snapshot=getUserFilesCollection(uid)
-            .whereGreaterThanOrEqualTo("fileNameLower",search)
-            .whereLessThan("fileNameLower",end)
-            .select(SUMMARY_FIELDS)
-            .get().get();
+                .whereGreaterThanOrEqualTo("fileNameLower",search)
+                .whereLessThan("fileNameLower",end)
+                .select(SUMMARY_FIELDS)
+                .get().get();
 
-        return convertDocuments(snapshot);
+        List<FileData> files=convertDocuments(snapshot);
+        files.removeIf(FileData::isDeleted);
+        return files;
     }
 
-    public List<FileData> getAllFiles(String uid)throws Exception{
-        return getFileSummaries(uid);
-    }
-
-    public List<FileData> getFilesBySpace(String uid,String spaceId)throws Exception{
-        return getFileSummariesBySpace(uid,spaceId);
-    }
-
-    public List<FileData> searchFiles(String uid,String fileName)throws Exception{
-        return searchFileSummaries(uid,fileName);
-    }
+    public List<FileData> getAllFiles(String uid)throws Exception{return getFileSummaries(uid);}
+    public List<FileData> getFilesBySpace(String uid,String spaceId)throws Exception{return getFileSummariesBySpace(uid,spaceId);}
+    public List<FileData> searchFiles(String uid,String fileName)throws Exception{return searchFileSummaries(uid,fileName);}
 
     public boolean fileExistsByHash(String uid,String hash)throws Exception{
         validateUid(uid);
         if(hash==null||hash.isBlank())return false;
 
         QuerySnapshot snapshot=getUserFilesCollection(uid)
-            .whereEqualTo("fileHash",hash)
-            .select("fileHash")
-            .limit(1)
-            .get().get();
+                .whereEqualTo("fileHash",hash)
+                .select("fileHash")
+                .limit(1)
+                .get().get();
 
         return !snapshot.isEmpty();
     }
@@ -131,10 +126,10 @@ public class FileDAO {
         if(hash==null||hash.isBlank())return null;
 
         QuerySnapshot snapshot=getUserFilesCollection(uid)
-            .whereEqualTo("fileHash",hash)
-            .select("fileName")
-            .limit(1)
-            .get().get();
+                .whereEqualTo("fileHash",hash)
+                .select("fileName")
+                .limit(1)
+                .get().get();
 
         if(snapshot.isEmpty())return null;
         return snapshot.getDocuments().get(0).getString("fileName");
@@ -145,12 +140,86 @@ public class FileDAO {
         if(hash==null||hash.isBlank())return null;
 
         QuerySnapshot snapshot=getUserFilesCollection(uid)
-            .whereEqualTo("fileHash",hash)
-            .limit(1)
-            .get().get();
+                .whereEqualTo("fileHash",hash)
+                .limit(1)
+                .get().get();
 
         if(snapshot.isEmpty())return null;
         return snapshot.getDocuments().get(0).toObject(FileData.class);
+    }
+
+    public void touchFile(String uid,String fileId)throws Exception{
+        validateUid(uid);
+        if(fileId==null||fileId.isBlank())throw new IllegalArgumentException("File ID is required.");
+
+        getUserFilesCollection(uid).document(fileId)
+                .update("lastAccessedAt",Timestamp.now())
+                .get();
+
+        FileCache.invalidate(uid);
+    }
+
+    public List<FileData> getRecentFiles(String uid,int limit)throws Exception{
+        validateUid(uid);
+        if(limit<=0)limit=10;
+
+        QuerySnapshot snapshot=getUserFilesCollection(uid)
+                .orderBy("lastAccessedAt",Query.Direction.DESCENDING)
+                .limit(limit)
+                .get().get();
+
+        List<FileData> files=new ArrayList<>();
+
+        for(DocumentSnapshot doc:snapshot.getDocuments()){
+            FileData file=doc.toObject(FileData.class);
+            if(file!=null&&!file.isDeleted()&&file.getLastAccessedAt()!=null)
+                files.add(file);
+        }
+
+        return files;
+    }
+
+    public void softDeleteFile(String uid,String fileId)throws Exception{
+        validateUid(uid);
+        if(fileId==null||fileId.isBlank())throw new IllegalArgumentException("File ID is required.");
+
+        getUserFilesCollection(uid).document(fileId)
+                .update("deleted",true,"deletedAt",Timestamp.now())
+                .get();
+
+        FileCache.invalidate(uid);
+    }
+
+    public void restoreFile(String uid,String fileId)throws Exception{
+        validateUid(uid);
+        if(fileId==null||fileId.isBlank())throw new IllegalArgumentException("File ID is required.");
+
+        getUserFilesCollection(uid).document(fileId)
+                .update("deleted",false,"deletedAt",null)
+                .get();
+
+        FileCache.invalidate(uid);
+    }
+
+    public List<FileData> getTrashedFiles(String uid)throws Exception{
+        validateUid(uid);
+
+        QuerySnapshot snapshot=getUserFilesCollection(uid)
+                .whereEqualTo("deleted",true)
+                .get().get();
+
+        List<FileData> files=new ArrayList<>();
+
+        for(DocumentSnapshot document:snapshot.getDocuments()){
+            FileData file=document.toObject(FileData.class);
+            if(file!=null)files.add(file);
+        }
+
+        return files;
+    }
+
+    public void permanentlyDeleteFile(String uid,String fileId)throws Exception{
+        deleteFile(uid,fileId);
     }
 
     public void deleteFile(String uid,String fileId)throws Exception{
@@ -161,13 +230,8 @@ public class FileDAO {
         FileCache.invalidate(uid);
     }
 
-    public static void invalidateCache(String uid){
-        FileCache.invalidate(uid);
-    }
-
-    public static void clearCache(){
-        FileCache.clear();
-    }
+    public static void invalidateCache(String uid){FileCache.invalidate(uid);}
+    public static void clearCache(){FileCache.clear();}
 
     private List<FileData> convertDocuments(QuerySnapshot snapshot){
         List<FileData> files=new ArrayList<>();
@@ -185,20 +249,26 @@ public class FileDAO {
                 file.setFileHash(doc.getString("fileHash"));
                 file.setUploadedBy(doc.getString("uploadedBy"));
                 file.setAiCategory(doc.getString("aiCategory"));
+                file.setSpaceId(doc.getString("spaceId"));
 
                 Double confidence=doc.getDouble("aiConfidence");
                 if(confidence!=null)file.setAiConfidence(confidence);
 
-                file.setSpaceId(doc.getString("spaceId"));
-
                 Timestamp uploadedAt=doc.getTimestamp("uploadedAt");
                 if(uploadedAt!=null)file.setUploadedAt(uploadedAt);
+
+                file.setLastAccessedAt(doc.getTimestamp("lastAccessedAt"));
+
+                Boolean deleted=doc.getBoolean("deleted");
+                file.setDeleted(deleted!=null&&deleted);
+                file.setDeletedAt(doc.getTimestamp("deletedAt"));
 
                 files.add(file);
             }catch(Exception e){
                 System.out.println("[WARN] Could not read file summary: "+e.getMessage());
             }
         }
+
         return files;
     }
 
