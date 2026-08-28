@@ -14,14 +14,9 @@ import javafx.stage.FileChooser;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
-
-import java.util.HashMap;
-
-
 
 public class CollaborationPage {
 
@@ -33,11 +28,11 @@ public class CollaborationPage {
     public static final String PRIMARY_LIGHT_BLUE = "#3B82F6";
 
     private static class WorkspaceData {
-        String icon, iconColor, name, storage, role, badgeBg, badgeText, ownerEmail;
+        String icon, iconColor, name, storage, role, badgeBg, badgeText;
         int members, files;
 
         WorkspaceData(String icon, String iconColor, String name, int members, int files,
-                      String storage, String role, String badgeBg, String badgeText, String ownerEmail) {
+                      String storage, String role, String badgeBg, String badgeText) {
             this.icon = icon;
             this.iconColor = iconColor;
             this.name = name;
@@ -47,145 +42,41 @@ public class CollaborationPage {
             this.role = role;
             this.badgeBg = badgeBg;
             this.badgeText = badgeText;
-            this.ownerEmail = ownerEmail;
-        }
-    }
-
-    private static class ActivityItem {
-        String user, action, time;
-        ActivityItem(String user, String action, String time) {
-            this.user = user;
-            this.action = action;
-            this.time = time;
         }
     }
 
     private final List<WorkspaceData> workspaces = new ArrayList<>();
-    private final List<ActivityItem> activitiesList = new ArrayList<>();
     private Label spacesValue, membersValue, filesValue;
     private boolean isGridView;
     private VBox workspaceListPane;
-    private VBox activityListPane;
 
-    private void initializeWorkspacesAndActivities() {
-        workspaces.clear();
-        activitiesList.clear();
-        
-        String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
-        
-        try {
-            com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFireStore();
-            List<com.google.cloud.firestore.QueryDocumentSnapshot> workspacesDocs = db.collection("workspaces").get().get().getDocuments();
-            
-            for (com.google.cloud.firestore.DocumentSnapshot doc : workspacesDocs) {
-                String docId = doc.getId();
-                String spaceName = doc.getString("spaceName");
-                if (spaceName == null) {
-                    spaceName = docId.replaceAll("_", " ");
-                }
-                
-                int memberCount = 1;
-                int fileCount = 0;
-                String fetchedOwnerEmail = "";
-                String userAssignedRole = "Viewer";
-                
-                try {
-                    var membersDocs = db.collection("workspaces").document(docId).collection("members").get().get().getDocuments();
-                    if (!membersDocs.isEmpty()) {
-                        memberCount = membersDocs.size();
-                    }
-                    for (var mDoc : membersDocs) {
-                        String mName = mDoc.getString("name");
-                        String mRole = mDoc.getString("role");
-                        String mEmail = mDoc.getString("email");
-                        
-                        if ("Owner".equalsIgnoreCase(mRole)) {
-                            fetchedOwnerEmail = mEmail != null ? mEmail : "";
-                        }
-                        
-                        if (mEmail != null && mEmail.equalsIgnoreCase(myEmail)) {
-                            if (mRole != null && !mRole.isEmpty()) {
-                                userAssignedRole = mRole;
-                            }
-                        }
+    private void initializeWorkspaces() {
+        if (!workspaces.isEmpty()) return;
 
-                        if (mName != null) {
-                            activitiesList.add(new ActivityItem(mName, "joined '" + spaceName + "'", "Recently"));
-                        }
-                    }
-                } catch (Exception ignored) {}
-
-                try {
-                    var filesDocs = db.collection("workspaces").document(docId).collection("files").get().get().getDocuments();
-                    fileCount = filesDocs.size();
-                    for (var fDoc : filesDocs) {
-                        String fName = fDoc.getString("fileName");
-                        if (fName != null) {
-                            activitiesList.add(new ActivityItem("Team Member", "uploaded '" + fName + "' to " + spaceName, "Just now"));
-                        }
-                    }
-                } catch (Exception ignored) {}
-                
-                // Configure role badge colors based on exact role
-                String badgeBg = "#E2E8F0";
-                String badgeText = "#334155";
-                
-                if ("Owner".equalsIgnoreCase(userAssignedRole)) {
-                    badgeBg = "#BFDBFE";
-                    badgeText = "#1D4ED8";
-                } else if ("Moderator".equalsIgnoreCase(userAssignedRole)) {
-                    badgeBg = "#FFEDD5";
-                    badgeText = "#C2410C";
-                } else if ("Editor".equalsIgnoreCase(userAssignedRole)) {
-                    badgeBg = "#93C5FD";
-                    badgeText = "#2563EB";
-                } else if ("Viewer".equalsIgnoreCase(userAssignedRole)) {
-                    badgeBg = "#86EFAC";
-                    badgeText = "#15803D";
-                }
-                
-                workspaces.add(new WorkspaceData(
-                    "📁", 
-                    PRIMARY_BLUE, 
-                    spaceName, 
-                    memberCount, 
-                    fileCount, 
-                    fileCount > 0 ? "Synced" : "No files", 
-                    userAssignedRole, 
-                    badgeBg, 
-                    badgeText,
-                    fetchedOwnerEmail
-                ));
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
-        if (workspaces.isEmpty()) {
-            workspaces.add(new WorkspaceData("🎓", "#0284C7", "College Presentation", 4, 32,
-                    "12.4 GB", "Owner", "#BFDBFE", "#1D4ED8", ""));
-        }
-
-        if (activitiesList.isEmpty()) {
-            activitiesList.add(new ActivityItem("Priya Sharma", "uploaded 'SVM_Optimization.pdf'", "10 mins ago"));
-            activitiesList.add(new ActivityItem("Rohan Patel", "viewed 'College_Assignments'", "1 hour ago"));
-            activitiesList.add(new ActivityItem("Aarav Verma", "updated access permissions for Sneha", "3 hours ago"));
-        }
+        workspaces.add(new WorkspaceData("🎓", "#0284C7", "College Presentation", 4, 32,
+                "12.4 GB", "Owner", "#BAE6FD", "#0369A1"));
+        workspaces.add(new WorkspaceData("💼", "#059669", "Placement Prep Team", 3, 84,
+                "18.7 GB", "Editor", "#A7F3D0", "#047857"));
+        workspaces.add(new WorkspaceData("📁", PRIMARY_BLUE, "AI Project Artifacts", 5, 32,
+                "6.8 GB", "Editor", "#BFDBFE", "#1D4ED8"));
     }
 
     public Scene getCollaborationPageScene() {
          String activeUserName = "User";
-         String initials = "U";
+        String initials = "U";
 
-         if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
+        if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
                 String fullName = UserSession.getInstance().getDisplayName().trim();
                 if (!fullName.isEmpty()) {
+                // Extract only the first name (everything before the first space)
                         String[] parts = fullName.split("\\s+");
                         activeUserName = parts[0];
+        
+                        // Grab the initial from the first name
                         initials = activeUserName.substring(0, 1).toUpperCase();
                 }
-         }
-        initializeWorkspacesAndActivities();
+        }
+        initializeWorkspaces();
 
         StackPane logoIcon = createOneSpaceLogo();
         Label logoText = new Label("OneSpace");
@@ -207,6 +98,7 @@ public class CollaborationPage {
         Button trashBtn = createSidebarButton("🗑", "Trash", false);
         Button settingsBtn = createSidebarButton("⚙", "Settings", false);
         Button logoutBtn = createSidebarButton("🚪", "Logout", false);
+
 
         dashboardBtn.setOnAction(e -> LandingPage.showUserDashboard());
         spacesBtn.setOnAction(e -> LandingPage.showUserSpace());
@@ -291,8 +183,8 @@ public class CollaborationPage {
         Button bellBtn = new Button("🔔");
         bellBtn.setStyle("-fx-background-color:transparent;-fx-font-size:16px;-fx-text-fill:" +
                 TEXT_LIGHT + ";-fx-cursor:hand;");
-        bellBtn.setOnAction(e -> { LandingPage.showNotificationPage(); });  
-        
+        bellBtn.setOnAction(e -> LandingPage.showNotificationPage());
+
         Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
@@ -310,6 +202,7 @@ public class CollaborationPage {
         profileOption.setAlignment(Pos.CENTER);
         profileOption.setPadding(new Insets(5, 8, 5, 8));
         profileOption.setStyle("-fx-background-color:transparent;-fx-background-radius:8;-fx-cursor:hand;");
+        profileOption.setOnMouseClicked(e -> LandingPage.showUserProfilePage());
         profileOption.setOnMouseEntered(e -> profileOption.setStyle(
                 "-fx-background-color:#26354A;-fx-background-radius:8;-fx-cursor:hand;"));
         profileOption.setOnMouseExited(e -> profileOption.setStyle(
@@ -338,7 +231,7 @@ public class CollaborationPage {
 
         VBox headerTitleBox = new VBox(4, pageTitle, pageDescription);
 
-        Button pendingBtn = new Button("♧  Pending Invites");
+        Button pendingBtn = new Button("♧  Pending Invites (3)");
         pendingBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         pendingBtn.setStyle("-fx-background-color:" + BG_CARD_INNER + ";-fx-text-fill:" + TEXT_DARK +
                 ";-fx-border-color:" + BORDER_CARD + ";-fx-border-radius:8;-fx-background-radius:8;" +
@@ -417,15 +310,18 @@ public class CollaborationPage {
         activityTitle.setFont(Font.font(FONT, FontWeight.BOLD, 17));
         activityTitle.setStyle("-fx-text-fill:" + TEXT_DARK + ";");
 
-        activityListPane = new VBox(10);
-        rebuildActivityList();
+        VBox activityList = new VBox(10,
+                activity("Priya Sharma", "uploaded 'SVM_Optimization.pdf'", "10 mins ago"),
+                activity("Rohan Patel", "viewed 'College_Assignments'", "1 hour ago"),
+                activity("Aarav Verma", "updated access permissions for Sneha", "3 hours ago"),
+                activity("System Sync", "indexed 12 new files in Placement Prep", "Yesterday"));
 
         Button viewAllActivities = new Button("View all activities ›");
         viewAllActivities.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         viewAllActivities.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-background-color: transparent; -fx-text-fill: " + PRIMARY_BLUE + "; -fx-cursor: hand;");
         viewAllActivities.setOnAction(e -> showAllActivitiesPopup());
 
-        VBox activityCard = new VBox(14, activityTitle, activityListPane, viewAllActivities);
+        VBox activityCard = new VBox(14, activityTitle, activityList, viewAllActivities);
         activityCard.setPadding(new Insets(24));
         activityCard.setMaxWidth(Double.MAX_VALUE);
         activityCard.setStyle(cardContainerStyle());
@@ -470,15 +366,6 @@ public class CollaborationPage {
         root.setCenter(mainArea);
 
         return new Scene(root, 1200, 750);
-    }
-
-    private void rebuildActivityList() {
-        activityListPane.getChildren().clear();
-        int limit = Math.min(4, activitiesList.size());
-        for (int i = 0; i < limit; i++) {
-            ActivityItem act = activitiesList.get(i);
-            activityListPane.getChildren().add(activity(act.user, act.action, act.time));
-        }
     }
 
     private StackPane createOneSpaceLogo() {
@@ -571,7 +458,8 @@ public class CollaborationPage {
 
         Label role = new Label(w.role);
         role.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        role.setStyle("-fx-background-color:" + w.badgeBg + ";-fx-text-fill:" + w.badgeText + ";-fx-padding:4 9;-fx-background-radius:6;");
+        role.setStyle("-fx-background-color:" + w.badgeBg + ";-fx-text-fill:" + w.badgeText +
+                ";-fx-padding:4 9;-fx-background-radius:6;");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -591,13 +479,12 @@ public class CollaborationPage {
         icon.setAlignment(Pos.CENTER);
         icon.setStyle("-fx-background-color:" + w.badgeBg + ";-fx-background-radius:50%;-fx-text-fill:" + w.iconColor + ";");
 
-        Label roleTag = new Label(w.role);
-        roleTag.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        roleTag.setStyle("-fx-text-fill: " + w.badgeText + "; -fx-background-color: " + w.badgeBg + "; -fx-background-radius: 6; -fx-padding: 3 10; -fx-font-weight: bold;");
-
+        Label role = new Label(w.role);
+        role.setFont(Font.font(FONT, FontWeight.BOLD, 10));
+        role.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-font-weight: 700; -fx-background-color: " + w.badgeBg + "; -fx-text-fill: " + w.badgeText + "; -fx-padding: 3 8; -fx-background-radius: 6;");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox top = new HBox(icon, spacer, roleTag);
+        HBox top = new HBox(icon, spacer, role);
         top.setAlignment(Pos.CENTER);
 
         Label title = new Label(w.name);
@@ -664,7 +551,10 @@ public class CollaborationPage {
         dialog.setTitle("Pending Invites");
         dialog.setHeaderText("Collaboration Invites");
 
-        VBox list = new VBox(12);
+        VBox list = new VBox(12,
+                pendingRequest("Priya Sharma", "priya.sharma@gmail.com", "College Presentation", "Invited 10 mins ago"),
+                pendingRequest("Rohan Patel", "rohan.patel@gmail.com", "Placement Prep Team", "Invited 1 hour ago"),
+                pendingRequest("Sneha Kulkarni", "sneha.kulkarni@gmail.com", "AI Project Artifacts", "Invited Yesterday"));
         list.setPadding(new Insets(10));
 
         ScrollPane scroll = new ScrollPane(list);
@@ -673,51 +563,6 @@ public class CollaborationPage {
         scroll.setPrefWidth(520);
         scroll.setStyle("-fx-background-color:transparent;-fx-border-color:transparent;");
 
-        String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
-        try {
-            com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFireStore();
-            List<com.google.cloud.firestore.QueryDocumentSnapshot> workspacesDocs = db.collection("workspaces").get().get().getDocuments();
-            
-            boolean foundAny = false;
-            for (com.google.cloud.firestore.DocumentSnapshot wsDoc : workspacesDocs) {
-                String spaceDocId = wsDoc.getId();
-                String spaceName = spaceDocId.replaceAll("_", " ");
-                
-                var memberQuery = db.collection("workspaces").document(spaceDocId).collection("members")
-                    .whereEqualTo("status", "pending")
-                    .get().get();
-
-                for (com.google.cloud.firestore.DocumentSnapshot mDoc : memberQuery.getDocuments()) {
-                    String email = mDoc.getString("email");
-                    String status = mDoc.getString("status");
-
-                    if (email != null && email.equalsIgnoreCase(myEmail)) {
-                        foundAny = true;
-                        String name = mDoc.getString("name");
-                        if (name == null) name = "Unknown";
-
-                        final String finalName = name;
-                        final String finalEmail = email;
-                        
-                        javafx.application.Platform.runLater(() -> {
-                            list.getChildren().add(pendingRequest(finalName, finalEmail, spaceName, "Pending Request", spaceDocId));
-                        });
-                    }
-                }
-            }
-
-            if (!foundAny) {
-                javafx.application.Platform.runLater(() -> {
-                    Label noInvites = new Label("No pending collaboration invites found.");
-                    noInvites.setStyle("-fx-text-fill: " + TEXT_MUTED_DARK + "; -fx-font-size: 12px;");
-                    list.getChildren().add(noInvites);
-                });
-            }
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-
         ButtonType close = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().add(close);
         dialog.getDialogPane().setContent(padded(scroll, 5));
@@ -725,7 +570,7 @@ public class CollaborationPage {
         dialog.showAndWait();
     }
 
-    private HBox pendingRequest(String name, String email, String space, String requestedTime, String spaceDocId) {
+    private HBox pendingRequest(String name, String email, String space, String requestedTime) {
         Label avatar = new Label(getInitials(name));
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 11));
         avatar.setPrefSize(38, 38);
@@ -744,7 +589,11 @@ public class CollaborationPage {
         spaceLbl.setFont(Font.font(FONT, 11));
         spaceLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
 
-        VBox info = new VBox(2, nameLbl, emailLbl, spaceLbl);
+        Label timeLbl = new Label(requestedTime);
+        timeLbl.setFont(Font.font(FONT, 10));
+        timeLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-text-fill: " + TEXT_MUTED_DARK + ";");
+
+        VBox info = new VBox(2, nameLbl, emailLbl, spaceLbl, timeLbl);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -765,37 +614,20 @@ public class CollaborationPage {
                 ";-fx-border-radius:10;-fx-background-radius:10;");
 
         accept.setOnAction(e -> {
-            try {
-                var db = com.file_handlers.config.FirebaseConfig.getFireStore();
-                var docs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
-                for (var doc : docs) {
-                    if (email.equalsIgnoreCase(doc.getString("email"))) {
-                        doc.getReference().update("status", "active");
-                        break;
-                    }
-                }
-            } catch (Exception ex) { ex.printStackTrace(); }
-
             nameLbl.setText(name + " ✓ Accepted");
+            nameLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #059669;");
             accept.setDisable(true);
             decline.setDisable(true);
-        });
-
-        decline.setOnAction(e -> {
-            try {
-                var db = com.file_handlers.config.FirebaseConfig.getFireStore();
-                var docs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
-                for (var doc : docs) {
-                    if (email.equalsIgnoreCase(doc.getString("email"))) {
-                        doc.getReference().delete();
-                        break;
-                    }
-                }
-            } catch (Exception ex) { ex.printStackTrace(); }
-
-            nameLbl.setText(name + " ✕ Declined");
+            spaceLbl.setText("Invite accepted");
+            spaceLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: #059669;");
+            decline.setDisable(true);
+            spaceLbl.setText("Invite declined");
+            spaceLbl.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-text-fill: #DC2626;");
+            nameLbl.setStyle("-fx-text-fill:#DC2626;");
             accept.setDisable(true);
             decline.setDisable(true);
+            spaceLbl.setText("Invite declined");
+            spaceLbl.setStyle("-fx-text-fill:#DC2626;");
         });
 
         return row;
@@ -893,12 +725,29 @@ public class CollaborationPage {
         dialog.setTitle("All Activities");
         dialog.setHeaderText("Recent Activity");
 
+        String[][] data = {
+                {"Priya Sharma", "uploaded 'SVM_Optimization.pdf'", "10 mins ago"},
+                {"Rohan Patel", "viewed 'College_Assignments'", "1 hour ago"},
+                {"Aarav Verma", "updated access permissions for Sneha", "3 hours ago"},
+                {"System Sync", "indexed 12 new files in Placement Prep", "Yesterday"},
+                {"Sneha Kulkarni", "joined 'College Presentation'", "Yesterday"},
+                {"Rahul Joshi", "uploaded 'Project_Report.docx'", "Yesterday"},
+                {"Priya Sharma", "edited 'SVM_Optimization.pdf'", "2 days ago"},
+                {"Rohan Patel", "downloaded 'College_Assignments'", "2 days ago"},
+                {"Aarav Verma", "created 'AI Project Artifacts'", "3 days ago"},
+                {"Sneha Kulkarni", "updated workspace description", "3 days ago"},
+                {"System Sync", "indexed 8 new files in College Presentation", "4 days ago"},
+                {"Rahul Joshi", "joined 'Placement Prep Team'", "5 days ago"},
+                {"Priya Sharma", "shared 'Placement_Notes.pdf'", "5 days ago"},
+                {"Aarav Verma", "changed Rahul's role to Editor", "6 days ago"},
+                {"Rohan Patel", "viewed 'Placement_Notes.pdf'", "1 week ago"}
+        };
+
         VBox list = new VBox(12);
         list.setPadding(new Insets(10));
 
-        for (ActivityItem act : activitiesList) {
-            list.getChildren().add(activity(act.user, act.action, act.time));
-        }
+        for (String[] item : data)
+            list.getChildren().add(activity(item[0], item[1], item[2]));
 
         ScrollPane scroll = new ScrollPane(list);
         scroll.setFitToWidth(true);
@@ -999,85 +848,29 @@ public class CollaborationPage {
 
                 if (!spaceName.isEmpty()) {
                     String membersText = membersField.getText().trim();
+                    int memberCount = 1;
 
-                    try {
-                        com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFireStore();
-                        String docId = spaceName.replaceAll("\\s+", "_");
-
-                        Map<String, Object> spaceData = new HashMap<>();
-                        spaceData.put("spaceName", spaceName);
-                        spaceData.put("createdAt", com.google.cloud.firestore.FieldValue.serverTimestamp());
-                        db.collection("workspaces").document(docId).set(spaceData).get();
-
-                        String ownerEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "owner@app.com";
-                        String ownerName = ownerEmail.split("@")[0];
-                        Map<String, Object> ownerData = new HashMap<>();
-                        ownerData.put("email", ownerEmail);
-                        ownerData.put("name", ownerName);
-                        ownerData.put("status", "active");
-                        ownerData.put("role", "Owner");
-                        db.collection("workspaces").document(docId)
-                          .collection("members").document(ownerEmail.toLowerCase().replaceAll("[^a-z0-9]", "_")).set(ownerData);
-
-                        int memberCount = 1;
-
-                        if (!membersText.isEmpty()) {
-                            for (String memberEmail : membersText.split(",")) {
-                                String emailTrimmed = memberEmail.trim();
-                                if (!emailTrimmed.isEmpty()) {
-                                    memberCount++;
-                                    Map<String, Object> memberData = new HashMap<>();
-                                    memberData.put("email", emailTrimmed);
-                                    memberData.put("name", emailTrimmed.split("@")[0]);
-                                    memberData.put("status", "pending");
-                                    memberData.put("role", "Viewer");
-
-                                    db.collection("workspaces").document(docId)
-                                      .collection("members")
-                                      .document(emailTrimmed.toLowerCase().replaceAll("[^a-z0-9]", "_"))
-                                      .set(memberData);
-                                }
-                            }
-                        }
-
-                        int fileCount = selectedFile[0] != null ? 1 : 0;
-                        if (selectedFile[0] != null) {
-                            Map<String, Object> fileData = new HashMap<>();
-                            fileData.put("fileName", selectedFile[0].getName());
-                            fileData.put("size", "Local File");
-                            fileData.put("uploadedOn", "Just now");
-                            fileData.put("secureUrl", selectedFile[0].toURI().toString());
-
-                            db.collection("workspaces").document(docId)
-                              .collection("files").document().set(fileData);
-                            
-                            activitiesList.add(0, new ActivityItem(ownerName, "uploaded '" + selectedFile[0].getName() + "' to " + spaceName, "Just now"));
-                        }
-
-                        activitiesList.add(0, new ActivityItem(ownerName, "created workspace '" + spaceName + "'", "Just now"));
-
-                        workspaces.add(new WorkspaceData(
-                                "📁",
-                                PRIMARY_BLUE,
-                                spaceName,
-                                memberCount,
-                                fileCount,
-                                fileCount > 0 ? "Synced" : "No files",
-                                "Owner",
-                                "#BFDBFE",
-                                "#1D4ED8",
-                                ownerEmail
-                        ));
-
-                        javafx.application.Platform.runLater(() -> {
-                            rebuildWorkspaceCards(root);
-                            updateMetrics();
-                            rebuildActivityList();
-                        });
-
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
+                    if (!membersText.isEmpty()) {
+                        for (String member : membersText.split(","))
+                            if (!member.trim().isEmpty()) memberCount++;
                     }
+
+                    int fileCount = selectedFile[0] != null ? 1 : 0;
+
+                    workspaces.add(new WorkspaceData(
+                            "📁",
+                            PRIMARY_BLUE,
+                            spaceName,
+                            memberCount,
+                            fileCount,
+                            fileCount > 0 ? "Local" : "No files",
+                            "Owner",
+                            "#BFDBFE",
+                            "#1D4ED8"
+                    ));
+
+                    rebuildWorkspaceCards(root);
+                    updateMetrics();
                 }
             }
 

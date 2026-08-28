@@ -1,3 +1,14 @@
+# Maven build files
+superx_project/target/
 
+# Java compiled files
+*.class
+
+# Log files
+*.log
+hs_err_pid*.log
+
+# Firebase credentials
+superx_project/src/main/resources/onespace_firebase_credentials.json
 superx_project/src/main/resources/ServiceAccountKey.json
-/superx_project/src/main/resources/java26.json
+superx_project/src/main/resources/java26.json
