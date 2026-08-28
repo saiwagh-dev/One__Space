@@ -1,5 +1,6 @@
 package com.file_handlers.view.userView;
 
+import com.file_handlers.config.FirebaseConfig;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 
@@ -514,6 +515,47 @@ topBar.setStyle(
 
     private void init() {
         data.clear();
+              // Fetch dynamic collaboration invites & workspace activities from Firestore
+        String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
+        try {
+            com.google.cloud.firestore.Firestore db = FirebaseConfig.getFireStore();
+            var workspacesDocs = db.collection("workspaces").get().get().getDocuments();
+
+            for (var wsDoc : workspacesDocs) {
+                String spaceDocId = wsDoc.getId();
+                String spaceName = spaceDocId.replaceAll("_", " ");
+
+                // Check members subcollection for pending invites or membership actions
+                var memberDocs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
+                for (var mDoc : memberDocs) {
+                    String email = mDoc.getString("email");
+                    String status = mDoc.getString("status");
+                    String name = mDoc.getString("name");
+                    String role = mDoc.getString("role");
+
+                    if (email != null && email.equalsIgnoreCase(myEmail)) {
+                        if ("pending".equalsIgnoreCase(status)) {
+                            data.add(new N("👥", "Collaboration Invite", "You have been invited to join '" + spaceName + "' as " + (role != null ? role : "Viewer"), "Recent", "Collaboration"));
+                        } else if ("active".equalsIgnoreCase(status)) {
+                            data.add(new N("👥", "Workspace Access Active", "You are an active " + role + " in '" + spaceName + "'", "Synced", "Collaboration"));
+                        }
+                    } else if (name != null) {
+                        data.add(new N("👥", name + " joined workspace", "Added to '" + spaceName + "'", "Recently", "Collaboration"));
+                    }
+                }
+
+                // Check files subcollection for recent file uploads/activity in workspaces
+                var fileDocs = db.collection("workspaces").document(spaceDocId).collection("files").get().get().getDocuments();
+                for (var fDoc : fileDocs) {
+                    String fileName = fDoc.getString("fileName");
+                    if (fileName != null) {
+                        data.add(new N("📄", "File uploaded in " + spaceName, fileName, "Recent", "Collaboration"));
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
         data.add(new N("📄", "12 duplicate files detected",
                 "Downloads folder · 4.2 GB recoverable", "1 h", "Reminders"));
