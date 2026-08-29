@@ -1,6 +1,5 @@
 package com.file_handlers.view.adminView;
 
-import com.file_handlers.view.LandingPage;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -28,22 +27,32 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import java.io.InputStream;
 
+import com.file_handlers.view.LandingPage;
+
 public class AdminAnalytics {
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    private static final String SIDEBAR_BG = "#1E2A3A";
-    private static final String SIDEBAR_DARK = "#141D29";
-    private static final String SIDEBAR_BORDER = "#2D3D52";
-    private static final String MAIN_BG = "#31435B";
-    private static final String CARD_BG = "#DDE8F8";
-    private static final String CARD_BORDER = "#C3D6EC";
+    
+    // 1. Sidebar & Top Bar Tones
+    private static final String SIDEBAR_BG = "#070C16";
+    private static final String SIDEBAR_DARK = "#070C16";
+    private static final String SIDEBAR_BORDER = "rgba(255, 255, 255, 0.07)";
+
+    // 2. Center Canvas Radial Glow Background
+    private static final String MAIN_BG = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
+
+    // 3. Main Glassmorphic Cards & Text Colors
+    private static final String CARD_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
+    private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
+
+    // Accent & Typography Colors
     private static final String WHITE = "#FFFFFF";
     private static final String LIGHT_SECONDARY = "#94A3B8";
     private static final String BLUE = "#2563EB";
-    private static final String BLUE_LIGHT = "#BFDBFE";
-    private static final String PURPLE = "#7C3AED";
-    private static final String PURPLE_LIGHT = "#E9D5FF";
+    private static final String BLUE_LIGHT = "rgba(37, 99, 235, 0.15)";
+    private static final String PURPLE = "#00D2FF";
+    private static final String PURPLE_LIGHT = "rgba(0, 210, 255, 0.15)";
     private static final String ORANGE = "#F59E0B";
-    private static final String ORANGE_LIGHT = "#FEF3C7";
+    private static final String ORANGE_LIGHT = "rgba(245, 158, 11, 0.15)";
 
     public AdminAnalytics() {}
 
@@ -57,10 +66,10 @@ public class AdminAnalytics {
         scrollPane.setFitToHeight(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setStyle("-fx-background-color: " + MAIN_BG + "; -fx-background: " + MAIN_BG + "; -fx-background-insets: 0; -fx-padding: 0;");
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-background-insets: 0; -fx-padding: 0;");
 
         VBox rightSide = new VBox(createTopBar(), scrollPane);
-        rightSide.setStyle("-fx-background-color: " + MAIN_BG + ";");
+        rightSide.setStyle("-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";");
         rightSide.setFillWidth(true);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         root.setCenter(rightSide);
@@ -163,20 +172,27 @@ public class AdminAnalytics {
         button.setAlignment(Pos.CENTER_LEFT);
         button.setPadding(new Insets(0, 12, 0, 12));
 
-        String baseStyle = "-fx-background-radius: 8; -fx-cursor: hand; -fx-border-width: 0;";
         if (active) {
-            button.setStyle("-fx-background-color: " + BLUE + ";" + baseStyle);
+            button.setStyle(
+                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+                "-fx-background-radius: 12;" +
+                "-fx-border-color: rgba(96, 165, 250, 0.6);" +
+                "-fx-border-radius: 12;" +
+                "-fx-border-width: 1;" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);"
+            );
         } else {
-            button.setStyle("-fx-background-color: transparent;" + baseStyle);
+            button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: #26354A;" + baseStyle);
+                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 icon.setStroke(Color.WHITE);
                 label.setTextFill(Color.WHITE);
             });
             button.setOnMouseExited(e -> {
-                button.setStyle("-fx-background-color: transparent;" + baseStyle);
+                button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
-                label.setTextFill(Color.WHITE);
+                label.setTextFill(Color.web(WHITE));
             });
         }
         return button;
@@ -184,7 +200,7 @@ public class AdminAnalytics {
 
     private HBox createTopBar() {
         SVGPath searchIcon = createIcon("search");
-        searchIcon.setStroke(Color.web(LIGHT_SECONDARY));
+        searchIcon.setStroke(Color.web("#64748B"));
         searchIcon.setStrokeWidth(2);
 
         StackPane searchIconBox = new StackPane(searchIcon);
@@ -194,14 +210,14 @@ public class AdminAnalytics {
         search.setPromptText("Search in OneSpace...");
         search.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
         search.setPrefHeight(38);
-        search.setStyle("-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #94A3B8; -fx-border-color: transparent; -fx-padding: 0;");
+        search.setStyle("-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #64748B; -fx-border-color: transparent; -fx-padding: 0;");
 
         HBox searchBox = new HBox(8, searchIconBox, search);
         searchBox.setAlignment(Pos.CENTER_LEFT);
         searchBox.setPrefHeight(38); searchBox.setMinHeight(38); searchBox.setMaxHeight(38);
         searchBox.setPrefWidth(420); searchBox.setMinWidth(420); searchBox.setMaxWidth(420);
         searchBox.setPadding(new Insets(0, 12, 0, 14));
-        searchBox.setStyle("-fx-background-color: " + SIDEBAR_DARK + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
+        searchBox.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20;");
         HBox.setHgrow(search, Priority.ALWAYS);
 
         Region spacer = new Region();
@@ -213,13 +229,13 @@ public class AdminAnalytics {
 
         Button notification = new Button();
         notification.setGraphic(bell);
-        notification.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
+        notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
 
         Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-background-color: " + BLUE + "; -fx-background-radius: 50%;");
+        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
         Label admin = new Label("Admin");
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
@@ -227,7 +243,8 @@ public class AdminAnalytics {
 
         HBox profile = new HBox(10, notification, avatar, admin);
         profile.setAlignment(Pos.CENTER);
-        profile.setStyle("-fx-cursor: hand;");
+        profile.setPadding(new Insets(4, 12, 4, 6));
+        profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
         profile.setOnMouseClicked(e -> {
             LandingPage.showAdminProfilePage();
         });
@@ -236,7 +253,7 @@ public class AdminAnalytics {
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPrefHeight(70); topBar.setMinHeight(70); topBar.setMaxHeight(70);
         topBar.setPadding(new Insets(16, 28, 14, 28));
-        topBar.setStyle("-fx-background-color: " + SIDEBAR_BG + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
+        topBar.setStyle("-fx-background-color: transparent; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
         return topBar;
     }
 
@@ -265,38 +282,36 @@ public class AdminAnalytics {
         VBox content = new VBox(22, headerBox, statsRow, createUserGrowthCard());
         content.setPadding(new Insets(24, 28, 28, 28));
         content.setFillWidth(true);
-        content.setStyle("-fx-background-color: " + MAIN_BG + ";");
+        content.setStyle("-fx-background-color: transparent;");
         return content;
     }
 
     private HBox createAnalyticsStatCard(String iconType, String title, String value, String description, String iconColor, String iconBackground) {
         Label titleLabel = new Label(title);
         titleLabel.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        titleLabel.setTextFill(Color.BLACK);
-        titleLabel.setStyle("-fx-text-fill: #000000;");
+        titleLabel.setTextFill(Color.WHITE);
+        titleLabel.setStyle("-fx-text-fill: #FFFFFF;");
 
         Label info = new Label("ⓘ");
         info.setFont(Font.font(FONT, FontWeight.NORMAL, 12));
-        info.setTextFill(Color.BLACK);
-        info.setStyle("-fx-text-fill: #000000;");
+        info.setTextFill(Color.web(LIGHT_SECONDARY));
+        info.setStyle("-fx-text-fill: #94A3B8;");
 
         HBox titleRow = new HBox(6, titleLabel, info);
         titleRow.setAlignment(Pos.CENTER_LEFT);
-        titleRow.setStyle("-fx-text-fill: #000000;");
 
         Label valueLabel = new Label(value);
         valueLabel.setFont(Font.font(FONT, FontWeight.BOLD, 26));
-        valueLabel.setTextFill(Color.BLACK);
-        valueLabel.setStyle("-fx-text-fill: #000000;");
+        valueLabel.setTextFill(Color.WHITE);
+        valueLabel.setStyle("-fx-text-fill: #FFFFFF;");
 
         Label descriptionLabel = new Label(description);
         descriptionLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        descriptionLabel.setTextFill(Color.BLACK);
-        descriptionLabel.setStyle("-fx-text-fill: #000000;");
+        descriptionLabel.setTextFill(Color.web("#38BDF8"));
+        descriptionLabel.setStyle("-fx-text-fill: #38BDF8;");
 
         VBox text = new VBox(6, titleRow, valueLabel, descriptionLabel);
         text.setAlignment(Pos.TOP_LEFT);
-        text.setStyle("-fx-text-fill: #000000;");
 
         SVGPath icon = createIcon(iconType);
         icon.setStroke(Color.web(iconColor));
@@ -306,36 +321,36 @@ public class AdminAnalytics {
         iconBox.setPrefSize(48, 48);
         iconBox.setMinSize(48, 48);
         iconBox.setMaxSize(48, 48);
-        iconBox.setStyle("-fx-background-color: " + iconBackground + "; -fx-background-radius: 12;");
+        iconBox.setStyle("-fx-background-color: " + iconBackground + "; -fx-border-color: " + iconColor + "55; -fx-border-radius: 12; -fx-background-radius: 12;");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         HBox top = new HBox(10, text, spacer, iconBox);
         top.setAlignment(Pos.TOP_LEFT);
-        top.setStyle("-fx-text-fill: #000000;");
 
         HBox card = new HBox(top);
         card.setPrefHeight(160);
         card.setMinHeight(160);
         card.setMaxHeight(160);
         card.setPadding(new Insets(18));
-        card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1; -fx-border-radius: 16; -fx-background-radius: 16; -fx-text-fill: #000000; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.18), 16, 0, 0, 6);");
+        card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
         return card;
     }
 
     private VBox createUserGrowthCard() {
         Label title = new Label("User Growth");
         title.setFont(Font.font(FONT, FontWeight.BOLD, 17));
-        title.setTextFill(Color.BLACK);
-        title.setStyle("-fx-text-fill: #000000;");
+        title.setTextFill(Color.WHITE);
+        title.setStyle("-fx-text-fill: #FFFFFF;");
 
         ComboBox<String> period = new ComboBox<>();
         period.getItems().addAll("This Month", "Last Month", "Last 3 Months", "This Year");
         period.setValue("This Month");
         period.setPrefWidth(130);
         period.setPrefHeight(30);
-        period.setStyle("-fx-background-color: #CADDF2; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-family: '" + FONT + "'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #0F172A; -fx-cursor: hand;");
+        period.getStyleClass().add("slate-dark-combo");
+        period.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-family: '" + FONT + "'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
 
         Region headingSpacer = new Region();
         HBox.setHgrow(headingSpacer, Priority.ALWAYS);
@@ -344,15 +359,15 @@ public class AdminAnalytics {
         heading.setAlignment(Pos.CENTER_LEFT);
 
         CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setTickLabelFill(Color.BLACK);
+        xAxis.setTickLabelFill(Color.WHITE);
         xAxis.setTickLabelFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        xAxis.setStyle("-fx-tick-label-fill: #000000; -fx-text-fill: #000000;");
+        xAxis.setStyle("-fx-tick-label-fill: #FFFFFF; -fx-text-fill: #FFFFFF;");
 
         NumberAxis yAxis = new NumberAxis();
         yAxis.setAutoRanging(true);
-        yAxis.setTickLabelFill(Color.BLACK);
+        yAxis.setTickLabelFill(Color.WHITE);
         yAxis.setTickLabelFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        yAxis.setStyle("-fx-tick-label-fill: #000000; -fx-text-fill: #000000;");
+        yAxis.setStyle("-fx-tick-label-fill: #FFFFFF; -fx-text-fill: #FFFFFF;");
 
         LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
         chart.setLegendVisible(false);
@@ -377,8 +392,8 @@ public class AdminAnalytics {
         chart.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0;");
         chart.lookupAll(".chart-plot-background").forEach(n -> n.setStyle("-fx-background-color: transparent;"));
 
-        xAxis.lookupAll(".axis-tick-mark").forEach(node -> node.setStyle("-fx-stroke: #000000;"));
-        yAxis.lookupAll(".axis-tick-mark").forEach(node -> node.setStyle("-fx-stroke: #000000;"));
+        xAxis.lookupAll(".axis-tick-mark").forEach(node -> node.setStyle("-fx-stroke: rgba(255, 255, 255, 0.2);"));
+        yAxis.lookupAll(".axis-tick-mark").forEach(node -> node.setStyle("-fx-stroke: rgba(255, 255, 255, 0.2);"));
 
         VBox card = new VBox(14, heading, chart);
         card.setPrefWidth(815);
@@ -386,7 +401,7 @@ public class AdminAnalytics {
         card.setPrefHeight(390);
         card.setMinHeight(390);
         card.setPadding(new Insets(20));
-        card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1; -fx-border-radius: 16; -fx-background-radius: 16; -fx-text-fill: #000000; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.18), 16, 0, 0, 6);");
+        card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: #FFFFFF; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
         return card;
     }
 

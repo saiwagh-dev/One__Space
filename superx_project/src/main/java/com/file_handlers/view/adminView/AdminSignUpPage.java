@@ -1,9 +1,5 @@
 package com.file_handlers.view.adminView;
 
-import com.file_handlers.controller.AdminAuthController;
-import com.file_handlers.model.UserSession;
-import com.file_handlers.view.LandingPage;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -26,19 +22,23 @@ import javafx.scene.text.FontWeight;
 
 import java.io.InputStream;
 
+import com.file_handlers.controller.AdminAuthController;
+import com.file_handlers.model.UserSession;
+import com.file_handlers.view.LandingPage;
+
 public class AdminSignUpPage {
 
-    // Theme Constants
+    // Dark Glassmorphic Theme Constants
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    private static final String BG_APP = "#3A4D67";
-    private static final String BG_CARD = "#DDE8F5";
-    private static final String BG_INPUT = "#EDF3FA";
-    private static final String BORDER_COLOR = "#C9DAEE";
+    private static final String BG_APP = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
+    private static final String BG_CARD = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
+    private static final String BG_INPUT = "rgba(10, 18, 33, 0.85)";
+    private static final String BORDER_COLOR = "rgba(56, 189, 248, 0.22)";
     private static final String PRIMARY_BLUE = "#2563EB";
-    private static final String TEXT_DARK = "#142338";
-    private static final String TEXT_MUTED_DARK = "#506580";
-    private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
-    private static final String ERROR_COLOR = "#DC2626";
+    private static final String TEXT_DARK = "#FFFFFF";
+    private static final String TEXT_MUTED_DARK = "#94A3B8";
+    private static final String TEXT_MUTED_LIGHT = "#94A3B8";
+    private static final String ERROR_COLOR = "#EF4444";
 
     public Scene getAdminSignUpScene() {
 
@@ -133,9 +133,13 @@ public class AdminSignUpPage {
         signupButton.setMaxWidth(Double.MAX_VALUE);
         signupButton.setPrefHeight(42);
         signupButton.setStyle(
-                "-fx-background-color: " + PRIMARY_BLUE + ";" +
-                "-fx-background-radius: 10;" +
-                "-fx-cursor: hand;"
+                "-fx-background-color: linear-gradient(to right, #1D4ED8, #0284C7);" +
+                "-fx-text-fill: #FFFFFF;" +
+                "-fx-background-radius: 12;" +
+                "-fx-border-color: rgba(96, 165, 250, 0.6);" +
+                "-fx-border-radius: 12;" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(2, 132, 199, 0.5), 14, 0, 0, 3);"
         );
         
         signupButton.setOnAction(e -> {
@@ -175,7 +179,7 @@ public class AdminSignUpPage {
 
         Label loginLink = new Label("Sign In");
         loginLink.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        loginLink.setTextFill(Color.web(PRIMARY_BLUE));
+        loginLink.setTextFill(Color.web("#38BDF8"));
         loginLink.setStyle("-fx-cursor: hand;");
         loginLink.setOnMouseClicked(e -> LandingPage.showAdminLoginPage());
 
@@ -200,9 +204,10 @@ public class AdminSignUpPage {
         card.setStyle(
                 "-fx-background-color: " + BG_CARD + ";" +
                 "-fx-border-color: " + BORDER_COLOR + ";" +
-                "-fx-border-radius: 18;" +
-                "-fx-background-radius: 18;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.12), 16, 0, 0, 6);"
+                "-fx-border-radius: 20;" +
+                "-fx-background-radius: 20;" +
+                "-fx-border-width: 1.2;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);"
         );
 
         // Main Layout Assembly
@@ -217,7 +222,7 @@ public class AdminSignUpPage {
         centerBody.setPadding(new Insets(0, 24, 24, 24));
 
         BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: " + BG_APP + ";");
+        root.setStyle("-fx-background-color: transparent;");
         root.setTop(appHeader);
         root.setCenter(centerBody);
 
@@ -251,7 +256,7 @@ public class AdminSignUpPage {
                "-fx-background-radius: 10;" +
                "-fx-padding: 0 14;" +
                "-fx-font-size: 13px;" +
-               "-fx-prompt-text-fill: " + TEXT_MUTED_DARK + ";" +
+               "-fx-prompt-text-fill: #64748B;" +
                "-fx-text-fill: " + TEXT_DARK + ";";
     }
 }
