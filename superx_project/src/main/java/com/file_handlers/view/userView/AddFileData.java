@@ -11,6 +11,7 @@ import com.file_handlers.model.UserSession;
 import com.file_handlers.service.FileProcessingService;
 import com.file_handlers.service.ProcessingStatusListener;
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -48,7 +49,7 @@ public class AddFileData {
         HBox topBar=createTopBar();
 
         VBox content=new VBox(22);
-        content.setPadding(new Insets(26,28,28,28));
+        content.setPadding(new Insets(26,ResponsiveUtil.PAGE_PADDING,28,ResponsiveUtil.PAGE_PADDING));
         content.setStyle("-fx-background-color:"+BG_CENTER+";");
 
         Label title=new Label("Add Files");
@@ -102,7 +103,7 @@ public class AddFileData {
 
         root.setLeft(sidebar);
         root.setCenter(mainArea);
-        return new Scene(root,1200,750);
+        return new Scene(root,LandingPage.getCurrentWidth(),LandingPage.getCurrentHeight());
     }
 
     private HBox createActionCard(){
@@ -186,8 +187,8 @@ public class AddFileData {
 
         VBox sidebar=new VBox(5,logoBox,dashboard,spaces,search,recent,spacer,settings,logout,storageCard);
         sidebar.setPadding(new Insets(20,14,20,14));
-        sidebar.setPrefWidth(230);
-        sidebar.setMinWidth(230);
+        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 1 0 0;");
         return sidebar;
     }
@@ -208,7 +209,7 @@ public class AddFileData {
 
         HBox bar=new HBox(8,back,page,spacer,user);
         bar.setAlignment(Pos.CENTER_LEFT);
-        bar.setPadding(new Insets(12,28,12,28));
+        bar.setPadding(new Insets(12,ResponsiveUtil.PAGE_PADDING,12,ResponsiveUtil.PAGE_PADDING));
         bar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 0 1 0;");
         return bar;
     }

@@ -21,6 +21,7 @@ import com.file_handlers.controller.AuthController;
 import com.file_handlers.dao.UserProfileDAO;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 
 public class UserProfilePage {
 
@@ -209,6 +210,13 @@ public class UserProfilePage {
                         false
                 );
 
+        Button notifications =
+                sidebarButton(
+                        "🔔",
+                        "Notifications",
+                        false
+                );
+
         Button settings =
                 sidebarButton(
                         "⚙",
@@ -248,6 +256,10 @@ public class UserProfilePage {
                 e -> LandingPage.showTrashPage()
         );
 
+        notifications.setOnAction(
+                e -> LandingPage.showNotificationPage()
+        );
+
         settings.setOnAction(
                 e -> LandingPage.showSettingPage()
         );
@@ -262,7 +274,8 @@ public class UserProfilePage {
                         ai,
                         collaboration,
                         recent,
-                        trash
+                        trash,
+                        notifications
                 );
 
         // -----------------------------------------------------
@@ -385,8 +398,8 @@ public class UserProfilePage {
                 )
         );
 
-        sidebar.setPrefWidth(230);
-        sidebar.setMinWidth(230);
+        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
 
         sidebar.setStyle(
                 "-fx-background-color:" +
@@ -604,9 +617,9 @@ public class UserProfilePage {
         topBar.setPadding(
                 new Insets(
                         16,
-                        28,
+                        ResponsiveUtil.PAGE_PADDING,
                         14,
-                        28
+                        ResponsiveUtil.PAGE_PADDING
                 )
         );
 
@@ -1179,9 +1192,9 @@ public class UserProfilePage {
         content.setPadding(
                 new Insets(
                         24,
+                        ResponsiveUtil.PAGE_PADDING,
                         28,
-                        28,
-                        28
+                        ResponsiveUtil.PAGE_PADDING
                 )
         );
 
@@ -1197,6 +1210,7 @@ public class UserProfilePage {
                 );
 
         scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         scroll.setStyle(
                 "-fx-background-color:" +
@@ -1244,8 +1258,8 @@ public class UserProfilePage {
 
         return new Scene(
                 root,
-                1200,
-                750
+                LandingPage.getCurrentWidth(),
+                LandingPage.getCurrentHeight()
         );
     }
 
@@ -2125,8 +2139,8 @@ public class UserProfilePage {
 
         return new Scene(
                 box,
-                1200,
-                750
+                LandingPage.getCurrentWidth(),
+                LandingPage.getCurrentHeight()
         );
     }
 

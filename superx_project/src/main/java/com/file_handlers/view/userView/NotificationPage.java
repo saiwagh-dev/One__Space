@@ -3,6 +3,7 @@ package com.file_handlers.view.userView;
 import com.file_handlers.config.FirebaseConfig;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -143,8 +144,8 @@ public class NotificationPage {
 
         VBox side = new VBox(12, logoBox, navList, notifications, sidebarSpacer, settings, storageCard);
         side.setPadding(new Insets(20, 14, 20, 14));
-        side.setPrefWidth(230);
-        side.setMinWidth(230);
+        side.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        side.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         side.setStyle("-fx-background-color: " + NAV + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 1 0 0;");
 
         // =========================================================
@@ -295,9 +296,9 @@ topBar.setAlignment(
 topBar.setPadding(
         new Insets(
                 16,
-                28,
+                ResponsiveUtil.PAGE_PADDING,
                 14,
-                28
+                ResponsiveUtil.PAGE_PADDING
         )
 );
 
@@ -349,7 +350,7 @@ topBar.setStyle(
         warningBox.setStyle("-fx-background-color: " + BG_SIDEBAR_CARD + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
 
         VBox content = new VBox(18, header, filters, list, warningBox);
-        content.setPadding(new Insets(24, 28, 28, 28));
+        content.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 28, ResponsiveUtil.PAGE_PADDING));
         content.setStyle("-fx-background-color: " + APP + ";");
 
         ScrollPane scroll = new ScrollPane(content);
@@ -366,7 +367,7 @@ topBar.setStyle(
         root.setCenter(center);
         root.setStyle("-fx-background-color: " + NAV + ";");
 
-        return new Scene(root, 1200, 750);
+        return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
     private void render() {
@@ -540,7 +541,7 @@ topBar.setStyle(
                             data.add(new N("👥", "Workspace Access Active", "You are an active " + role + " in '" + spaceName + "'", "Synced", "Collaboration"));
                         }
                     } else if (name != null) {
-                        data.add(new N("👥", name + " joined workspace", "Added to '" + spaceName + "'", "Recently", "Collaboration"));
+                        data.add(new N("👥", name + " joined workspace", "Added to '" + spaceName + "'", "Recent", "Collaboration"));
                     }
                 }
 
@@ -561,7 +562,7 @@ topBar.setStyle(
                 "Downloads folder · 4.2 GB recoverable", "1 h", "Reminders"));
 
         data.add(new N("🛡", "Sensitive files found",
-                "Identity, PAN and passport scans detected", "3 h", "Reminders"));
+                "Identity and passport scans detected", "3 h", "Reminders"));
 
         data.add(new N("📅", "Passport expires in 12 days",
                 "Linked to Passport_Scan.pdf", "5 h", "Reminders"));
