@@ -6,6 +6,7 @@ import com.file_handlers.view.userView.AiAssistantPage;
 import com.file_handlers.view.userView.CollaborationPage;
 import com.file_handlers.view.userView.NotificationPage;
 import com.file_handlers.view.userView.RecentPage;
+import com.file_handlers.view.userView.StorageIndexPage;
 import com.file_handlers.view.userView.UnifiedSpaceView;
 import com.file_handlers.view.userView.UserCalendar;
 import com.file_handlers.view.userView.UserDashboard;
@@ -16,6 +17,7 @@ import com.file_handlers.view.userView.UserSettingPage;
 import com.file_handlers.view.userView.UserSignupPage;
 import com.file_handlers.view.userView.UserSpaces;
 import com.file_handlers.view.userView.UserTrash;
+import com.file_handlers.view.userView.StorageIndexPage;
 
 import javafx.animation.*;
 import javafx.application.Application;
@@ -122,6 +124,10 @@ public class LandingPage extends Application {
 
     public static void showUserProfilePage() {
         setScene(new UserProfilePage().getUserProfilePageScene());
+    }
+
+    public static void showStorageIndexPage() {
+    setScene( new StorageIndexPage().getStorageIndexPageScene() );
     }
 
     // ================= DYNAMIC SPACE =================

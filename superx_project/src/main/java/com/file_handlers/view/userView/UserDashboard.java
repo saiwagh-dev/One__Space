@@ -360,7 +360,11 @@ public class UserDashboard {
         );
 
         Button manageStorageBtn =
-                new Button("Manage Storage ›");
+        new Button("Storage Index ›");
+
+        manageStorageBtn.setOnAction(
+        e -> LandingPage.showStorageIndexPage()
+        );
 
         manageStorageBtn.setStyle(
                 "-fx-background-color:transparent;" +
@@ -371,9 +375,7 @@ public class UserDashboard {
                 "-fx-cursor:hand;"
         );
 
-        manageStorageBtn.setOnAction(
-                e -> LandingPage.showLandingPage()
-        );
+        
 
         VBox storageCard =
                 new VBox(
