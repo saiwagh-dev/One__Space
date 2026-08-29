@@ -29,16 +29,25 @@ import javafx.stage.Stage;
 public class AdminProfilePage {
 
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    private static final String SIDEBAR_BG = "#1E2A3A";
-    private static final String SIDEBAR_BORDER = "#2D3D52";
-    private static final String MAIN_BG = "#31435B";
-    private static final String BLACK = "#000000";
+    
+    // 1. Sidebar & Top Bar Tones
+    private static final String SIDEBAR_BG = "#070C16";
+    private static final String SIDEBAR_BORDER = "rgba(255, 255, 255, 0.07)";
+    
+    // 2. Center Canvas Radial Glow Background
+    private static final String MAIN_BG = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
+    
+    // 3. Main Glassmorphic Cards & Text Colors
+    private static final String CARD_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
+    private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
+    private static final String INPUT_BG = "rgba(10, 18, 33, 0.85)";
+    
     private static final String WHITE = "#FFFFFF";
     private static final String LIGHT_SECONDARY = "#94A3B8";
     private static final String BLUE = "#2563EB";
-    private static final String BLUE_LIGHT = "#CADDF2";
-    private static final String GREEN = "#059669";
-    private static final String DANGER_BORDER = "rgba(220, 38, 38, 0.4)";
+    private static final String BLUE_LIGHT = "rgba(0, 210, 255, 0.15)";
+    private static final String GREEN = "#10B981";
+    private static final String DANGER_BORDER = "rgba(239, 68, 68, 0.4)";
     private static final String DANGER_BTN = "#DC2626";
 
     // Form fields that can be updated from the modal
@@ -64,10 +73,10 @@ public class AdminProfilePage {
         scrollPane.setFitToHeight(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setStyle("-fx-background-color: " + MAIN_BG + "; -fx-background: " + MAIN_BG + "; -fx-background-insets: 0; -fx-padding: 0;");
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-background-insets: 0; -fx-padding: 0;");
 
         VBox rightSide = new VBox(createTopBar(), scrollPane);
-        rightSide.setStyle("-fx-background-color: " + MAIN_BG + ";");
+        rightSide.setStyle("-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";");
         rightSide.setFillWidth(true);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         root.setCenter(rightSide);
@@ -163,20 +172,27 @@ public class AdminProfilePage {
         button.setAlignment(Pos.CENTER_LEFT);
         button.setPadding(new Insets(0, 12, 0, 12));
 
-        String baseStyle = "-fx-background-radius: 8; -fx-cursor: hand; -fx-border-width: 0;";
         if (active) {
-            button.setStyle("-fx-background-color: " + BLUE + ";" + baseStyle);
+            button.setStyle(
+                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+                "-fx-background-radius: 12;" +
+                "-fx-border-color: rgba(96, 165, 250, 0.6);" +
+                "-fx-border-radius: 12;" +
+                "-fx-border-width: 1;" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);"
+            );
         } else {
-            button.setStyle("-fx-background-color: transparent;" + baseStyle);
+            button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: #26354A;" + baseStyle);
+                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 icon.setStroke(Color.WHITE);
                 label.setTextFill(Color.WHITE);
             });
             button.setOnMouseExited(e -> {
-                button.setStyle("-fx-background-color: transparent;" + baseStyle);
+                button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
-                label.setTextFill(Color.WHITE);
+                label.setTextFill(Color.web(WHITE));
             });
         }
         return button;
@@ -184,7 +200,7 @@ public class AdminProfilePage {
 
     private HBox createTopBar() {
         SVGPath searchIcon = createIcon("search");
-        searchIcon.setStroke(Color.web(LIGHT_SECONDARY));
+        searchIcon.setStroke(Color.web("#64748B"));
         searchIcon.setStrokeWidth(2);
 
         StackPane searchIconBox = new StackPane(searchIcon);
@@ -194,7 +210,7 @@ public class AdminProfilePage {
         search.setPromptText("Search in OneSpace...");
         search.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
         search.setPrefHeight(38);
-        search.setStyle("-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #94A3B8; -fx-border-color: transparent; -fx-padding: 0;");
+        search.setStyle("-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #64748B; -fx-border-color: transparent; -fx-padding: 0;");
 
         HBox searchBox = new HBox(8, searchIconBox, search);
         searchBox.setAlignment(Pos.CENTER_LEFT);
@@ -205,7 +221,7 @@ public class AdminProfilePage {
         searchBox.setMinWidth(420);
         searchBox.setMaxWidth(420);
         searchBox.setPadding(new Insets(0, 12, 0, 14));
-        searchBox.setStyle("-fx-background-color: #141E2C; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
+        searchBox.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20;");
         HBox.setHgrow(search, Priority.ALWAYS);
 
         Region spacer = new Region();
@@ -217,32 +233,33 @@ public class AdminProfilePage {
 
         Button notification = new Button();
         notification.setGraphic(bell);
-        notification.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
+        notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
 
         Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-background-color: " + BLUE + "; -fx-background-radius: 50%;");
+        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
         Label admin = new Label("Admin");
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
 
-        HBox profile = new HBox(10, notification, avatar, admin);
+        HBox profile = new HBox(10, avatar, admin);
         profile.setAlignment(Pos.CENTER);
-        profile.setStyle("-fx-cursor: hand;");
+        profile.setPadding(new Insets(4, 12, 4, 6));
+        profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
         profile.setOnMouseClicked(e -> {
             LandingPage.showAdminProfilePage();
         });
 
-        HBox topBar = new HBox(20, searchBox, spacer, profile);
+        HBox topBar = new HBox(20, searchBox, spacer, notification, profile);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPrefHeight(70);
         topBar.setMinHeight(70);
         topBar.setMaxHeight(70);
         topBar.setPadding(new Insets(16, 28, 14, 28));
-        topBar.setStyle("-fx-background-color: " + SIDEBAR_BG + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
+        topBar.setStyle("-fx-background-color: transparent; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
         return topBar;
     }
 
@@ -274,10 +291,10 @@ public class AdminProfilePage {
         HBox.setHgrow(bottomSpacer, Priority.ALWAYS);
 
         Button resetBtn = new Button("Reset Changes");
-        resetBtn.setStyle("-fx-background-color: transparent; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 16;");
+        resetBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 16;");
         
         Button saveBtn = new Button("Save Changes");
-        saveBtn.setStyle("-fx-background-color: " + BLUE + "; -fx-background-radius: 8; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 16;");
+        saveBtn.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #0284C7); -fx-background-radius: 8; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 16; -fx-effect: dropshadow(three-pass-box, rgba(2, 132, 199, 0.5), 14, 0, 0, 3);");
 
         HBox actionFooter = new HBox(12, bottomSpacer, resetBtn, saveBtn);
         actionFooter.setAlignment(Pos.CENTER_RIGHT);
@@ -287,7 +304,7 @@ public class AdminProfilePage {
         content.setPadding(new Insets(24, 28, 28, 28));
         content.setFillWidth(true);
         content.setMaxWidth(Double.MAX_VALUE);
-        content.setStyle("-fx-background-color: " + MAIN_BG + ";");
+        content.setStyle("-fx-background-color: transparent;");
         return content;
     }
 
@@ -297,49 +314,49 @@ public class AdminProfilePage {
         bigAvatar.setAlignment(Pos.CENTER);
         bigAvatar.setFont(Font.font(FONT, FontWeight.BOLD, 24));
         bigAvatar.setTextFill(Color.WHITE);
-        bigAvatar.setStyle("-fx-background-color: " + BLUE + "; -fx-background-radius: 50%;");
+        bigAvatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
         Button changePhotoBtn = new Button("Change Photo");
         SVGPath cameraIcon = createIcon("camera");
-        cameraIcon.setStroke(Color.BLACK);
+        cameraIcon.setStroke(Color.WHITE);
         cameraIcon.setStrokeWidth(2);
         changePhotoBtn.setGraphic(cameraIcon);
-        changePhotoBtn.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-text-fill: " + BLACK + "; -fx-font-size: 11px; -fx-cursor: hand;");
+        changePhotoBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-text-fill: " + WHITE + "; -fx-font-size: 11px; -fx-cursor: hand;");
 
         VBox avatarCol = new VBox(10, bigAvatar, changePhotoBtn);
         avatarCol.setAlignment(Pos.CENTER);
 
         heroNameLabel = new Label("Admin User");
         heroNameLabel.setFont(Font.font(FONT, FontWeight.BOLD, 18));
-        heroNameLabel.setStyle("-fx-text-fill: " + BLACK + ";");
+        heroNameLabel.setStyle("-fx-text-fill: " + WHITE + ";");
 
         Label badge = new Label("Super Admin");
         badge.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        badge.setTextFill(Color.web(BLUE));
+        badge.setTextFill(Color.web("#00D2FF"));
         badge.setPadding(new Insets(2, 8, 2, 8));
-        badge.setStyle("-fx-background-color: " + BLUE_LIGHT + "; -fx-background-radius: 10;");
+        badge.setStyle("-fx-background-color: " + BLUE_LIGHT + "; -fx-border-color: rgba(0, 210, 255, 0.3); -fx-border-radius: 10; -fx-background-radius: 10;");
 
         HBox nameRow = new HBox(10, heroNameLabel, badge);
         nameRow.setAlignment(Pos.CENTER_LEFT);
 
         heroEmailLabel = new Label("admin@onespace.com");
         heroEmailLabel.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
-        heroEmailLabel.setStyle("-fx-text-fill: " + BLACK + ";");
+        heroEmailLabel.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
         heroHandleLabel = new Label("@admin");
         heroHandleLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        heroHandleLabel.setTextFill(Color.web(BLUE));
+        heroHandleLabel.setTextFill(Color.web("#38BDF8"));
 
         HBox metaRow = new HBox(15, heroEmailLabel, heroHandleLabel);
         metaRow.setAlignment(Pos.CENTER_LEFT);
 
         Label memberSince = new Label("📅 Member since Jan 15, 2024");
         memberSince.setFont(Font.font(FONT, FontWeight.NORMAL, 12));
-        memberSince.setStyle("-fx-text-fill: " + BLACK + ";");
+        memberSince.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
         heroDescLabel = new Label("System administrator with full access to OneSpace platform and all resources.");
         heroDescLabel.setFont(Font.font(FONT, FontWeight.NORMAL, 12));
-        heroDescLabel.setStyle("-fx-text-fill: " + BLACK + ";");
+        heroDescLabel.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
         VBox infoCol = new VBox(6, nameRow, metaRow, memberSince, heroDescLabel);
         infoCol.setAlignment(Pos.CENTER_LEFT);
@@ -348,11 +365,11 @@ public class AdminProfilePage {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button editProfileBtn = new Button("Edit Profile");
-        editProfileBtn.setStyle("-fx-background-color: " + BLUE + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
+        editProfileBtn.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #0284C7); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
         editProfileBtn.setOnAction(e -> openEditProfileModal());
 
         Button changePassBtn = new Button("Change Password");
-        changePassBtn.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: " + BLACK + "; -fx-font-weight: bold; -fx-cursor: hand;");
+        changePassBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: " + WHITE + "; -fx-font-weight: bold; -fx-cursor: hand;");
         changePassBtn.setOnAction(e -> openChangePasswordModal());
 
         VBox buttonsCol = new VBox(10, editProfileBtn, changePassBtn);
@@ -364,7 +381,7 @@ public class AdminProfilePage {
         VBox card = new VBox(row);
         card.setMaxWidth(Double.MAX_VALUE);
         card.setPadding(new Insets(24));
-        card.setStyle("-fx-background-color: #DDE8F8; -fx-border-color: #C3D6EC; -fx-border-width: 1; -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.12), 10, 0, 0, 4);");
+        card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
         return card;
     }
 
@@ -376,44 +393,44 @@ public class AdminProfilePage {
 
         Label modalTitle = new Label("Edit Profile");
         modalTitle.setFont(Font.font(FONT, FontWeight.BOLD, 15));
-        modalTitle.setStyle("-fx-text-fill: " + BLACK + ";");
+        modalTitle.setStyle("-fx-text-fill: " + WHITE + ";");
 
         Label modalSub = new Label("Update your OneSpace profile information.");
         modalSub.setFont(Font.font(FONT, FontWeight.NORMAL, 11));
-        modalSub.setStyle("-fx-text-fill: " + BLACK + ";");
+        modalSub.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
         VBox headerBox = new VBox(2, modalTitle, modalSub);
         headerBox.setPadding(new Insets(16, 16, 10, 16));
-        headerBox.setStyle("-fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;");
+        headerBox.setStyle("-fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-width: 0 0 1 0;");
 
         TextField modalNameField = new TextField(fullNameField.getText());
-        modalNameField.setStyle("-fx-background-color: white; -fx-text-fill: " + BLACK + "; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+        modalNameField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
         Label fnLbl = new Label("Full Name");
         fnLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        fnLbl.setStyle("-fx-text-fill: " + BLACK + ";");
+        fnLbl.setStyle("-fx-text-fill: " + WHITE + ";");
         VBox fnGroup = new VBox(4, fnLbl, modalNameField);
 
         TextField modalEmailField = new TextField(emailField.getText());
-        modalEmailField.setStyle("-fx-background-color: white; -fx-text-fill: " + BLACK + "; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+        modalEmailField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
         Label emLbl = new Label("Email Address");
         emLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        emLbl.setStyle("-fx-text-fill: " + BLACK + ";");
+        emLbl.setStyle("-fx-text-fill: " + WHITE + ";");
         VBox emGroup = new VBox(4, emLbl, modalEmailField);
 
         TextField modalUsernameField = new TextField(usernameField.getText());
-        modalUsernameField.setStyle("-fx-background-color: white; -fx-text-fill: " + BLACK + "; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+        modalUsernameField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
         Label unLbl = new Label("Username");
         unLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        unLbl.setStyle("-fx-text-fill: " + BLACK + ";");
+        unLbl.setStyle("-fx-text-fill: " + WHITE + ";");
         VBox unGroup = new VBox(4, unLbl, modalUsernameField);
 
         TextArea modalBioArea = new TextArea(bioArea.getText());
         modalBioArea.setPrefRowCount(3);
         modalBioArea.setWrapText(true);
-        modalBioArea.setStyle("-fx-background-color: white; -fx-text-fill: " + BLACK + "; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6;");
+        modalBioArea.setStyle("-fx-control-inner-background: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6;");
         Label bioLbl = new Label("Bio");
         bioLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        bioLbl.setStyle("-fx-text-fill: " + BLACK + ";");
+        bioLbl.setStyle("-fx-text-fill: " + WHITE + ";");
         VBox bioGroup = new VBox(4, bioLbl, modalBioArea);
 
         VBox formContent = new VBox(14, fnGroup, emGroup, unGroup, bioGroup);
@@ -423,7 +440,7 @@ public class AdminProfilePage {
         saveBtn.setStyle("-fx-background-color: " + BLUE + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 16;");
         
         Button cancelBtn = new Button("Cancel");
-        cancelBtn.setStyle("-fx-background-color: #E2E8F0; -fx-text-fill: " + BLACK + "; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 16;");
+        cancelBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-text-fill: " + WHITE + "; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 16;");
         cancelBtn.setOnAction(e -> modalStage.close());
 
         saveBtn.setOnAction(e -> {
@@ -446,10 +463,10 @@ public class AdminProfilePage {
         HBox modalFooter = new HBox(10, modalSpacer, cancelBtn, saveBtn);
         modalFooter.setAlignment(Pos.CENTER_RIGHT);
         modalFooter.setPadding(new Insets(10, 16, 16, 16));
-        modalFooter.setStyle("-fx-border-color: #E2E8F0; -fx-border-width: 1 0 0 0;");
+        modalFooter.setStyle("-fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-width: 1 0 0 0;");
 
         VBox modalRoot = new VBox(headerBox, formContent, modalFooter);
-        modalRoot.setStyle("-fx-background-color: #F8FAFC;");
+        modalRoot.setStyle("-fx-background-color: #0D1626; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1;");
 
         Scene modalScene = new Scene(modalRoot, 460, 470);
         modalStage.setScene(modalScene);
@@ -464,35 +481,35 @@ public class AdminProfilePage {
 
         Label modalTitle = new Label("Change Password");
         modalTitle.setFont(Font.font(FONT, FontWeight.BOLD, 15));
-        modalTitle.setStyle("-fx-text-fill: " + BLACK + ";");
+        modalTitle.setStyle("-fx-text-fill: " + WHITE + ";");
 
         Label modalSub = new Label("Ensure your account is using a secure password.");
         modalSub.setFont(Font.font(FONT, FontWeight.NORMAL, 11));
-        modalSub.setStyle("-fx-text-fill: " + BLACK + ";");
+        modalSub.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
         VBox headerBox = new VBox(2, modalTitle, modalSub);
         headerBox.setPadding(new Insets(16, 16, 10, 16));
-        headerBox.setStyle("-fx-border-color: #E2E8F0; -fx-border-width: 0 0 1 0;");
+        headerBox.setStyle("-fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-width: 0 0 1 0;");
 
         PasswordField currentPassField = new PasswordField();
-        currentPassField.setStyle("-fx-background-color: white; -fx-text-fill: " + BLACK + "; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+        currentPassField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
         Label cpLbl = new Label("Current Password");
         cpLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        cpLbl.setStyle("-fx-text-fill: " + BLACK + ";");
+        cpLbl.setStyle("-fx-text-fill: " + WHITE + ";");
         VBox cpGroup = new VBox(4, cpLbl, currentPassField);
 
         PasswordField newPassField = new PasswordField();
-        newPassField.setStyle("-fx-background-color: white; -fx-text-fill: " + BLACK + "; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+        newPassField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
         Label npLbl = new Label("New Password");
         npLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        npLbl.setStyle("-fx-text-fill: " + BLACK + ";");
+        npLbl.setStyle("-fx-text-fill: " + WHITE + ";");
         VBox npGroup = new VBox(4, npLbl, newPassField);
 
         PasswordField confirmPassField = new PasswordField();
-        confirmPassField.setStyle("-fx-background-color: white; -fx-text-fill: " + BLACK + "; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+        confirmPassField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
         Label confLbl = new Label("Confirm New Password");
         confLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        confLbl.setStyle("-fx-text-fill: " + BLACK + ";");
+        confLbl.setStyle("-fx-text-fill: " + WHITE + ";");
         VBox confGroup = new VBox(4, confLbl, confirmPassField);
 
         VBox formContent = new VBox(14, cpGroup, npGroup, confGroup);
@@ -502,7 +519,7 @@ public class AdminProfilePage {
         saveBtn.setStyle("-fx-background-color: " + BLUE + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 16;");
         
         Button cancelBtn = new Button("Cancel");
-        cancelBtn.setStyle("-fx-background-color: #E2E8F0; -fx-text-fill: " + BLACK + "; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 16;");
+        cancelBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-text-fill: " + WHITE + "; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 16;");
         cancelBtn.setOnAction(e -> modalStage.close());
 
         saveBtn.setOnAction(e -> {
@@ -516,10 +533,10 @@ public class AdminProfilePage {
         HBox modalFooter = new HBox(10, modalSpacer, cancelBtn, saveBtn);
         modalFooter.setAlignment(Pos.CENTER_RIGHT);
         modalFooter.setPadding(new Insets(10, 16, 16, 16));
-        modalFooter.setStyle("-fx-border-color: #E2E8F0; -fx-border-width: 1 0 0 0;");
+        modalFooter.setStyle("-fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-width: 1 0 0 0;");
 
         VBox modalRoot = new VBox(headerBox, formContent, modalFooter);
-        modalRoot.setStyle("-fx-background-color: #F8FAFC;");
+        modalRoot.setStyle("-fx-background-color: #0D1626; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1;");
 
         Scene modalScene = new Scene(modalRoot, 420, 390);
         modalStage.setScene(modalScene);
@@ -529,37 +546,42 @@ public class AdminProfilePage {
     private VBox createAdminDetailsCard() {
         Label title = new Label("Administrator Details");
         title.setFont(Font.font(FONT, FontWeight.BOLD, 15));
-        title.setStyle("-fx-text-fill: " + BLACK + ";");
+        title.setStyle("-fx-text-fill: " + WHITE + ";");
 
         Label subtitle = new Label("Your administrator account information.");
         subtitle.setFont(Font.font(FONT, FontWeight.NORMAL, 12));
-        subtitle.setStyle("-fx-text-fill: " + BLACK + ";");
+        subtitle.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
         VBox heading = new VBox(2, title, subtitle);
 
         fullNameField = new TextField("Admin User");
         fullNameField.setEditable(false);
-        fullNameField.setStyle("-fx-background-color: white; -fx-text-fill: " + BLACK + "; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+        fullNameField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
         Label fnLbl = new Label("Full Name");
         fnLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        fnLbl.setStyle("-fx-text-fill: " + BLACK + ";");
+        fnLbl.setStyle("-fx-text-fill: " + WHITE + ";");
         VBox fullNameGroup = new VBox(4, fnLbl, fullNameField);
 
         emailField = new TextField("admin@onespace.com");
         emailField.setEditable(false);
-        emailField.setStyle("-fx-background-color: white; -fx-text-fill: " + BLACK + "; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+        emailField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
         Label emLbl = new Label("Email Address");
         emLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        emLbl.setStyle("-fx-text-fill: " + BLACK + ";");
+        emLbl.setStyle("-fx-text-fill: " + WHITE + ";");
         VBox emailGroup = new VBox(4, emLbl, emailField);
 
         usernameField = new TextField("@admin");
         usernameField.setEditable(false);
-        usernameField.setStyle("-fx-background-color: white; -fx-text-fill: " + BLACK + "; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+        usernameField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
         Label unLbl = new Label("Username");
         unLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        unLbl.setStyle("-fx-text-fill: " + BLACK + ";");
+        unLbl.setStyle("-fx-text-fill: " + WHITE + ";");
         VBox usernameGroup = new VBox(4, unLbl, usernameField);
+
+        bioArea = new TextArea("System administrator with full access to OneSpace platform and all resources.");
+        bioArea.setEditable(false);
+        bioArea.setVisible(false);
+        bioArea.setManaged(false);
 
         GridPane formGrid = new GridPane();
         formGrid.setHgap(15); formGrid.setVgap(12);
@@ -574,28 +596,28 @@ public class AdminProfilePage {
         VBox card = new VBox(18, heading, formGrid);
         card.setMaxWidth(Double.MAX_VALUE);
         card.setPadding(new Insets(24));
-        card.setStyle("-fx-background-color: #DDE8F8; -fx-border-color: #C3D6EC; -fx-border-width: 1; -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.12), 10, 0, 0, 4);");
+        card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
         return card;
     }
 
     private VBox createAdminActionsCard() {
         Label title = new Label("Administrator Actions");
         title.setFont(Font.font(FONT, FontWeight.BOLD, 15));
-        title.setStyle("-fx-text-fill: " + BLACK + ";");
+        title.setStyle("-fx-text-fill: " + WHITE + ";");
 
         Label subtitle = new Label("Critical actions that require administrator privileges.");
         subtitle.setFont(Font.font(FONT, FontWeight.NORMAL, 12));
-        subtitle.setStyle("-fx-text-fill: " + BLACK + ";");
+        subtitle.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
         VBox heading = new VBox(2, title, subtitle);
 
         Label warningTitle = new Label("Delete Administrator Account");
         warningTitle.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        warningTitle.setStyle("-fx-text-fill: #000000;");
+        warningTitle.setStyle("-fx-text-fill: #FFFFFF;");
 
         Label warningDesc = new Label("Permanently remove your administrator account. This action cannot be undone.");
         warningDesc.setFont(Font.font(FONT, FontWeight.NORMAL, 11));
-        warningDesc.setStyle("-fx-text-fill: " + BLACK + ";");
+        warningDesc.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
         warningDesc.setWrapText(true);
 
         VBox textCol = new VBox(4, warningTitle, warningDesc);
@@ -605,7 +627,7 @@ public class AdminProfilePage {
         deleteBtn.setStyle("-fx-background-color: " + DANGER_BTN + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
 
         SVGPath alertIcon = createIcon("alert");
-        alertIcon.setStroke(Color.web("#DC2626"));
+        alertIcon.setStroke(Color.web("#EF4444"));
         alertIcon.setStrokeWidth(2);
 
         Region deleteSpacer = new Region();
@@ -613,12 +635,12 @@ public class AdminProfilePage {
         HBox innerAlertBox = new HBox(12, alertIcon, textCol, deleteSpacer, deleteBtn);
         innerAlertBox.setAlignment(Pos.CENTER_LEFT);
         innerAlertBox.setPadding(new Insets(16));
-        innerAlertBox.setStyle("-fx-background-color: rgba(255,255,255,0.6); -fx-border-color: " + DANGER_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
+        innerAlertBox.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: " + DANGER_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
 
         VBox card = new VBox(18, heading, innerAlertBox);
         card.setMaxWidth(Double.MAX_VALUE);
         card.setPadding(new Insets(24));
-        card.setStyle("-fx-background-color: #DDE8F8; -fx-border-color: #C3D6EC; -fx-border-width: 1; -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.12), 10, 0, 0, 4);");
+        card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
         return card;
     }
 
