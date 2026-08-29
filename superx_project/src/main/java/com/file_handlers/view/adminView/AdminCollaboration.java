@@ -1,5 +1,7 @@
 package com.file_handlers.view.adminView;
 
+import com.file_handlers.view.LandingPage;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -17,8 +19,6 @@ import javafx.stage.Stage;
 
 import java.util.Arrays;
 import java.util.List;
-
-import com.file_handlers.view.LandingPage;
 
 public class AdminCollaboration {
 
@@ -211,6 +211,7 @@ public class AdminCollaboration {
         Label admin = new Label("Admin");
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
+        
 
         HBox profile = new HBox(10, notification, avatar, admin);
         profile.setAlignment(Pos.CENTER);
