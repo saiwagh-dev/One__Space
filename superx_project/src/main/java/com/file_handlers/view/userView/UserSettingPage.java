@@ -3,6 +3,7 @@ package com.file_handlers.view.userView;
 import com.file_handlers.controller.AuthController;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -148,9 +149,9 @@ public class UserSettingPage {
         VBox bottomButtons=new VBox(4,settingsBtn,logoutSidebarBtn);
         VBox sidebar=new VBox(12,logoBox,navList,sidebarSpacer,bottomButtons,storageCard);
         sidebar.setPadding(new Insets(20,14,20,14));
-        sidebar.setPrefWidth(230);
-        sidebar.setMinWidth(230);
-        sidebar.setMaxWidth(230);
+        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMaxWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 1 0 0;");
 
         // =========================================================
@@ -199,7 +200,7 @@ public class UserSettingPage {
         HBox topBar=new HBox(20,searchContainer,new Region(),profileBox);
         HBox.setHgrow(topBar.getChildren().get(1),Priority.ALWAYS);
         topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(16,28,14,28));
+        topBar.setPadding(new Insets(16,ResponsiveUtil.PAGE_PADDING,14,ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 0 1 0;");
 
         // =========================================================
@@ -349,7 +350,7 @@ public class UserSettingPage {
         settingsCard.setStyle("-fx-background-color:"+BG_CARD+";-fx-border-color:"+BORDER_CARD+";-fx-border-radius:16;-fx-background-radius:16;-fx-effect:dropshadow(three-pass-box,rgba(0,0,0,0.18),16,0,0,6);");
 
         VBox mainContent=new VBox(22,titleBox,settingsCard);
-        mainContent.setPadding(new Insets(24,28,28,28));
+        mainContent.setPadding(new Insets(24,ResponsiveUtil.PAGE_PADDING,28,ResponsiveUtil.PAGE_PADDING));
         mainContent.setStyle("-fx-background-color:"+BG_CENTER_CANVAS+";");
 
         VBox centerContent=new VBox(topBar,mainContent);
@@ -361,7 +362,7 @@ public class UserSettingPage {
         root.setLeft(sidebar);
         root.setCenter(centerContent);
 
-        return new Scene(root,1200,750);
+        return new Scene(root,LandingPage.getCurrentWidth(),LandingPage.getCurrentHeight());
     }
 
     // =========================================================

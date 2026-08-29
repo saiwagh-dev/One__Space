@@ -3,6 +3,7 @@ package com.file_handlers.view.userView;
 import com.file_handlers.controller.AuthController;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -51,7 +52,7 @@ public class UserSignupPage {
         HBox appHeader = new HBox(new Region(), backBtn);
         HBox.setHgrow(appHeader.getChildren().get(0), Priority.ALWAYS);
         appHeader.setAlignment(Pos.CENTER_LEFT);
-        appHeader.setPadding(new Insets(16, 24, 16, 24));
+        appHeader.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 16, ResponsiveUtil.PAGE_PADDING));
 
         // Signup Card Header
         StackPane centerIconPane = createOneSpaceLogo(135);
@@ -205,8 +206,8 @@ public class UserSignupPage {
         );
 
         card.setPadding(new Insets(24, 28, 24, 28));
-        card.setPrefWidth(380);
-        card.setMaxWidth(380);
+        card.setPrefWidth(ResponsiveUtil.AUTH_CARD_WIDTH);
+        card.setMaxWidth(ResponsiveUtil.AUTH_CARD_WIDTH);
         card.setStyle(
                 "-fx-background-color: " + BG_CARD + ";" +
                 "-fx-border-color: " + BORDER_COLOR + ";" +
@@ -224,14 +225,14 @@ public class UserSignupPage {
 
         VBox centerBody = new VBox(topSpacer, card, bottomSpacer);
         centerBody.setAlignment(Pos.CENTER);
-        centerBody.setPadding(new Insets(0, 24, 24, 24));
+        centerBody.setPadding(new Insets(0, ResponsiveUtil.PAGE_PADDING, ResponsiveUtil.PAGE_PADDING, ResponsiveUtil.PAGE_PADDING));
 
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: " + BG_APP + ";");
         root.setTop(appHeader);
         root.setCenter(centerBody);
 
-        return new Scene(root, 1200, 750);
+        return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
     // Input Style

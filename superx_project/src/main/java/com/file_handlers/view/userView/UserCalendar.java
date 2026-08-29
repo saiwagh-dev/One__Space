@@ -4,6 +4,7 @@ import com.file_handlers.dao.ReminderDAO;
 import com.file_handlers.model.Reminder;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 import com.google.cloud.Timestamp;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -118,8 +119,8 @@ public class UserCalendar{
 
         VBox sidebar=new VBox(12,logoBox,navList,sidebarSpacer,settingsBtn,logoutBtn,storageCard);
         sidebar.setPadding(new Insets(20,14,20,14));
-        sidebar.setPrefWidth(230);
-        sidebar.setMinWidth(230);
+        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 1 0 0;");
 
         Label searchIcon=new Label("⌕");
@@ -169,7 +170,7 @@ public class UserCalendar{
         HBox topBar=new HBox(20,searchContainer,new Region(),profileBox);
         HBox.setHgrow(topBar.getChildren().get(1),Priority.ALWAYS);
         topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(16,28,14,28));
+        topBar.setPadding(new Insets(16,ResponsiveUtil.PAGE_PADDING,14,ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 0 1 0;");
 
         Label pageTitle=new Label("Calendar & Reminders");
@@ -257,7 +258,7 @@ public class UserCalendar{
         calendarCard.getChildren().add(infoBox);
 
         VBox contentBody=new VBox(22,pageHeader,sectionsContainer);
-        contentBody.setPadding(new Insets(24,28,28,28));
+        contentBody.setPadding(new Insets(24,ResponsiveUtil.PAGE_PADDING,28,ResponsiveUtil.PAGE_PADDING));
         contentBody.setStyle("-fx-background-color:"+BG_CENTER_CANVAS+";");
 
         ScrollPane scrollPane=new ScrollPane(contentBody);
@@ -274,7 +275,7 @@ public class UserCalendar{
 
         loadCalendarData();
 
-        return new Scene(root,1200,750);
+        return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
     private void loadCalendarData(){

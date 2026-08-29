@@ -4,6 +4,7 @@ import com.file_handlers.dao.FileDAO;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.model.FileData;
+import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -434,8 +435,8 @@ public class UserSearch {
                 )
         );
 
-        sidebar.setPrefWidth(230);
-        sidebar.setMinWidth(230);
+        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
 
         sidebar.setStyle(
                 "-fx-background-color:" +
@@ -672,9 +673,9 @@ public class UserSearch {
         topBar.setPadding(
                 new Insets(
                         16,
-                        28,
+                        ResponsiveUtil.PAGE_PADDING,
                         14,
-                        28
+                        ResponsiveUtil.PAGE_PADDING
                 )
         );
 
@@ -1122,9 +1123,9 @@ public class UserSearch {
         contentBody.setPadding(
                 new Insets(
                         24,
+                        ResponsiveUtil.PAGE_PADDING,
                         28,
-                        28,
-                        28
+                        ResponsiveUtil.PAGE_PADDING
                 )
         );
 
@@ -1187,8 +1188,8 @@ public class UserSearch {
 
         return new Scene(
                 root,
-                1200,
-                750
+                LandingPage.getCurrentWidth(),
+                LandingPage.getCurrentHeight()
         );
     }
 
@@ -1237,7 +1238,15 @@ public class UserSearch {
     // SEARCH
     // =========================================================
 
-    private boolean matchesSearchQuery(FileInfo file){ return true; }
+    private boolean matchesSearchQuery(FileInfo file){
+        if (searchQuery == null || searchQuery.isBlank()) {
+            return true;
+        }
+        String q = searchQuery.toLowerCase();
+        return (file.name != null && file.name.toLowerCase().contains(q)) ||
+               (file.path != null && file.path.toLowerCase().contains(q)) ||
+               (file.type != null && file.type.toLowerCase().contains(q));
+    }
 
     private boolean matchesType(
             FileInfo file

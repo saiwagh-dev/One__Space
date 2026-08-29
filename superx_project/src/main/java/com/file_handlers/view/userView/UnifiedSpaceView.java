@@ -4,6 +4,7 @@ import com.file_handlers.dao.FileDAO;
 import com.file_handlers.model.FileData;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -80,7 +81,7 @@ public class UnifiedSpaceView {
 
         HBox topBar=new HBox(20,searchBox,topGap,notification,profile);
         topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(16,28,14,28));
+        topBar.setPadding(new Insets(16,ResponsiveUtil.PAGE_PADDING,14,ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:#2D3D52;-fx-border-width:0 0 1 0;");
 
         Label spaceIcon=new Label("📁");
@@ -169,7 +170,7 @@ public class UnifiedSpaceView {
         VBox.setVgrow(main,Priority.ALWAYS);
 
         VBox content=new VBox(20,header,stats,main);
-        content.setPadding(new Insets(24,28,28,28));
+        content.setPadding(new Insets(24,ResponsiveUtil.PAGE_PADDING,28,ResponsiveUtil.PAGE_PADDING));
         content.setStyle("-fx-background-color:"+BG_CENTER+";");
 
         ScrollPane centerScroll=new ScrollPane(content);
@@ -185,7 +186,7 @@ public class UnifiedSpaceView {
         root.setStyle("-fx-background-color:"+BG_SIDEBAR+";");
 
         loadFiles();
-        return new Scene(root,1200,750);
+        return new Scene(root,LandingPage.getCurrentWidth(),LandingPage.getCurrentHeight());
     }
 
     private void loadFiles(){
@@ -572,7 +573,8 @@ public class UnifiedSpaceView {
 
         VBox sidebar=new VBox(8,logo,dashboard,spaces,search,calendar,ai,collab,recent,trash,gap,settings);
         sidebar.setPadding(new Insets(20,14,20,14));
-        sidebar.setPrefWidth(230);
+        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:#2D3D52;-fx-border-width:0 1 0 0;");
 
         return sidebar;

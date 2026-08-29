@@ -1,5 +1,6 @@
 package com.file_handlers.view;
 
+import com.file_handlers.util.ResponsiveUtil;
 import com.file_handlers.view.adminView.*;
 import com.file_handlers.view.userView.AddReminderPage;
 import com.file_handlers.view.userView.AiAssistantPage;
@@ -55,11 +56,30 @@ public class LandingPage extends Application {
         primaryStage = stage;
         primaryStage.setTitle("OneSpace");
         primaryStage.setScene(getLandingPageScene());
+        primaryStage.setMaximized(true);
         primaryStage.show();
     }
 
+    // Dynamic sizing helpers to prevent shrinking/flickering on scene changes
+    public static double getCurrentWidth() {
+        if (primaryStage != null && primaryStage.getScene() != null && primaryStage.getScene().getWidth() > 0) {
+            return primaryStage.getScene().getWidth();
+        }
+        return ResponsiveUtil.COMPACT ? 1000 : 1200;
+    }
+
+    public static double getCurrentHeight() {
+        if (primaryStage != null && primaryStage.getScene() != null && primaryStage.getScene().getHeight() > 0) {
+            return primaryStage.getScene().getHeight();
+        }
+        return ResponsiveUtil.COMPACT ? 650 : 750;
+    }
+
     public static void setScene(Scene scene) {
-        if (primaryStage != null) primaryStage.setScene(scene);
+        if (primaryStage != null) {
+            primaryStage.setScene(scene);
+            javafx.application.Platform.runLater(() -> primaryStage.setMaximized(true));
+        }
     }
 
     public static void showLandingPage() {
@@ -136,7 +156,6 @@ public class LandingPage extends Application {
         }
     }
 
-    // Keeps compatibility with older calls.
     public static void showUnifiedSpaceView() {
         showUnifiedSpace("all", "All Spaces");
     }
@@ -187,15 +206,14 @@ public class LandingPage extends Application {
         setScene(new AdminProfilePage().getAdminProfileScene());
     }
 
-    
     // ================= LANDING PAGE =================
 
     public Scene getLandingPageScene() {
-        StackPane logo = createOneSpaceLogo(200);
+        StackPane logo = createOneSpaceLogo(ResponsiveUtil.COMPACT ? 150 : 200);
 
         Label title = label(
                 "Welcome to OneSpace",
-                28,
+                ResponsiveUtil.COMPACT ? 24 : 28,
                 FontWeight.BOLD,
                 TEXT_LIGHT
         );
@@ -207,7 +225,7 @@ public class LandingPage extends Application {
                 TEXT_MUTED_LIGHT
         );
 
-        VBox titleBox = new VBox(10, logo, title, sub);
+        VBox titleBox = new VBox(ResponsiveUtil.COMPACT ? 8 : 10, logo, title, sub);
         titleBox.setAlignment(Pos.CENTER);
 
         VBox userCard = createRoleCard(
@@ -232,7 +250,7 @@ public class LandingPage extends Application {
                 e -> showAdminLoginPage()
         );
 
-        HBox cards = new HBox(28, userCard, adminCard);
+        HBox cards = new HBox(ResponsiveUtil.COMPACT ? 20 : 28, userCard, adminCard);
         cards.setAlignment(Pos.CENTER);
 
         Label footerIcon = new Label("🛡");
@@ -262,7 +280,7 @@ public class LandingPage extends Application {
         VBox.setVgrow(bottom, Priority.ALWAYS);
 
         VBox body = new VBox(
-                32,
+                ResponsiveUtil.COMPACT ? 20 : 32,
                 top,
                 titleBox,
                 cards,
@@ -270,7 +288,7 @@ public class LandingPage extends Application {
                 footer
         );
         body.setAlignment(Pos.CENTER);
-        body.setPadding(new Insets(24));
+        body.setPadding(new Insets(ResponsiveUtil.COMPACT ? 16 : 24));
 
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color:" + BG_APP + ";");
@@ -278,7 +296,7 @@ public class LandingPage extends Application {
 
         playLandingAnimation(logo, title, sub, cards, footer);
 
-        return new Scene(root, 1200, 750);
+        return new Scene(root, getCurrentWidth(), getCurrentHeight());
     }
 
     private void playLandingAnimation(
@@ -414,14 +432,14 @@ public class LandingPage extends Application {
         );
 
         card.setAlignment(Pos.CENTER);
-        card.setPadding(new Insets(32, 28, 32, 28));
-        card.setPrefWidth(300);
-        card.setMaxWidth(300);
+        card.setPadding(new Insets(ResponsiveUtil.COMPACT ? 24 : 32, 28, ResponsiveUtil.COMPACT ? 24 : 32, 28));
+        card.setPrefWidth(ResponsiveUtil.COMPACT ? 280 : 300);
+        card.setMaxWidth(ResponsiveUtil.COMPACT ? 280 : 300);
         card.setStyle(
                 "-fx-background-color:" + BG_CARD +
                 ";-fx-border-color:" + BORDER_COLOR +
                 ";-fx-border-radius:18;" +
-                "-fx-background-radius:18;"
+                ";-fx-background-radius:18;"
         );
 
         return card;
