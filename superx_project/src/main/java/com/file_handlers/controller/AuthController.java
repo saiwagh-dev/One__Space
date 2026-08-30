@@ -100,6 +100,21 @@ public class AuthController {
                             ||
                             trimmedEmail.equalsIgnoreCase(
                                     "xavierwagh@gmail.com"
+                            )
+                            ||
+                            trimmedEmail.equalsIgnoreCase(
+                                    "vaishnavi@gmail.com"
+                            )||
+                            trimmedEmail.equalsIgnoreCase(
+                            "pratiksha@gmail.com"
+                    )
+                            ||
+                            trimmedEmail.equalsIgnoreCase(
+                                    "ananta22@gmail.com"
+                            )
+                            ||
+                            trimmedEmail.equalsIgnoreCase(
+                                    "mohite@gmail.com"
                             );
 
             if (isAdminEmail) {
