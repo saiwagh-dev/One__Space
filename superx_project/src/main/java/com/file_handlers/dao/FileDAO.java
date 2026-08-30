@@ -411,29 +411,53 @@ public class FileDAO{
         FileCache.invalidate(uid);
     }
 
-    public List<FileData> getRecentFiles(String uid,int limit)throws Exception{
+    public List<FileData> getRecentFiles(
+        String uid,
+        int limit
+    )throws Exception{
+
         validateUid(uid);
 
         if(limit<=0)
             limit=10;
 
-        QuerySnapshot snapshot=getUserFilesCollection(uid)
-                .orderBy("lastAccessedAt",Query.Direction.DESCENDING)
-                .limit(limit)
-                .get()
-                .get();
+        QuerySnapshot snapshot=
+                getUserFilesCollection(uid)
+                        .whereEqualTo("deleted",false)
+                        .get()
+                        .get();
 
         List<FileData> files=new ArrayList<>();
 
-        for(DocumentSnapshot doc:snapshot.getDocuments()){
-            FileData file=doc.toObject(FileData.class);
+        for(DocumentSnapshot document:snapshot.getDocuments()){
 
-            if(file!=null&&!file.isDeleted()&&file.getLastAccessedAt()!=null)
+            FileData file=
+                    document.toObject(FileData.class);
+
+            if(file!=null &&
+                    !file.isDeleted() &&
+                    file.getLastAccessedAt()!=null){
+
                 files.add(file);
+            }
         }
 
-        return files;
-    }
+    // Newest accessed files first.
+    files.sort((a,b)->
+            b.getLastAccessedAt()
+                    .compareTo(
+                            a.getLastAccessedAt()
+                    )
+    );
+
+    // Apply limit AFTER removing deleted files.
+    if(files.size()>limit)
+        return new ArrayList<>(
+                files.subList(0,limit)
+        );
+
+    return files;
+}
 
     public void softDeleteFile(String uid,String fileId)throws Exception{
         validateUid(uid);

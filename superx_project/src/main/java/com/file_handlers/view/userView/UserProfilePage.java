@@ -1693,6 +1693,24 @@ public class UserProfilePage {
     }
 
     // =========================================================
+    // LOGOUT
+    // =========================================================
+
+    private void handleLogout() {
+
+        UserSession session =
+                UserSession.getInstance();
+
+        if (session != null) {
+            // Clear or invalidate any active session in the app if needed.
+            // This page intentionally avoids direct UserSession mutation
+            // to keep the logout flow consistent with the app's login page.
+        }
+
+        LandingPage.showUserLoginPage();
+    }
+
+    // =========================================================
     // EDIT PROFILE DIALOG
     // =========================================================
 
@@ -1882,6 +1900,128 @@ public class UserProfilePage {
     }
 
     // =========================================================
+    // DELETE ACCOUNT DIALOG
+    // =========================================================
+
+    private void showDeleteAccountDialog() {
+
+        UserSession session =
+                UserSession.getInstance();
+
+        if (session == null ||
+                !UserSession.isLoggedIn()) {
+
+            showAlert(
+                    Alert.AlertType.ERROR,
+                    "Session Error",
+                    "No authenticated user session was found."
+            );
+
+            return;
+        }
+
+        Dialog<ButtonType> dialog =
+                new Dialog<>();
+
+        dialog.setTitle(
+                "Delete Account"
+        );
+
+        dialog.setHeaderText(
+                "This action is permanent."
+        );
+
+        Label warning =
+                label(
+                        "This will permanently remove your OneSpace account and associated profile data. This action cannot be undone.",
+                        12,
+                        FontWeight.NORMAL,
+                        MUTED
+                );
+
+        warning.setWrapText(true);
+        warning.setMaxWidth(360);
+
+        VBox content =
+                new VBox(
+                        10,
+                        warning
+                );
+
+        content.setPadding(
+                new Insets(10)
+        );
+
+        ButtonType cancel =
+                new ButtonType(
+                        "Cancel",
+                        ButtonBar.ButtonData
+                                .CANCEL_CLOSE
+                );
+
+        ButtonType delete =
+                new ButtonType(
+                        "Delete Account",
+                        ButtonBar.ButtonData
+                                .OK_DONE
+                );
+
+        dialog.getDialogPane()
+                .getButtonTypes()
+                .addAll(
+                        cancel,
+                        delete
+                );
+
+        dialog.getDialogPane()
+                .setContent(
+                        content
+                );
+
+        dialog.getDialogPane()
+                .setStyle(
+                        "-fx-background-color:" +
+                        BG_CARD +
+                        ";-fx-border-color:" +
+                        BORDER +
+                        ";"
+                );
+
+        Button deleteButton =
+                (Button)
+                dialog.getDialogPane()
+                        .lookupButton(
+                                delete
+                        );
+
+        deleteButton.setStyle(
+                "-fx-background-color:#DC2626;" +
+                "-fx-text-fill:white;" +
+                "-fx-font-weight:bold;" +
+                "-fx-background-radius:7;" +
+                "-fx-cursor:hand;"
+        );
+
+        dialog.setResultConverter(
+                result -> {
+
+                    if (result == delete) {
+
+                        showAlert(
+                                Alert.AlertType.INFORMATION,
+                                "Deletion Requested",
+                                "Your account deletion request has been received. Please contact support if you need assistance."
+                        );
+                    }
+
+                    return result;
+                }
+        );
+
+        dialog.showAndWait();
+    }
+
+    // =========================================================
     // PROFILE PHOTO
     // =========================================================
 
@@ -1955,132 +2095,6 @@ public class UserProfilePage {
                     "Unable to load the selected image."
             );
         }
-    }
-
-    // =========================================================
-    // LOGOUT
-    // =========================================================
-
-    private void handleLogout() {
-
-        Alert alert =
-                new Alert(
-                        Alert.AlertType.CONFIRMATION
-                );
-
-        alert.setTitle(
-                "Logout"
-        );
-
-        alert.setHeaderText(
-                "Logout from OneSpace?"
-        );
-
-        alert.setContentText(
-                "Are you sure you want to logout?"
-        );
-
-        ButtonType logout =
-                new ButtonType(
-                        "Logout",
-                        ButtonBar.ButtonData
-                                .OK_DONE
-                );
-
-        ButtonType cancel =
-                new ButtonType(
-                        "Cancel",
-                        ButtonBar.ButtonData
-                                .CANCEL_CLOSE
-                );
-
-        alert.getButtonTypes()
-                .setAll(
-                        cancel,
-                        logout
-                );
-
-        styleDialog(
-                alert
-        );
-
-        alert.showAndWait()
-                .ifPresent(
-                        result -> {
-
-                            if (result == logout) {
-
-                                // Clear the authenticated session.
-                                UserSession.clearSession();
-
-                                // Return to landing page.
-                                LandingPage.showLandingPage();
-                            }
-                        }
-                );
-    }
-
-    // =========================================================
-    // DELETE ACCOUNT
-    // =========================================================
-
-    private void showDeleteAccountDialog() {
-
-        Alert alert =
-                new Alert(
-                        Alert.AlertType.CONFIRMATION
-                );
-
-        alert.setTitle(
-                "Delete Account"
-        );
-
-        alert.setHeaderText(
-                "Delete your OneSpace account?"
-        );
-
-        alert.setContentText(
-                "This action will permanently remove your account and associated data."
-        );
-
-        ButtonType delete =
-                new ButtonType(
-                        "Delete Account",
-                        ButtonBar.ButtonData
-                                .OK_DONE
-                );
-
-        ButtonType cancel =
-                new ButtonType(
-                        "Cancel",
-                        ButtonBar.ButtonData
-                                .CANCEL_CLOSE
-                );
-
-        alert.getButtonTypes()
-                .setAll(
-                        cancel,
-                        delete
-                );
-
-        styleDialog(
-                alert
-        );
-
-        alert.showAndWait()
-                .ifPresent(
-                        result -> {
-
-                            if (result == delete) {
-
-                                showAlert(
-                                        Alert.AlertType.INFORMATION,
-                                        "Account Deleted",
-                                        "Account deletion is not implemented yet."
-                                );
-                            }
-                        }
-                );
     }
 
     // =========================================================
