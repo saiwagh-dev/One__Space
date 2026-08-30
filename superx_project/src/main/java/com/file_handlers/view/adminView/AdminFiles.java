@@ -11,7 +11,6 @@ import javafx.scene.chart.PieChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -28,6 +27,7 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.concurrent.Task;
+import javafx.stage.Popup;
 
 public class AdminFiles {
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -49,7 +49,6 @@ public class AdminFiles {
     
     private static final String WHITE = "#FFFFFF";
     private static final String LIGHT_SECONDARY = "#94A3B8";
-    private static final String BLUE = "#2563EB";
     
     // Chart and Accent Colors
     private static final String PDF_COLOR = "#3B82F6";
@@ -98,7 +97,9 @@ public class AdminFiles {
 
     private VBox createSidebar() {
         VBox sidebar = new VBox(12);
-        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH); sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH); sidebar.setMaxWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH); 
+        sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH); 
+        sidebar.setMaxWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setStyle("-fx-background-color: " + SIDEBAR_BG + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 1 0 0;");
 
@@ -119,7 +120,7 @@ public class AdminFiles {
         users.setOnAction(e -> LandingPage.showAdminUsers());
         Button files = createSidebarButton("files", "Files", true);
         files.setOnAction(e -> LandingPage.showAdminFiles());
-        Button collab = createSidebarButton("collab", "Collaboration", false);
+        Button collab = createSidebarButton("collaboration", "Collaboration", false);
         collab.setOnAction(e -> LandingPage.showAdminCollaboration());
         Button aiSystem = createSidebarButton("ai", "AI System", false);
         aiSystem.setOnAction(e -> LandingPage.showAdminAISystem());
@@ -215,27 +216,6 @@ public class AdminFiles {
     }
 
     private HBox createTopBar() {
-        SVGPath searchIcon = createIcon("search");
-        searchIcon.setStroke(Color.web("#64748B"));
-        searchIcon.setStrokeWidth(2);
-
-        StackPane searchIconBox = new StackPane(searchIcon);
-        searchIconBox.setPrefSize(24, 24);
-
-        TextField search = new TextField();
-        search.setPromptText("Search in OneSpace...");
-        search.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
-        search.setPrefHeight(38);
-        search.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #64748B; -fx-border-color: transparent; -fx-padding: 0;");
-
-        HBox searchBox = new HBox(8, searchIconBox, search);
-        searchBox.setAlignment(Pos.CENTER_LEFT);
-        searchBox.setPrefHeight(38); searchBox.setMinHeight(38); searchBox.setMaxHeight(38);
-        searchBox.setPrefWidth(420); searchBox.setMinWidth(420); searchBox.setMaxWidth(420);
-        searchBox.setPadding(new Insets(0, 12, 0, 14));
-        searchBox.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20;");
-        HBox.setHgrow(search, Priority.ALWAYS);
-
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -246,6 +226,7 @@ public class AdminFiles {
         Button notification = new Button();
         notification.setGraphic(bell);
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
+        notification.setOnAction(e -> LandingPage.showNotificationPage());
 
         Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
@@ -262,16 +243,83 @@ public class AdminFiles {
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+
+        Popup profilePopup = createProfilePopup();
         profile.setOnMouseClicked(e -> {
-            LandingPage.showAdminProfilePage();
+            if (profilePopup.isShowing()) {
+                profilePopup.hide();
+            } else {
+                javafx.geometry.Point2D p = profile.localToScreen(0.0, profile.getHeight());
+                profilePopup.show(profile, p.getX() - 30, p.getY() + 8);
+            }
         });
 
-        HBox topBar = new HBox(20, searchBox, spacer, notification, profile);
-        topBar.setAlignment(Pos.CENTER_LEFT);
+        HBox topBar = new HBox(16, spacer, notification, profile);
+        topBar.setAlignment(Pos.CENTER_RIGHT);
         topBar.setPrefHeight(70); topBar.setMinHeight(70); topBar.setMaxHeight(70);
         topBar.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 14, ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color: transparent; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
         return topBar;
+    }
+
+    private Popup createProfilePopup() {
+        Popup popup = new Popup();
+        popup.setAutoHide(true);
+
+        HBox profileBtn = createProfilePopupItem("users", "Profile Page", "#F59E0B", () -> {
+            popup.hide();
+            LandingPage.showAdminProfilePage();
+        });
+
+        HBox settingsBtn = createProfilePopupItem("settings", "Settings", "#38BDF8", () -> {
+            popup.hide();
+            LandingPage.showAdminSettings();
+        });
+
+        HBox signOutBtn = createProfilePopupItem("logout", "Sign Out", "#F87171", () -> {
+            popup.hide();
+            LandingPage.showAdminLoginPage();
+        });
+
+        Region menuDivider = new Region();
+        menuDivider.setPrefHeight(1);
+        menuDivider.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08);");
+
+        VBox menuBox = new VBox(6, profileBtn, settingsBtn, menuDivider, signOutBtn);
+        menuBox.setPrefWidth(170);
+        menuBox.setPadding(new Insets(10, 8, 10, 8));
+        menuBox.setStyle(
+            "-fx-background-color: #0B132B;" +
+            "-fx-border-color: rgba(255, 255, 255, 0.12);" +
+            "-fx-border-width: 1.2;" +
+            "-fx-border-radius: 14;" +
+            "-fx-background-radius: 14;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 24, 0, 0, 10);"
+        );
+
+        popup.getContent().add(menuBox);
+        return popup;
+    }
+
+    private HBox createProfilePopupItem(String iconType, String text, String iconColor, Runnable action) {
+        SVGPath icon = createIcon(iconType);
+        icon.setStroke(Color.web(iconColor));
+        icon.setStrokeWidth(2.0);
+
+        StackPane iconBox = new StackPane(icon);
+        iconBox.setPrefSize(22, 22);
+
+        Label label = new Label(text);
+        label.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
+        label.setTextFill(Color.WHITE);
+
+        HBox item = new HBox(12, iconBox, label);
+        item.setAlignment(Pos.CENTER_LEFT);
+        item.setPadding(new Insets(8, 10, 8, 10));
+        item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+
+        item.setOnMouseClicked(e -> action.run());
+        return item;
     }
 
     private VBox createFilesContent() {
@@ -286,14 +334,23 @@ public class AdminFiles {
 
         VBox heading = new VBox(4, title, subtitle);
 
-        VBox cardsContainer = new VBox(20, createFileTypesOverview(), createMostUsedCategories());
-        cardsContainer.setMaxWidth(820);
-        cardsContainer.setAlignment(Pos.CENTER_LEFT);
+        // Vertically stacked cards centered with balanced compact dimensions
+        VBox fileTypesCard = createFileTypesOverview();
+        VBox categoriesCard = createMostUsedCategories();
 
-        VBox content = new VBox(24, heading, cardsContainer);
-        content.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 36, ResponsiveUtil.PAGE_PADDING));
+        VBox cardsContainer = new VBox(22, fileTypesCard, categoriesCard);
+        cardsContainer.setAlignment(Pos.CENTER);
+        cardsContainer.setMaxWidth(880);
+        cardsContainer.setFillWidth(true);
+
+        HBox centeringRow = new HBox(cardsContainer);
+        centeringRow.setAlignment(Pos.CENTER);
+        centeringRow.setFillHeight(false);
+        HBox.setHgrow(cardsContainer, Priority.ALWAYS);
+
+        VBox content = new VBox(22, heading, centeringRow);
+        content.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 32, ResponsiveUtil.PAGE_PADDING));
         content.setFillWidth(true);
-        content.setMaxWidth(Double.MAX_VALUE);
         content.setStyle("-fx-background-color: transparent;");
         return content;
     }
@@ -301,7 +358,7 @@ public class AdminFiles {
     private VBox createFileTypesOverview() {
 
         Label title = new Label("File Types Overview");
-        title.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 17px; -fx-font-weight: 700; -fx-text-fill: " + CARD_TITLE + ";");
+        title.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 16px; -fx-font-weight: 700; -fx-text-fill: " + CARD_TITLE + ";");
 
         Label totalFilesTitle = new Label("Total Files");
         totalFilesTitle.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #A78BFA;");
@@ -316,8 +373,8 @@ public class AdminFiles {
         totalFilesText.setAlignment(Pos.CENTER_LEFT);
 
         VBox totalFilesCard = new VBox(totalFilesText);
-        totalFilesCard.setPrefWidth(140); totalFilesCard.setMinWidth(130); totalFilesCard.setMaxWidth(150);
-        totalFilesCard.setPrefHeight(90); totalFilesCard.setMinHeight(85);
+        totalFilesCard.setPrefWidth(135); totalFilesCard.setMinWidth(125); totalFilesCard.setMaxWidth(145);
+        totalFilesCard.setPrefHeight(76); totalFilesCard.setMinHeight(72);
         totalFilesCard.setPadding(new Insets(8, 12, 8, 12));
         totalFilesCard.setStyle("-fx-background-color: " + TOTAL_FILES_BG + "; " +
                 "-fx-border-color: " + TOTAL_FILES_BORDER + "; -fx-border-width: 1; -fx-border-radius: 12; -fx-background-radius: 12; " +
@@ -326,7 +383,7 @@ public class AdminFiles {
         Region titleSpacer = new Region();
         HBox.setHgrow(titleSpacer, Priority.ALWAYS);
 
-        HBox headerRow = new HBox(16, title, titleSpacer, totalFilesCard);
+        HBox headerRow = new HBox(14, title, titleSpacer, totalFilesCard);
         headerRow.setAlignment(Pos.CENTER_LEFT);
         headerRow.setMaxWidth(Double.MAX_VALUE);
 
@@ -340,14 +397,14 @@ public class AdminFiles {
         pieChart.setLegendVisible(false);
         pieChart.setLabelsVisible(false);
         pieChart.setStartAngle(90);
-        pieChart.setPrefSize(170, 170); pieChart.setMinSize(170, 170); pieChart.setMaxSize(170, 170);
+        pieChart.setPrefSize(155, 155); pieChart.setMinSize(155, 155); pieChart.setMaxSize(155, 155);
         pieChart.setStyle("-fx-background-color: transparent;");
 
-        Circle donutCenter = new Circle(42);
+        Circle donutCenter = new Circle(38);
         donutCenter.setFill(Color.web("#0A1424"));
 
         StackPane donut = new StackPane(pieChart, donutCenter);
-        donut.setPrefSize(170, 170); donut.setMinSize(170, 170); donut.setMaxSize(170, 170);
+        donut.setPrefSize(155, 155); donut.setMinSize(155, 155); donut.setMaxSize(155, 155);
 
         VBox legend = new VBox(10,
                 createLegendRow("PDF", PDF_COLOR),
@@ -361,6 +418,7 @@ public class AdminFiles {
 
         HBox middle = new HBox(28, donut, legend);
         middle.setAlignment(Pos.CENTER_LEFT);
+        middle.setMaxWidth(Double.MAX_VALUE);
 
         VBox card = new VBox(16, headerRow, middle);
         card.setMaxWidth(820);
@@ -368,6 +426,13 @@ public class AdminFiles {
         card.setStyle("-fx-background-color: " + CARD_BG + "; " +
                 "-fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; " +
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
+        card.setMaxWidth(880);
+        card.setFillWidth(true);
+        card.setPadding(new Insets(20, 24, 20, 24));
+        
+        card.setStyle("-fx-background-color: " + CARD_BG + "; " +
+                      "-fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 18; -fx-background-radius: 18; " +
+                      "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.55), 20, 0, 0, 8);");
 
         return card;
     }
@@ -387,11 +452,11 @@ public class AdminFiles {
 
         Label nameLabel = new Label(name);
         nameLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + CARD_TITLE + ";");
-        nameLabel.setPrefWidth(85);
+        nameLabel.setPrefWidth(90);
 
         StackPane progressBackground = new StackPane();
         progressBackground.setPrefHeight(8); progressBackground.setMinHeight(8); progressBackground.setMaxHeight(8);
-        progressBackground.setPrefWidth(110); progressBackground.setMinWidth(110); progressBackground.setMaxWidth(110);
+        progressBackground.setMaxWidth(Double.MAX_VALUE);
         progressBackground.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 6; -fx-background-radius: 6;");
 
         Region progressFill = new Region();
@@ -399,10 +464,11 @@ public class AdminFiles {
         progressFill.setStyle("-fx-background-color: " + hexColor + "; -fx-background-radius: 6;");
         StackPane.setAlignment(progressFill, Pos.CENTER_LEFT);
         progressBackground.getChildren().add(progressFill);
+        HBox.setHgrow(progressBackground, Priority.ALWAYS);
 
         Label percentageLabel = new Label("0%");
         percentageLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: " + CARD_SECONDARY + ";");
-        percentageLabel.setPrefWidth(45);
+        percentageLabel.setPrefWidth(50);
         percentageLabel.setAlignment(Pos.CENTER_RIGHT);
 
         typePercentLabels.put(name, percentageLabel);
@@ -412,7 +478,7 @@ public class AdminFiles {
         progressBackground.widthProperty().addListener((obs, oldWidth, newWidth) ->
                 updateTypeProgress(name, currentTypeProgress(name)));
 
-        HBox row = new HBox(12, nameLabel, progressBackground, percentageLabel);
+        HBox row = new HBox(14, nameLabel, progressBackground, percentageLabel);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setMaxWidth(Double.MAX_VALUE);
         return row;
@@ -436,9 +502,9 @@ public class AdminFiles {
     private VBox createMostUsedCategories() {
 
         Label title = new Label("Most Used Categories");
-        title.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 17px; -fx-font-weight: 700; -fx-text-fill: " + CARD_TITLE + ";");
+        title.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 16px; -fx-font-weight: 700; -fx-text-fill: " + CARD_TITLE + ";");
 
-        VBox categories = new VBox(16,
+        VBox categories = new VBox(14,
                 createCategoryRow("College"),
                 createCategoryRow("Personal"),
                 createCategoryRow("Office"),
@@ -447,12 +513,16 @@ public class AdminFiles {
                 createCategoryRow("Other")
         );
 
-        VBox card = new VBox(22, title, categories);
-        card.setMaxWidth(820);
-        card.setPadding(new Insets(24));
+        categories.setFillWidth(true);
+        categories.setMaxWidth(Double.MAX_VALUE);
+
+        VBox card = new VBox(16, title, categories);
+        card.setMaxWidth(880);
+        card.setFillWidth(true);
+        card.setPadding(new Insets(20, 24, 20, 24));
         card.setStyle("-fx-background-color: " + CARD_BG + "; " +
-                "-fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; " +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
+                      "-fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 18; -fx-background-radius: 18; " +
+                      "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.55), 20, 0, 0, 8);");
 
         return card;
     }
@@ -460,25 +530,39 @@ public class AdminFiles {
     private HBox createCategoryRow(String category) {
 
         Label categoryLabel = new Label(category);
-        categoryLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: " + CARD_TITLE + ";");
+        categoryLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + CARD_TITLE + ";");
         categoryLabel.setPrefWidth(90);
 
         StackPane progressBackground = new StackPane();
-        progressBackground.setPrefHeight(8); progressBackground.setMinHeight(8); progressBackground.setMaxHeight(8);
+        progressBackground.setPrefHeight(8);
+        progressBackground.setMinHeight(8);
+        progressBackground.setMaxHeight(8);
         progressBackground.setMaxWidth(Double.MAX_VALUE);
-        progressBackground.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 6; -fx-background-radius: 6;");
+        progressBackground.setStyle(
+                "-fx-background-color: rgba(255, 255, 255, 0.08);" +
+                "-fx-border-radius: 6; -fx-background-radius: 6;"
+        );
 
         Region progressFill = new Region();
-        progressFill.setPrefHeight(8); progressFill.setMaxHeight(8);
-        progressFill.setStyle("-fx-background-color: linear-gradient(to right, #0284C7, #38BDF8); -fx-background-radius: 6; -fx-effect: dropshadow(two-pass-box, rgba(56,189,248,0.4), 4, 0, 0, 1);");
+        progressFill.setPrefHeight(8);
+        progressFill.setMaxHeight(8);
+        progressFill.setStyle(
+                "-fx-background-color: linear-gradient(to right, #0284C7, #38BDF8);" +
+                "-fx-background-radius: 6;" +
+                "-fx-effect: dropshadow(two-pass-box, rgba(56,189,248,0.35), 4, 0, 0, 1);"
+        );
+
         StackPane.setAlignment(progressFill, Pos.CENTER_LEFT);
         progressBackground.getChildren().add(progressFill);
-
         HBox.setHgrow(progressBackground, Priority.ALWAYS);
 
         Label countLabel = new Label("0 (0%)");
-        countLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + CARD_SECONDARY + ";");
-        countLabel.setPrefWidth(100);
+        countLabel.setStyle(
+                "-fx-font-family: " + FONT +
+                "; -fx-font-size: 12px; -fx-font-weight: 700;" +
+                " -fx-text-fill: " + CARD_SECONDARY + ";"
+        );
+        countLabel.setPrefWidth(95);
         countLabel.setAlignment(Pos.CENTER_RIGHT);
 
         categoryCountLabels.put(category, countLabel);
@@ -486,10 +570,18 @@ public class AdminFiles {
         categoryProgressBackgrounds.put(category, progressBackground);
 
         progressBackground.widthProperty().addListener((obs, oldWidth, newWidth) ->
-                updateCategoryProgress(category, currentCategoryProgress(category)));
+                updateCategoryProgress(category, currentCategoryProgress(category))
+        );
 
-        HBox row = new HBox(16, categoryLabel, progressBackground, countLabel);
+        HBox row = new HBox(
+                14,
+                categoryLabel,
+                progressBackground,
+                countLabel
+        );
         row.setAlignment(Pos.CENTER_LEFT);
+        row.setMaxWidth(Double.MAX_VALUE);
+
         return row;
     }
 
@@ -649,7 +741,7 @@ public class AdminFiles {
             case "dashboard": icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z"); break;
             case "users": icon.setContent("M8 11 A3 3 0 1 0 8 5 A3 3 0 0 0 8 11 Z M16 11 A3 3 0 1 0 16 5 A3 3 0 0 0 16 11 Z M2 20 C2 16 5 14 8 14 C11 14 14 16 14 20 M12 15 C14 14 17 14 19 15 C21 16 22 18 22 20"); break;
             case "files": icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13"); break;
-            case "collab": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
+            case "collaboration": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
             case "ai": icon.setContent("M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z"); break;
             case "analytics": icon.setContent("M4 20 V11 M10 20 V6 M16 20 V13 M22 20 V3"); break;
             case "security": icon.setContent("M12 2 L20 5 V11 C20 16 17 20 12 22 C7 20 4 16 4 11 V5 Z M9 12 L11 14 L15 9"); break;

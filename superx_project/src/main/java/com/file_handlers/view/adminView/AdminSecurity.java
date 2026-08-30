@@ -33,6 +33,7 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
+import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
@@ -46,7 +47,7 @@ public class AdminSecurity {
 
     // 1. Sidebar & Top Bar Tones
     private static final String SIDEBAR_BG = "#070C16";
-    private static final String SIDEBAR_DARK = "#070C16";
+    public static final String SIDEBAR_DARK = "#070C16";
     private static final String SIDEBAR_BORDER = "rgba(255, 255, 255, 0.07)";
 
     // 2. Center Canvas Radial Glow Background
@@ -67,6 +68,8 @@ public class AdminSecurity {
     private static final String GREEN = "#10B981";
     public static final String RED = "#EF4444";
     private static final String ORANGE = "#F59E0B";
+
+    public AdminSecurity() {}
 
     public Scene getSecurityScene() {
         BorderPane root = new BorderPane();
@@ -140,7 +143,7 @@ public class AdminSecurity {
         Button dashboardButton = createSidebarButton("dashboard", "Dashboard", false);
         Button usersButton = createSidebarButton("users", "Users", false);
         Button filesButton = createSidebarButton("files", "Files", false);
-        Button collabButton = createSidebarButton("collab", "Collaboration", false);
+        Button collabButton = createSidebarButton("collaboration", "Collaboration", false);
         Button aiButton = createSidebarButton("ai", "AI System", false);
         Button analyticsButton = createSidebarButton("analytics", "Analytics", false);
         Button securityButton = createSidebarButton("security", "Security", true);
@@ -239,27 +242,6 @@ public class AdminSecurity {
     }
 
     private HBox createTopBar() {
-        SVGPath searchIcon = createIcon("search");
-        searchIcon.setStroke(Color.web("#64748B"));
-        searchIcon.setStrokeWidth(2);
-
-        StackPane searchIconBox = new StackPane(searchIcon);
-        searchIconBox.setPrefSize(24, 24);
-
-        TextField searchField = createSearchField();
-
-        HBox searchBox = new HBox(8, searchIconBox, searchField);
-        searchBox.setAlignment(Pos.CENTER_LEFT);
-        searchBox.setPrefHeight(38);
-        searchBox.setMinHeight(38);
-        searchBox.setMaxHeight(38);
-        searchBox.setPrefWidth(420);
-        searchBox.setMinWidth(420);
-        searchBox.setMaxWidth(420);
-        searchBox.setPadding(new Insets(0, 12, 0, 14));
-        searchBox.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20;");
-        HBox.setHgrow(searchField, Priority.ALWAYS);
-
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -270,6 +252,7 @@ public class AdminSecurity {
         Button notificationButton = new Button();
         notificationButton.setGraphic(bell);
         notificationButton.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
+        notificationButton.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
         Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34);
@@ -282,16 +265,23 @@ public class AdminSecurity {
         adminName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         adminName.setTextFill(Color.WHITE);
 
-        HBox profile = new HBox(10, notificationButton, avatar, adminName);
+        HBox profile = new HBox(10, avatar, adminName);
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+
+        Popup profilePopup = createProfilePopup();
         profile.setOnMouseClicked(e -> {
-            LandingPage.showAdminProfilePage();
+            if (profilePopup.isShowing()) {
+                profilePopup.hide();
+            } else {
+                javafx.geometry.Point2D p = profile.localToScreen(0.0, profile.getHeight());
+                profilePopup.show(profile, p.getX() - 30, p.getY() + 8);
+            }
         });
 
-        HBox topBar = new HBox(20, searchBox, spacer, profile);
-        topBar.setAlignment(Pos.CENTER_LEFT);
+        HBox topBar = new HBox(16, spacer, notificationButton, profile);
+        topBar.setAlignment(Pos.CENTER_RIGHT);
         topBar.setPrefHeight(70);
         topBar.setMinHeight(70);
         topBar.setMaxHeight(70);
@@ -304,19 +294,64 @@ public class AdminSecurity {
         return topBar;
     }
 
-    private TextField createSearchField() {
-        TextField searchField = new TextField();
-        searchField.setPromptText("Search in OneSpace...");
-        searchField.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
-        searchField.setPrefHeight(38);
-        searchField.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #FFFFFF;" +
-                "-fx-prompt-text-fill: #64748B;" +
-                "-fx-border-color: transparent;" +
-                "-fx-padding: 0;"
+    private Popup createProfilePopup() {
+        Popup popup = new Popup();
+        popup.setAutoHide(true);
+
+        HBox profileBtn = createProfilePopupItem("users", "Profile Page", "#F59E0B", () -> {
+            popup.hide();
+            LandingPage.showAdminProfilePage();
+        });
+
+        HBox settingsBtn = createProfilePopupItem("settings", "Settings", "#38BDF8", () -> {
+            popup.hide();
+            LandingPage.showAdminSettings();
+        });
+
+        HBox signOutBtn = createProfilePopupItem("logout", "Sign Out", "#F87171", () -> {
+            popup.hide();
+            LandingPage.showAdminLoginPage();
+        });
+
+        Region menuDivider = new Region();
+        menuDivider.setPrefHeight(1);
+        menuDivider.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08);");
+
+        VBox menuBox = new VBox(6, profileBtn, settingsBtn, menuDivider, signOutBtn);
+        menuBox.setPrefWidth(170);
+        menuBox.setPadding(new Insets(10, 8, 10, 8));
+        menuBox.setStyle(
+            "-fx-background-color: #0B132B;" +
+            "-fx-border-color: rgba(255, 255, 255, 0.12);" +
+            "-fx-border-width: 1.2;" +
+            "-fx-border-radius: 14;" +
+            "-fx-background-radius: 14;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 24, 0, 0, 10);"
         );
-        return searchField;
+
+        popup.getContent().add(menuBox);
+        return popup;
+    }
+
+    private HBox createProfilePopupItem(String iconType, String text, String iconColor, Runnable action) {
+        SVGPath icon = createIcon(iconType);
+        icon.setStroke(Color.web(iconColor));
+        icon.setStrokeWidth(2.0);
+
+        StackPane iconBox = new StackPane(icon);
+        iconBox.setPrefSize(22, 22);
+
+        Label label = new Label(text);
+        label.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
+        label.setTextFill(Color.WHITE);
+
+        HBox item = new HBox(12, iconBox, label);
+        item.setAlignment(Pos.CENTER_LEFT);
+        item.setPadding(new Insets(8, 10, 8, 10));
+        item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+
+        item.setOnMouseClicked(e -> action.run());
+        return item;
     }
 
     private VBox createSecurityContent() {
@@ -853,7 +888,6 @@ public class AdminSecurity {
         bottomRow.setAlignment(Pos.CENTER_RIGHT);
         bottomRow.setPadding(new Insets(10, 0, 0, 0));
 
-        //Assemble Root Box
         VBox rootBox = new VBox(24, headerRow, contentNode, bottomRow);
         rootBox.setPadding(new Insets(32));
         rootBox.setStyle("-fx-background-color: #0D1626; -fx-background-radius: 20; -fx-border-radius: 20; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2;");
@@ -874,7 +908,7 @@ public class AdminSecurity {
         StackPane wrapper = new StackPane(rootBox);
         wrapper.setPadding(new Insets(30));
         wrapper.setStyle("-fx-background-color: transparent;");
-                                                                                                                
+
         Scene modalScene = new Scene(wrapper, 650, 520);
         modalScene.setFill(Color.TRANSPARENT);
         modalScene.getStylesheets().add(createModalCss());
@@ -1206,7 +1240,7 @@ public class AdminSecurity {
         label.setWrapText(true);
         label.setStyle("-fx-text-fill: " + hexColor + " !important;");
         return label;
-    }                    
+    }
 
     private Label link(String text) {
         Label label = new Label(text);
@@ -1242,7 +1276,7 @@ public class AdminSecurity {
             case "dashboard": icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z"); break;
             case "users": icon.setContent("M8 11 A3 3 0 1 0 8 5 A3 3 0 0 0 8 11 Z M16 11 A3 3 0 1 0 16 5 A3 3 0 0 0 16 11 Z M2 20 C2 16 5 14 8 14 C11 14 14 16 14 20 M12 15 C14 14 17 14 19 15 C21 16 22 18 22 20"); break;
             case "files": icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13"); break;
-            case "collab": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
+            case "collaboration": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
             case "ai": icon.setContent("M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z"); break;
             case "analytics": icon.setContent("M4 20 V11 M10 20 V6 M16 20 V13 M22 20 V3"); break;
             case "security": icon.setContent("M12 2 L20 5 V11 C20 16 17 20 12 22 C7 20 4 16 4 11 V5 Z M9 12 L11 14 L15 9"); break;
