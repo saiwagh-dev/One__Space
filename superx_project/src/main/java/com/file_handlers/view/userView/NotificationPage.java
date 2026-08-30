@@ -516,18 +516,29 @@ topBar.setStyle(
 
     private void init() {
         data.clear();
-              // Fetch dynamic collaboration invites & workspace activities from Firestore
+        
         String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
+        if (myEmail == null || myEmail.trim().isEmpty()) {
+            return; // Exit if no user is logged in
+        }
+
         try {
             com.google.cloud.firestore.Firestore db = FirebaseConfig.getFirestore();
             var workspacesDocs = db.collection("workspaces").get().get().getDocuments();
 
             for (var wsDoc : workspacesDocs) {
                 String spaceDocId = wsDoc.getId();
-                String spaceName = spaceDocId.replaceAll("_", " ");
+                String spaceName = wsDoc.getString("spaceName");
+                if (spaceName == null) {
+                    spaceName = spaceDocId.replaceAll("_", " ");
+                }
 
-                // Check members subcollection for pending invites or membership actions
+                boolean isUserMemberOrOwner = false;
+                List<N> workspaceNotifications = new ArrayList<>();
+
+                // Check members subcollection to verify if user belongs to this workspace
                 var memberDocs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
+                
                 for (var mDoc : memberDocs) {
                     String email = mDoc.getString("email");
                     String status = mDoc.getString("status");
@@ -535,48 +546,48 @@ topBar.setStyle(
                     String role = mDoc.getString("role");
 
                     if (email != null && email.equalsIgnoreCase(myEmail)) {
+                        if ("active".equalsIgnoreCase(status) || "Owner".equalsIgnoreCase(role)) {
+                            isUserMemberOrOwner = true;
+                        }
                         if ("pending".equalsIgnoreCase(status)) {
-                            data.add(new N("👥", "Collaboration Invite", "You have been invited to join '" + spaceName + "' as " + (role != null ? role : "Viewer"), "Recent", "Collaboration"));
+                            // User has a pending invite to this space
+                            workspaceNotifications.add(new N("👥", "Collaboration Invite", "You have been invited to join '" + spaceName + "' as " + (role != null ? role : "Viewer"), "Recent", "Collaboration"));
+                            isUserMemberOrOwner = true; // Allow them to see their own invite
                         } else if ("active".equalsIgnoreCase(status)) {
-                            data.add(new N("👥", "Workspace Access Active", "You are an active " + role + " in '" + spaceName + "'", "Synced", "Collaboration"));
+                            workspaceNotifications.add(new N("👥", "Workspace Access Active", "You are an active " + role + " in '" + spaceName + "'", "Synced", "Collaboration"));
                         }
                     } else if (name != null) {
-                        data.add(new N("👥", name + " joined workspace", "Added to '" + spaceName + "'", "Recent", "Collaboration"));
+                        // Other team member activity inside a workspace this user belongs to
+                        workspaceNotifications.add(new N("👥", name + " joined workspace", "Added to '" + spaceName + "'", "Recent", "Collaboration"));
                     }
                 }
 
-                // Check files subcollection for recent file uploads/activity in workspaces
+                // If the user has no association with this workspace, skip its notifications completely
+                if (!isUserMemberOrOwner) {
+                    continue;
+                }
+
+                // Check files subcollection for recent file uploads within this authorized workspace
                 var fileDocs = db.collection("workspaces").document(spaceDocId).collection("files").get().get().getDocuments();
                 for (var fDoc : fileDocs) {
                     String fileName = fDoc.getString("fileName");
                     if (fileName != null) {
-                        data.add(new N("📄", "File uploaded in " + spaceName, fileName, "Recent", "Collaboration"));
+                        workspaceNotifications.add(new N("📄", "File uploaded in " + spaceName, fileName, "Recent", "Collaboration"));
                     }
                 }
+
+                // Add collected notifications for this workspace to the main list
+                data.addAll(workspaceNotifications);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        data.add(new N("📄", "12 duplicate files detected",
-                "Downloads folder · 4.2 GB recoverable", "1 h", "Reminders"));
-
-        data.add(new N("🛡", "Sensitive files found",
-                "Identity and passport scans detected", "3 h", "Reminders"));
-
-        data.add(new N("📅", "Passport expires in 12 days",
-                "Linked to Passport_Scan.pdf", "5 h", "Reminders"));
-
-        data.add(new N("💬", "Riya commented on a shared file",
-                "Cloud_Computing_Seminar.pptx", "Yesterday", "Collaboration"));
-
-        data.add(new N("✦", "AI created 2 new Spaces",
-                "Healthcare and Travel from 609 files", "2 d", "Reminders"));
-
-        data.add(new N("👥", "Priya Sharma uploaded SVM_Optimization.pdf",
-                "Shared in College Presentation Workspace", "2 d", "Collaboration"));
+        // Fallback if no workspace notifications exist yet
+        if (data.isEmpty()) {
+            data.add(new N("🔔", "No new notifications", "Your workspaces are up to date", "Just now", "Reminders"));
+        }
     }
-
     private static class N {
         String icon, title, sub, time, type;
         boolean read = false;
