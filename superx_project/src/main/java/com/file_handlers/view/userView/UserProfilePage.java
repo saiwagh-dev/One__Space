@@ -680,15 +680,16 @@ public class UserProfilePage {
     // =========================================================
 
     private void showDeleteAccountDialog() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete Account");
+        alert.setHeaderText("Delete your OneSpace account?");
+        alert.setContentText("This action will permanently remove your account and associated data.");
 
-        Alert alert =
-                new Alert(
-                        Alert.AlertType.CONFIRMATION
-                );
+        ButtonType delete = new ButtonType("Delete Account", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
 
-        alert.setTitle(
-                "Delete Account"
-        );
+        alert.getButtonTypes().setAll(cancel, delete);
+        styleDialog(alert);
 
         alert.setHeaderText(
                 "Delete your OneSpace account?"
@@ -698,19 +699,6 @@ public class UserProfilePage {
                 "This action will permanently remove your account and associated data."
         );
 
-        ButtonType delete =
-                new ButtonType(
-                        "Delete Account",
-                        ButtonBar.ButtonData
-                                .OK_DONE
-                );
-
-        ButtonType cancel =
-                new ButtonType(
-                        "Cancel",
-                        ButtonBar.ButtonData
-                                .CANCEL_CLOSE
-                );
 
         alert.getButtonTypes()
                 .setAll(

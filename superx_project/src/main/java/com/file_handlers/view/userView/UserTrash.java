@@ -46,23 +46,6 @@ public class UserTrash {
 
         VBox sidebar=createSidebar();
 
-        Label searchIcon=label("⌕",16,FontWeight.NORMAL,TEXT_MUTED_LIGHT);
-
-        TextField searchField=new TextField();
-        searchField.setPromptText("Search in OneSpace...");
-        searchField.setPrefHeight(38);
-        searchField.setStyle("-fx-background-color:transparent;-fx-prompt-text-fill:"+TEXT_MUTED_LIGHT+";-fx-font-size:13px;-fx-text-fill:"+TEXT_LIGHT+";");
-
-        Label keyShortcut=label("⌘ K",10,FontWeight.SEMI_BOLD,TEXT_MUTED_LIGHT);
-        keyShortcut.setStyle("-fx-background-color:#141E2C;-fx-text-fill:"+TEXT_MUTED_LIGHT+";-fx-padding:3 6;-fx-background-radius:4;");
-
-        HBox searchContainer=new HBox(8,searchIcon,searchField,keyShortcut);
-        searchContainer.setAlignment(Pos.CENTER_LEFT);
-        searchContainer.setPadding(new Insets(0,12,0,14));
-        searchContainer.setPrefWidth(420);
-        searchContainer.setStyle("-fx-background-color:#141E2C;-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-radius:10;-fx-background-radius:10;");
-        HBox.setHgrow(searchField,Priority.ALWAYS);
-
         Button bellBtn=new Button("🔔");
         bellBtn.setStyle("-fx-background-color:transparent;-fx-font-size:16px;-fx-text-fill:"+TEXT_LIGHT+";-fx-cursor:hand;");
         bellBtn.setOnAction(e->LandingPage.showNotificationPage());
@@ -86,7 +69,7 @@ public class UserTrash {
         Region topGap=new Region();
         HBox.setHgrow(topGap,Priority.ALWAYS);
 
-        HBox topBar=new HBox(20,searchContainer,topGap,profileBox);
+        HBox topBar=new HBox(20,topGap,profileBox);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPadding(new Insets(16,ResponsiveUtil.PAGE_PADDING,14,ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 0 1 0;");
