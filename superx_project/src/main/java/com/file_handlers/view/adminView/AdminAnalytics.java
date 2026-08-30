@@ -11,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -20,13 +21,18 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.stage.Popup;
+import java.io.InputStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import javafx.concurrent.Task;
+
+import com.file_handlers.dao.AdminFileStatsDAO;
 
 import com.file_handlers.view.LandingPage;
-import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 
 public class AdminAnalytics {
@@ -34,7 +40,7 @@ public class AdminAnalytics {
     
     // 1. Sidebar & Top Bar Tones
     private static final String SIDEBAR_BG = "#070C16";
-    public static final String SIDEBAR_DARK = "#070C16";
+    private static final String SIDEBAR_DARK = "#070C16";
     private static final String SIDEBAR_BORDER = "rgba(255, 255, 255, 0.07)";
 
     // 2. Center Canvas Radial Glow Background
@@ -53,20 +59,14 @@ public class AdminAnalytics {
     private static final String PURPLE_LIGHT = "rgba(0, 210, 255, 0.15)";
     private static final String ORANGE = "#F59E0B";
     private static final String ORANGE_LIGHT = "rgba(245, 158, 11, 0.15)";
-    
-    private String activeUserName = "Admin";
-    private String initials = "A";
 
-    public AdminAnalytics() {UserSession session = UserSession.getInstance();
+    private final AdminFileStatsDAO statsDAO = new AdminFileStatsDAO();
+    private LineChart<String, Number> userGrowthChart;
+    private ComboBox<String> periodSelector;
+    private Label totalUsersAnalyticsValue;
+    private Label filesUploadedAnalyticsValue;
 
-        if (session != null && session.getDisplayName() != null) {
-            String fullName = session.getDisplayName().trim();
-            if (!fullName.isEmpty()) {
-                String[] parts = fullName.split("\\s+");
-                this.activeUserName = parts[0];
-                this.initials = this.activeUserName.substring(0, 1).toUpperCase();
-            }
-        }}
+    public AdminAnalytics() {}
 
     public Scene getAnalyticsScene() {
         BorderPane root = new BorderPane();
@@ -114,7 +114,7 @@ public class AdminAnalytics {
         Button files = createSidebarButton("files", "Files", false);
         files.setOnAction(e -> LandingPage.showAdminFiles());
 
-        Button collab = createSidebarButton("collaboration", "Collaboration", false);
+        Button collab = createSidebarButton("collab", "Collaboration", false);
         collab.setOnAction(e -> LandingPage.showAdminCollaboration());
 
         Button aiSystem = createSidebarButton("ai", "AI System", false);
@@ -211,6 +211,27 @@ public class AdminAnalytics {
     }
 
     private HBox createTopBar() {
+        SVGPath searchIcon = createIcon("search");
+        searchIcon.setStroke(Color.web("#64748B"));
+        searchIcon.setStrokeWidth(2);
+
+        StackPane searchIconBox = new StackPane(searchIcon);
+        searchIconBox.setPrefSize(24, 24);
+
+        TextField search = new TextField();
+        search.setPromptText("Search in OneSpace...");
+        search.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
+        search.setPrefHeight(38);
+        search.setStyle("-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #64748B; -fx-border-color: transparent; -fx-padding: 0;");
+
+        HBox searchBox = new HBox(8, searchIconBox, search);
+        searchBox.setAlignment(Pos.CENTER_LEFT);
+        searchBox.setPrefHeight(38); searchBox.setMinHeight(38); searchBox.setMaxHeight(38);
+        searchBox.setPrefWidth(420); searchBox.setMinWidth(420); searchBox.setMaxWidth(420);
+        searchBox.setPadding(new Insets(0, 12, 0, 14));
+        searchBox.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20;");
+        HBox.setHgrow(search, Priority.ALWAYS);
+
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -221,99 +242,31 @@ public class AdminAnalytics {
         Button notification = new Button();
         notification.setGraphic(bell);
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
-        notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        Label avatar = new Label(initials);
+        Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
-        Label admin = new Label(activeUserName);
+        Label admin = new Label("Admin");
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
 
-        HBox profile = new HBox(10, avatar, admin);
+        HBox profile = new HBox(10, notification, avatar, admin);
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
-
-        Popup profilePopup = createProfilePopup();
         profile.setOnMouseClicked(e -> {
-            if (profilePopup.isShowing()) {
-                profilePopup.hide();
-            } else {
-                javafx.geometry.Point2D p = profile.localToScreen(0.0, profile.getHeight());
-                profilePopup.show(profile, p.getX() - 30, p.getY() + 8);
-            }
+            LandingPage.showAdminProfilePage();
         });
 
-        HBox topBar = new HBox(16, spacer, notification, profile);
-        topBar.setAlignment(Pos.CENTER_RIGHT);
+        HBox topBar = new HBox(20, searchBox, spacer, profile);
+        topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPrefHeight(70); topBar.setMinHeight(70); topBar.setMaxHeight(70);
         topBar.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 14, ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color: transparent; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
         return topBar;
-    }
-
-    private Popup createProfilePopup() {
-        Popup popup = new Popup();
-        popup.setAutoHide(true);
-
-        HBox profileBtn = createProfilePopupItem("users", "Profile Page", "#F59E0B", () -> {
-            popup.hide();
-            LandingPage.showAdminProfilePage();
-        });
-
-        HBox settingsBtn = createProfilePopupItem("settings", "Settings", "#38BDF8", () -> {
-            popup.hide();
-            LandingPage.showAdminSettings();
-        });
-
-        HBox signOutBtn = createProfilePopupItem("logout", "Sign Out", "#F87171", () -> {
-            popup.hide();
-            LandingPage.showAdminLoginPage();
-        });
-
-        Region menuDivider = new Region();
-        menuDivider.setPrefHeight(1);
-        menuDivider.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08);");
-
-        VBox menuBox = new VBox(6, profileBtn, settingsBtn, menuDivider, signOutBtn);
-        menuBox.setPrefWidth(170);
-        menuBox.setPadding(new Insets(10, 8, 10, 8));
-        menuBox.setStyle(
-            "-fx-background-color: #0B132B;" +
-            "-fx-border-color: rgba(255, 255, 255, 0.12);" +
-            "-fx-border-width: 1.2;" +
-            "-fx-border-radius: 14;" +
-            "-fx-background-radius: 14;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 24, 0, 0, 10);"
-        );
-
-        popup.getContent().add(menuBox);
-        return popup;
-    }
-
-    private HBox createProfilePopupItem(String iconType, String text, String iconColor, Runnable action) {
-        SVGPath icon = createIcon(iconType);
-        icon.setStroke(Color.web(iconColor));
-        icon.setStrokeWidth(2.0);
-
-        StackPane iconBox = new StackPane(icon);
-        iconBox.setPrefSize(22, 22);
-
-        Label label = new Label(text);
-        label.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
-        label.setTextFill(Color.WHITE);
-
-        HBox item = new HBox(12, iconBox, label);
-        item.setAlignment(Pos.CENTER_LEFT);
-        item.setPadding(new Insets(8, 10, 8, 10));
-        item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
-
-        item.setOnMouseClicked(e -> action.run());
-        return item;
     }
 
     private VBox createAnalyticsContent() {
@@ -327,9 +280,9 @@ public class AdminAnalytics {
 
         VBox headerBox = new VBox(4, pageTitle, subtitle);
 
-        HBox totalUsers = createAnalyticsStatCard("users", "Total Users", "3,841", "vs previous period  ↑ +12.4%", PURPLE, PURPLE_LIGHT);
-        HBox filesUploaded = createAnalyticsStatCard("files", "Files Uploaded", "18,420", "vs previous period  ↑ +8.1%", BLUE, BLUE_LIGHT);
-        HBox activeSessions = createAnalyticsStatCard("sessions", "Active Sessions", "412", "vs previous period  ↑ +15.3%", ORANGE, ORANGE_LIGHT);
+        HBox totalUsers = createAnalyticsStatCard("users", "Total Users", "Loading...", "Current registered users", PURPLE, PURPLE_LIGHT);
+        HBox filesUploaded = createAnalyticsStatCard("files", "Files Uploaded", "Loading...", "Current uploaded files", BLUE, BLUE_LIGHT);
+        HBox activeSessions = createAnalyticsStatCard("sessions", "Active Sessions", "N/A", "Not tracked", ORANGE, ORANGE_LIGHT);
 
         totalUsers.setPrefWidth(260); totalUsers.setMaxWidth(260);
         filesUploaded.setPrefWidth(260); filesUploaded.setMaxWidth(260);
@@ -361,6 +314,12 @@ public class AdminAnalytics {
 
         Label valueLabel = new Label(value);
         valueLabel.setFont(Font.font(FONT, FontWeight.BOLD, 26));
+
+        if ("Total Users".equals(title)) {
+            totalUsersAnalyticsValue = valueLabel;
+        } else if ("Files Uploaded".equals(title)) {
+            filesUploadedAnalyticsValue = valueLabel;
+        }
         valueLabel.setTextFill(Color.WHITE);
         valueLabel.setStyle("-fx-text-fill: #FFFFFF;");
 
@@ -397,6 +356,119 @@ public class AdminAnalytics {
         return card;
     }
 
+    // =========================================================
+    // LOAD REAL ANALYTICS DATA
+    // =========================================================
+
+    private void loadAnalyticsData() {
+
+        Task<AnalyticsResult> task = new Task<>() {
+            @Override
+            protected AnalyticsResult call() throws Exception {
+
+                Map<String, Integer> weeklyUploads =
+                        statsDAO.getWeeklyUploadCounts(
+                                periodSelector == null
+                                        ? "This Month"
+                                        : periodSelector.getValue()
+                        );
+
+                int totalFiles =
+                        statsDAO.getTotalFiles();
+
+                int totalUsers =
+                        statsDAO.getTotalUsers();
+
+                return new AnalyticsResult(
+                        totalUsers,
+                        totalFiles,
+                        weeklyUploads
+                );
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+
+            AnalyticsResult result =
+                    task.getValue();
+
+            if (totalUsersAnalyticsValue != null)
+                totalUsersAnalyticsValue.setText(
+                        String.valueOf(result.totalUsers)
+                );
+
+            if (filesUploadedAnalyticsValue != null)
+                filesUploadedAnalyticsValue.setText(
+                        String.valueOf(result.totalFiles)
+                );
+
+            updateChart(result.weeklyUploads);
+        });
+
+        task.setOnFailed(e -> {
+
+            if (totalUsersAnalyticsValue != null)
+                totalUsersAnalyticsValue.setText("--");
+
+            if (filesUploadedAnalyticsValue != null)
+                filesUploadedAnalyticsValue.setText("--");
+
+            if (userGrowthChart != null)
+                userGrowthChart.getData().clear();
+
+            System.err.println(
+                    "Unable to load analytics: "
+                            + task.getException()
+            );
+        });
+
+        Thread thread =
+                new Thread(task, "AdminAnalyticsLoader");
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void updateChart(
+            Map<String, Integer> weeklyUploads
+    ) {
+
+        userGrowthChart.getData().clear();
+
+        XYChart.Series<String, Number> series =
+                new XYChart.Series<>();
+
+        for (Map.Entry<String, Integer> entry :
+                weeklyUploads.entrySet()) {
+
+            series.getData().add(
+                    new XYChart.Data<>(
+                            entry.getKey(),
+                            entry.getValue()
+                    )
+            );
+        }
+
+        userGrowthChart.getData().add(series);
+    }
+
+    private static class AnalyticsResult {
+
+        private final int totalUsers;
+        private final int totalFiles;
+        private final Map<String, Integer> weeklyUploads;
+
+        private AnalyticsResult(
+                int totalUsers,
+                int totalFiles,
+                Map<String, Integer> weeklyUploads
+        ) {
+            this.totalUsers = totalUsers;
+            this.totalFiles = totalFiles;
+            this.weeklyUploads = weeklyUploads;
+        }
+    }
+
     private VBox createUserGrowthCard() {
         Label title = new Label("User Growth");
         title.setFont(Font.font(FONT, FontWeight.BOLD, 17));
@@ -410,6 +482,7 @@ public class AdminAnalytics {
         period.setPrefHeight(30);
         period.getStyleClass().add("slate-dark-combo");
         period.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-family: '" + FONT + "'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
+        periodSelector = period;
 
         Region headingSpacer = new Region();
         HBox.setHgrow(headingSpacer, Priority.ALWAYS);
@@ -429,6 +502,7 @@ public class AdminAnalytics {
         yAxis.setStyle("-fx-tick-label-fill: #FFFFFF; -fx-text-fill: #FFFFFF;");
 
         LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
+        userGrowthChart = chart;
         chart.setLegendVisible(false);
         chart.setAnimated(false);
         chart.setCreateSymbols(true);
@@ -440,13 +514,13 @@ public class AdminAnalytics {
         chart.setPrefHeight(310);
         chart.setMaxHeight(310);
 
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.getData().add(new XYChart.Data<>("Week 1", 18));
-        series.getData().add(new XYChart.Data<>("Week 2", 32));
-        series.getData().add(new XYChart.Data<>("Week 3", 47));
-        series.getData().add(new XYChart.Data<>("Week 4", 65));
-        chart.getData().add(series);
+        period.valueProperty().addListener((obs, oldValue, newValue) -> {
+            loadAnalyticsData();
+        });
 
+        loadAnalyticsData();
+
+        // Completely clear plot background and chart container background fills to remove the grey area under the line
         chart.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0;");
         chart.lookupAll(".chart-plot-background").forEach(n -> n.setStyle("-fx-background-color: transparent;"));
 
@@ -478,7 +552,7 @@ public class AdminAnalytics {
             case "files":
                 icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13");
                 break;
-            case "collaboration":
+            case "collab":
                 icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75");
                 break;
             case "ai":

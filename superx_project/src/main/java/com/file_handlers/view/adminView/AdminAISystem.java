@@ -1,7 +1,6 @@
 package com.file_handlers.view.adminView;
 
 import com.file_handlers.view.LandingPage;
-import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.application.Platform;
@@ -12,6 +11,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -31,7 +31,6 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import javafx.stage.Popup;
 
 public class AdminAISystem {
 
@@ -62,20 +61,8 @@ public class AdminAISystem {
     private static final String GREEN_LIGHT = "rgba(16, 185, 129, 0.15)";
     private static final String ORANGE = "#F59E0B";
     private static final String ORANGE_LIGHT = "rgba(245, 158, 11, 0.15)";
-    
-    private String activeUserName = "Admin";
-    private String initials = "A";
 
-    public AdminAISystem() {UserSession session = UserSession.getInstance();
-
-        if (session != null && session.getDisplayName() != null) {
-            String fullName = session.getDisplayName().trim();
-            if (!fullName.isEmpty()) {
-                String[] parts = fullName.split("\\s+");
-                this.activeUserName = parts[0];
-                this.initials = this.activeUserName.substring(0, 1).toUpperCase();
-            }
-        }}
+    public AdminAISystem() {}
 
     public Scene getAdminAIScene() {
         BorderPane root = new BorderPane();
@@ -124,7 +111,7 @@ public class AdminAISystem {
         Button dashboardButton = createSidebarButton("dashboard", "Dashboard", false);
         Button usersButton = createSidebarButton("users", "Users", false);
         Button filesButton = createSidebarButton("files", "Files", false);
-        Button collabButton = createSidebarButton("collaboration", "Collaboration", false);
+        Button collabButton = createSidebarButton("collab", "Collaboration", false);
         Button aiButton = createSidebarButton("ai", "AI System", true);
         Button analyticsButton = createSidebarButton("analytics", "Analytics", false);
         Button securityButton = createSidebarButton("security", "Security", false);
@@ -221,6 +208,23 @@ public class AdminAISystem {
     }
 
     private HBox createTopBar() {
+        SVGPath searchIcon = createIcon("search");
+        searchIcon.setStroke(Color.web("#64748B"));
+        searchIcon.setStrokeWidth(2);
+
+        StackPane searchIconBox = new StackPane(searchIcon);
+        searchIconBox.setPrefSize(24, 24);
+
+        TextField searchField = createSearchField();
+
+        HBox searchBox = new HBox(8, searchIconBox, searchField);
+        searchBox.setAlignment(Pos.CENTER_LEFT);
+        searchBox.setPrefHeight(38); searchBox.setMinHeight(38); searchBox.setMaxHeight(38);
+        searchBox.setPrefWidth(420); searchBox.setMinWidth(420); searchBox.setMaxWidth(420);
+        searchBox.setPadding(new Insets(0, 12, 0, 14));
+        searchBox.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20;");
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -231,302 +235,386 @@ public class AdminAISystem {
         Button notificationButton = new Button();
         notificationButton.setGraphic(bell);
         notificationButton.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
-        notificationButton.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        Label avatar = new Label(initials);
+        Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
-        Label adminName = new Label(activeUserName);
+        Label adminName = new Label("Admin");
         adminName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         adminName.setTextFill(Color.WHITE);
 
-        HBox profile = new HBox(10, avatar, adminName);
+        HBox profile = new HBox(10, notificationButton, avatar, adminName);
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
-
-        Popup profilePopup = createProfilePopup();
         profile.setOnMouseClicked(e -> {
-            if (profilePopup.isShowing()) {
-                profilePopup.hide();
-            } else {
-                javafx.geometry.Point2D p = profile.localToScreen(0.0, profile.getHeight());
-                profilePopup.show(profile, p.getX() - 30, p.getY() + 8);
-            }
+            LandingPage.showAdminProfilePage();
         });
 
-        HBox topBar = new HBox(16, spacer, notificationButton, profile);
-        topBar.setAlignment(Pos.CENTER_RIGHT);
+        HBox topBar = new HBox(20, searchBox, spacer, profile);
+        topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPrefHeight(70); topBar.setMinHeight(70); topBar.setMaxHeight(70);
         topBar.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 14, ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color: transparent; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
         return topBar;
     }
 
-    private Popup createProfilePopup() {
-        Popup popup = new Popup();
-        popup.setAutoHide(true);
-
-        HBox profileBtn = createProfilePopupItem("users", "Profile Page", "#F59E0B", () -> {
-            popup.hide();
-            LandingPage.showAdminProfilePage();
-        });
-
-        HBox settingsBtn = createProfilePopupItem("settings", "Settings", "#38BDF8", () -> {
-            popup.hide();
-            LandingPage.showAdminSettings();
-        });
-
-        HBox signOutBtn = createProfilePopupItem("logout", "Sign Out", "#F87171", () -> {
-            popup.hide();
-            LandingPage.showAdminLoginPage();
-        });
-
-        Region menuDivider = new Region();
-        menuDivider.setPrefHeight(1);
-        menuDivider.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08);");
-
-        VBox menuBox = new VBox(6, profileBtn, settingsBtn, menuDivider, signOutBtn);
-        menuBox.setPrefWidth(170);
-        menuBox.setPadding(new Insets(10, 8, 10, 8));
-        menuBox.setStyle(
-            "-fx-background-color: #0B132B;" +
-            "-fx-border-color: rgba(255, 255, 255, 0.12);" +
-            "-fx-border-width: 1.2;" +
-            "-fx-border-radius: 14;" +
-            "-fx-background-radius: 14;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 24, 0, 0, 10);"
-        );
-
-        popup.getContent().add(menuBox);
-        return popup;
+    private TextField createSearchField() {
+        TextField searchField = new TextField();
+        searchField.setPromptText("Search in OneSpace...");
+        searchField.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
+        searchField.setPrefHeight(38);
+        searchField.setStyle("-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #64748B; -fx-border-color: transparent; -fx-padding: 0;");
+        return searchField;
     }
 
-    private HBox createProfilePopupItem(String iconType, String text, String iconColor, Runnable action) {
-        SVGPath icon = createIcon(iconType);
-        icon.setStroke(Color.web(iconColor));
-        icon.setStrokeWidth(2.0);
-
-        StackPane iconBox = new StackPane(icon);
-        iconBox.setPrefSize(22, 22);
-
-        Label label = new Label(text);
-        label.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
-        label.setTextFill(Color.WHITE);
-
-        HBox item = new HBox(12, iconBox, label);
-        item.setAlignment(Pos.CENTER_LEFT);
-        item.setPadding(new Insets(8, 10, 8, 10));
-        item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
-
-        item.setOnMouseClicked(e -> action.run());
-        return item;
-    }
+    // =========================================================
+    // MAIN CONTENT
+    // =========================================================
 
     private VBox createMainContent() {
-        Label welcome = new Label("AI System");
-        welcome.setFont(Font.font(FONT, FontWeight.BOLD, 24));
-        welcome.setTextFill(Color.WHITE);
 
-        Label subtitle = new Label("Monitor AI operations and performance.");
-        subtitle.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
-        subtitle.setTextFill(Color.web(LIGHT_SECONDARY));
+        Label title = createLabel(
+                "AI System",
+                "-fx-font-family: " + FONT +
+                "; -fx-font-size: 24px; -fx-font-weight: bold;"
+        );
 
-        VBox titleBox = new VBox(4, welcome, subtitle);
+        Label subtitle = createLabel(
+                "Overview of the AI capabilities used by OneSpace.",
+                "-fx-font-family: " + FONT +
+                "; -fx-font-size: 13px; -fx-font-weight: 500;" +
+                " -fx-text-fill: #94A3B8 !important;"
+        );
 
-        VBox content = new VBox(22, titleBox, createAIStatusCard(), createStatisticsGrid(), createAccuracyCard());
-        content.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 28, ResponsiveUtil.PAGE_PADDING));
+        VBox header = new VBox(4, title, subtitle);
+
+        VBox content = new VBox(
+                22,
+                header,
+                createAIStatusCard(),
+                createConfigurationCard(),
+                createCapabilitiesCard(),
+                createProcessingCard()
+        );
+
+        content.setPadding(
+                new Insets(
+                        24,
+                        ResponsiveUtil.PAGE_PADDING,
+                        28,
+                        ResponsiveUtil.PAGE_PADDING
+                )
+        );
+
         content.setFillWidth(true);
         content.setStyle("-fx-background-color: transparent;");
+
         return content;
     }
 
+    // =========================================================
+    // AI STATUS
+    // =========================================================
+
     private VBox createAIStatusCard() {
+
         SVGPath aiIcon = createIcon("ai");
         aiIcon.setStroke(Color.web(PURPLE));
         aiIcon.setStrokeWidth(2.2);
 
         StackPane iconPane = new StackPane(aiIcon);
-        iconPane.setPrefSize(48, 48); iconPane.setMinSize(48, 48); iconPane.setMaxSize(48, 48);
-        iconPane.setStyle("-fx-background-color: " + PURPLE_LIGHT + "; -fx-border-color: rgba(0, 210, 255, 0.3); -fx-border-radius: 12; -fx-background-radius: 12;");
+        iconPane.setPrefSize(48, 48);
+        iconPane.setMinSize(48, 48);
+        iconPane.setMaxSize(48, 48);
+        iconPane.setStyle(
+                "-fx-background-color: " + PURPLE_LIGHT + ";" +
+                "-fx-border-color: rgba(0, 210, 255, 0.3);" +
+                "-fx-border-radius: 12;" +
+                "-fx-background-radius: 12;"
+        );
 
         Circle dot = new Circle(6, Color.web(GREEN));
-        Label onlineLabel = createLabel("Online", "-fx-font-family: " + FONT + "; -fx-font-size: 15px; -fx-font-weight: bold;");
-        HBox onlineRow = new HBox(10, dot, onlineLabel);
-        onlineRow.setAlignment(Pos.CENTER_LEFT);
 
-        VBox statusText = new VBox(3, onlineRow, createLabel("All AI systems operational", "-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-text-fill: #94A3B8 !important;"));
-
-        HBox card = new HBox(18, iconPane, statusText);
-        card.setAlignment(Pos.CENTER_LEFT);
-        card.setPadding(new Insets(18));
-
-        VBox wrapper = new VBox(card);
-        wrapper.setStyle(cardStyle());
-        return wrapper;
-    }
-
-    private GridPane createStatisticsGrid() {
-        GridPane grid = new GridPane();
-        grid.setHgap(18); grid.setVgap(18);
-
-        for (int i = 0; i < 4; i++) {
-            ColumnConstraints col = new ColumnConstraints();
-            col.setPercentWidth(25); col.setHgrow(Priority.ALWAYS);
-            grid.getColumnConstraints().add(col);
-        }
-
-        grid.add(createMetricCard("Documents Analyzed", "3,841", "+14.2%", "files", PURPLE_LIGHT, PURPLE), 0, 0);
-        grid.add(createMetricCard("Categories Generated", "124", "+8.5%", "dashboard", BLUE_LIGHT, BLUE), 1, 0);
-        grid.add(createMetricCard("Tags Generated", "1,512", "+22.0%", "security", GREEN_LIGHT, GREEN), 2, 0);
-        grid.add(createMetricCard("AI Searches", "892", "+5.4%", "search", ORANGE_LIGHT, ORANGE), 3, 0);
-
-        return grid;
-    }
-
-    private VBox createMetricCard(String title, String value, String growthText, String iconType, String iconBackground, String iconColor) {
-        SVGPath icon = createIcon(iconType);
-        icon.setStroke(Color.web(iconColor));
-        icon.setStrokeWidth(2);
-
-        StackPane iconPane = new StackPane(icon);
-        iconPane.setPrefSize(38, 38); iconPane.setMaxSize(38, 38);
-        iconPane.setStyle("-fx-background-color: " + iconBackground + "; -fx-border-color: " + iconColor + "55; -fx-border-radius: 10; -fx-background-radius: 10;");
-
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
-
-        VBox card = new VBox(10,
-                iconPane,
-                createLabel(title, "-fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: bold;"),
-                createLabel(value, "-fx-font-family: " + FONT + "; -fx-font-size: 26px; -fx-font-weight: bold;"),
-                spacer,
-                createLabel("vs last 7 days  ↑ " + growthText, "-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #34D399 !important;")
+        Label status = createLabel(
+                "Integrated",
+                "-fx-font-size: 15px; -fx-font-weight: bold;"
         );
 
-        card.setPadding(new Insets(16));
-        card.setPrefHeight(160);
-        card.setStyle(cardStyle());
-        return card;
-    }
+        HBox statusRow = new HBox(10, dot, status);
+        statusRow.setAlignment(Pos.CENTER_LEFT);
 
-    private VBox createAccuracyCard() {
-        Label titleLabel = createLabel("AI Accuracy & Performance Metrics", "-fx-font-family: " + FONT + "; -fx-font-size: 17px; -fx-font-weight: bold;");
-
-        ComboBox<String> timeFilter = new ComboBox<>();
-        timeFilter.getItems().addAll("Last 24 Hours", "Last 7 Days", "Last 30 Days");
-        timeFilter.setValue("Last 7 Days");
-        timeFilter.getStyleClass().add("slate-dark-combo");
-        timeFilter.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
-        timeFilter.setPrefHeight(30);
-
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-
-        HBox header = new HBox(10, titleLabel, headerSpacer, timeFilter);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        StackPane ring = createAccuracyRing();
-        
-        Label statusPill = new Label("Optimal Rate");
-        statusPill.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        statusPill.setTextFill(Color.web("#34D399"));
-        statusPill.setStyle("-fx-background-color: " + GREEN_LIGHT + "; -fx-border-color: rgba(16, 185, 129, 0.3); -fx-padding: 3 8 3 8; -fx-border-radius: 10; -fx-background-radius: 10;");
-
-        Label confidenceLabel = createLabel("Confidence Score: 94.2%", "-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #94A3B8 !important;");
-
-        VBox ringBox = new VBox(10, ring, statusPill, confidenceLabel);
-        ringBox.setAlignment(Pos.CENTER);
-        ringBox.setPadding(new Insets(12, 20, 12, 20));
-        ringBox.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
-
-        VBox taskBreakdown = new VBox(14,
-                createAccuracyRow("File Auto-Categorization", "96.4%", 0.964, BLUE),
-                createAccuracyRow("OCR & Text Extraction", "94.1%", 0.941, PURPLE),
-                createAccuracyRow("Auto-Tagging & Metadata", "91.8%", 0.918, GREEN)
+        Label description = createLabel(
+                "OneSpace uses Gemini-powered AI for file understanding and classification.",
+                "-fx-font-size: 13px; -fx-text-fill: #94A3B8 !important;"
         );
-        taskBreakdown.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(taskBreakdown, Priority.ALWAYS);
 
-        HBox innerContainer = new HBox(24, ringBox, taskBreakdown);
-        innerContainer.setAlignment(Pos.CENTER_LEFT);
-        innerContainer.setPadding(new Insets(16));
-        innerContainer.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+        VBox text = new VBox(4, statusRow, description);
 
-        Label modelBadge = createLabel("Model Version: v2.4 (Trained Aug 10)", "-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF !important;");
-        modelBadge.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-border-color: rgba(255, 255, 255, 0.1); -fx-padding: 4 10 4 10; -fx-border-radius: 6; -fx-background-radius: 6;");
-
-        Label overrideBadge = createLabel("User Correction Rate: 2.3%", "-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #34D399 !important;");
-        overrideBadge.setStyle("-fx-background-color: " + GREEN_LIGHT + "; -fx-border-color: rgba(16, 185, 129, 0.3); -fx-padding: 4 10 4 10; -fx-border-radius: 6; -fx-background-radius: 6;");
-
-        Region footerSpacer = new Region();
-        HBox.setHgrow(footerSpacer, Priority.ALWAYS);
-
-        HBox footer = new HBox(12, modelBadge, footerSpacer, overrideBadge);
-        footer.setAlignment(Pos.CENTER_LEFT);
-
-        VBox card = new VBox(16, header, innerContainer, footer);
-        card.setPadding(new Insets(20));
-        card.setMaxWidth(Double.MAX_VALUE);
-        card.setStyle(cardStyle());
-        return card;
-    }
-
-    private HBox createAccuracyRow(String title, String percentText, double progress, String colorHex) {
-        Label name = createLabel(title, "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF !important;");
-        Label val = createLabel(percentText, "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: " + colorHex + " !important;");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        HBox topRow = new HBox(name, spacer, val);
-
-        StackPane track = new StackPane();
-        track.setPrefHeight(8); track.setMinHeight(8); track.setMaxHeight(8);
-        track.setMaxWidth(Double.MAX_VALUE);
-        track.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-background-radius: 4;");
-
-        Region fill = new Region();
-        fill.setPrefHeight(8); fill.setMaxHeight(8);
-        fill.setStyle("-fx-background-color: " + colorHex + "; -fx-background-radius: 4;");
-        fill.prefWidthProperty().bind(track.widthProperty().multiply(progress));
-        StackPane.setAlignment(fill, Pos.CENTER_LEFT);
-
-        track.getChildren().add(fill);
-
-        VBox box = new VBox(5, topRow, track);
-        HBox.setHgrow(box, Priority.ALWAYS);
-
-        HBox row = new HBox(box);
+        HBox row = new HBox(18, iconPane, text);
         row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(18));
+
+        VBox card = new VBox(row);
+        card.setStyle(cardStyle());
+
+        return card;
+    }
+
+    // =========================================================
+    // CONFIGURATION
+    // =========================================================
+
+    private VBox createConfigurationCard() {
+
+        Label title = createLabel(
+                "AI Configuration",
+                "-fx-font-size: 17px; -fx-font-weight: bold;"
+        );
+
+        VBox model = createInfoRow(
+                "Model",
+                "Gemini"
+        );
+
+        VBox integration = createInfoRow(
+                "Integration",
+                "AIClassificationService"
+        );
+
+        VBox output = createInfoRow(
+                "AI Output",
+                "Category • Confidence • Description • Smart Tags"
+        );
+
+        VBox details = new VBox(
+                12,
+                model,
+                integration,
+                output
+        );
+
+        VBox card = new VBox(
+                16,
+                title,
+                details
+        );
+
+        card.setPadding(new Insets(20));
+        card.setStyle(cardStyle());
+
+        return card;
+    }
+
+    private VBox createInfoRow(
+            String labelText,
+            String valueText
+    ) {
+
+        Label label = createLabel(
+                labelText,
+                "-fx-font-size: 12px; -fx-font-weight: bold;" +
+                " -fx-text-fill: #94A3B8 !important;"
+        );
+
+        Label value = createLabel(
+                valueText,
+                "-fx-font-size: 13px; -fx-font-weight: bold;"
+        );
+
+        VBox row = new VBox(3, label, value);
+
+        row.setPadding(
+                new Insets(10, 12, 10, 12)
+        );
+
+        row.setStyle(
+                "-fx-background-color: rgba(10, 18, 33, 0.85);" +
+                "-fx-border-color: " + CARD_BORDER + ";" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;"
+        );
+
         return row;
     }
 
-    private StackPane createAccuracyRing() {
-        Circle background = new Circle(52, Color.TRANSPARENT);
-        background.setStroke(Color.web("rgba(255, 255, 255, 0.1)"));
-        background.setStrokeWidth(10);
+    // =========================================================
+    // AI CAPABILITIES
+    // =========================================================
 
-        Arc progress = new Arc(0, 0, 52, 52, 90, -338);
-        progress.setType(ArcType.OPEN);
-        progress.setFill(Color.TRANSPARENT);
-        progress.setStroke(Color.web(PURPLE));
-        progress.setStrokeWidth(10);
-        progress.setStrokeLineCap(StrokeLineCap.ROUND);
-        progress.setStyle("-fx-effect: dropshadow(three-pass-box, rgba(0, 210, 255, 0.4), 8, 0, 0, 0);");
+    private VBox createCapabilitiesCard() {
 
-        VBox centerText = new VBox(0,
-                createLabel("94.1%", "-fx-font-family: " + FONT + "; -fx-font-size: 21px; -fx-font-weight: bold; -fx-text-fill: " + PURPLE + " !important;"),
-                createLabel("Accuracy", "-fx-font-family: " + FONT + "; -fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #94A3B8 !important;")
+        Label title = createLabel(
+                "AI Capabilities",
+                "-fx-font-size: 17px; -fx-font-weight: bold;"
         );
-        centerText.setAlignment(Pos.CENTER);
 
-        StackPane container = new StackPane(background, progress, centerText);
-        container.setPrefSize(120, 120);
-        return container;
+        VBox capabilities = new VBox(
+                10,
+                createCapability(
+                        "File Understanding",
+                        "Processes extracted file content for AI analysis."
+                ),
+                createCapability(
+                        "Auto-Categorization",
+                        "Generates a OneSpace category for a file."
+                ),
+                createCapability(
+                        "Confidence Score",
+                        "Returns an AI confidence value for the classification."
+                ),
+                createCapability(
+                        "Description Generation",
+                        "Generates a short description from the analyzed content."
+                ),
+                createCapability(
+                        "Smart Tags",
+                        "Generates relevant tags for the file."
+                ),
+                createCapability(
+                        "AI Search",
+                        "Supports AI-assisted searching across file information."
+                )
+        );
+
+        VBox card = new VBox(
+                16,
+                title,
+                capabilities
+        );
+
+        card.setPadding(new Insets(20));
+        card.setStyle(cardStyle());
+
+        return card;
+    }
+
+    private HBox createCapability(
+            String titleText,
+            String descriptionText
+    ) {
+
+        Circle check = new Circle(
+                5,
+                Color.web(GREEN)
+        );
+
+        Label title = createLabel(
+                titleText,
+                "-fx-font-size: 13px; -fx-font-weight: bold;"
+        );
+
+        Label description = createLabel(
+                descriptionText,
+                "-fx-font-size: 11px;" +
+                " -fx-text-fill: #94A3B8 !important;"
+        );
+
+        VBox text = new VBox(
+                2,
+                title,
+                description
+        );
+
+        HBox row = new HBox(
+                10,
+                check,
+                text
+        );
+
+        row.setAlignment(Pos.TOP_LEFT);
+
+        return row;
+    }
+
+    // =========================================================
+    // PROCESSING FLOW
+    // =========================================================
+
+    private VBox createProcessingCard() {
+
+        Label title = createLabel(
+                "AI Processing Flow",
+                "-fx-font-size: 17px; -fx-font-weight: bold;"
+        );
+
+        HBox flow = new HBox(
+                10,
+                createFlowStep("1", "File Content"),
+                createArrow(),
+                createFlowStep("2", "AI Analysis"),
+                createArrow(),
+                createFlowStep("3", "Category"),
+                createArrow(),
+                createFlowStep("4", "Tags & Description")
+        );
+
+        flow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox card = new VBox(
+                16,
+                title,
+                flow
+        );
+
+        card.setPadding(new Insets(20));
+        card.setStyle(cardStyle());
+
+        return card;
+    }
+
+    private VBox createFlowStep(
+            String number,
+            String text
+    ) {
+
+        Label numberLabel = createLabel(
+                number,
+                "-fx-font-size: 12px; -fx-font-weight: bold;"
+        );
+
+        StackPane numberBox = new StackPane(
+                numberLabel
+        );
+
+        numberBox.setPrefSize(28, 28);
+        numberBox.setMinSize(28, 28);
+        numberBox.setStyle(
+                "-fx-background-color: " + BLUE_LIGHT + ";" +
+                "-fx-border-color: rgba(37, 99, 235, 0.4);" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;"
+        );
+
+        Label textLabel = createLabel(
+                text,
+                "-fx-font-size: 11px; -fx-font-weight: bold;"
+        );
+
+        VBox box = new VBox(
+                7,
+                numberBox,
+                textLabel
+        );
+
+        box.setAlignment(Pos.CENTER);
+        box.setMinWidth(120);
+
+        return box;
+    }
+
+    private Label createArrow() {
+
+        Label arrow = createLabel(
+                "→",
+                "-fx-font-size: 18px; -fx-font-weight: bold;" +
+                " -fx-text-fill: #64748B !important;"
+        );
+
+        return arrow;
     }
 
     private String cardStyle() {
@@ -563,7 +651,7 @@ public class AdminAISystem {
             case "dashboard": icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z"); break;
             case "users": icon.setContent("M8 11 A3 3 0 1 0 8 5 A3 3 0 0 0 8 11 Z M16 11 A3 3 0 1 0 16 5 A3 3 0 0 0 16 11 Z M2 20 C2 16 5 14 8 14 C11 14 14 16 14 20 M12 15 C14 14 17 14 19 15 C21 16 22 18 22 20"); break;
             case "files": icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13"); break;
-            case "collaboration": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
+            case "collab": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
             case "ai": icon.setContent("M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z"); break;
             case "analytics": icon.setContent("M4 20 V11 M10 20 V6 M16 20 V13 M22 20 V3"); break;
             case "security": icon.setContent("M12 2 L20 5 V11 C20 16 17 20 12 22 C7 20 4 16 4 11 V5 Z M9 12 L11 14 L15 9"); break;

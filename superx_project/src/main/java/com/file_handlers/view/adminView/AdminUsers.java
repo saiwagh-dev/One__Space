@@ -10,6 +10,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -31,12 +32,14 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.stage.Popup;
+import javafx.concurrent.Task;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.file_handlers.dao.AdminUserDAO;
+import com.file_handlers.model.UserData;
+
 import com.file_handlers.view.LandingPage;
-import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 
 public class AdminUsers {
@@ -55,32 +58,19 @@ public class AdminUsers {
     private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
 
     // Accent Colors
+    private static final String BLUE = "#2563EB";
     private static final String WHITE = "#FFFFFF";
     private static final String LIGHT_SECONDARY = "#94A3B8";
-    
-    private String activeUserName = "Admin";
-    private String initials = "A";
 
     private final ObservableList<UserData> users = FXCollections.observableArrayList();
+    private AdminUserDAO adminUserDAO;
     private VBox tableBody;
-    private TextField userSearchField;
-    private Button statusFilterBtn;
-    private String selectedStatus = "All Status";
+    private TextField topBarSearchField;
+    private ComboBox<String> statusDropdown;
     private HBox batchActionBar;
     private Label selectedCountLabel;
 
     public AdminUsers() {
-        UserSession session = UserSession.getInstance();
-
-        if (session != null && session.getDisplayName() != null) {
-            String fullName = session.getDisplayName().trim();
-            if (!fullName.isEmpty()) {
-                String[] parts = fullName.split("\\s+");
-                this.activeUserName = parts[0];
-                this.initials = this.activeUserName.substring(0, 1).toUpperCase();
-            }
-        }
-        loadDummyUsers();
     }
 
     public Scene getAdminUsersScene() {
@@ -89,6 +79,7 @@ public class AdminUsers {
         root.setLeft(createSidebar());
 
         ScrollPane scrollPane = new ScrollPane(createUsersContent());
+        loadUsersAsync();
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -104,17 +95,83 @@ public class AdminUsers {
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
-    private void loadDummyUsers() {
-        users.addAll(
-                new UserData("Aarav Sharma", "aarav.sharma@gmail.com", "Active", "Today, 09:30 AM"),
-                new UserData("Priya Patel", "priya.patel@gmail.com", "Active", "Today, 08:10 AM"),
-                new UserData("Rahul Deshmukh", "rahul.deshmukh@gmail.com", "Inactive", "Yesterday"),
-                new UserData("Sneha Kulkarni", "sneha.kulkarni@gmail.com", "Active", "2 days ago"),
-                new UserData("Rohan Joshi", "rohan.joshi@gmail.com", "Active", "Today, 11:15 AM"),
-                new UserData("Neha Shah", "neha.shah@gmail.com", "Inactive", "5 days ago"),
-                new UserData("Aditya Patil", "aditya.patil@gmail.com", "Active", "Today, 10:45 AM"),
-                new UserData("Kavya Mehta", "kavya.mehta@gmail.com", "Active", "Yesterday")
-        );
+    private void loadUsersAsync() {
+
+        if (tableBody != null)
+            showLoading();
+
+        Task<List<UserData>> task = new Task<>() {
+            @Override
+            protected List<UserData> call() throws Exception {
+                AdminUserDAO dao = new AdminUserDAO();
+                List<UserData> result = dao.listUsers();
+                adminUserDAO = dao;
+                return result;
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            users.setAll(task.getValue());
+            refreshUserTable();
+            updateBatchActionBar();
+        });
+
+        task.setOnFailed(e -> {
+            users.clear();
+            showLoadingError(
+                    task.getException() == null
+                            ? "Unable to load users."
+                            : task.getException().getMessage()
+            );
+        });
+
+        Thread thread = new Thread(task, "AdminUsersLoader");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void showLoading() {
+
+        tableBody.getChildren().clear();
+
+        Label loading =
+                createLabel(
+                        "Loading users...",
+                        "-fx-font-size: 14px; -fx-text-fill: #94A3B8;"
+                );
+
+        VBox wrapper = new VBox(loading);
+        wrapper.setAlignment(Pos.CENTER);
+        wrapper.setPadding(new Insets(40));
+
+        tableBody.getChildren().add(wrapper);
+    }
+
+    private void showLoadingError(String message) {
+
+        tableBody.getChildren().clear();
+
+        Label error =
+                createLabel(
+                        message == null || message.isBlank()
+                                ? "Unable to load users."
+                                : "Unable to load users.",
+                        "-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #F87171;"
+                );
+
+        Label detail =
+                createLabel(
+                        message == null || message.isBlank()
+                                ? "Please try again."
+                                : message,
+                        "-fx-font-size: 12px; -fx-text-fill: #94A3B8;"
+                );
+
+        VBox wrapper = new VBox(8, error, detail);
+        wrapper.setAlignment(Pos.CENTER);
+        wrapper.setPadding(new Insets(40));
+
+        tableBody.getChildren().add(wrapper);
     }
 
     private VBox createSidebar() {
@@ -139,7 +196,7 @@ public class AdminUsers {
         usersButton.setOnAction(e -> LandingPage.showAdminUsers());
         Button files = createSidebarButton("files", "Files", false);
         files.setOnAction(e -> LandingPage.showAdminFiles());
-        Button collab = createSidebarButton("collaboration", "Collaboration", false);
+        Button collab = createSidebarButton("collab", "Collaboration", false);
         collab.setOnAction(e -> LandingPage.showAdminCollaboration());
         Button aiSystem = createSidebarButton("ai", "AI System", false);
         aiSystem.setOnAction(e -> LandingPage.showAdminAISystem());
@@ -217,6 +274,28 @@ public class AdminUsers {
     }
 
     private HBox createTopBar() {
+        SVGPath searchIcon = createIcon("search");
+        searchIcon.setStroke(Color.web("#64748B"));
+        searchIcon.setStrokeWidth(2);
+
+        StackPane searchIconBox = new StackPane(searchIcon);
+        searchIconBox.setPrefSize(24, 24);
+
+        topBarSearchField = new TextField();
+        topBarSearchField.setPromptText("Search in OneSpace...");
+        topBarSearchField.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
+        topBarSearchField.setPrefHeight(38);
+        topBarSearchField.setStyle("-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #64748B; -fx-border-color: transparent; -fx-padding: 0;");
+        topBarSearchField.textProperty().addListener((obs, oldVal, newVal) -> refreshUserTable());
+
+        HBox searchBox = new HBox(8, searchIconBox, topBarSearchField);
+        searchBox.setAlignment(Pos.CENTER_LEFT);
+        searchBox.setPrefHeight(38); searchBox.setMinHeight(38); searchBox.setMaxHeight(38);
+        searchBox.setPrefWidth(420); searchBox.setMinWidth(420); searchBox.setMaxWidth(420);
+        searchBox.setPadding(new Insets(0, 12, 0, 14));
+        searchBox.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20;");
+        HBox.setHgrow(topBarSearchField, Priority.ALWAYS);
+
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -227,99 +306,31 @@ public class AdminUsers {
         Button notification = new Button();
         notification.setGraphic(bell);
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
-        notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        Label avatar = new Label(initials);
+        Label avatar = new Label("AV");
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
-        Label admin = new Label(activeUserName);
+        Label admin = new Label("Admin");
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
 
-        HBox profile = new HBox(10, avatar, admin);
+        HBox profile = new HBox(10, notification, avatar, admin);
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
-
-        Popup profilePopup = createProfilePopup();
         profile.setOnMouseClicked(e -> {
-            if (profilePopup.isShowing()) {
-                profilePopup.hide();
-            } else {
-                javafx.geometry.Point2D p = profile.localToScreen(0.0, profile.getHeight());
-                profilePopup.show(profile, p.getX() - 30, p.getY() + 8);
-            }
+            LandingPage.showAdminProfilePage();
         });
 
-        HBox topBar = new HBox(16, spacer, notification, profile);
-        topBar.setAlignment(Pos.CENTER_RIGHT);
+        HBox topBar = new HBox(20, searchBox, spacer, profile);
+        topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPrefHeight(70); topBar.setMinHeight(70); topBar.setMaxHeight(70);
         topBar.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 14, ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color: transparent; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
         return topBar;
-    }
-
-    private Popup createProfilePopup() {
-        Popup popup = new Popup();
-        popup.setAutoHide(true);
-
-        HBox profileBtn = createProfilePopupItem("users", "Profile Page", "#F59E0B", () -> {
-            popup.hide();
-            LandingPage.showAdminProfilePage();
-        });
-
-        HBox settingsBtn = createProfilePopupItem("settings", "Settings", "#38BDF8", () -> {
-            popup.hide();
-            LandingPage.showAdminSettings();
-        });
-
-        HBox signOutBtn = createProfilePopupItem("logout", "Sign Out", "#F87171", () -> {
-            popup.hide();
-            LandingPage.showAdminLoginPage();
-        });
-
-        Region menuDivider = new Region();
-        menuDivider.setPrefHeight(1);
-        menuDivider.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08);");
-
-        VBox menuBox = new VBox(6, profileBtn, settingsBtn, menuDivider, signOutBtn);
-        menuBox.setPrefWidth(170);
-        menuBox.setPadding(new Insets(10, 8, 10, 8));
-        menuBox.setStyle(
-            "-fx-background-color: #0B132B;" +
-            "-fx-border-color: rgba(255, 255, 255, 0.12);" +
-            "-fx-border-width: 1.2;" +
-            "-fx-border-radius: 14;" +
-            "-fx-background-radius: 14;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 24, 0, 0, 10);"
-        );
-
-        popup.getContent().add(menuBox);
-        return popup;
-    }
-
-    private HBox createProfilePopupItem(String iconType, String text, String iconColor, Runnable action) {
-        SVGPath icon = createIcon(iconType);
-        icon.setStroke(Color.web(iconColor));
-        icon.setStrokeWidth(2.0);
-
-        StackPane iconBox = new StackPane(icon);
-        iconBox.setPrefSize(22, 22);
-
-        Label label = new Label(text);
-        label.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
-        label.setTextFill(Color.WHITE);
-
-        HBox item = new HBox(12, iconBox, label);
-        item.setAlignment(Pos.CENTER_LEFT);
-        item.setPadding(new Insets(8, 10, 8, 10));
-        item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
-
-        item.setOnMouseClicked(e -> action.run());
-        return item;
     }
 
     private VBox createUsersContent() {
@@ -327,68 +338,16 @@ public class AdminUsers {
         Label subtitle = createLabel("Manage your organization's users easily.", "-fx-font-size: 13px; -fx-font-weight: 500;");
         subtitle.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
         subtitle.setTextFill(Color.web(LIGHT_SECONDARY));
+        VBox titleBox = new VBox(4, title, subtitle);
 
-        // Search Bar below "Manage your organization's users easily."
-        SVGPath searchIcon = createIcon("search");
-        searchIcon.setStroke(Color.web("#64748B"));
-        searchIcon.setStrokeWidth(2);
-
-        StackPane searchIconBox = new StackPane(searchIcon);
-        searchIconBox.setPrefSize(24, 24);
-
-        userSearchField = new TextField();
-        userSearchField.setPromptText("Search users by name or email...");
-        userSearchField.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
-        userSearchField.setPrefHeight(38);
-        userSearchField.setStyle("-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #64748B; -fx-border-color: transparent; -fx-padding: 0;");
-        userSearchField.textProperty().addListener((obs, oldVal, newVal) -> refreshUserTable());
-
-        HBox searchBox = new HBox(10, searchIconBox, userSearchField);
-        searchBox.setAlignment(Pos.CENTER_LEFT);
-        searchBox.setPrefHeight(40); searchBox.setMinHeight(40); searchBox.setMaxHeight(40);
-        searchBox.setPrefWidth(380); searchBox.setMinWidth(380); searchBox.setMaxWidth(380);
-        searchBox.setPadding(new Insets(0, 14, 0, 14));
-        searchBox.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20;");
-        HBox.setHgrow(userSearchField, Priority.ALWAYS);
-
-        VBox titleBox = new VBox(6, title, subtitle, searchBox);
-
-        // Status Filter Button with Pop-up Menu
-        HBox statusBtnContent = new HBox(8);
-        statusBtnContent.setAlignment(Pos.CENTER_LEFT);
-        Label statusBtnLabel = new Label(selectedStatus);
-        statusBtnLabel.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
-        statusBtnLabel.setTextFill(Color.WHITE);
-
-        SVGPath chevronIcon = new SVGPath();
-        chevronIcon.setContent("M6 9l6 6 6-6");
-        chevronIcon.setStroke(Color.web(LIGHT_SECONDARY));
-        chevronIcon.setStrokeWidth(2);
-        chevronIcon.setFill(Color.TRANSPARENT);
-
-        statusBtnContent.getChildren().addAll(statusBtnLabel, chevronIcon);
-
-        statusFilterBtn = new Button();
-        statusFilterBtn.setGraphic(statusBtnContent);
-        statusFilterBtn.setPrefHeight(40);
-        statusFilterBtn.setPadding(new Insets(0, 16, 0, 16));
-        statusFilterBtn.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12; -fx-cursor: hand;");
-
-        Popup statusPopup = createStatusFilterPopup(statusBtnLabel);
-        statusFilterBtn.setOnAction(e -> {
-            if (statusPopup.isShowing()) {
-                statusPopup.hide();
-            } else {
-                javafx.geometry.Point2D p = statusFilterBtn.localToScreen(0.0, statusFilterBtn.getHeight());
-                statusPopup.show(statusFilterBtn, p.getX(), p.getY() + 6);
-            }
-        });
+        statusDropdown = createDropdown(160, "All Status", "All Status", "Active", "Inactive");
+        statusDropdown.valueProperty().addListener((observable, oldValue, newValue) -> refreshUserTable());
 
         Region filterSpacer = new Region();
         HBox.setHgrow(filterSpacer, Priority.ALWAYS);
 
-        HBox filterRow = new HBox(16, titleBox, filterSpacer, statusFilterBtn);
-        filterRow.setAlignment(Pos.BOTTOM_LEFT);
+        HBox filterRow = new HBox(16, titleBox, filterSpacer, statusDropdown);
+        filterRow.setAlignment(Pos.CENTER_LEFT);
 
         GridPane tableHeader = createTableGrid();
         tableHeader.setMinHeight(44); tableHeader.setPrefHeight(44);
@@ -423,7 +382,7 @@ public class AdminUsers {
             updateBatchActionBar();
         });
 
-        refreshUserTable();
+        showLoading();
 
         VBox table = new VBox(tableHeader, tableBody);
         table.setFillWidth(true);
@@ -433,10 +392,7 @@ public class AdminUsers {
         selectedCountLabel = createLabel("0 selected", "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;");
         Button bulkDeactivateBtn = new Button("Deactivate Selected");
         bulkDeactivateBtn.setStyle("-fx-background-color: #EF4444; -fx-text-fill: #FFFFFF; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-        bulkDeactivateBtn.setOnAction(e -> {
-            showInfo("Bulk Action", "Selected users marked as inactive.");
-            updateBatchActionBar();
-        });
+        bulkDeactivateBtn.setOnAction(e -> deactivateSelectedUsers());
 
         Region batchSpacer = new Region();
         HBox.setHgrow(batchSpacer, Priority.ALWAYS);
@@ -453,67 +409,6 @@ public class AdminUsers {
         content.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 28, ResponsiveUtil.PAGE_PADDING));
         content.setStyle("-fx-background-color: transparent;");
         return content;
-    }
-
-    private Popup createStatusFilterPopup(Label statusBtnLabel) {
-        Popup popup = new Popup();
-        popup.setAutoHide(true);
-
-        // 1. All Status (Sky Blue theme)
-        HBox allOption = createStatusOptionItem("All Status", "#38BDF8", () -> {
-            selectedStatus = "All Status";
-            statusBtnLabel.setText(selectedStatus);
-            popup.hide();
-            refreshUserTable();
-        });
-
-        // 2. Active (Emerald Green theme)
-        HBox activeOption = createStatusOptionItem("Active", "#10B981", () -> {
-            selectedStatus = "Active";
-            statusBtnLabel.setText(selectedStatus);
-            popup.hide();
-            refreshUserTable();
-        });
-
-        // 3. Inactive (Rose Red theme)
-        HBox inactiveOption = createStatusOptionItem("Inactive", "#EF4444", () -> {
-            selectedStatus = "Inactive";
-            statusBtnLabel.setText(selectedStatus);
-            popup.hide();
-            refreshUserTable();
-        });
-
-        VBox container = new VBox(4, allOption, activeOption, inactiveOption);
-        container.setPrefWidth(140);
-        container.setPadding(new Insets(8, 6, 8, 6));
-        container.setStyle(
-            "-fx-background-color: #0B132B;" +
-            "-fx-border-color: rgba(255, 255, 255, 0.12);" +
-            "-fx-border-width: 1.2;" +
-            "-fx-border-radius: 12;" +
-            "-fx-background-radius: 12;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 24, 0, 0, 10);"
-        );
-
-        popup.getContent().add(container);
-        return popup;
-    }
-
-    private HBox createStatusOptionItem(String title, String themeColor, Runnable action) {
-        Circle dot = new Circle(4);
-        dot.setFill(Color.web(themeColor));
-
-        Label label = new Label(title);
-        label.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
-        label.setTextFill(Color.WHITE);
-
-        HBox item = new HBox(10, dot, label);
-        item.setAlignment(Pos.CENTER_LEFT);
-        item.setPadding(new Insets(8, 12, 8, 12));
-        item.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;");
-
-        item.setOnMouseClicked(e -> action.run());
-        return item;
     }
 
     private GridPane createTableGrid() {
@@ -535,12 +430,13 @@ public class AdminUsers {
         if (tableBody == null) return;
         tableBody.getChildren().clear();
 
-        String searchText = userSearchField == null ? "" : userSearchField.getText().trim().toLowerCase();
+        String searchText = topBarSearchField == null ? "" : topBarSearchField.getText().trim().toLowerCase();
+        String selectedStatus = statusDropdown == null ? "All Status" : statusDropdown.getValue();
 
         List<UserData> filteredUsers = new ArrayList<>();
         for (UserData user : users) {
             boolean searchMatches = searchText.isEmpty() || user.getName().toLowerCase().contains(searchText) || user.getEmail().toLowerCase().contains(searchText);
-            boolean statusMatches = selectedStatus.equals("All Status") || user.getStatus().equalsIgnoreCase(selectedStatus);
+            boolean statusMatches = selectedStatus == null || selectedStatus.equals("All Status") || user.getStatus().equals(selectedStatus);
             if (searchMatches && statusMatches) filteredUsers.add(user);
         }
 
@@ -574,6 +470,7 @@ public class AdminUsers {
 
     private GridPane createUserRow(UserData user) {
         GridPane row = createTableGrid();
+        row.setUserData(user);
         row.setMinHeight(64); row.setPrefHeight(64); row.setMaxWidth(Double.MAX_VALUE);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(0, 10, 0, 10));
@@ -668,6 +565,61 @@ public class AdminUsers {
         return row;
     }
 
+    private void deactivateSelectedUsers() {
+        List<UserData> selectedUsers = new ArrayList<>();
+
+        for (javafx.scene.Node node : tableBody.getChildren()) {
+            if (node instanceof GridPane row) {
+                for (javafx.scene.Node child : row.getChildren()) {
+                    if (child instanceof CheckBox checkBox && checkBox.isSelected()) {
+                        UserData user = (UserData) row.getUserData();
+                        if (user != null)
+                            selectedUsers.add(user);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (selectedUsers.isEmpty()) {
+            showInfo("Deactivate Users", "Please select at least one user.");
+            return;
+        }
+
+        if (adminUserDAO == null) {
+            showError(
+                    "Deactivate Users",
+                    "Users are still loading. Please try again."
+            );
+            return;
+        }
+
+        int successCount = 0;
+
+        try {
+            for (UserData user : selectedUsers) {
+                adminUserDAO.setUserDisabled(user.getUid(), true);
+                successCount++;
+            }
+
+            showInfo(
+                    "Deactivate Users",
+                    successCount + " user" + (successCount == 1 ? "" : "s") +
+                    " deactivated successfully."
+            );
+
+            loadUsersAsync();
+
+        } catch (Exception e) {
+            showError(
+                    "Deactivate Users",
+                    "Some users could not be deactivated.\n\n" + e.getMessage()
+            );
+        }
+
+        updateBatchActionBar();
+    }
+
     private void updateBatchActionBar() {
         int count = 0;
         for (javafx.scene.Node node : tableBody.getChildren()) {
@@ -700,7 +652,17 @@ public class AdminUsers {
 
     private void showInfo(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title); alert.setHeaderText(null); alert.setContentText(message);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
         alert.showAndWait();
     }
 
@@ -748,6 +710,16 @@ public class AdminUsers {
         return label;
     }
 
+    private ComboBox<String> createDropdown(double width, String defaultValue, String... items) {
+        ComboBox<String> cb = new ComboBox<>();
+        cb.getItems().addAll(items);
+        cb.setValue(defaultValue);
+        cb.setPrefSize(width, 42); cb.setMinWidth(width);
+        cb.getStyleClass().add("slate-dark-combo");
+        cb.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10; -fx-font-size: 13px; -fx-text-fill: #FFFFFF;");
+        return cb;
+    }
+
     private String getInitials(String name) {
         String[] parts = name.trim().split("\\s+");
         if (parts.length == 1) return parts[0].substring(0, 1).toUpperCase();
@@ -790,7 +762,7 @@ public class AdminUsers {
             case "dashboard": icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z"); break;
             case "users": icon.setContent("M8 11 A3 3 0 1 0 8 5 A3 3 0 0 0 8 11 Z M16 11 A3 3 0 1 0 16 5 A3 3 0 0 0 16 11 Z M2 20 C2 16 5 14 8 14 C11 14 14 16 14 20 M12 15 C14 14 17 14 19 15 C21 16 22 18 22 20"); break;
             case "files": icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13"); break;
-            case "collaboration": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
+            case "collab": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
             case "ai": icon.setContent("M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z"); break;
             case "analytics": icon.setContent("M4 20 V11 M10 20 V6 M16 20 V13 M22 20 V3"); break;
             case "security": icon.setContent("M12 2 L20 5 V11 C20 16 17 20 12 22 C7 20 4 16 4 11 V5 Z M9 12 L11 14 L15 9"); break;
@@ -803,16 +775,5 @@ public class AdminUsers {
         return icon;
     }
 
-    private static class UserData {
-        private final String name, email, status, lastLogin;
 
-        public UserData(String name, String email, String status, String lastLogin) {
-            this.name = name; this.email = email; this.status = status; this.lastLogin = lastLogin;
-        }
-
-        public String getName() { return name; }
-        public String getEmail() { return email; }
-        public String getStatus() { return status; }
-        public String getLastLogin() { return lastLogin; }
-    }
 }
