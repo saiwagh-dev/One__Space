@@ -1,12 +1,19 @@
 package com.file_handlers.view.adminView;
 
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.dao.AdminAlertDAO;
 import com.file_handlers.util.ResponsiveUtil;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -31,6 +38,9 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 public class AdminSecurity {
+
+    private final AdminAlertDAO alertDAO = new AdminAlertDAO();
+    private Label failedLoginCountLabel;
 
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
@@ -378,7 +388,8 @@ public class AdminSecurity {
         card.setMaxHeight(380);
 
         HBox header = cardHeader("security", "Failed Login Attempts", "Last 30 Days");
-        HBox numberRow = new HBox(8, bigNumber("128"));
+        failedLoginCountLabel = bigNumber("Loading...");
+        HBox numberRow = new HBox(8, failedLoginCountLabel);
         HBox change = new HBox(8, badge("↑ 18.6%", "rgba(16, 185, 129, 0.15)", GREEN), createSmallSecondaryText("vs previous period"));
 
         CategoryAxis xAxis = new CategoryAxis();
@@ -438,7 +449,44 @@ public class AdminSecurity {
         HBox.setHgrow(ipsSection, Priority.SOMETIMES);
 
         card.getChildren().addAll(header, numberRow, change, chartAndIps);
+
+        loadFailedLoginCount();
+
         return card;
+    }
+
+    private void loadFailedLoginCount() {
+
+        Task<Integer> task = new Task<>() {
+            @Override
+            protected Integer call() throws Exception {
+                return alertDAO.getFailedLoginCount(30);
+            }
+        };
+
+        task.setOnSucceeded(e ->
+                failedLoginCountLabel.setText(
+                        String.valueOf(task.getValue())
+                )
+        );
+
+        task.setOnFailed(e -> {
+            failedLoginCountLabel.setText("--");
+
+            System.err.println(
+                    "[SECURITY] Could not load failed login count: "
+                            + task.getException()
+            );
+        });
+
+        Thread thread =
+                new Thread(
+                        task,
+                        "FailedLoginCountLoader"
+                );
+
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private HBox ipRow(String ip, String attempts) {
@@ -460,16 +508,24 @@ public class AdminSecurity {
         VBox card = card();
         card.setPrefHeight(Region.USE_COMPUTED_SIZE);
 
-        VBox alerts = new VBox(
-                8,
-                alert("bell", "Multiple failed login attempts", "User: aarav.verma@example.com", "10 min ago", ORANGE),
-                alert("bell", "Server connection interrupted", "Storage service disconnected", "25 min ago", ORANGE),
-                alert("bell", "Backup service unavailable", "Last backup failed", "1 hour ago", ORANGE),
-                alert("ai", "New device logged in", "User: riya.sharma@example.com", "3 hours ago", GREEN)
+        VBox alerts = new VBox(8);
+        alerts.getChildren().add(
+                createWrappedLabel(
+                        "Loading security alerts...",
+                        12,
+                        false,
+                        LIGHT_SECONDARY
+                )
         );
 
         Label viewAllAlertsLink = link("View All Alerts  →");
-        viewAllAlertsLink.setOnMouseClicked(e -> openCreativeModalWindow("All Security Alerts", "Here is the complete detailed log of all system security alerts.", "alerts"));
+        viewAllAlertsLink.setOnMouseClicked(e ->
+                openCreativeModalWindow(
+                        "All Security Alerts",
+                        "Recent security events recorded by OneSpace.",
+                        "alerts"
+                )
+        );
 
         card.getChildren().addAll(
                 cardHeader("bell", "Security Alerts", "View All"),
@@ -478,7 +534,207 @@ public class AdminSecurity {
                 viewAllAlertsLink
         );
 
+        loadRecentAlerts(alerts, 4);
+
         return card;
+    }
+
+    private void loadRecentAlerts(
+            VBox container,
+            int limit
+    ) {
+
+        Task<List<Map<String, Object>>> task =
+                new Task<>() {
+                    @Override
+                    protected List<Map<String, Object>> call()
+                            throws Exception {
+                        return alertDAO.getRecentAlerts(limit);
+                    }
+                };
+
+        task.setOnSucceeded(e -> {
+
+            container.getChildren().clear();
+
+            List<Map<String, Object>> alerts =
+                    task.getValue();
+
+            if (alerts == null || alerts.isEmpty()) {
+
+                container.getChildren().add(
+                        createWrappedLabel(
+                                "No security events recorded yet.",
+                                12,
+                                false,
+                                LIGHT_SECONDARY
+                        )
+                );
+
+                return;
+            }
+
+            for (Map<String, Object> data : alerts) {
+
+                String title =
+                        value(data, "title", "Security Event");
+
+                String description =
+                        value(data, "description", "");
+
+                String time =
+                        formatAlertTime(
+                                data.get("createdAt")
+                        );
+
+                String color =
+                        getAlertColor(title);
+
+                String icon =
+                        getAlertIcon(title);
+
+                container.getChildren().add(
+                        alert(
+                                icon,
+                                title,
+                                description,
+                                time,
+                                color
+                        )
+                );
+            }
+        });
+
+        task.setOnFailed(e -> {
+
+            container.getChildren().clear();
+
+            container.getChildren().add(
+                    createWrappedLabel(
+                            "Unable to load security alerts.",
+                            12,
+                            false,
+                            LIGHT_SECONDARY
+                    )
+            );
+
+            System.err.println(
+                    "[SECURITY] Could not load alerts: "
+                            + task.getException()
+            );
+        });
+
+        Thread thread =
+                new Thread(
+                        task,
+                        "AdminSecurityAlertsLoader"
+                );
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private String value(
+            Map<String, Object> data,
+            String key,
+            String fallback
+    ) {
+
+        Object value = data.get(key);
+
+        if (value == null)
+            return fallback;
+
+        String text = value.toString();
+
+        return text.isBlank()
+                ? fallback
+                : text;
+    }
+
+    private String getAlertColor(String title) {
+
+        String text =
+                title == null
+                        ? ""
+                        : title.toLowerCase();
+
+        if (text.contains("deactivat") ||
+                text.contains("failed") ||
+                text.contains("login")) {
+            return ORANGE;
+        }
+
+        return GREEN;
+    }
+
+    private String getAlertIcon(String title) {
+
+        String text =
+                title == null
+                        ? ""
+                        : title.toLowerCase();
+
+        if (text.contains("login") ||
+                text.contains("deactivat")) {
+            return "security";
+        }
+
+        return "bell";
+    }
+
+    private String formatAlertTime(Object value) {
+
+        if (value == null)
+            return "Unknown time";
+
+        long timestamp = -1;
+
+        if (value instanceof com.google.cloud.Timestamp timestampValue) {
+            timestamp =
+                    timestampValue.toDate().getTime();
+        } else if (value instanceof java.util.Date date) {
+            timestamp = date.getTime();
+        } else if (value instanceof Number number) {
+            timestamp = number.longValue();
+        }
+
+        if (timestamp <= 0)
+            return "Unknown time";
+
+        long difference =
+                System.currentTimeMillis() - timestamp;
+
+        if (difference < 60_000)
+            return "Just now";
+
+        long minutes =
+                difference / 60_000;
+
+        if (minutes < 60)
+            return minutes + " min ago";
+
+        long hours =
+                minutes / 60;
+
+        if (hours < 24)
+            return hours + " hour" +
+                    (hours == 1 ? "" : "s") +
+                    " ago";
+
+        long days =
+                hours / 24;
+
+        if (days < 7)
+            return days + " day" +
+                    (days == 1 ? "" : "s") +
+                    " ago";
+
+        return new SimpleDateFormat(
+                "dd MMM yyyy, HH:mm"
+        ).format(
+                new Date(timestamp)
+        );
     }
 
     private HBox alert(String iconType, String title, String description, String time, String color) {
@@ -652,29 +908,117 @@ public class AdminSecurity {
     }
 
     private TableView<AlertItem> createAlertsTable() {
-        TableView<AlertItem> table = new TableView<>();
+
+        TableView<AlertItem> table =
+                new TableView<>();
+
         table.setPrefHeight(260);
 
-        TableColumn<AlertItem, String> timeCol = new TableColumn<>("Time");
-        timeCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getTime()));
-        timeCol.setMaxWidth(100);
-        timeCol.setMinWidth(100);
+        TableColumn<AlertItem, String> timeCol =
+                new TableColumn<>("Time");
 
-        TableColumn<AlertItem, String> typeCol = new TableColumn<>("Alert Type");
-        typeCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getTitle()));
-
-        TableColumn<AlertItem, String> descCol = new TableColumn<>("Details");
-        descCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getDescription()));
-
-        table.getItems().addAll(
-                new AlertItem("10 min ago", "Multiple failed login attempts", "User: aarav.verma@example.com (IP: 192.168.1.45)"),
-                new AlertItem("25 min ago", "Server connection interrupted", "Storage service disconnected unexpectedly"),
-                new AlertItem("1 hour ago", "Backup service unavailable", "Scheduled night backup failed to execute"),
-                new AlertItem("3 hours ago", "New device logged in", "User: riya.sharma@example.com from Chrome/Windows"),
-                new AlertItem("5 hours ago", "High CPU Load", "System utilization peaked above 90% threshold"),
-                new AlertItem("1 day ago", "Unauthorized API Request", "Blocked request with invalid token signature")
+        timeCol.setCellValueFactory(
+                data ->
+                        new javafx.beans.property.SimpleStringProperty(
+                                data.getValue().getTime()
+                        )
         );
+
+        timeCol.setMaxWidth(120);
+        timeCol.setMinWidth(120);
+
+        TableColumn<AlertItem, String> typeCol =
+                new TableColumn<>("Alert Type");
+
+        typeCol.setCellValueFactory(
+                data ->
+                        new javafx.beans.property.SimpleStringProperty(
+                                data.getValue().getTitle()
+                        )
+        );
+
+        TableColumn<AlertItem, String> descCol =
+                new TableColumn<>("Details");
+
+        descCol.setCellValueFactory(
+                data ->
+                        new javafx.beans.property.SimpleStringProperty(
+                                data.getValue().getDescription()
+                        )
+        );
+
+        table.getColumns().addAll(
+                timeCol,
+                typeCol,
+                descCol
+        );
+
+        loadAlertsTable(table, 20);
+
         return table;
+    }
+
+    private void loadAlertsTable(
+            TableView<AlertItem> table,
+            int limit
+    ) {
+
+        Task<List<Map<String, Object>>> task =
+                new Task<>() {
+                    @Override
+                    protected List<Map<String, Object>> call()
+                            throws Exception {
+                        return alertDAO.getRecentAlerts(limit);
+                    }
+                };
+
+        task.setOnSucceeded(e -> {
+
+            table.getItems().clear();
+
+            List<Map<String, Object>> alerts =
+                    task.getValue();
+
+            if (alerts == null)
+                return;
+
+            for (Map<String, Object> data : alerts) {
+
+                table.getItems().add(
+                        new AlertItem(
+                                formatAlertTime(
+                                        data.get("createdAt")
+                                ),
+                                value(
+                                        data,
+                                        "title",
+                                        "Security Event"
+                                ),
+                                value(
+                                        data,
+                                        "description",
+                                        ""
+                                )
+                        )
+                );
+            }
+        });
+
+        task.setOnFailed(e ->
+                System.err.println(
+                        "[SECURITY] Could not load alert table: "
+                                + task.getException()
+                )
+        );
+
+        Thread thread =
+                new Thread(
+                        task,
+                        "AdminSecurityAlertTableLoader"
+                );
+
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private VBox create2FASettingsLayout() {

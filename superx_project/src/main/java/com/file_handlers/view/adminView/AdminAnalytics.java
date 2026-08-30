@@ -26,6 +26,11 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import java.io.InputStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import javafx.concurrent.Task;
+
+import com.file_handlers.dao.AdminFileStatsDAO;
 
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
@@ -54,6 +59,12 @@ public class AdminAnalytics {
     private static final String PURPLE_LIGHT = "rgba(0, 210, 255, 0.15)";
     private static final String ORANGE = "#F59E0B";
     private static final String ORANGE_LIGHT = "rgba(245, 158, 11, 0.15)";
+
+    private final AdminFileStatsDAO statsDAO = new AdminFileStatsDAO();
+    private LineChart<String, Number> userGrowthChart;
+    private ComboBox<String> periodSelector;
+    private Label totalUsersAnalyticsValue;
+    private Label filesUploadedAnalyticsValue;
 
     public AdminAnalytics() {}
 
@@ -269,9 +280,9 @@ public class AdminAnalytics {
 
         VBox headerBox = new VBox(4, pageTitle, subtitle);
 
-        HBox totalUsers = createAnalyticsStatCard("users", "Total Users", "3,841", "vs previous period  ↑ +12.4%", PURPLE, PURPLE_LIGHT);
-        HBox filesUploaded = createAnalyticsStatCard("files", "Files Uploaded", "18,420", "vs previous period  ↑ +8.1%", BLUE, BLUE_LIGHT);
-        HBox activeSessions = createAnalyticsStatCard("sessions", "Active Sessions", "412", "vs previous period  ↑ +15.3%", ORANGE, ORANGE_LIGHT);
+        HBox totalUsers = createAnalyticsStatCard("users", "Total Users", "Loading...", "Current registered users", PURPLE, PURPLE_LIGHT);
+        HBox filesUploaded = createAnalyticsStatCard("files", "Files Uploaded", "Loading...", "Current uploaded files", BLUE, BLUE_LIGHT);
+        HBox activeSessions = createAnalyticsStatCard("sessions", "Active Sessions", "N/A", "Not tracked", ORANGE, ORANGE_LIGHT);
 
         totalUsers.setPrefWidth(260); totalUsers.setMaxWidth(260);
         filesUploaded.setPrefWidth(260); filesUploaded.setMaxWidth(260);
@@ -303,6 +314,12 @@ public class AdminAnalytics {
 
         Label valueLabel = new Label(value);
         valueLabel.setFont(Font.font(FONT, FontWeight.BOLD, 26));
+
+        if ("Total Users".equals(title)) {
+            totalUsersAnalyticsValue = valueLabel;
+        } else if ("Files Uploaded".equals(title)) {
+            filesUploadedAnalyticsValue = valueLabel;
+        }
         valueLabel.setTextFill(Color.WHITE);
         valueLabel.setStyle("-fx-text-fill: #FFFFFF;");
 
@@ -339,6 +356,119 @@ public class AdminAnalytics {
         return card;
     }
 
+    // =========================================================
+    // LOAD REAL ANALYTICS DATA
+    // =========================================================
+
+    private void loadAnalyticsData() {
+
+        Task<AnalyticsResult> task = new Task<>() {
+            @Override
+            protected AnalyticsResult call() throws Exception {
+
+                Map<String, Integer> weeklyUploads =
+                        statsDAO.getWeeklyUploadCounts(
+                                periodSelector == null
+                                        ? "This Month"
+                                        : periodSelector.getValue()
+                        );
+
+                int totalFiles =
+                        statsDAO.getTotalFiles();
+
+                int totalUsers =
+                        statsDAO.getTotalUsers();
+
+                return new AnalyticsResult(
+                        totalUsers,
+                        totalFiles,
+                        weeklyUploads
+                );
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+
+            AnalyticsResult result =
+                    task.getValue();
+
+            if (totalUsersAnalyticsValue != null)
+                totalUsersAnalyticsValue.setText(
+                        String.valueOf(result.totalUsers)
+                );
+
+            if (filesUploadedAnalyticsValue != null)
+                filesUploadedAnalyticsValue.setText(
+                        String.valueOf(result.totalFiles)
+                );
+
+            updateChart(result.weeklyUploads);
+        });
+
+        task.setOnFailed(e -> {
+
+            if (totalUsersAnalyticsValue != null)
+                totalUsersAnalyticsValue.setText("--");
+
+            if (filesUploadedAnalyticsValue != null)
+                filesUploadedAnalyticsValue.setText("--");
+
+            if (userGrowthChart != null)
+                userGrowthChart.getData().clear();
+
+            System.err.println(
+                    "Unable to load analytics: "
+                            + task.getException()
+            );
+        });
+
+        Thread thread =
+                new Thread(task, "AdminAnalyticsLoader");
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void updateChart(
+            Map<String, Integer> weeklyUploads
+    ) {
+
+        userGrowthChart.getData().clear();
+
+        XYChart.Series<String, Number> series =
+                new XYChart.Series<>();
+
+        for (Map.Entry<String, Integer> entry :
+                weeklyUploads.entrySet()) {
+
+            series.getData().add(
+                    new XYChart.Data<>(
+                            entry.getKey(),
+                            entry.getValue()
+                    )
+            );
+        }
+
+        userGrowthChart.getData().add(series);
+    }
+
+    private static class AnalyticsResult {
+
+        private final int totalUsers;
+        private final int totalFiles;
+        private final Map<String, Integer> weeklyUploads;
+
+        private AnalyticsResult(
+                int totalUsers,
+                int totalFiles,
+                Map<String, Integer> weeklyUploads
+        ) {
+            this.totalUsers = totalUsers;
+            this.totalFiles = totalFiles;
+            this.weeklyUploads = weeklyUploads;
+        }
+    }
+
     private VBox createUserGrowthCard() {
         Label title = new Label("User Growth");
         title.setFont(Font.font(FONT, FontWeight.BOLD, 17));
@@ -352,6 +482,7 @@ public class AdminAnalytics {
         period.setPrefHeight(30);
         period.getStyleClass().add("slate-dark-combo");
         period.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-family: '" + FONT + "'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
+        periodSelector = period;
 
         Region headingSpacer = new Region();
         HBox.setHgrow(headingSpacer, Priority.ALWAYS);
@@ -371,6 +502,7 @@ public class AdminAnalytics {
         yAxis.setStyle("-fx-tick-label-fill: #FFFFFF; -fx-text-fill: #FFFFFF;");
 
         LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
+        userGrowthChart = chart;
         chart.setLegendVisible(false);
         chart.setAnimated(false);
         chart.setCreateSymbols(true);
@@ -382,12 +514,11 @@ public class AdminAnalytics {
         chart.setPrefHeight(310);
         chart.setMaxHeight(310);
 
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.getData().add(new XYChart.Data<>("Week 1", 18));
-        series.getData().add(new XYChart.Data<>("Week 2", 32));
-        series.getData().add(new XYChart.Data<>("Week 3", 47));
-        series.getData().add(new XYChart.Data<>("Week 4", 65));
-        chart.getData().add(series);
+        period.valueProperty().addListener((obs, oldValue, newValue) -> {
+            loadAnalyticsData();
+        });
+
+        loadAnalyticsData();
 
         // Completely clear plot background and chart container background fills to remove the grey area under the line
         chart.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0;");
