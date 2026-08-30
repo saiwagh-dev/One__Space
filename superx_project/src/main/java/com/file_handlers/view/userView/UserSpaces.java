@@ -50,19 +50,16 @@ public class UserSpaces {
 
         VBox sidebar=createSidebar();
 
-        TextField searchField=new TextField();
-        searchField.setPromptText("Search in OneSpace...");
-        searchField.setPrefWidth(540);
-        searchField.setStyle("-fx-background-color:#141E2C;-fx-text-fill:white;-fx-prompt-text-fill:#94A3B8;-fx-background-radius:10;-fx-border-color:"+SIDEBAR_BORDER+";-fx-padding:0 14;");
-
         Button notification=new Button("🔔");
         notification.setStyle("-fx-background-color:transparent;-fx-text-fill:white;-fx-font-size:16px;");
         notification.setOnAction(e->LandingPage.showNotificationPage());
 
         Label avatar=new Label(initials);
+        avatar.setMinSize(34,34);
         avatar.setPrefSize(34,34);
+        avatar.setMaxSize(34,34);
         avatar.setAlignment(Pos.CENTER);
-        avatar.setStyle("-fx-background-color:"+BLUE+";-fx-background-radius:50%;-fx-text-fill:white;-fx-font-weight:bold;");
+        avatar.setStyle("-fx-background-color:"+BLUE+";-fx-background-radius:999px;-fx-text-fill:white;-fx-font-weight:bold;");
 
         Label userLabel=label(user,13,FontWeight.SEMI_BOLD,LIGHT);
         HBox profile=new HBox(8,avatar,userLabel,new Label("⌄"));
@@ -72,7 +69,7 @@ public class UserSpaces {
         Region topGap=new Region();
         HBox.setHgrow(topGap,Priority.ALWAYS);
 
-        HBox topBar=new HBox(20,searchField,topGap,notification,profile);
+        HBox topBar=new HBox(20,topGap,notification,profile);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPadding(new Insets(16,ResponsiveUtil.PAGE_PADDING,14,ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 0 1 0;");
@@ -142,26 +139,36 @@ public class UserSpaces {
         Button recent=side("🕒","Recent",false,e->LandingPage.showRecentPage());
         Button trash=side("🗑","Trash",false,e->LandingPage.showTrashPage());
         Button settings=side("⚙","Settings",false,e->LandingPage.showSettingPage());
-        Button logout=side("🚪","Logout",false,e->LandingPage.showUserLoginPage());
 
         Region gap=new Region();
         VBox.setVgrow(gap,Priority.ALWAYS);
 
         Label storageTitle=label("Storage Used",12,FontWeight.SEMI_BOLD,LIGHT);
-        Label storageValue=label("Loading...",12,FontWeight.BOLD,LIGHT);
+        Label storageVal=label("64.2 GB of 100 GB",12,FontWeight.BOLD,LIGHT);
+        Label storagePercent=label("64%",11,FontWeight.BOLD,MUTED_LIGHT);
 
-        ProgressBar storageBar=new ProgressBar(0);
+        Region storageSpacer=new Region();
+        HBox.setHgrow(storageSpacer,Priority.ALWAYS);
+
+        HBox storageValGroup=new HBox(storageVal,storageSpacer,storagePercent);
+        storageValGroup.setAlignment(Pos.CENTER_LEFT);
+
+        ProgressBar storageBar=new ProgressBar(0.64);
         storageBar.setMaxWidth(Double.MAX_VALUE);
         storageBar.setPrefHeight(6);
         storageBar.setStyle("-fx-accent:"+BLUE+";-fx-control-inner-background:#0E1520;");
 
-        VBox storageCard=new VBox(8,storageTitle,storageValue,storageBar);
+        Button manageStorageBtn=new Button("Storage Index ›");
+        manageStorageBtn.setOnAction(e->LandingPage.showStorageIndexPage());
+        manageStorageBtn.setStyle("-fx-background-color:transparent;-fx-text-fill:#60A5FA;-fx-font-size:11px;-fx-font-weight:600;-fx-padding:2 0 0 0;-fx-cursor:hand;");
+
+        VBox storageCard=new VBox(8,storageTitle,storageValGroup,storageBar,manageStorageBtn);
         storageCard.setPadding(new Insets(14));
         storageCard.setStyle("-fx-background-color:"+BG_SIDEBAR_CARD+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-radius:12;-fx-background-radius:12;");
 
         VBox sidebar=new VBox(
                 8,logoRow,dashboard,spacesBtn,search,calendar,ai,collab,recent,trash,
-                gap,settings,logout,storageCard
+                gap,settings,storageCard
         );
 
         sidebar.setPadding(new Insets(20,14,20,14));

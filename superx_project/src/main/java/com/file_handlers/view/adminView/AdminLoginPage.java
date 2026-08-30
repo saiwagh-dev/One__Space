@@ -26,6 +26,7 @@ import java.io.InputStream;
 
 import com.file_handlers.controller.AdminAuthController;
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 
 public class AdminLoginPage {
 
@@ -55,7 +56,7 @@ public class AdminLoginPage {
         HBox appHeader = new HBox(new Region(), backBtn);
         HBox.setHgrow(appHeader.getChildren().get(0), Priority.ALWAYS);
         appHeader.setAlignment(Pos.CENTER_LEFT);
-        appHeader.setPadding(new Insets(16, 24, 16, 24));
+        appHeader.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 16, ResponsiveUtil.PAGE_PADDING));
 
         // Branding Text: Negative margin cancels PNG transparency padding
         Label brandingText = new Label("OneSpace");
@@ -234,14 +235,14 @@ public class AdminLoginPage {
 
         VBox centerBody = new VBox(topSpacer, card, bottomSpacer);
         centerBody.setAlignment(Pos.CENTER);
-        centerBody.setPadding(new Insets(0, 24, 24, 24));
+        centerBody.setPadding(new Insets(0, ResponsiveUtil.PAGE_PADDING, 24, ResponsiveUtil.PAGE_PADDING));
 
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: transparent;");
         root.setTop(appHeader);
         root.setCenter(centerBody);
 
-        return new Scene(root, 1200, 750);
+        return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
     private StackPane createLogo() {

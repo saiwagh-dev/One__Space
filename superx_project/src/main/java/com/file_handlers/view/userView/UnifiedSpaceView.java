@@ -10,8 +10,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -45,20 +43,6 @@ public class UnifiedSpaceView {
     public Scene getUnifiedSpaceScene(){
         UserSession session=UserSession.getInstance();
         String user=session!=null&&session.getDisplayName()!=null?session.getDisplayName().trim():"User";
-        VBox sidebar=createSidebar();
-
-        TextField search=new TextField();
-        search.setPromptText("Search in "+spaceName+"...");
-        search.setPrefHeight(38);
-        search.setStyle("-fx-background-color:transparent;-fx-text-fill:"+LIGHT+";-fx-prompt-text-fill:"+MUTED_LIGHT+";-fx-font-size:13px;");
-        search.textProperty().addListener((obs,o,n)->refreshFiles(n));
-
-        HBox searchBox=new HBox(8,new Label("⌕"),search);
-        searchBox.setAlignment(Pos.CENTER_LEFT);
-        searchBox.setPadding(new Insets(0,14,0,14));
-        searchBox.setPrefWidth(420);
-        searchBox.setStyle("-fx-background-color:#141E2C;-fx-border-color:#2D3D52;-fx-border-radius:10;-fx-background-radius:10;");
-        HBox.setHgrow(search,Priority.ALWAYS);
 
         Button notification=new Button("🔔");
         notification.setStyle("-fx-background-color:transparent;-fx-text-fill:"+LIGHT+";-fx-font-size:16px;");
@@ -79,7 +63,7 @@ public class UnifiedSpaceView {
         Region topGap=new Region();
         HBox.setHgrow(topGap,Priority.ALWAYS);
 
-        HBox topBar=new HBox(20,searchBox,topGap,notification,profile);
+        HBox topBar=new HBox(20,topGap,notification,profile);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPadding(new Insets(16,ResponsiveUtil.PAGE_PADDING,14,ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:#2D3D52;-fx-border-width:0 0 1 0;");
@@ -95,7 +79,7 @@ public class UnifiedSpaceView {
         HBox titleArea=new HBox(12,spaceIcon,titleBox);
         titleArea.setAlignment(Pos.CENTER_LEFT);
 
-        Button back=new Button("← Back");
+        Button back=new Button("← Spaces");
         back.setStyle("-fx-background-color:"+BG_INNER+";-fx-text-fill:"+TEXT+";-fx-border-color:"+BORDER+";-fx-border-radius:8;-fx-background-radius:8;-fx-padding:8 14;");
         back.setOnAction(e->LandingPage.showUserSpace());
 
@@ -181,7 +165,6 @@ public class UnifiedSpaceView {
         VBox.setVgrow(centerScroll,Priority.ALWAYS);
 
         BorderPane root=new BorderPane();
-        root.setLeft(sidebar);
         root.setCenter(center);
         root.setStyle("-fx-background-color:"+BG_SIDEBAR+";");
 
@@ -546,53 +529,6 @@ public class UnifiedSpaceView {
         if(n.matches(".*\\.(mp3|wav|m4a)$"))return "🎵";
 
         return "📁";
-    }
-
-    private VBox createSidebar(){
-        Image image=new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
-        ImageView logoImage=new ImageView(image);
-        logoImage.setFitWidth(42);
-        logoImage.setFitHeight(42);
-        logoImage.setPreserveRatio(true);
-
-        HBox logo=new HBox(10,logoImage,label("OneSpace",19,FontWeight.BOLD,LIGHT));
-        logo.setAlignment(Pos.CENTER_LEFT);
-
-        Button dashboard=side("⌂","Dashboard",false,e->LandingPage.showUserDashboard());
-        Button spaces=side("📁","Spaces",true,e->LandingPage.showUserSpace());
-        Button search=side("⌕","Search",false,e->LandingPage.showUserSearch());
-        Button calendar=side("📅","Calendar",false,e->LandingPage.showCalendarPage());
-        Button ai=side("✧","AI Assistant",false,e->LandingPage.showAiAssistantPage());
-        Button collab=side("👥","Collaboration",false,e->LandingPage.showCollaborationPage());
-        Button recent=side("🕒","Recent",false,e->LandingPage.showRecentPage());
-        Button trash=side("🗑","Trash",false,e->LandingPage.showTrashPage());
-        Button settings=side("⚙","Settings",false,e->LandingPage.showSettingPage());
-
-        Region gap=new Region();
-        VBox.setVgrow(gap,Priority.ALWAYS);
-
-        VBox sidebar=new VBox(8,logo,dashboard,spaces,search,calendar,ai,collab,recent,trash,gap,settings);
-        sidebar.setPadding(new Insets(20,14,20,14));
-        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
-        sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
-        sidebar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:#2D3D52;-fx-border-width:0 1 0 0;");
-
-        return sidebar;
-    }
-
-    private Button side(String icon,String text,boolean active,javafx.event.EventHandler<javafx.event.ActionEvent> action){
-        HBox h=new HBox(12,label(icon,14,FontWeight.NORMAL,active?LIGHT:MUTED_LIGHT),label(text,13,active?FontWeight.BOLD:FontWeight.MEDIUM,LIGHT));
-        h.setAlignment(Pos.CENTER_LEFT);
-
-        Button b=new Button("",h);
-        b.setMaxWidth(Double.MAX_VALUE);
-        b.setPrefHeight(38);
-        b.setAlignment(Pos.CENTER_LEFT);
-        b.setPadding(new Insets(0,12,0,12));
-        b.setStyle("-fx-background-color:"+(active?BLUE:"transparent")+";-fx-background-radius:8;");
-        b.setOnAction(action);
-
-        return b;
     }
 
     private VBox statCard(String title,Label value,String icon){

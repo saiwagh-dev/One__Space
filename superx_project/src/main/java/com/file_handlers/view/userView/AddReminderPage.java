@@ -1,7 +1,9 @@
 package com.file_handlers.view.userView;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -111,10 +113,10 @@ public class AddReminderPage{
         progress.setPrefHeight(6);
         progress.setStyle("-fx-accent:"+PRIMARY_BLUE+";-fx-control-inner-background:#0E1520;");
 
-        Button manageStorageBtn=new Button("Manage Storage ›");
+        Button manageStorageBtn=new Button("Storage Index ›");
         manageStorageBtn.setFont(Font.font(FONT,FontWeight.SEMI_BOLD,11));
         manageStorageBtn.setStyle("-fx-background-color:transparent;-fx-text-fill:#60A5FA;-fx-padding:2 0 0 0;-fx-cursor:hand;");
-        manageStorageBtn.setOnAction(e->LandingPage.showLandingPage());
+        manageStorageBtn.setOnAction(e->LandingPage.showStorageIndexPage());
 
         VBox storage=new VBox(8,storageTitle,storageValGroup,progress,manageStorageBtn);
         storage.setPadding(new Insets(14));
@@ -128,26 +130,6 @@ public class AddReminderPage{
         sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 1 0 0;");
-
-        Label searchIcon=new Label("⌕");
-        searchIcon.setFont(Font.font(FONT,16));
-        searchIcon.setStyle("-fx-text-fill:"+TEXT_MUTED_LIGHT+";");
-
-        TextField searchField=new TextField();
-        searchField.setPromptText("Search in OneSpace...");
-        searchField.setPrefHeight(38);
-        searchField.setStyle("-fx-background-color:transparent;-fx-prompt-text-fill:"+TEXT_MUTED_LIGHT+";-fx-font-size:13px;-fx-text-fill:"+TEXT_LIGHT+";");
-
-        Label shortcut=new Label("⌘ K");
-        shortcut.setFont(Font.font(FONT,FontWeight.SEMI_BOLD,10));
-        shortcut.setStyle("-fx-background-color:#141E2C;-fx-text-fill:"+TEXT_MUTED_LIGHT+";-fx-padding:3 6;-fx-background-radius:4;");
-
-        HBox searchBox=new HBox(8,searchIcon,searchField,shortcut);
-        searchBox.setAlignment(Pos.CENTER_LEFT);
-        searchBox.setPadding(new Insets(0,12,0,14));
-        searchBox.setPrefWidth(420);
-        searchBox.setStyle("-fx-background-color:#141E2C;-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-radius:10;-fx-background-radius:10;");
-        HBox.setHgrow(searchField,Priority.ALWAYS);
 
         Button bell=new Button("🔔");
         bell.setStyle("-fx-background-color:transparent;-fx-font-size:16px;-fx-text-fill:"+TEXT_LIGHT+";-fx-cursor:hand;");
@@ -172,8 +154,8 @@ public class AddReminderPage{
         HBox profileBox=new HBox(10,bell,profileOption);
         profileBox.setAlignment(Pos.CENTER);
 
-        HBox topBar=new HBox(20,searchBox,new Region(),profileBox);
-        HBox.setHgrow(topBar.getChildren().get(1),Priority.ALWAYS);
+        HBox topBar=new HBox(20,new Region(),profileBox);
+        HBox.setHgrow(topBar.getChildren().get(0),Priority.ALWAYS);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPadding(new Insets(16,ResponsiveUtil.PAGE_PADDING,14,ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 0 1 0;");
@@ -352,67 +334,67 @@ public class AddReminderPage{
     }
 
     private void createReminder(){
-    String title=titleField.getText().trim();
+        String title=titleField.getText().trim();
 
-    if(title.isEmpty()){
-        alert(Alert.AlertType.WARNING,"Missing Title","Please enter a reminder title.");
-        titleField.requestFocus();
-        return;
+        if(title.isEmpty()){
+            alert(Alert.AlertType.WARNING,"Missing Title","Please enter a reminder title.");
+            titleField.requestFocus();
+            return;
+        }
+
+        if(reminderDatePicker.getValue()==null){
+            alert(Alert.AlertType.WARNING,"Missing Date","Please select a reminder date.");
+            reminderDatePicker.requestFocus();
+            return;
+        }
+
+        if(!UserSession.isLoggedIn()){
+            alert(Alert.AlertType.ERROR,"Not Logged In","Please log in before creating a reminder.");
+            return;
+        }
+
+        Reminder reminder=new Reminder();
+        reminder.setTitle(title);
+        reminder.setDescription(descriptionField.getText().trim());
+        reminder.setType(reminderTypeCombo.getValue());
+        reminder.setDate(Timestamp.of(Date.from(
+            reminderDatePicker.getValue()
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+        )));
+        reminder.setTime(reminderTimeField.getText().trim().isEmpty()
+                ?"Not specified":reminderTimeField.getText().trim());
+        reminder.setRepeat(repeatCombo.getValue());
+        reminder.setPriority(priorityCombo.getValue());
+        reminder.setLinkedFileId(selectedFileId);
+        reminder.setLinkedFileName(selectedFileName);
+
+        try{
+            String id=new ReminderDAO().saveReminder(
+                UserSession.getInstance().getUid(),
+                reminder
+            );
+
+            System.out.println("[REMINDER] Saved: "+id);
+
+            alert(
+                Alert.AlertType.INFORMATION,
+                "Reminder Created",
+                "Reminder saved successfully."
+            );
+
+            LandingPage.showCalendarPage();
+
+        }catch(Exception e){
+            e.printStackTrace();
+
+            alert(
+                Alert.AlertType.ERROR,
+                "Could Not Save Reminder",
+                e.getMessage()==null?"Unable to save reminder.":e.getMessage()
+            );
+        }
     }
-
-    if(reminderDatePicker.getValue()==null){
-        alert(Alert.AlertType.WARNING,"Missing Date","Please select a reminder date.");
-        reminderDatePicker.requestFocus();
-        return;
-    }
-
-    if(!UserSession.isLoggedIn()){
-        alert(Alert.AlertType.ERROR,"Not Logged In","Please log in before creating a reminder.");
-        return;
-    }
-
-    Reminder reminder=new Reminder();
-    reminder.setTitle(title);
-    reminder.setDescription(descriptionField.getText().trim());
-    reminder.setType(reminderTypeCombo.getValue());
-    reminder.setDate(Timestamp.of(Date.from(
-        reminderDatePicker.getValue()
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant()
-    )));
-    reminder.setTime(reminderTimeField.getText().trim().isEmpty()
-            ?"Not specified":reminderTimeField.getText().trim());
-    reminder.setRepeat(repeatCombo.getValue());
-    reminder.setPriority(priorityCombo.getValue());
-    reminder.setLinkedFileId(selectedFileId);
-    reminder.setLinkedFileName(selectedFileName);
-
-    try{
-        String id=new ReminderDAO().saveReminder(
-            UserSession.getInstance().getUid(),
-            reminder
-        );
-
-        System.out.println("[REMINDER] Saved: "+id);
-
-        alert(
-            Alert.AlertType.INFORMATION,
-            "Reminder Created",
-            "Reminder saved successfully."
-        );
-
-        LandingPage.showCalendarPage();
-
-    }catch(Exception e){
-        e.printStackTrace();
-
-        alert(
-            Alert.AlertType.ERROR,
-            "Could Not Save Reminder",
-            e.getMessage()==null?"Unable to save reminder.":e.getMessage()
-        );
-    }
-}
 
     private Timestamp toTimestamp(java.time.LocalDate date){
         return Timestamp.of(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
