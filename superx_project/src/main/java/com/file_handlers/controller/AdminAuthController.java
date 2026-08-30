@@ -53,7 +53,11 @@ public class AdminAuthController {
 
             // ALLOW MULTIPLE ADMINS: Check if email matches either authorized administrator
             boolean isAuthorizedAdmin = trimmedEmail.equalsIgnoreCase("sai12@gmail.com") || 
-                                        trimmedEmail.equalsIgnoreCase("xavierwagh@gmail.com");
+                                        trimmedEmail.equalsIgnoreCase("xavierwagh@gmail.com") ||
+                                        trimmedEmail.equalsIgnoreCase("vaishnavi@gmail.com")|| 
+                                        trimmedEmail.equalsIgnoreCase("pratiksha@gmail.com") ||
+                                        trimmedEmail.equalsIgnoreCase("ananta22@gmail.com")||
+                                        trimmedEmail.equalsIgnoreCase("mohite@gmail.com");
 
             if (!isAuthorizedAdmin) {
                 System.out.println("Access Denied: Only authorized administrators can log in here.");

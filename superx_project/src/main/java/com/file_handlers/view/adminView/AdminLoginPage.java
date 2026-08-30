@@ -200,17 +200,8 @@ public class AdminLoginPage {
         });
 
         // Footer Link
-        Label noAccountText = new Label("Don't have an account?");
-        noAccountText.setFont(Font.font(FONT, 12));
-        noAccountText.setTextFill(Color.web(TEXT_MUTED_DARK));
-
-        Label signUpLink = new Label("Sign Up");
-        signUpLink.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        signUpLink.setTextFill(Color.web("#38BDF8"));
-        signUpLink.setStyle("-fx-cursor: hand;");
-        signUpLink.setOnMouseClicked(e -> { LandingPage.showAdminSignUp(); });
-
-        HBox signUpBox = new HBox(4, noAccountText, signUpLink);
+       
+        HBox signUpBox = new HBox(4);
         signUpBox.setAlignment(Pos.CENTER);
 
         // Card Assembly
