@@ -1,6 +1,7 @@
 package com.file_handlers.view.adminView;
 
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.geometry.Insets;
@@ -46,6 +47,9 @@ public class AdminSettings {
     private static final String GREEN_LIGHT = "rgba(16, 185, 129, 0.15)";
     private static final String PURPLE = "#00D2FF";
     private static final String PURPLE_LIGHT = "rgba(0, 210, 255, 0.15)";
+    
+    private String activeUserName = "Admin";
+    private String initials = "A";
 
     // Root Containers for Theme Updates
     private BorderPane rootLayout;
@@ -56,7 +60,18 @@ public class AdminSettings {
 
     private boolean isLightMode = false;
 
-    public AdminSettings() {}
+    public AdminSettings() {
+        UserSession session = UserSession.getInstance();
+
+        if (session != null && session.getDisplayName() != null) {
+            String fullName = session.getDisplayName().trim();
+            if (!fullName.isEmpty()) {
+                String[] parts = fullName.split("\\s+");
+                this.activeUserName = parts[0];
+                this.initials = this.activeUserName.substring(0, 1).toUpperCase();
+            }
+        }
+    }
 
     public Scene getAdminSettingsScene() {
         rootLayout = new BorderPane();
@@ -246,14 +261,14 @@ public class AdminSettings {
         notificationButton.setStyle("-fx-background-color: " + topbarWidgetBg + "; -fx-border-color: " + sidebarBorder + "; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notificationButton.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        Label avatar = new Label("AV");
+        Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
-        Label adminName = new Label("Admin");
+        Label adminName = new Label(activeUserName);
         adminName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         adminName.setTextFill(Color.web(textPrimary));
 

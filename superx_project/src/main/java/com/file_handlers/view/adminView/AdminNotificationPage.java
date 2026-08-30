@@ -47,6 +47,11 @@ public class AdminNotificationPage {
     private static final String LIGHT_SECONDARY = "#94A3B8";
     private static final String BLUE = "#2563EB";
     private static final String CYAN = "#00D2FF";
+    
+    private String activeUserName = "Admin";
+    private String initials = "A";
+
+
 
     private final List<NotificationItemData> allNotifications = new ArrayList<>();
     private VBox notificationListContainer;
@@ -208,14 +213,14 @@ public class AdminNotificationPage {
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        Label avatar = new Label("AV");
+        Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
-        Label admin = new Label("Admin");
+        Label admin = new Label(activeUserName);
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
 

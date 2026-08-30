@@ -41,6 +41,9 @@ public class AdminLoginPage {
     private static final String TEXT_MUTED_DARK = "#94A3B8";
     private static final String TEXT_MUTED_LIGHT = "#94A3B8";
     private static final String ERROR_COLOR = "#EF4444";
+    
+    private String activeUserName = "Admin";
+    private String initials = "A";
 
     public Scene getAdminLoginPageScene() {
 

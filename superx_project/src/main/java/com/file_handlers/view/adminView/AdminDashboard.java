@@ -31,12 +31,14 @@ import javafx.concurrent.Task;
 import java.io.InputStream;
 
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 import com.file_handlers.dao.AdminStatsDAO;
 
 import java.time.LocalTime;
 
 public class AdminDashboard {
+    
 
     // Typography
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -65,13 +67,27 @@ public class AdminDashboard {
     private static final String CYAN_LIGHT = "rgba(0, 210, 255, 0.15)";
     private static final String GREEN = "#10B981";
 
+    private String activeUserName = "Admin";
+    private String initials = "A";
+    public AdminDashboard() {
+        UserSession session = UserSession.getInstance();
+
+        if (session != null && session.getDisplayName() != null) {
+            String fullName = session.getDisplayName().trim();
+            if (!fullName.isEmpty()) {
+                String[] parts = fullName.split("\\s+");
+                this.activeUserName = parts[0];
+                this.initials = this.activeUserName.substring(0, 1).toUpperCase();
+            }
+        }}
     private final AdminStatsDAO statsDAO = new AdminStatsDAO();
     private Label totalUsersValue;
     private Label totalFilesValue;
 
-    public AdminDashboard() {}
+  
 
     public Scene getAdminDashboardScene() {
+       
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: " + SIDEBAR_BG + ";");
         root.setLeft(createSidebar());
@@ -223,13 +239,13 @@ public class AdminDashboard {
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        Label avatar = new Label("AV");
+        Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
-        Label admin = new Label("Admin");
+        Label admin = new Label(activeUserName);
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
 

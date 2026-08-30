@@ -1,5 +1,7 @@
 package com.file_handlers.view.adminView;
 
+import com.file_handlers.view.LandingPage;
+import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 import com.file_handlers.view.LandingPage;
 
@@ -51,8 +53,21 @@ public class AdminAISystem {
     private static final String CYAN = "#00D2FF";
     private static final String GREEN = "#10B981";
     private static final String ORANGE = "#F59E0B";
+    private static final String ORANGE_LIGHT = "rgba(245, 158, 11, 0.15)";
+    
+    private String activeUserName = "Admin";
+    private String initials = "A";
 
-    public AdminAISystem() {}
+    public AdminAISystem() {UserSession session = UserSession.getInstance();
+
+        if (session != null && session.getDisplayName() != null) {
+            String fullName = session.getDisplayName().trim();
+            if (!fullName.isEmpty()) {
+                String[] parts = fullName.split("\\s+");
+                this.activeUserName = parts[0];
+                this.initials = this.activeUserName.substring(0, 1).toUpperCase();
+            }
+        }}
 
     public Scene getAdminAIScene() {
 
@@ -289,9 +304,8 @@ public class AdminAISystem {
                 e -> LandingPage.showAdminNotificationPage()
         );
 
-        Label avatar = new Label("AV");
-        avatar.setPrefSize(34, 34);
-        avatar.setAlignment(Pos.CENTER);
+        Label avatar = new Label(initials);
+        avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle(
@@ -299,11 +313,11 @@ public class AdminAISystem {
                 "-fx-background-radius: 50%;"
         );
 
-        Label admin = new Label("Admin");
-        admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
-        admin.setTextFill(Color.WHITE);
+        Label adminName = new Label(activeUserName);
+        adminName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
+        adminName.setTextFill(Color.WHITE);
 
-        HBox profile = new HBox(10, avatar, admin);
+        HBox profile = new HBox(10, avatar, adminName);
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle(
