@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 
 public class AdminUsers {
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -86,7 +87,7 @@ public class AdminUsers {
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         root.setCenter(rightSide);
 
-        return new Scene(root, 1200, 750);
+        return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
     private void loadDummyUsers() {
@@ -104,7 +105,7 @@ public class AdminUsers {
 
     private VBox createSidebar() {
         VBox sidebar = new VBox(12);
-        sidebar.setPrefWidth(230); sidebar.setMinWidth(230); sidebar.setMaxWidth(230);
+        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH); sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH); sidebar.setMaxWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setStyle("-fx-background-color: " + SIDEBAR_BG + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 1 0 0;");
 
@@ -256,7 +257,7 @@ public class AdminUsers {
         HBox topBar = new HBox(20, searchBox, spacer, profile);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPrefHeight(70); topBar.setMinHeight(70); topBar.setMaxHeight(70);
-        topBar.setPadding(new Insets(16, 28, 14, 28));
+        topBar.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 14, ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color: transparent; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
         return topBar;
     }
@@ -337,7 +338,7 @@ public class AdminUsers {
 
         VBox content = new VBox(22, filterRow, batchActionBar, table, createPagination());
         content.setFillWidth(true);
-        content.setPadding(new Insets(24, 28, 28, 28));
+        content.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 28, ResponsiveUtil.PAGE_PADDING));
         content.setStyle("-fx-background-color: transparent;");
         return content;
     }

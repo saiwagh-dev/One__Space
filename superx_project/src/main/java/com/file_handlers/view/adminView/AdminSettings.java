@@ -1,6 +1,7 @@
 package com.file_handlers.view.adminView;
 
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -77,14 +78,14 @@ public class AdminSettings {
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         root.setCenter(rightSide);
 
-        return new Scene(root, 1200, 750);
+        return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
     private VBox createSidebar() {
         VBox sidebar = new VBox(12);
-        sidebar.setPrefWidth(230);
-        sidebar.setMinWidth(230);
-        sidebar.setMaxWidth(230);
+        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMaxWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setStyle(
                 "-fx-background-color: " + SIDEBAR_BG + ";" +
@@ -260,7 +261,7 @@ public class AdminSettings {
         topBar.setPrefHeight(70);
         topBar.setMinHeight(70);
         topBar.setMaxHeight(70);
-        topBar.setPadding(new Insets(16, 28, 14, 28));
+        topBar.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 14, ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle(
                 "-fx-background-color: transparent;" +
                 "-fx-border-color: " + SIDEBAR_BORDER + ";" +
@@ -287,7 +288,7 @@ public class AdminSettings {
     private VBox createMainContent() {
         VBox content = new VBox(24);
         content.setFillWidth(true);
-        content.setPadding(new Insets(28, 32, 40, 32));
+        content.setPadding(new Insets(28, ResponsiveUtil.PAGE_PADDING, 40, ResponsiveUtil.PAGE_PADDING));
         content.setStyle("-fx-background-color: transparent;");
 
         Label title = new Label("Settings");

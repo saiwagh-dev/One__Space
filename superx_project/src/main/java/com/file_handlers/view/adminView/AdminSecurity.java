@@ -1,6 +1,7 @@
 package com.file_handlers.view.adminView;
 
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
@@ -82,7 +83,7 @@ public class AdminSecurity {
 
         root.setCenter(rightSide);
 
-        Scene scene = new Scene(root, 1200, 750);
+        Scene scene = new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
 
         String cssOverride = "data:text/css," +
                 ".dark-grid-card * { -fx-text-fill: #FFFFFF !important; -fx-fill: #FFFFFF !important; }" +
@@ -106,9 +107,9 @@ public class AdminSecurity {
 
     private VBox createSidebar() {
         VBox sidebar = new VBox(12);
-        sidebar.setPrefWidth(230);
-        sidebar.setMinWidth(230);
-        sidebar.setMaxWidth(230);
+        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMaxWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setStyle(
                 "-fx-background-color: " + SIDEBAR_BG + ";" +
@@ -284,7 +285,7 @@ public class AdminSecurity {
         topBar.setPrefHeight(70);
         topBar.setMinHeight(70);
         topBar.setMaxHeight(70);
-        topBar.setPadding(new Insets(16, 28, 14, 28));
+        topBar.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 14, ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle(
                 "-fx-background-color: transparent;" +
                 "-fx-border-color: " + SIDEBAR_BORDER + ";" +
@@ -311,7 +312,7 @@ public class AdminSecurity {
     private VBox createSecurityContent() {
         VBox root = new VBox(22);
         root.setFillWidth(true);
-        root.setPadding(new Insets(24, 28, 28, 28));
+        root.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 28, ResponsiveUtil.PAGE_PADDING));
         root.setStyle("-fx-background-color: transparent;");
 
         Label title = new Label("Security Overview");
@@ -617,7 +618,7 @@ public class AdminSecurity {
         StackPane wrapper = new StackPane(rootBox);
         wrapper.setPadding(new Insets(30));
         wrapper.setStyle("-fx-background-color: transparent;");
-                                                                        
+                                                                                                                
         Scene modalScene = new Scene(wrapper, 650, 520);
         modalScene.setFill(Color.TRANSPARENT);
         modalScene.getStylesheets().add(createModalCss());
@@ -861,7 +862,7 @@ public class AdminSecurity {
         label.setWrapText(true);
         label.setStyle("-fx-text-fill: " + hexColor + " !important;");
         return label;
-    }                
+    }                    
 
     private Label link(String text) {
         Label label = new Label(text);

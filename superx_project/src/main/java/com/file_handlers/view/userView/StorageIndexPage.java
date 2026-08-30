@@ -2,6 +2,7 @@ package com.file_handlers.view.userView;
 
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -72,7 +73,7 @@ public class StorageIndexPage {
                 "-fx-background-color:" + BACKGROUND + ";"
         );
 
-        return new Scene(root, 1200, 750);
+        return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
     // =========================================================
@@ -265,9 +266,9 @@ public class StorageIndexPage {
         bar.setPadding(
                 new Insets(
                         20,
-                        24,
+                        ResponsiveUtil.PAGE_PADDING,
                         20,
-                        36
+                        ResponsiveUtil.PAGE_PADDING
                 )
         );
 
@@ -292,9 +293,9 @@ public class StorageIndexPage {
         content.setPadding(
                 new Insets(
                         28,
-                        34,
+                        ResponsiveUtil.PAGE_PADDING,
                         30,
-                        34
+                        ResponsiveUtil.PAGE_PADDING
                 )
         );
 
