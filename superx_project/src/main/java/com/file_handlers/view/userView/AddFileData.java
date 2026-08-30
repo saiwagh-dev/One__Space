@@ -45,11 +45,18 @@ public class AddFileData {
     public Scene getScene(){
         BorderPane root=new BorderPane();
         root.setStyle("-fx-background-color:"+BG_CENTER+";");
-        VBox sidebar=createSidebar();
         HBox topBar=createTopBar();
 
+        Button back=new Button("← Dashboard");
+        back.setStyle("-fx-background-color:"+BG_CARD_INNER+";-fx-text-fill:"+TEXT_DARK+";-fx-border-color:"+BORDER_CARD+";-fx-border-radius:8;-fx-background-radius:8;-fx-font-family:"+FONT+";-fx-font-size:12px;-fx-font-weight:600;-fx-padding:5 10;-fx-cursor:hand;");
+        back.setOnAction(e->backAction.run());
+
+        HBox backRow=new HBox(back);
+        backRow.setAlignment(Pos.CENTER_RIGHT);
+        backRow.setPadding(new Insets(12,ResponsiveUtil.PAGE_PADDING,0,ResponsiveUtil.PAGE_PADDING));
+
         VBox content=new VBox(22);
-        content.setPadding(new Insets(26,ResponsiveUtil.PAGE_PADDING,28,ResponsiveUtil.PAGE_PADDING));
+        content.setPadding(new Insets(14,ResponsiveUtil.PAGE_PADDING,28,ResponsiveUtil.PAGE_PADDING));
         content.setStyle("-fx-background-color:"+BG_CENTER+";");
 
         Label title=new Label("Add Files");
@@ -97,11 +104,10 @@ public class AddFileData {
         showEmptyState();
         content.getChildren().addAll(titleBox,actionCard,listHeader,fileScroll,bottomBar);
 
-        VBox mainArea=new VBox(topBar,content);
+        VBox mainArea=new VBox(topBar,backRow,content);
         VBox.setVgrow(content,Priority.ALWAYS);
         mainArea.setStyle("-fx-background-color:"+BG_CENTER+";");
 
-        root.setLeft(sidebar);
         root.setCenter(mainArea);
         return new Scene(root,LandingPage.getCurrentWidth(),LandingPage.getCurrentHeight());
     }
@@ -135,108 +141,30 @@ public class AddFileData {
         return card;
     }
 
-    private VBox createSidebar(){
-        Label logo=new Label("☁  OneSpace");
-        logo.setStyle("-fx-font-family:"+FONT+";-fx-font-size:20px;-fx-font-weight:700;-fx-text-fill:"+TEXT_LIGHT+";");
-        VBox logoBox=new VBox(logo);
-        logoBox.setPadding(new Insets(0,0,14,6));
-
-        Button dashboard=navButton("⌂","Dashboard",false);
-        Button spaces=navButton("📁","Spaces",false);
-        Button search=navButton("⌕","Search",false);
-        Button recent=navButton("◷","Recent",false);
-        Button settings=navButton("⚙","Settings",false);
-        Button logout=navButton("⇥","Logout",false);
-
-        dashboard.setOnAction(e->LandingPage.showUserDashboard());
-        spaces.setOnAction(e->LandingPage.showUserSpace());
-        search.setOnAction(e->LandingPage.showUserSearch());
-        recent.setOnAction(e->LandingPage.showRecentPage());
-        settings.setOnAction(e->LandingPage.showSettingPage());
-        logout.setOnAction(e->{UserSession.clearSession();LandingPage.showUserLoginPage();});
-
-        Label storageTitle=new Label("Storage Used");
-        storageTitle.setStyle("-fx-font-family:"+FONT+";-fx-font-size:12px;-fx-font-weight:600;-fx-text-fill:"+TEXT_LIGHT+";");
-
-        Label storageValue=new Label("64.2 GB of 100 GB");
-        storageValue.setStyle("-fx-font-family:"+FONT+";-fx-font-size:12px;-fx-font-weight:700;-fx-text-fill:"+TEXT_LIGHT+";");
-
-        Label storagePercent=new Label("64%");
-        storagePercent.setStyle("-fx-font-family:"+FONT+";-fx-font-size:11px;-fx-font-weight:700;-fx-text-fill:"+TEXT_MUTED_LIGHT+";");
-
-        Region storageSpacer=new Region();
-        HBox.setHgrow(storageSpacer,Priority.ALWAYS);
-
-        HBox storageRow=new HBox(storageValue,storageSpacer,storagePercent);
-        storageRow.setAlignment(Pos.CENTER_LEFT);
-
-        Region progress=new Region();
-        progress.setPrefHeight(5);
-        progress.setMaxWidth(Double.MAX_VALUE);
-        progress.setStyle("-fx-background-color:"+PRIMARY_BLUE+";-fx-background-radius:5;");
-
-        Label manageStorage=new Label("Manage Storage ›");
-        manageStorage.setStyle("-fx-font-family:"+FONT+";-fx-font-size:11px;-fx-font-weight:600;-fx-text-fill:#60A5FA;-fx-cursor:hand;");
-
-        VBox storageCard=new VBox(8,storageTitle,storageRow,progress,manageStorage);
-        storageCard.setPadding(new Insets(14));
-        storageCard.setStyle("-fx-background-color:#141D29;-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-radius:12;-fx-background-radius:12;");
-
-        Region spacer=new Region();
-        VBox.setVgrow(spacer,Priority.ALWAYS);
-
-        VBox sidebar=new VBox(5,logoBox,dashboard,spaces,search,recent,spacer,settings,logout,storageCard);
-        sidebar.setPadding(new Insets(20,14,20,14));
-        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
-        sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
-        sidebar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 1 0 0;");
-        return sidebar;
-    }
-
     private HBox createTopBar(){
-        Button back=new Button("‹");
-        back.setStyle("-fx-background-color:transparent;-fx-text-fill:"+TEXT_LIGHT+";-fx-font-family:"+FONT+";-fx-font-size:26px;-fx-cursor:hand;-fx-padding:0 8;");
-        back.setOnAction(e->backAction.run());
+        String userNameStr=getUserName();
+        String initial=userNameStr.isBlank()?"U":userNameStr.substring(0,1).toUpperCase();
 
-        Label page=new Label("Add File");
-        page.setStyle("-fx-font-family:"+FONT+";-fx-font-size:15px;-fx-font-weight:600;-fx-text-fill:"+TEXT_LIGHT+";");
+        Label avatar=new Label(initial);
+        avatar.setPrefSize(30,30);
+        avatar.setMinSize(30,30);
+        avatar.setAlignment(Pos.CENTER);
+        avatar.setStyle("-fx-background-color:"+PRIMARY_BLUE+";-fx-background-radius:50%;-fx-text-fill:white;-fx-font-family:"+FONT+";-fx-font-weight:bold;-fx-font-size:12px;");
+
+        Label user=new Label(userNameStr);
+        user.setStyle("-fx-font-family:"+FONT+";-fx-font-size:13px;-fx-font-weight:600;-fx-text-fill:"+TEXT_LIGHT+";");
+
+        HBox profile=new HBox(8,avatar,user);
+        profile.setAlignment(Pos.CENTER_RIGHT);
 
         Region spacer=new Region();
         HBox.setHgrow(spacer,Priority.ALWAYS);
 
-        Label user=new Label(getUserName());
-        user.setStyle("-fx-font-family:"+FONT+";-fx-font-size:13px;-fx-font-weight:600;-fx-text-fill:"+TEXT_LIGHT+";");
-
-        HBox bar=new HBox(8,back,page,spacer,user);
-        bar.setAlignment(Pos.CENTER_LEFT);
+        HBox bar=new HBox(spacer,profile);
+        bar.setAlignment(Pos.CENTER_RIGHT);
         bar.setPadding(new Insets(12,ResponsiveUtil.PAGE_PADDING,12,ResponsiveUtil.PAGE_PADDING));
         bar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 0 1 0;");
         return bar;
-    }
-
-    private Button navButton(String icon,String text,boolean active){
-        Label iconLabel=new Label(icon);
-        iconLabel.setStyle("-fx-font-family:"+FONT+";-fx-font-size:14px;");
-
-        Label textLabel=new Label(text);
-        textLabel.setStyle("-fx-font-family:"+FONT+";-fx-font-size:13px;-fx-font-weight:"+(active?"700":"500")+";-fx-text-fill:"+TEXT_LIGHT+";");
-
-        HBox content=new HBox(12,iconLabel,textLabel);
-        content.setAlignment(Pos.CENTER_LEFT);
-
-        Button button=new Button("",content);
-        button.setMaxWidth(Double.MAX_VALUE);
-        button.setPrefHeight(38);
-        button.setAlignment(Pos.CENTER_LEFT);
-        button.setPadding(new Insets(0,12,0,12));
-
-        if(active) button.setStyle("-fx-background-color:"+PRIMARY_BLUE+";-fx-background-radius:8;-fx-cursor:hand;");
-        else{
-            button.setStyle(navStyle(false));
-            button.setOnMouseEntered(e->button.setStyle(navStyle(true)));
-            button.setOnMouseExited(e->button.setStyle(navStyle(false)));
-        }
-        return button;
     }
 
     private void selectFiles(){
@@ -661,10 +589,6 @@ public class AddFileData {
 
     private String primaryButtonStyle(){
         return "-fx-background-color:"+PRIMARY_BLUE+";-fx-text-fill:white;-fx-font-family:"+FONT+";-fx-font-size:13px;-fx-font-weight:700;-fx-padding:12 20;-fx-background-radius:10;-fx-cursor:hand;";
-    }
-
-    private String navStyle(boolean hovered){
-        return "-fx-background-color:"+(hovered?"#26354A;":"transparent;")+"-fx-text-fill:white;-fx-font-family:"+FONT+";-fx-font-size:13px;-fx-background-radius:8;-fx-cursor:hand;";
     }
 
     private static class ProcessingView{

@@ -72,10 +72,6 @@ public class UserSettingPage {
 
         String initials=getInitials(displayName);
 
-        // =========================================================
-        // SIDEBAR
-        // =========================================================
-
         StackPane logoIcon=createOneSpaceLogo();
         Label logoText=new Label("OneSpace");
         logoText.setFont(Font.font(FONT,FontWeight.BOLD,19));
@@ -96,7 +92,6 @@ public class UserSettingPage {
         Button recentBtn=createSidebarButton("🕒","Recent",false);
         Button trashBtn=createSidebarButton("🗑","Trash",false);
         Button settingsBtn=createSidebarButton("⚙","Settings",true);
-        Button logoutSidebarBtn=createSidebarButton("🚪","Logout",false);
 
         dashboardBtn.setOnAction(e->LandingPage.showUserDashboard());
         spacesBtn.setOnAction(e->LandingPage.showUserSpace());
@@ -107,7 +102,6 @@ public class UserSettingPage {
         recentBtn.setOnAction(e->LandingPage.showRecentPage());
         trashBtn.setOnAction(e->LandingPage.showTrashPage());
         settingsBtn.setOnAction(e->LandingPage.showSettingPage());
-        logoutSidebarBtn.setOnAction(e->performSignOut());
 
         VBox navList=new VBox(4,dashboardBtn,spacesBtn,searchBtn,calendarBtn,aiBtn,collabBtn,recentBtn,trashBtn);
 
@@ -134,10 +128,10 @@ public class UserSettingPage {
         progress.setPrefHeight(6);
         progress.setStyle("-fx-accent:"+primaryBlue+";-fx-control-inner-background:#0E1520;");
 
-        Button manageStorageBtn=new Button("Manage Storage ›");
+        Button manageStorageBtn=new Button("Storage Index ›");
         manageStorageBtn.setFont(Font.font(FONT,FontWeight.SEMI_BOLD,11));
         manageStorageBtn.setStyle("-fx-background-color:transparent;-fx-text-fill:#60A5FA;-fx-padding:2 0 0 0;-fx-cursor:hand;");
-        manageStorageBtn.setOnAction(e->LandingPage.showLandingPage());
+        manageStorageBtn.setOnAction(e->LandingPage.showStorageIndexPage());
 
         VBox storageCard=new VBox(8,storageTitle,storageValues,progress,manageStorageBtn);
         storageCard.setPadding(new Insets(14));
@@ -146,37 +140,13 @@ public class UserSettingPage {
         Region sidebarSpacer=new Region();
         VBox.setVgrow(sidebarSpacer,Priority.ALWAYS);
 
-        VBox bottomButtons=new VBox(4,settingsBtn,logoutSidebarBtn);
+        VBox bottomButtons=new VBox(4,settingsBtn);
         VBox sidebar=new VBox(12,logoBox,navList,sidebarSpacer,bottomButtons,storageCard);
         sidebar.setPadding(new Insets(20,14,20,14));
         sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setMaxWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 1 0 0;");
-
-        // =========================================================
-        // TOP BAR
-        // =========================================================
-
-        Label searchIcon=new Label("⌕");
-        searchIcon.setFont(Font.font(FONT,16));
-        searchIcon.setStyle("-fx-text-fill:"+TEXT_MUTED_LIGHT+";");
-
-        TextField searchField=new TextField();
-        searchField.setPromptText("Search settings...");
-        searchField.setPrefHeight(38);
-        searchField.setStyle("-fx-background-color:transparent;-fx-prompt-text-fill:"+TEXT_MUTED_LIGHT+";-fx-font-size:13px;-fx-text-fill:"+TEXT_LIGHT+";");
-
-        Label keyShortcut=new Label("⌘ K");
-        keyShortcut.setFont(Font.font(FONT,FontWeight.SEMI_BOLD,10));
-        keyShortcut.setStyle("-fx-background-color:"+BG_SIDEBAR_CARD+";-fx-text-fill:"+TEXT_MUTED_LIGHT+";-fx-padding:3 6;-fx-background-radius:4;");
-
-        HBox searchContainer=new HBox(8,searchIcon,searchField,keyShortcut);
-        searchContainer.setAlignment(Pos.CENTER_LEFT);
-        searchContainer.setPadding(new Insets(0,12,0,14));
-        searchContainer.setPrefWidth(420);
-        searchContainer.setStyle("-fx-background-color:"+BG_SIDEBAR_CARD+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-radius:10;-fx-background-radius:10;");
-        HBox.setHgrow(searchField,Priority.ALWAYS);
 
         Button bellBtn=new Button("🔔");
         bellBtn.setStyle("-fx-background-color:transparent;-fx-font-size:16px;-fx-text-fill:"+TEXT_LIGHT+";-fx-cursor:hand;");
@@ -197,15 +167,11 @@ public class UserSettingPage {
         HBox profileBox=new HBox(10,bellBtn,avatar,userName,dropDown);
         profileBox.setAlignment(Pos.CENTER);
 
-        HBox topBar=new HBox(20,searchContainer,new Region(),profileBox);
-        HBox.setHgrow(topBar.getChildren().get(1),Priority.ALWAYS);
+        HBox topBar=new HBox(20,new Region(),profileBox);
+        HBox.setHgrow(topBar.getChildren().get(0),Priority.ALWAYS);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPadding(new Insets(16,ResponsiveUtil.PAGE_PADDING,14,ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 0 1 0;");
-
-        // =========================================================
-        // PAGE HEADER
-        // =========================================================
 
         Label pageTitle=new Label("Settings");
         pageTitle.setFont(Font.font(FONT,FontWeight.BOLD,22));
@@ -216,10 +182,6 @@ public class UserSettingPage {
         pageDescription.setStyle("-fx-text-fill:"+TEXT_MUTED_LIGHT+";-fx-font-weight:500;");
 
         VBox titleBox=new VBox(4,pageTitle,pageDescription);
-
-        // =========================================================
-        // PROFILE
-        // =========================================================
 
         Label userAvatarBig=new Label(initials);
         userAvatarBig.setPrefSize(48,48);
@@ -248,10 +210,6 @@ public class UserSettingPage {
         profileCard.setAlignment(Pos.CENTER_LEFT);
         profileCard.setPadding(new Insets(14,20,14,20));
 
-        // =========================================================
-        // APPEARANCE
-        // =========================================================
-
         Label appearanceIcon=createSettingIcon("🎨");
         Label appearanceTitle=createSectionTitle("Appearance");
         Label appearanceDesc=createSectionDescription("Customize how OneSpace looks and adapts.");
@@ -278,10 +236,6 @@ public class UserSettingPage {
         appearanceSection.setPadding(new Insets(14,20,14,20));
         appearanceSection.setAlignment(Pos.CENTER_LEFT);
 
-        // =========================================================
-        // ACCENT
-        // =========================================================
-
         HBox accentRow=createSettingRow("✨","Accent color","Choose the accent color palette used across indicators.");
 
         HBox accentColors=new HBox(10,
@@ -296,10 +250,6 @@ public class UserSettingPage {
         accentColors.setAlignment(Pos.CENTER_RIGHT);
         accentRow.getChildren().add(accentColors);
 
-        // =========================================================
-        // INDEXING
-        // =========================================================
-
         HBox indexingRow=createSettingRow("⚡","Local AI Indexing","Rescan local directories or clear cached search indices.");
 
         Button rescanBtn=createActionButton("Rescan All");
@@ -310,10 +260,6 @@ public class UserSettingPage {
 
         indexingRow.getChildren().add(new HBox(8,rescanBtn,clearIndexBtn));
 
-        // =========================================================
-        // SECURITY
-        // =========================================================
-
         HBox securityRow=createSettingRow("🛡","Security & Password","Update your Firebase account password.");
 
         Button changePasswordBtn=createActionButton("Change Password");
@@ -321,30 +267,12 @@ public class UserSettingPage {
 
         securityRow.getChildren().add(changePasswordBtn);
 
-        // =========================================================
-        // SIGN OUT
-        // =========================================================
-
-        HBox logoutRow=createSettingRow("🚪","Account Sign Out","Safely sign out of your local OneSpace session.");
-
-        Button logoutBtn=new Button("Sign Out");
-        logoutBtn.setFont(Font.font(FONT,FontWeight.BOLD,12));
-        logoutBtn.setStyle("-fx-background-color:#FEF2F2;-fx-border-color:#FCA5A5;-fx-border-radius:8;-fx-background-radius:8;-fx-text-fill:#DC2626;-fx-padding:0 16;-fx-cursor:hand;");
-        logoutBtn.setOnAction(e->performSignOut());
-
-        logoutRow.getChildren().add(logoutBtn);
-
-        // =========================================================
-        // MAIN CARD
-        // =========================================================
-
         VBox settingsCard=new VBox(
                 profileCard,createSeparator(),
                 appearanceSection,createSeparator(),
                 accentRow,createSeparator(),
                 indexingRow,createSeparator(),
-                securityRow,createSeparator(),
-                logoutRow
+                securityRow
         );
 
         settingsCard.setStyle("-fx-background-color:"+BG_CARD+";-fx-border-color:"+BORDER_CARD+";-fx-border-radius:16;-fx-background-radius:16;-fx-effect:dropshadow(three-pass-box,rgba(0,0,0,0.18),16,0,0,6);");
@@ -365,20 +293,12 @@ public class UserSettingPage {
         return new Scene(root,LandingPage.getCurrentWidth(),LandingPage.getCurrentHeight());
     }
 
-    // =========================================================
-    // THEME
-    // =========================================================
-
     private void setTheme(String theme){
         currentTheme=theme;
         PREFS.put("theme",theme);
         Stage stage=(Stage) Stage.getWindows().stream().filter(Window->Window.isShowing()).findFirst().orElse(null);
         if(stage!=null) stage.setScene(getSettingPageScene());
     }
-
-    // =========================================================
-    // ACCENT COLOR
-    // =========================================================
 
     private Circle createColorCircle(String hexColor){
         Circle circle=new Circle(11);
@@ -397,10 +317,6 @@ public class UserSettingPage {
 
         return circle;
     }
-
-    // =========================================================
-    // PASSWORD
-    // =========================================================
 
     private void openChangePasswordWindow(){
         Stage stage=new Stage();
@@ -494,34 +410,6 @@ public class UserSettingPage {
         stage.setResizable(false);
         stage.showAndWait();
     }
-
-    // =========================================================
-    // SIGN OUT
-    // =========================================================
-
-    private void performSignOut(){
-        Alert alert=new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Sign Out");
-        alert.setHeaderText("Sign out of OneSpace?");
-        alert.setContentText("Your local session will be cleared.");
-
-        ButtonType signOut=new ButtonType("Sign Out",ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancel=new ButtonType("Cancel",ButtonBar.ButtonData.CANCEL_CLOSE);
-
-        alert.getButtonTypes().setAll(cancel,signOut);
-        styleDialog(alert);
-
-        alert.showAndWait().ifPresent(result->{
-            if(result==signOut){
-                UserSession.clearSession();
-                LandingPage.showLandingPage();
-            }
-        });
-    }
-
-    // =========================================================
-    // HELPERS
-    // =========================================================
 
     private StackPane createOneSpaceLogo(){
         Image logoImage=new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
