@@ -9,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.file_handlers.model.UserSession;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class AuthController {
 
@@ -51,9 +52,19 @@ public class AuthController {
                 String uid = json.optString("localId", null);
                 String idToken = json.optString("idToken", null);
                 String trimmedEmail = email.trim();
+                String displayName = (fullName != null && !fullName.isBlank()) ? fullName.trim() : "User";
 
                 if (uid != null && idToken != null) {
                     createUserInFirestore(uid, trimmedEmail, idToken, fullName, bio);
+
+                    // Initialize session so the app recognizes the user as logged in immediately after sign up
+                    UserSession.setInstance(
+                            uid,
+                            idToken,
+                            trimmedEmail,
+                            displayName,
+                            false
+                    );
                 }
 
                 return idToken;
@@ -508,4 +519,64 @@ public class AuthController {
 
         return false;
     }
+
+    public boolean deleteAuthUser(String uid) {
+    try {
+        FirebaseAuth.getInstance().deleteUser(uid);
+        System.out.println("Firebase Auth user deleted: " + uid);
+        return true;
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+
+public boolean deleteAccount(
+            String idToken
+    ) {
+        try {
+            JSONObject payload =
+                    new JSONObject()
+                            .put("idToken", idToken);
+
+            HttpClient client =
+                    HttpClient.newHttpClient();
+
+            URI uri =
+                    URI.create(
+                            "https://identitytoolkit.googleapis.com/v1/accounts:delete?key="
+                                    + API_KEY
+                    );
+
+            HttpRequest request =
+                    HttpRequest.newBuilder()
+                            .uri(uri)
+                            .header(
+                                    "Content-Type",
+                                    "application/json"
+                            )
+                            .POST(
+                                    HttpRequest.BodyPublishers
+                                            .ofString(
+                                                    payload.toString()
+                                            )
+                            )
+                            .build();
+
+            HttpResponse<String> response =
+                    client.send(
+                            request,
+                            HttpResponse.BodyHandlers.ofString()
+                    );
+
+            return response.statusCode() == 200;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    
 }
