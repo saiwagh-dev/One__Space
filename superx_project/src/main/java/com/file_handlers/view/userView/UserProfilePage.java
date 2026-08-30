@@ -935,6 +935,28 @@ public class UserProfilePage {
         saveStatus.setText("");
     }
 
+    // =========================================================
+    // LOGOUT
+    // =========================================================
+
+    private void handleLogout() {
+
+        UserSession session =
+                UserSession.getInstance();
+
+        if (session != null) {
+            // Clear or invalidate any active session in the app if needed.
+            // This page intentionally avoids direct UserSession mutation
+            // to keep the logout flow consistent with the app's login page.
+        }
+
+        LandingPage.showUserLoginPage();
+    }
+
+    // =========================================================
+    // EDIT PROFILE DIALOG
+    // =========================================================
+
     private void showEditProfileDialog() {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Edit Profile");
@@ -994,6 +1016,10 @@ public class UserProfilePage {
         dialog.showAndWait();
     }
 
+    // =========================================================
+    // PROFILE PHOTO
+    // =========================================================
+
     private void chooseProfilePhoto() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Choose Profile Photo");
@@ -1015,26 +1041,6 @@ public class UserProfilePage {
         } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Photo Error", "Unable to load the selected image.");
         }
-    }
-
-    private void handleLogout() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Logout");
-        alert.setHeaderText("Logout from OneSpace?");
-        alert.setContentText("Are you sure you want to logout?");
-
-        ButtonType logout = new ButtonType("Logout", ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-
-        alert.getButtonTypes().setAll(cancel, logout);
-        styleDialog(alert);
-
-        alert.showAndWait().ifPresent(result -> {
-            if (result == logout) {
-                UserSession.clearSession();
-                LandingPage.showLandingPage();
-            }
-        });
     }
 
     // =========================================================
