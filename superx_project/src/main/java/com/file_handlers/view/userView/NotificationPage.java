@@ -12,7 +12,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -30,16 +29,13 @@ import java.util.List;
 
 public class NotificationPage {
 
-    // Style Constants
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-    // Design System Color Palette
     private static final String APP = "#31435B";
     private static final String NAV = "#1E2A3A";
     private static final String BG_SIDEBAR_CARD = "#141D29";
     private static final String CARD = "#DDE8F8";
     private static final String INNER = "#CADDF2";
-    private static final String INPUT = "#141E2C";
     private static final String BORDER = "#C3D6EC";
     private static final String SIDEBAR_BORDER = "#2D3D52";
     private static final String BLUE = "#2563EB";
@@ -54,25 +50,18 @@ public class NotificationPage {
     private String filter = "All";
 
     public Scene getNotificationsScene() {
-         String activeUserName = "User";
+        String activeUserName = "User";
         String initials = "U";
 
         if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
-                String fullName = UserSession.getInstance().getDisplayName().trim();
-                if (!fullName.isEmpty()) {
-                // Extract only the first name (everything before the first space)
-                        String[] parts = fullName.split("\\s+");
-                        activeUserName = parts[0];
-        
-                        // Grab the initial from the first name
-                        initials = activeUserName.substring(0, 1).toUpperCase();
-                }
+            String fullName = UserSession.getInstance().getDisplayName().trim();
+            if (!fullName.isEmpty()) {
+                String[] parts = fullName.split("\\s+");
+                activeUserName = parts[0];
+                initials = activeUserName.substring(0, 1).toUpperCase();
+            }
         }
         init();
-
-        // =========================================================
-        // SIDEBAR
-        // =========================================================
 
         StackPane logoIcon = createOneSpaceLogo();
 
@@ -95,8 +84,6 @@ public class NotificationPage {
         Button trash = nav("🗑", "Trash", false);
         Button notifications = nav("🔔", "Notifications", true);
         Button settings = nav("⚙", "Settings", false);
-        Button logoutBtn = nav("🚪", "Logout", false);
-
 
         dashboard.setOnAction(e -> LandingPage.showUserDashboard());
         spaces.setOnAction(e -> LandingPage.showUserSpace());
@@ -108,11 +95,9 @@ public class NotificationPage {
         trash.setOnAction(e -> LandingPage.showTrashPage());
         notifications.setOnAction(e -> LandingPage.showNotificationPage());
         settings.setOnAction(e -> LandingPage.showSettingPage());
-        logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
 
-        VBox navList = new VBox(4, dashboard, spaces, search, calendar, ai, collab, recent,  trash, settings, logoutBtn);
+        VBox navList = new VBox(4, dashboard, spaces, search, calendar, ai, collab, recent, trash, notifications);
 
-        // Sidebar Storage Card
         Label storageTitle = text("Storage Used", 12, true, WHITE);
         storageTitle.setStyle("-fx-text-fill: " + WHITE + ";");
 
@@ -130,10 +115,10 @@ public class NotificationPage {
         sidebarProgress.setPrefHeight(6);
         sidebarProgress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: #0E1520;");
 
-        Button manageStorageBtn = new Button("Manage Storage ›");
+        Button manageStorageBtn = new Button("Storage Index ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
-        //manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexedPage());
+        manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexPage());
 
         VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
@@ -142,176 +127,123 @@ public class NotificationPage {
         Region sidebarSpacer = space();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
 
-        VBox side = new VBox(12, logoBox, navList, notifications, sidebarSpacer, settings, storageCard);
+        VBox side = new VBox(12, logoBox, navList, sidebarSpacer, settings, storageCard);
         side.setPadding(new Insets(20, 14, 20, 14));
         side.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         side.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         side.setStyle("-fx-background-color: " + NAV + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 1 0 0;");
-
-        // =========================================================
-        // TOP SEARCH BAR & PROFILE
-        // =========================================================
-
-        Label searchIcon = text("⌕", 16, false, LIGHT);
-        searchIcon.setStyle("-fx-text-fill: " + LIGHT + ";");
-
-        TextField topSearch = new TextField();
-        topSearch.setPromptText("Search in OneSpace...");
-        topSearch.setPrefHeight(38);
-        topSearch.setStyle("-fx-background-color: transparent; -fx-prompt-text-fill: " + LIGHT + "; -fx-font-size: 13px; -fx-text-fill: " + WHITE + ";");
-
-        Label keyShortcut = text("⌘ K", 10, true, LIGHT);
-        keyShortcut.setStyle("-fx-background-color: #141E2C; -fx-text-fill: " + LIGHT + "; -fx-padding: 3 6; -fx-background-radius: 4;");
-
-        HBox topSearchContainer = new HBox(8, searchIcon, topSearch, keyShortcut);
-        topSearchContainer.setAlignment(Pos.CENTER_LEFT);
-        topSearchContainer.setPadding(new Insets(0, 12, 0, 14));
-        topSearchContainer.setPrefWidth(420);
-        topSearchContainer.setStyle("-fx-background-color: " + INPUT + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;");
-        HBox.setHgrow(topSearch, Priority.ALWAYS);
 
         Button bell = new Button("🔔");
         bell.setStyle("-fx-background-color: transparent; -fx-font-size: 16px; -fx-text-fill: " + WHITE + "; -fx-cursor: hand;");
         bell.setOnAction(e -> LandingPage.showNotificationPage());
 
         Label avatar = new Label(initials);
-avatar.setPrefSize(34, 34);
-avatar.setAlignment(Pos.CENTER);
-avatar.setStyle(
-        "-fx-background-color: " + BLUE + ";" +
-        "-fx-background-radius: 50%;" +
-        "-fx-text-fill: " + WHITE + ";" +
-        "-fx-font-weight: bold;" +
-        "-fx-font-size: 12px;"
-);
-
-Label userName = new Label(activeUserName);
-userName.setFont(
-        Font.font(FONT, FontWeight.SEMI_BOLD, 13)
-);
-userName.setStyle(
-        "-fx-text-fill: " + WHITE + ";"
-);
-
-Label dropDown = new Label("⌄");
-dropDown.setStyle(
-        "-fx-text-fill: " + LIGHT + ";"
-);
-
-
-// =========================================================
-// CLICKABLE PROFILE OPTION
-// =========================================================
-
-HBox profileOption =
-        new HBox(
-                8,
-                avatar,
-                userName,
-                dropDown
+        avatar.setPrefSize(34, 34);
+        avatar.setAlignment(Pos.CENTER);
+        avatar.setStyle(
+                "-fx-background-color: " + BLUE + ";" +
+                "-fx-background-radius: 50%;" +
+                "-fx-text-fill: " + WHITE + ";" +
+                "-fx-font-weight: bold;" +
+                "-fx-font-size: 12px;"
         );
 
-profileOption.setAlignment(
-        Pos.CENTER
-);
-
-profileOption.setPadding(
-        new Insets(5, 8, 5, 8)
-);
-
-profileOption.setStyle(
-        "-fx-background-color: transparent;" +
-        "-fx-background-radius: 8;" +
-        "-fx-cursor: hand;"
-);
-
-
-// =========================================================
-// OPEN PROFILE PAGE WHEN CLICKED
-// =========================================================
-
-profileOption.setOnMouseClicked(e -> {
-    LandingPage.showUserProfilePage();
-});
-
-
-// =========================================================
-// HOVER EFFECT
-// =========================================================
-
-profileOption.setOnMouseEntered(e -> {
-    profileOption.setStyle(
-            "-fx-background-color: #26354A;" +
-            "-fx-background-radius: 8;" +
-            "-fx-cursor: hand;"
-    );
-});
-
-profileOption.setOnMouseExited(e -> {
-    profileOption.setStyle(
-            "-fx-background-color: transparent;" +
-            "-fx-background-radius: 8;" +
-            "-fx-cursor: hand;"
-    );
-});
-
-
-// =========================================================
-// TOP RIGHT
-// =========================================================
-
-HBox profileBox =
-        new HBox(
-                10,
-                bell,
-                profileOption
+        Label userName = new Label(activeUserName);
+        userName.setFont(
+                Font.font(FONT, FontWeight.SEMI_BOLD, 13)
+        );
+        userName.setStyle(
+                "-fx-text-fill: " + WHITE + ";"
         );
 
-profileBox.setAlignment(
-        Pos.CENTER
-);
-
-
-// =========================================================
-// TOP BAR
-// =========================================================
-
-HBox topBar =
-        new HBox(
-                20,
-                topSearchContainer,
-                new Region(),
-                profileBox
+        Label dropDown = new Label("⌄");
+        dropDown.setStyle(
+                "-fx-text-fill: " + LIGHT + ";"
         );
 
-HBox.setHgrow(
-        topBar.getChildren().get(1),
-        Priority.ALWAYS
-);
+        HBox profileOption =
+                new HBox(
+                        8,
+                        avatar,
+                        userName,
+                        dropDown
+                );
 
-topBar.setAlignment(
-        Pos.CENTER_LEFT
-);
+        profileOption.setAlignment(
+                Pos.CENTER
+        );
 
-topBar.setPadding(
-        new Insets(
-                16,
-                ResponsiveUtil.PAGE_PADDING,
-                14,
-                ResponsiveUtil.PAGE_PADDING
-        )
-);
+        profileOption.setPadding(
+                new Insets(5, 8, 5, 8)
+        );
 
-topBar.setStyle(
-        "-fx-background-color: " + NAV + ";" +
-        "-fx-border-color: " + SIDEBAR_BORDER + ";" +
-        "-fx-border-width: 0 0 1 0;"
-);
+        profileOption.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-background-radius: 8;" +
+                "-fx-cursor: hand;"
+        );
 
+        profileOption.setOnMouseClicked(e -> {
+            LandingPage.showUserProfilePage();
+        });
 
-        // =========================================================
-        // NOTIFICATIONS HEADER & FILTERS
-        // =========================================================
+        profileOption.setOnMouseEntered(e -> {
+            profileOption.setStyle(
+                    "-fx-background-color: #26354A;" +
+                    "-fx-background-radius: 8;" +
+                    "-fx-cursor: hand;"
+            );
+        });
+
+        profileOption.setOnMouseExited(e -> {
+            profileOption.setStyle(
+                    "-fx-background-color: transparent;" +
+                    "-fx-background-radius: 8;" +
+                    "-fx-cursor: hand;"
+            );
+        });
+
+        HBox profileBox =
+                new HBox(
+                        10,
+                        bell,
+                        profileOption
+                );
+
+        profileBox.setAlignment(
+                Pos.CENTER
+        );
+
+        HBox topBar =
+                new HBox(
+                        20,
+                        new Region(),
+                        profileBox
+                );
+
+        HBox.setHgrow(
+                topBar.getChildren().get(0),
+                Priority.ALWAYS
+        );
+
+        topBar.setAlignment(
+                Pos.CENTER_LEFT
+        );
+
+        topBar.setPadding(
+                new Insets(
+                        16,
+                        ResponsiveUtil.PAGE_PADDING,
+                        14,
+                        ResponsiveUtil.PAGE_PADDING
+                )
+        );
+
+        topBar.setStyle(
+                "-fx-background-color: " + NAV + ";" +
+                "-fx-border-color: " + SIDEBAR_BORDER + ";" +
+                "-fx-border-width: 0 0 1 0;"
+        );
 
         Label title = text("Notifications", 24, true, WHITE);
         title.setStyle("-fx-text-fill: " + WHITE + ";");
@@ -516,7 +448,6 @@ topBar.setStyle(
 
     private void init() {
         data.clear();
-              // Fetch dynamic collaboration invites & workspace activities from Firestore
         String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
         try {
             com.google.cloud.firestore.Firestore db = FirebaseConfig.getFirestore();
@@ -526,7 +457,6 @@ topBar.setStyle(
                 String spaceDocId = wsDoc.getId();
                 String spaceName = spaceDocId.replaceAll("_", " ");
 
-                // Check members subcollection for pending invites or membership actions
                 var memberDocs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
                 for (var mDoc : memberDocs) {
                     String email = mDoc.getString("email");
@@ -545,7 +475,6 @@ topBar.setStyle(
                     }
                 }
 
-                // Check files subcollection for recent file uploads/activity in workspaces
                 var fileDocs = db.collection("workspaces").document(spaceDocId).collection("files").get().get().getDocuments();
                 for (var fDoc : fileDocs) {
                     String fileName = fDoc.getString("fileName");
@@ -562,10 +491,10 @@ topBar.setStyle(
                 "Downloads folder · 4.2 GB recoverable", "1 h", "Reminders"));
 
         data.add(new N("🛡", "Sensitive files found",
-                "Identity and passport scans detected", "3 h", "Reminders"));
+                "Identity and document scans detected", "3 h", "Reminders"));
 
-        data.add(new N("📅", "Passport expires in 12 days",
-                "Linked to Passport_Scan.pdf", "5 h", "Reminders"));
+        data.add(new N("📅", "Document expires in 12 days",
+                "Linked to Document_Scan.pdf", "5 h", "Reminders"));
 
         data.add(new N("💬", "Riya commented on a shared file",
                 "Cloud_Computing_Seminar.pptx", "Yesterday", "Collaboration"));

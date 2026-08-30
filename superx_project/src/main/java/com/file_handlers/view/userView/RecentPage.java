@@ -17,6 +17,10 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import java.awt.Desktop;
 import java.io.File;
+import java.time.Instant;
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
 import java.util.List;
 
 public class RecentPage{
@@ -55,7 +59,6 @@ public class RecentPage{
         Button recentBtn=createSidebarButton("🕒","Recent",true);
         Button trashBtn=createSidebarButton("🗑","Trash",false);
         Button settingsBtn=createSidebarButton("⚙","Settings",false);
-        Button logoutBtn=createSidebarButton("🚪","Logout",false);
 
         dashboardBtn.setOnAction(e->LandingPage.showUserDashboard());
         spacesBtn.setOnAction(e->LandingPage.showUserSpace());
@@ -66,7 +69,6 @@ public class RecentPage{
         recentBtn.setOnAction(e->LandingPage.showRecentPage());
         trashBtn.setOnAction(e->LandingPage.showTrashPage());
         settingsBtn.setOnAction(e->LandingPage.showSettingPage());
-        logoutBtn.setOnAction(e->LandingPage.showUserLoginPage());
 
         VBox navList=new VBox(4,dashboardBtn,spacesBtn,searchBtn,calendarBtn,aiBtn,collabBtn,recentBtn,trashBtn);
         Region navGap=new Region();
@@ -87,32 +89,20 @@ public class RecentPage{
         progress.setPrefHeight(6);
         progress.setStyle("-fx-accent:"+PRIMARY_BLUE+";-fx-control-inner-background:#0E1520;");
 
-        VBox storageCard=new VBox(8,storageTitle,storageValGroup,progress);
+        Button manageStorageBtn=new Button("Storage Index ›");
+        manageStorageBtn.setFont(Font.font(FONT,FontWeight.SEMI_BOLD,11));
+        manageStorageBtn.setStyle("-fx-background-color:transparent;-fx-text-fill:#60A5FA;-fx-padding:2 0 0 0;-fx-cursor:hand;");
+        manageStorageBtn.setOnAction(e->LandingPage.showStorageIndexPage());
+
+        VBox storageCard=new VBox(8,storageTitle,storageValGroup,progress,manageStorageBtn);
         storageCard.setPadding(new Insets(14));
         storageCard.setStyle("-fx-background-color:"+BG_SIDEBAR_CARD+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-radius:12;-fx-background-radius:12;");
 
-        VBox sidebar=new VBox(12,logoBox,navList,navGap,settingsBtn,logoutBtn,storageCard);
+        VBox sidebar=new VBox(12,logoBox,navList,navGap,settingsBtn,storageCard);
         sidebar.setPadding(new Insets(20,14,20,14));
         sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 1 0 0;");
-
-        Label searchIcon=label("⌕",16,FontWeight.NORMAL,TEXT_MUTED_LIGHT);
-
-        TextField searchField=new TextField();
-        searchField.setPromptText("Search in OneSpace...");
-        searchField.setPrefHeight(38);
-        searchField.setStyle("-fx-background-color:transparent;-fx-prompt-text-fill:"+TEXT_MUTED_LIGHT+";-fx-font-size:13px;-fx-text-fill:"+TEXT_LIGHT+";");
-
-        Label shortcut=label("⌘ K",10,FontWeight.SEMI_BOLD,TEXT_MUTED_LIGHT);
-        shortcut.setStyle("-fx-background-color:#141E2C;-fx-text-fill:"+TEXT_MUTED_LIGHT+";-fx-padding:3 6;-fx-background-radius:4;");
-
-        HBox searchBox=new HBox(8,searchIcon,searchField,shortcut);
-        searchBox.setAlignment(Pos.CENTER_LEFT);
-        searchBox.setPadding(new Insets(0,12,0,14));
-        searchBox.setPrefWidth(420);
-        searchBox.setStyle("-fx-background-color:#141E2C;-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-radius:10;-fx-background-radius:10;");
-        HBox.setHgrow(searchField,Priority.ALWAYS);
 
         Button bell=new Button("🔔");
         bell.setStyle("-fx-background-color:transparent;-fx-font-size:16px;-fx-text-fill:"+TEXT_LIGHT+";");
@@ -130,7 +120,7 @@ public class RecentPage{
         Region topGap=new Region();
         HBox.setHgrow(topGap,Priority.ALWAYS);
 
-        HBox topBar=new HBox(20,searchBox,topGap,profile);
+        HBox topBar=new HBox(20,topGap,profile);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPadding(new Insets(16,ResponsiveUtil.PAGE_PADDING,14,ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 0 1 0;");
@@ -286,7 +276,7 @@ public class RecentPage{
                     }catch(Exception e){
                         e.printStackTrace();
                     }
-                });
+            });
                 thread.setDaemon(true);
                 thread.start();
             }

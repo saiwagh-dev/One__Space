@@ -25,7 +25,7 @@ import java.time.format.TextStyle;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class UserCalendar{
+public class UserCalendar {
     private static final String FONT="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
     private static final String BG_SIDEBAR="#1E2A3A",BG_SIDEBAR_CARD="#141D29",SIDEBAR_BORDER="#2D3D52";
     private static final String BG_CENTER_CANVAS="#31435B",BG_CARD="#DDE8F8",BG_CARD_INNER="#CADDF2",BORDER_CARD="#C3D6EC",BG_INPUT="#EDF3FA";
@@ -70,7 +70,6 @@ public class UserCalendar{
         Button recentBtn=createSidebarButton("🕒","Recent",false);
         Button trashBtn=createSidebarButton("🗑","Trash",false);
         Button settingsBtn=createSidebarButton("⚙","Settings",false);
-        Button logoutBtn=createSidebarButton("🚪","Logout",false);
 
         dashboardBtn.setOnAction(e->LandingPage.showUserDashboard());
         spacesBtn.setOnAction(e->LandingPage.showUserSpace());
@@ -81,7 +80,6 @@ public class UserCalendar{
         recentBtn.setOnAction(e->LandingPage.showRecentPage());
         trashBtn.setOnAction(e->LandingPage.showTrashPage());
         settingsBtn.setOnAction(e->LandingPage.showSettingPage());
-        logoutBtn.setOnAction(e->{UserSession.clearSession();LandingPage.showUserLoginPage();});
 
         VBox navList=new VBox(4,dashboardBtn,spacesBtn,searchBtn,calendarBtn,aiBtn,collabBtn,recentBtn,trashBtn);
 
@@ -97,8 +95,10 @@ public class UserCalendar{
         storagePercent.setFont(Font.font(FONT,FontWeight.BOLD,11));
         storagePercent.setStyle("-fx-text-fill:"+TEXT_MUTED_LIGHT+";");
 
-        HBox storageValGroup=new HBox(storageVal,new Region(),storagePercent);
-        HBox.setHgrow(storageValGroup.getChildren().get(1),Priority.ALWAYS);
+        Region storageSpacer=new Region();
+        HBox.setHgrow(storageSpacer,Priority.ALWAYS);
+
+        HBox storageValGroup=new HBox(storageVal,storageSpacer,storagePercent);
         storageValGroup.setAlignment(Pos.CENTER_LEFT);
 
         ProgressBar sidebarProgress=new ProgressBar(.64);
@@ -106,9 +106,10 @@ public class UserCalendar{
         sidebarProgress.setPrefHeight(6);
         sidebarProgress.setStyle("-fx-accent:"+PRIMARY_BLUE+";-fx-control-inner-background:#0E1520;");
 
-        Button manageStorageBtn=new Button("Manage Storage ›");
+        Button manageStorageBtn=new Button("Storage Index ›");
         manageStorageBtn.setFont(Font.font(FONT,FontWeight.SEMI_BOLD,11));
         manageStorageBtn.setStyle("-fx-background-color:transparent;-fx-text-fill:#60A5FA;-fx-padding:2 0 0 0;-fx-cursor:hand;");
+        manageStorageBtn.setOnAction(e->LandingPage.showStorageIndexPage());
 
         VBox storageCard=new VBox(8,storageTitle,storageValGroup,sidebarProgress,manageStorageBtn);
         storageCard.setPadding(new Insets(14));
@@ -117,31 +118,11 @@ public class UserCalendar{
         Region sidebarSpacer=new Region();
         VBox.setVgrow(sidebarSpacer,Priority.ALWAYS);
 
-        VBox sidebar=new VBox(12,logoBox,navList,sidebarSpacer,settingsBtn,logoutBtn,storageCard);
+        VBox sidebar=new VBox(12,logoBox,navList,sidebarSpacer,settingsBtn,storageCard);
         sidebar.setPadding(new Insets(20,14,20,14));
         sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 1 0 0;");
-
-        Label searchIcon=new Label("⌕");
-        searchIcon.setFont(Font.font(FONT,16));
-        searchIcon.setStyle("-fx-text-fill:"+TEXT_MUTED_LIGHT+";");
-
-        TextField searchField=new TextField();
-        searchField.setPromptText("Search files or dates...");
-        searchField.setPrefHeight(38);
-        searchField.setStyle("-fx-background-color:transparent;-fx-prompt-text-fill:"+TEXT_MUTED_LIGHT+";-fx-font-size:13px;-fx-text-fill:"+TEXT_LIGHT+";");
-
-        Label keyShortcut=new Label("⌘ K");
-        keyShortcut.setFont(Font.font(FONT,FontWeight.SEMI_BOLD,10));
-        keyShortcut.setStyle("-fx-background-color:#141E2C;-fx-text-fill:"+TEXT_MUTED_LIGHT+";-fx-padding:3 6;-fx-background-radius:4;");
-
-        HBox searchContainer=new HBox(8,searchIcon,searchField,keyShortcut);
-        searchContainer.setAlignment(Pos.CENTER_LEFT);
-        searchContainer.setPadding(new Insets(0,12,0,14));
-        searchContainer.setPrefWidth(420);
-        searchContainer.setStyle("-fx-background-color:#141E2C;-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-radius:10;-fx-background-radius:10;");
-        HBox.setHgrow(searchField,Priority.ALWAYS);
 
         Button bellBtn=new Button("🔔");
         bellBtn.setStyle("-fx-background-color:transparent;-fx-font-size:16px;-fx-text-fill:"+TEXT_LIGHT+";-fx-cursor:hand;");
@@ -167,8 +148,8 @@ public class UserCalendar{
         HBox profileBox=new HBox(10,bellBtn,profileOption);
         profileBox.setAlignment(Pos.CENTER);
 
-        HBox topBar=new HBox(20,searchContainer,new Region(),profileBox);
-        HBox.setHgrow(topBar.getChildren().get(1),Priority.ALWAYS);
+        HBox topBar=new HBox(20,new Region(),profileBox);
+        HBox.setHgrow(topBar.getChildren().get(0),Priority.ALWAYS);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPadding(new Insets(16,ResponsiveUtil.PAGE_PADDING,14,ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color:"+BG_SIDEBAR+";-fx-border-color:"+SIDEBAR_BORDER+";-fx-border-width:0 0 1 0;");
