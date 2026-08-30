@@ -1,6 +1,7 @@
 package com.file_handlers.view.adminView;
 
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.geometry.Insets;
@@ -53,6 +54,9 @@ public class AdminProfilePage {
     private static final String GREEN = "#10B981";
     private static final String DANGER_BORDER = "rgba(239, 68, 68, 0.4)";
     private static final String DANGER_BTN = "#DC2626";
+    
+    private String activeUserName = "Admin";
+    private String initials = "A";
 
     // Form fields that can be updated from the modal
     private TextField fullNameField;
@@ -65,7 +69,16 @@ public class AdminProfilePage {
     private Label heroHandleLabel;
     private Label heroDescLabel;
 
-    public AdminProfilePage() {}
+    public AdminProfilePage() { UserSession session = UserSession.getInstance();
+
+        if (session != null && session.getDisplayName() != null) {
+            String fullName = session.getDisplayName().trim();
+            if (!fullName.isEmpty()) {
+                String[] parts = fullName.split("\\s+");
+                this.activeUserName = parts[0];
+                this.initials = this.activeUserName.substring(0, 1).toUpperCase();
+            }
+        }}
 
     public Scene getAdminProfileScene() {
         BorderPane root = new BorderPane();
@@ -215,13 +228,13 @@ public class AdminProfilePage {
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        Label avatar = new Label("AV");
+        Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
-        Label admin = new Label("Admin");
+        Label admin = new Label(activeUserName);
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
 

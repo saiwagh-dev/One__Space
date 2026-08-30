@@ -26,6 +26,7 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
 
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 
 public class AdminAnalytics {
@@ -52,8 +53,20 @@ public class AdminAnalytics {
     private static final String PURPLE_LIGHT = "rgba(0, 210, 255, 0.15)";
     private static final String ORANGE = "#F59E0B";
     private static final String ORANGE_LIGHT = "rgba(245, 158, 11, 0.15)";
+    
+    private String activeUserName = "Admin";
+    private String initials = "A";
 
-    public AdminAnalytics() {}
+    public AdminAnalytics() {UserSession session = UserSession.getInstance();
+
+        if (session != null && session.getDisplayName() != null) {
+            String fullName = session.getDisplayName().trim();
+            if (!fullName.isEmpty()) {
+                String[] parts = fullName.split("\\s+");
+                this.activeUserName = parts[0];
+                this.initials = this.activeUserName.substring(0, 1).toUpperCase();
+            }
+        }}
 
     public Scene getAnalyticsScene() {
         BorderPane root = new BorderPane();
@@ -210,13 +223,13 @@ public class AdminAnalytics {
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        Label avatar = new Label("AV");
+        Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
-        Label admin = new Label("Admin");
+        Label admin = new Label(activeUserName);
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
 
