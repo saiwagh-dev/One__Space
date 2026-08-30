@@ -8,7 +8,6 @@ import com.file_handlers.view.userView.CollaborationPage;
 import com.file_handlers.view.userView.NotificationPage;
 import com.file_handlers.view.userView.RecentPage;
 import com.file_handlers.view.userView.StorageIndexPage;
-import com.file_handlers.view.userView.UnifiedSpaceView;
 import com.file_handlers.view.userView.UserCalendar;
 import com.file_handlers.view.userView.UserDashboard;
 import com.file_handlers.view.userView.UserLoginPage;
@@ -162,7 +161,7 @@ public class LandingPage extends Application {
     public static void showUnifiedSpace(String spaceId, String spaceName) {
         try {
             UnifiedSpaceView view =
-                    new UnifiedSpaceView(spaceId, spaceName);
+                    new UnifiedSpaceView();
             setScene(view.getUnifiedSpaceScene());
         } catch (Exception e) {
             e.printStackTrace();
@@ -181,6 +180,10 @@ public class LandingPage extends Application {
 
     public static void showAdminDashboard() {
         setScene(new AdminDashboard().getAdminDashboardScene());
+    }
+
+    public static void showAdminNotificationPage() {
+        setScene(new AdminNotificationPage().getAdminNotificationPageScene());
     }
 
     public static void showAdminUsers() {
@@ -218,6 +221,8 @@ public class LandingPage extends Application {
     public static void showAdminProfilePage() {
         setScene(new AdminProfilePage().getAdminProfileScene());
     }
+
+    
 
     // ================= LANDING PAGE =================
 
@@ -473,6 +478,7 @@ public class LandingPage extends Application {
         return label;
     }
 
+<<<<<<< HEAD
     private SVGPath createIcon(String type) {
         SVGPath icon = new SVGPath();
         icon.setFill(Color.TRANSPARENT);
@@ -484,4 +490,7 @@ public class LandingPage extends Application {
         }
         return icon;
     }
+=======
+    
+>>>>>>> 9827c6e (updated admin ui)
 }

@@ -15,6 +15,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Popup;
 
 import java.io.File;
+import com.google.cloud.Timestamp;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -27,7 +28,6 @@ import com.file_handlers.model.Reminder;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
-import com.google.cloud.Timestamp;
 
 public class AddReminderPage {
     // Typography
