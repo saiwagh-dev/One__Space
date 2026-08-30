@@ -16,10 +16,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.Popup;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -28,21 +31,26 @@ import java.util.List;
 
 public class StorageIndexPage {
 
-    private static final String TOPBAR = "#1E2A3A";
-    private static final String BACKGROUND = "#31445D";
+    // Typography
+    private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-    private static final String CARD = "#DCE8F7";
-    private static final String CARD_HOVER = "#D2E2F5";
+    // 1. Sidebar & Top Bar Tones
+    private static final String SIDEBAR_BG = "#070C16";
+    private static final String SIDEBAR_BORDER = "rgba(255, 255, 255, 0.07)";
 
-    private static final String TEXT = "#10213A";
-    private static final String MUTED = "#536985";
+    // 2. Center Workspace Canvas: Atmospheric Dark Radial Glow
+    private static final String MAIN_BG = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
 
+    // 3. Main Glassmorphic Cards & Container Colors
+    private static final String CARD_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
+    private static final String CARD_BG_INNER = "linear-gradient(to bottom right, rgba(13, 22, 38, 0.9), rgba(8, 14, 26, 0.95))";
+    private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
+
+    // 4. Vibrant Typography & Accent Highlights
+    private static final String WHITE = "#FFFFFF";
+    private static final String LIGHT_SECONDARY = "#94A3B8";
     private static final String BLUE = "#2563EB";
-
     private static final String GREEN = "#10B981";
-    private static final String GREEN_LIGHT = "#A7EFD2";
-
-    private static final String BORDER = "#C2D4E8";
 
     private final File oneSpace =
             new File(
@@ -57,7 +65,7 @@ public class StorageIndexPage {
         root.setCenter(createMainArea());
 
         root.setStyle(
-                "-fx-background-color:" + BACKGROUND + ";"
+                "-fx-background-color: " + SIDEBAR_BG + ";"
         );
 
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
@@ -71,7 +79,7 @@ public class StorageIndexPage {
         );
 
         main.setStyle(
-                "-fx-background-color:" + BACKGROUND + ";"
+                "-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";"
         );
 
         return main;
@@ -79,47 +87,50 @@ public class StorageIndexPage {
 
     private HBox createTopBar() {
 
-        Button backButton = new Button("←  Dashboard");
+        Button backButton = new Button("←   Dashboard");
 
-        backButton.setPrefHeight(44);
+        backButton.setPrefHeight(38);
 
         backButton.setStyle(
-                "-fx-background-color:#142030;" +
-                "-fx-text-fill:#FFFFFF;" +
-                "-fx-font-size:13px;" +
-                "-fx-font-weight:bold;" +
-                "-fx-border-color:#30445D;" +
-                "-fx-border-radius:12;" +
-                "-fx-background-radius:12;" +
-                "-fx-padding:0 16;" +
-                "-fx-cursor:hand;"
+                "-fx-background-color: rgba(13, 22, 38, 0.85);" +
+                "-fx-text-fill: " + WHITE + ";" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-border-color: rgba(255, 255, 255, 0.1);" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;" +
+                "-fx-padding: 0 16;" +
+                "-fx-cursor: hand;"
         );
 
         backButton.setOnMouseEntered(
                 e -> backButton.setStyle(
-                        "-fx-background-color:#2563EB;" +
-                        "-fx-text-fill:#FFFFFF;" +
-                        "-fx-font-size:13px;" +
-                        "-fx-font-weight:bold;" +
-                        "-fx-border-color:#2563EB;" +
-                        "-fx-border-radius:12;" +
-                        "-fx-background-radius:12;" +
-                        "-fx-padding:0 16;" +
-                        "-fx-cursor:hand;"
+                        "-fx-background-color: rgba(37, 99, 235, 0.2);" +
+                        "-fx-text-fill: " + WHITE + ";" +
+                        "-fx-font-family: " + FONT + ";" +
+                        "-fx-font-size: 13px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-border-color: rgba(56, 189, 248, 0.4);" +
+                        "-fx-border-radius: 8;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 0 16;" +
+                        "-fx-cursor: hand;"
                 )
         );
 
         backButton.setOnMouseExited(
                 e -> backButton.setStyle(
-                        "-fx-background-color:#142030;" +
-                        "-fx-text-fill:#FFFFFF;" +
-                        "-fx-font-size:13px;" +
-                        "-fx-font-weight:bold;" +
-                        "-fx-border-color:#30445D;" +
-                        "-fx-border-radius:12;" +
-                        "-fx-background-radius:12;" +
-                        "-fx-padding:0 16;" +
-                        "-fx-cursor:hand;"
+                        "-fx-background-color: rgba(13, 22, 38, 0.85);" +
+                        "-fx-text-fill: " + WHITE + ";" +
+                        "-fx-font-family: " + FONT + ";" +
+                        "-fx-font-size: 13px;" +
+                        "-fx-font-weight: bold;" +
+                        "-fx-border-color: rgba(255, 255, 255, 0.1);" +
+                        "-fx-border-radius: 8;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 0 16;" +
+                        "-fx-cursor: hand;"
                 )
         );
 
@@ -127,117 +138,192 @@ public class StorageIndexPage {
                 e -> LandingPage.showUserDashboard()
         );
 
-        Button notification =
-                new Button("♟");
+        String activeUserName = "User";
+        String initials = "U";
 
-        notification.setStyle(
-                "-fx-background-color:transparent;" +
-                "-fx-text-fill:#FFFFFF;" +
-                "-fx-font-size:18px;" +
-                "-fx-cursor:hand;"
-        );
+        UserSession session = UserSession.getInstance();
 
-        notification.setOnAction(
-                e -> LandingPage.showNotificationPage()
-        );
-
-        String name = "Ananta";
-
-        try {
-
-            UserSession session =
-                    UserSession.getInstance();
-
-            if (session != null &&
-                session.getDisplayName() != null &&
-                !session.getDisplayName().isBlank()) {
-
-                name =
-                        session.getDisplayName()
-                                .split("\\s+")[0];
-            }
-
-        } catch (Exception ignored) {
+        if (session != null && session.getDisplayName() != null && !session.getDisplayName().isBlank()) {
+            String fullName = session.getDisplayName().trim();
+            activeUserName = fullName.split("\\s+")[0];
+            initials = activeUserName.substring(0, 1).toUpperCase();
         }
 
-        Label avatar =
-                label(
-                        name.substring(0, 1)
-                                .toUpperCase(),
-                        14,
-                        true,
-                        "#FFFFFF"
-                );
+        SVGPath bellIcon = createIcon("bell");
+        bellIcon.setStroke(Color.WHITE);
+        bellIcon.setStrokeWidth(2);
 
-        avatar.setPrefSize(38, 38);
+        Button bellBtn = new Button();
+        bellBtn.setGraphic(bellIcon);
+        bellBtn.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
+        bellBtn.setOnAction(e -> LandingPage.showNotificationPage());
+
+        Label avatar = new Label(initials);
+        avatar.setPrefSize(34, 34); avatar.setMinSize(34, 34); avatar.setMaxSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
+        avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        avatar.setTextFill(Color.WHITE);
+        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
-        avatar.setStyle(
-                "-fx-background-color:" +
-                BLUE + ";" +
-                "-fx-background-radius:50%;"
+        Label userName = new Label(activeUserName);
+        userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
+        userName.setStyle("-fx-text-fill: " + WHITE + ";");
+
+        Label dropDown = new Label("⌄");
+        dropDown.setFont(Font.font(FONT, FontWeight.NORMAL, 12));
+        dropDown.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
+
+        HBox profileOption = new HBox(8, avatar, userName, dropDown);
+        profileOption.setAlignment(Pos.CENTER);
+        profileOption.setPadding(new Insets(4, 12, 4, 6));
+        profileOption.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+
+        // Custom Dropdown Menu
+        Popup userDropdownPopup = new Popup();
+        userDropdownPopup.setAutoHide(true);
+
+        Button profileDropdownBtn = new Button("👥   Profile");
+        profileDropdownBtn.setMaxWidth(Double.MAX_VALUE);
+        profileDropdownBtn.setAlignment(Pos.CENTER_LEFT);
+        profileDropdownBtn.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-text-fill: #F59E0B;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-padding: 8 12;" +
+                "-fx-cursor: hand;"
+        );
+        profileDropdownBtn.setOnMouseEntered(e -> profileDropdownBtn.setStyle(
+                "-fx-background-color: #1E293B;" +
+                "-fx-text-fill: #F59E0B;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-padding: 8 12;" +
+                "-fx-cursor: hand;" +
+                "-fx-background-radius: 6;"
+        ));
+        profileDropdownBtn.setOnMouseExited(e -> profileDropdownBtn.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-text-fill: #F59E0B;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-padding: 8 12;" +
+                "-fx-cursor: hand;"
+        ));
+        profileDropdownBtn.setOnAction(e -> {
+            userDropdownPopup.hide();
+            LandingPage.showUserProfilePage();
+        });
+
+        Button settingsDropdownBtn = new Button("⚙   Settings");
+        settingsDropdownBtn.setMaxWidth(Double.MAX_VALUE);
+        settingsDropdownBtn.setAlignment(Pos.CENTER_LEFT);
+        settingsDropdownBtn.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-text-fill: #38BDF8;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-padding: 8 12;" +
+                "-fx-cursor: hand;"
+        );
+        settingsDropdownBtn.setOnMouseEntered(e -> settingsDropdownBtn.setStyle(
+                "-fx-background-color: #1E293B;" +
+                "-fx-text-fill: #38BDF8;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-padding: 8 12;" +
+                "-fx-cursor: hand;" +
+                "-fx-background-radius: 6;"
+        ));
+        settingsDropdownBtn.setOnMouseExited(e -> settingsDropdownBtn.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-text-fill: #38BDF8;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-padding: 8 12;" +
+                "-fx-cursor: hand;"
+        ));
+        settingsDropdownBtn.setOnAction(e -> {
+            userDropdownPopup.hide();
+            LandingPage.showSettingPage();
+        });
+
+        Separator dropdownSeparator = new Separator();
+        dropdownSeparator.setStyle("-fx-background-color: #1E293B; -fx-padding: 4 0;");
+
+        Button logoutDropdownBtn = new Button("↳   Logout");
+        logoutDropdownBtn.setMaxWidth(Double.MAX_VALUE);
+        logoutDropdownBtn.setAlignment(Pos.CENTER_LEFT);
+        logoutDropdownBtn.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-text-fill: #F87171;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-padding: 8 12;" +
+                "-fx-cursor: hand;"
+        );
+        logoutDropdownBtn.setOnMouseEntered(e -> logoutDropdownBtn.setStyle(
+                "-fx-background-color: #1E293B;" +
+                "-fx-text-fill: #F87171;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-padding: 8 12;" +
+                "-fx-cursor: hand;" +
+                "-fx-background-radius: 6;"
+        ));
+        logoutDropdownBtn.setOnMouseExited(e -> logoutDropdownBtn.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-text-fill: #F87171;" +
+                "-fx-font-size: 14px;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-padding: 8 12;" +
+                "-fx-cursor: hand;"
+        ));
+        logoutDropdownBtn.setOnAction(e -> {
+            userDropdownPopup.hide();
+            UserSession.clearSession();
+            LandingPage.showUserLoginPage();
+        });
+
+        VBox dropdownContainer = new VBox(4, profileDropdownBtn, settingsDropdownBtn, dropdownSeparator, logoutDropdownBtn);
+        dropdownContainer.setPadding(new Insets(8));
+        dropdownContainer.setPrefWidth(180);
+        dropdownContainer.setStyle(
+                "-fx-background-color: #0A121E;" +
+                "-fx-border-color: #1E2D42;" +
+                "-fx-border-width: 1px;" +
+                "-fx-border-radius: 12px;" +
+                "-fx-background-radius: 12px;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 16, 0, 0, 8);"
         );
 
-        Label userName =
-                label(
-                        name,
-                        14,
-                        true,
-                        "#FFFFFF"
-                );
+        userDropdownPopup.getContent().add(dropdownContainer);
 
-        Label arrow =
-                label(
-                        "⌄",
-                        13,
-                        false,
-                        "#A7B6CA"
-                );
+        profileOption.setOnMouseClicked(e -> {
+            if (userDropdownPopup.isShowing()) {
+                userDropdownPopup.hide();
+            } else {
+                javafx.geometry.Point2D point = profileOption.localToScreen(0, profileOption.getHeight() + 6);
+                userDropdownPopup.show(profileOption, point.getX(), point.getY());
+            }
+        });
 
-        HBox profile =
-                new HBox(
-                        10,
-                        avatar,
-                        userName,
-                        arrow
-                );
+        HBox profileBox = new HBox(10, bellBtn, profileOption);
+        profileBox.setAlignment(Pos.CENTER);
 
-        profile.setAlignment(
-                Pos.CENTER
+        Region topBarSpacer = spacer();
+
+        HBox topBar = new HBox(20, backButton, topBarSpacer, profileBox);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setPrefHeight(70); topBar.setMinHeight(70); topBar.setMaxHeight(70);
+        topBar.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 14, ResponsiveUtil.PAGE_PADDING));
+        topBar.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-border-color: " + SIDEBAR_BORDER + ";" +
+                "-fx-border-width: 0 0 1 0;"
         );
 
-        Region spacer = spacer();
-
-        HBox bar =
-                new HBox(
-                        16,
-                        backButton,
-                        spacer,
-                        notification,
-                        profile
-                );
-
-        bar.setAlignment(
-                Pos.CENTER_LEFT
-        );
-
-        bar.setPadding(
-                new Insets(
-                        20,
-                        ResponsiveUtil.PAGE_PADDING,
-                        20,
-                        ResponsiveUtil.PAGE_PADDING
-                )
-        );
-
-        bar.setStyle(
-                "-fx-background-color:" +
-                TOPBAR + ";" +
-                "-fx-border-color:#2B3C52;" +
-                "-fx-border-width:0 0 1 0;"
-        );
-
-        return bar;
+        return topBar;
     }
 
     private ScrollPane createStorageContent() {
@@ -254,8 +340,7 @@ public class StorageIndexPage {
         );
 
         content.setStyle(
-                "-fx-background-color:" +
-                BACKGROUND + ";"
+                "-fx-background-color: transparent;"
         );
 
         long oneSpaceSize =
@@ -293,7 +378,7 @@ public class StorageIndexPage {
 
         Button refresh =
                 blueButton(
-                        "⟳  Refresh"
+                        "⟳   Refresh"
                 );
 
         refresh.setOnAction(
@@ -355,7 +440,7 @@ public class StorageIndexPage {
                 new Separator();
 
         separator.setStyle(
-                "-fx-background-color:#50657E;"
+                "-fx-background-color: rgba(255, 255, 255, 0.08);"
         );
 
         HBox footer =
@@ -364,14 +449,14 @@ public class StorageIndexPage {
                                 "Storage data is calculated from your system.",
                                 11,
                                 false,
-                                "#AFC0D5"
+                                LIGHT_SECONDARY
                         ),
                         spacer(),
                         label(
                                 "Actual OneSpace storage • Live system data",
                                 11,
                                 false,
-                                "#AFC0D5"
+                                LIGHT_SECONDARY
                         )
                 );
 
@@ -393,12 +478,14 @@ public class StorageIndexPage {
         scroll.setHbarPolicy(
                 ScrollPane.ScrollBarPolicy.NEVER
         );
+        scroll.setVbarPolicy(
+                ScrollPane.ScrollBarPolicy.AS_NEEDED
+        );
 
         scroll.setStyle(
-                "-fx-background-color:" +
-                BACKGROUND + ";" +
-                "-fx-background:" +
-                BACKGROUND + ";"
+                "-fx-background-color: transparent;" +
+                "-fx-background: transparent;" +
+                "-fx-padding: 0;"
         );
 
         return scroll;
@@ -409,9 +496,9 @@ public class StorageIndexPage {
         Label title =
                 label(
                         "Storage Index",
-                        25,
+                        26,
                         true,
-                        "#FFFFFF"
+                        WHITE
                 );
 
         Label subtitle =
@@ -420,7 +507,7 @@ public class StorageIndexPage {
                         + "OneSpace files and your PC storage.",
                         13,
                         false,
-                        "#AFC0D5"
+                        LIGHT_SECONDARY
                 );
 
         return new VBox(
@@ -435,38 +522,20 @@ public class StorageIndexPage {
             double totalPercent,
             double usedPercent) {
 
-        Label folder =
-                label(
-                        "▰",
-                        30,
-                        true,
-                        GREEN
-                );
+        SVGPath folderIcon = createIcon("files");
+        folderIcon.setStroke(Color.web("#34D399"));
+        folderIcon.setStrokeWidth(2.2);
 
-        VBox icon =
-                new VBox(folder);
-
-        icon.setAlignment(
-                Pos.CENTER
-        );
-
-        icon.setPrefSize(
-                76,
-                76
-        );
-
-        icon.setStyle(
-                "-fx-background-color:" +
-                GREEN_LIGHT + ";" +
-                "-fx-background-radius:50%;"
-        );
+        StackPane icon = new StackPane(folderIcon);
+        icon.setPrefSize(76, 76); icon.setMinSize(76, 76); icon.setMaxSize(76, 76);
+        icon.setStyle("-fx-background-color: rgba(16, 185, 129, 0.15); -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 50%; -fx-background-radius: 50%;");
 
         Label heading =
                 label(
                         "OneSpace Usage",
                         14,
                         true,
-                        MUTED
+                        LIGHT_SECONDARY
                 );
 
         Label sizeLabel =
@@ -474,7 +543,7 @@ public class StorageIndexPage {
                         format(size),
                         31,
                         true,
-                        TEXT
+                        WHITE
                 );
 
         Label description =
@@ -482,7 +551,7 @@ public class StorageIndexPage {
                         "Actual space occupied by OneSpace files",
                         12,
                         false,
-                        MUTED
+                        LIGHT_SECONDARY
                 );
 
         VBox middle =
@@ -506,13 +575,13 @@ public class StorageIndexPage {
                                 ),
                                 27,
                                 true,
-                                GREEN
+                                "#34D399"
                         ),
                         label(
                                 "of total PC storage",
                                 12,
                                 false,
-                                MUTED
+                                LIGHT_SECONDARY
                         ),
                         label(
                                 String.format(
@@ -521,7 +590,7 @@ public class StorageIndexPage {
                                 ),
                                 11,
                                 false,
-                                MUTED
+                                LIGHT_SECONDARY
                         )
                 );
 
@@ -602,13 +671,13 @@ public class StorageIndexPage {
                                 "Storage by Space",
                                 17,
                                 true,
-                                TEXT
+                                WHITE
                         ),
                         label(
                                 "Space used by each OneSpace category.",
                                 12,
                                 false,
-                                MUTED
+                                LIGHT_SECONDARY
                         ),
                         separator(),
                         rows
@@ -630,22 +699,16 @@ public class StorageIndexPage {
             long size,
             double percent) {
 
-        Label icon =
-                label(
-                        "■",
-                        10,
-                        true,
-                        BLUE
-                );
-
-        icon.setPrefWidth(18);
+        SVGPath dotIcon = createIcon("bullet");
+        dotIcon.setStroke(Color.web("#38BDF8"));
+        dotIcon.setStrokeWidth(3);
 
         Label nameLabel =
                 label(
                         name,
                         12,
                         true,
-                        TEXT
+                        WHITE
                 );
 
         Label sizeLabel =
@@ -653,7 +716,7 @@ public class StorageIndexPage {
                         format(size),
                         12,
                         true,
-                        TEXT
+                        WHITE
                 );
 
         sizeLabel.setPrefWidth(76);
@@ -670,10 +733,7 @@ public class StorageIndexPage {
         progress.setPrefHeight(7);
 
         progress.setStyle(
-                "-fx-accent:" +
-                BLUE + ";" +
-                "-fx-control-inner-background:" +
-                "#B8CBE1;"
+                "-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);"
         );
 
         Label percentage =
@@ -684,7 +744,7 @@ public class StorageIndexPage {
                         ),
                         11,
                         true,
-                        MUTED
+                        LIGHT_SECONDARY
                 );
 
         Region spacer =
@@ -692,8 +752,8 @@ public class StorageIndexPage {
 
         HBox row =
                 new HBox(
-                        7,
-                        icon,
+                        8,
+                        dotIcon,
                         nameLabel,
                         sizeLabel,
                         spacer,
@@ -738,13 +798,13 @@ public class StorageIndexPage {
                                 "PC Storage Info",
                                 17,
                                 true,
-                                TEXT
+                                WHITE
                         ),
                         label(
                                 "Current internal drive information.",
                                 12,
                                 false,
-                                MUTED
+                                LIGHT_SECONDARY
                         ),
                         separator()
                 );
@@ -809,7 +869,7 @@ public class StorageIndexPage {
                         name,
                         12,
                         true,
-                        MUTED
+                        LIGHT_SECONDARY
                 );
 
         Label right =
@@ -817,7 +877,7 @@ public class StorageIndexPage {
                         value,
                         12,
                         true,
-                        TEXT
+                        WHITE
                 );
 
         Region spacer =
@@ -879,7 +939,7 @@ public class StorageIndexPage {
                             "No files are currently stored in OneSpace.",
                             12,
                             false,
-                            MUTED
+                            LIGHT_SECONDARY
                     )
             );
         }
@@ -891,14 +951,14 @@ public class StorageIndexPage {
                                 "Files Occupying Storage",
                                 17,
                                 true,
-                                TEXT
+                                WHITE
                         ),
                         label(
                                 "Files currently stored in OneSpace, "
                                 + "sorted by size.",
                                 12,
                                 false,
-                                MUTED
+                                LIGHT_SECONDARY
                         ),
                         separator(),
                         rows
@@ -919,20 +979,16 @@ public class StorageIndexPage {
             File file,
             double percent) {
 
-        Label fileIcon =
-                label(
-                        "▣",
-                        13,
-                        false,
-                        BLUE
-                );
+        SVGPath fileIcon = createIcon("files");
+        fileIcon.setStroke(Color.web("#38BDF8"));
+        fileIcon.setStrokeWidth(2);
 
         Label name =
                 label(
                         file.getName(),
                         12,
                         true,
-                        TEXT
+                        WHITE
                 );
 
         Label size =
@@ -940,7 +996,7 @@ public class StorageIndexPage {
                         format(file.length()),
                         12,
                         true,
-                        TEXT
+                        WHITE
                 );
 
         ProgressBar progress =
@@ -955,10 +1011,7 @@ public class StorageIndexPage {
         progress.setPrefHeight(7);
 
         progress.setStyle(
-                "-fx-accent:" +
-                BLUE + ";" +
-                "-fx-control-inner-background:" +
-                "#B8CBE1;"
+                "-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);"
         );
 
         Region spacer =
@@ -988,9 +1041,10 @@ public class StorageIndexPage {
         );
 
         row.setStyle(
-                "-fx-background-color:" +
-                CARD_HOVER + ";" +
-                "-fx-background-radius:8;"
+                "-fx-background-color: " + CARD_BG_INNER + ";" +
+                "-fx-border-color: rgba(255, 255, 255, 0.05);" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;"
         );
 
         return row;
@@ -1076,13 +1130,13 @@ public class StorageIndexPage {
                                 value,
                                 19,
                                 true,
-                                BLUE
+                                "#38BDF8"
                         ),
                         label(
                                 title,
                                 11,
                                 false,
-                                MUTED
+                                LIGHT_SECONDARY
                         )
                 );
 
@@ -1111,39 +1165,18 @@ public class StorageIndexPage {
         button.setPrefHeight(42);
 
         button.setStyle(
-                "-fx-background-color:" +
-                BLUE + ";" +
-                "-fx-text-fill:#FFFFFF;" +
-                "-fx-font-size:13px;" +
-                "-fx-font-weight:bold;" +
-                "-fx-background-radius:10;" +
-                "-fx-padding:0 18;" +
-                "-fx-cursor:hand;"
-        );
-
-        button.setOnMouseEntered(
-                e -> button.setStyle(
-                        "-fx-background-color:#1D4ED8;" +
-                        "-fx-text-fill:#FFFFFF;" +
-                        "-fx-font-size:13px;" +
-                        "-fx-font-weight:bold;" +
-                        "-fx-background-radius:10;" +
-                        "-fx-padding:0 18;" +
-                        "-fx-cursor:hand;"
-                )
-        );
-
-        button.setOnMouseExited(
-                e -> button.setStyle(
-                        "-fx-background-color:" +
-                        BLUE + ";" +
-                        "-fx-text-fill:#FFFFFF;" +
-                        "-fx-font-size:13px;" +
-                        "-fx-font-weight:bold;" +
-                        "-fx-background-radius:10;" +
-                        "-fx-padding:0 18;" +
-                        "-fx-cursor:hand;"
-                )
+                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+                "-fx-text-fill: #FFFFFF;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-background-radius: 10;" +
+                "-fx-border-color: rgba(96, 165, 250, 0.6);" +
+                "-fx-border-radius: 10;" +
+                "-fx-border-width: 1;" +
+                "-fx-padding: 0 18;" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.45), 10, 0, 0, 2);"
         );
 
         return button;
@@ -1259,7 +1292,7 @@ public class StorageIndexPage {
 
         label.setFont(
                 Font.font(
-                        "System",
+                        FONT,
                         bold
                                 ? FontWeight.BOLD
                                 : FontWeight.NORMAL,
@@ -1293,8 +1326,7 @@ public class StorageIndexPage {
                 new Separator();
 
         separator.setStyle(
-                "-fx-background-color:" +
-                BORDER + ";"
+                "-fx-background-color: rgba(255, 255, 255, 0.08);"
         );
 
         return separator;
@@ -1303,19 +1335,34 @@ public class StorageIndexPage {
     private String cardStyle() {
 
         return
-                "-fx-background-color:" +
-                CARD + ";" +
+                "-fx-background-color: " +
+                CARD_BG + ";" +
 
-                "-fx-border-color:" +
-                BORDER + ";" +
+                "-fx-border-color: " +
+                CARD_BORDER + ";" +
 
-                "-fx-border-radius:16;" +
+                "-fx-border-width: 1.2;" +
 
-                "-fx-background-radius:16;" +
+                "-fx-border-radius: 20;" +
 
-                "-fx-effect:dropshadow(" +
+                "-fx-background-radius: 20;" +
+
+                "-fx-effect: dropshadow(" +
                 "three-pass-box," +
-                "rgba(15,23,42,0.15)," +
-                "7,0,0,3);";
+                "rgba(0,0,0,0.6)," +
+                "24,0,0,10);";
+    }
+
+    private SVGPath createIcon(String type) {
+        SVGPath icon = new SVGPath();
+        icon.setFill(Color.TRANSPARENT);
+        icon.setStrokeWidth(2);
+        switch (type) {
+            case "files": icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13"); break;
+            case "bell": icon.setContent("M6 17 H18 M8 17 V10 A4 4 0 0 1 16 10 V17 M10 20 H14"); break;
+            case "bullet": icon.setContent("M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"); break;
+            default: icon.setContent("M4 4 H20 V20 H4 Z"); break;
+        }
+        return icon;
     }
 }
