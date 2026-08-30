@@ -12,3 +12,6 @@ hs_err_pid*.log
 superx_project/src/main/resources/onespace_firebase_credentials.json
 superx_project/src/main/resources/ServiceAccountKey.json
 superx_project/src/main/resources/java26.json
+
+# VS Code
+.vscode/launch.json

@@ -27,9 +27,13 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.concurrent.Task;
+import java.io.InputStream;
+
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
+import com.file_handlers.dao.AdminStatsDAO;
 
 import java.time.LocalTime;
 
@@ -76,6 +80,11 @@ public class AdminDashboard {
                 this.initials = this.activeUserName.substring(0, 1).toUpperCase();
             }
         }}
+    private final AdminStatsDAO statsDAO = new AdminStatsDAO();
+    private Label totalUsersValue;
+    private Label totalFilesValue;
+
+  
 
     public Scene getAdminDashboardScene() {
        
@@ -417,14 +426,25 @@ public class AdminDashboard {
         secondColumn.setPercentWidth(23);
         grid.getColumnConstraints().addAll(firstColumn, secondColumn);
 
-        VBox totalUsers = createStatCard("users", "Total Users", "500", "↑ 12.5% from last month", BLUE, BLUE_LIGHT, 
-                e -> Platform.runLater(LandingPage::showAdminUsers));
-                
-        VBox totalFiles = createStatCard("files", "Total Files", "2,840", "↑ 8.3% from last month", CYAN, CYAN_LIGHT, 
-                e -> Platform.runLater(LandingPage::showAdminFiles));
+        totalUsersValue = new Label("Loading...");
+        totalFilesValue = new Label("Loading...");
+
+        VBox totalUsers = createStatCard(
+                "users", "Total Users", totalUsersValue,
+                "Current registered users", BLUE, BLUE_LIGHT,
+                e -> Platform.runLater(LandingPage::showAdminUsers)
+        );
+
+        VBox totalFiles = createStatCard(
+                "files", "Total Files", totalFilesValue,
+                "Current uploaded files", CYAN, CYAN_LIGHT,
+                e -> Platform.runLater(LandingPage::showAdminFiles)
+        );
 
         grid.add(totalUsers, 0, 0);
         grid.add(totalFiles, 1, 0);
+
+        loadStatsAsync();
 
         VBox systemHealth = createSystemHealth();
 
@@ -436,12 +456,59 @@ public class AdminDashboard {
         return content;
     }
 
-    private VBox createStatCard(String iconType, String title, String value, String description, String iconColor, String iconBackground, EventHandler<MouseEvent> onClick) {
+    // =========================================================
+    // LOAD REAL ADMIN STATS
+    // =========================================================
+
+    private void loadStatsAsync() {
+
+        Task<int[]> task = new Task<>() {
+            @Override
+            protected int[] call() throws Exception {
+
+                int totalUsers = statsDAO.getTotalUsers();
+                int totalFiles = statsDAO.getTotalFiles();
+
+                return new int[]{totalUsers, totalFiles};
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+
+            int[] stats = task.getValue();
+
+            totalUsersValue.setText(
+                    String.valueOf(stats[0])
+            );
+
+            totalFilesValue.setText(
+                    String.valueOf(stats[1])
+            );
+        });
+
+        task.setOnFailed(e -> {
+
+            totalUsersValue.setText("--");
+            totalFilesValue.setText("--");
+
+            System.err.println(
+                    "Unable to load admin statistics: "
+                            + task.getException()
+            );
+        });
+
+        Thread thread =
+                new Thread(task, "AdminStatsLoader");
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private VBox createStatCard(String iconType, String title, Label valueLabel, String description, String iconColor, String iconBackground, EventHandler<MouseEvent> onClick) {
         Label titleLabel = new Label(title);
         titleLabel.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         titleLabel.setStyle("-fx-text-fill: " + CARD_TITLE + ";");
 
-        Label valueLabel = new Label(value);
         valueLabel.setFont(Font.font(FONT, FontWeight.BOLD, 28));
         valueLabel.setStyle("-fx-text-fill: " + CARD_VALUE + ";");
 
