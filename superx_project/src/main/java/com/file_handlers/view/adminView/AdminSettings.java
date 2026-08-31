@@ -52,6 +52,7 @@ public class AdminSettings {
 
     private static final String CARD_BORDER = null;
 
+
     // Root Containers for Theme Updates
     private BorderPane rootLayout;
     private VBox sidebarNode;
@@ -60,6 +61,8 @@ public class AdminSettings {
     private ScrollPane scrollPaneNode;
 
     private boolean isLightMode = false;
+    private String activeUserName = "Admin";
+    private String initials = "A";
 
     public AdminSettings() {}
 

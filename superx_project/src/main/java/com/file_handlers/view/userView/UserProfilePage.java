@@ -52,17 +52,12 @@ public class UserProfilePage {
     private static final String DEFAULT_USERNAME = "@user";
     private static final String DEFAULT_BIO = "OneSpace user.";
 
-    private static final String BG_INNER = null;
-
-    private static final String BORDER = null;
-
-    private static final String DARK = null;
-
-    private static final String BG_CENTER = null;
-
-    private static final String LIGHT = null;
-
-    private static final String MUTED = null;
+    private static final String BG_INNER = CARD_BG_INNER;
+    private static final String BORDER = "rgba(255, 255, 255, 0.08)";
+    private static final String DARK = WHITE;
+    private static final String BG_CENTER = "#0A121E";
+    private static final String LIGHT = WHITE;
+    private static final String MUTED = LIGHT_SECONDARY;
 
     private TextField nameField;
     private TextField emailField;
@@ -146,7 +141,7 @@ public class UserProfilePage {
         ));
         profileDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
-            LandingPage.showUserProfilePage();
+            Platform.runLater(LandingPage::showUserProfilePage);
         });
 
         Button settingsDropdownBtn = new Button("⚙   Settings");
@@ -179,7 +174,7 @@ public class UserProfilePage {
         ));
         settingsDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
-            LandingPage.showSettingPage();
+            Platform.runLater(LandingPage::showSettingPage);
         });
 
         Separator dropdownSeparator = new Separator();
@@ -216,7 +211,7 @@ public class UserProfilePage {
         logoutDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
             UserSession.clearSession();
-            LandingPage.showUserLoginPage();
+            Platform.runLater(LandingPage::showUserLoginPage);
         });
 
         VBox dropdownContainer = new VBox(4, profileDropdownBtn, settingsDropdownBtn, dropdownSeparator, logoutDropdownBtn);
@@ -356,36 +351,6 @@ public class UserProfilePage {
                 accountRows
         );
 
-        Label passIcon = label("🔑", 18, FontWeight.NORMAL, BLUE);
-        passIcon.setPrefSize(40, 40);
-        passIcon.setAlignment(Pos.CENTER);
-        passIcon.setStyle("-fx-background-color:#DBEAFE;-fx-background-radius:9;-fx-text-fill:" + BLUE + ";");
-
-        Label passTitle = label("Change Password", 13, FontWeight.BOLD, DARK);
-        Label passText = label("Update your password to keep your account secure.", 11, FontWeight.NORMAL, MUTED);
-        passText.setWrapText(true);
-        VBox passInfo = new VBox(3, passTitle, passText);
-
-        Region passSpacer = spacer();
-        HBox.setHgrow(passSpacer, Priority.ALWAYS);
-
-        Button passButton = new Button("Change Password");
-        passButton.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        passButton.setStyle("-fx-background-color:" + BG_INNER + ";-fx-text-fill:" + DARK + ";-fx-border-color:" + BORDER + ";-fx-border-radius:7;-fx-background-radius:7;-fx-cursor:hand;-fx-padding:8 12;");
-        passButton.setOnAction(e -> showChangePasswordDialog1());
-
-        HBox passRow = new HBox(12, passIcon, passInfo, passSpacer, passButton);
-        passRow.setAlignment(Pos.CENTER_LEFT);
-        passRow.setPadding(new Insets(16));
-        passRow.setStyle("-fx-background-color:" + BG_INNER + ";-fx-border-color:" + BORDER + ";-fx-border-radius:11;-fx-background-radius:11;");
-
-        Label deleteIcon = label("⚠", 18, FontWeight.NORMAL, "#DC2626");
-        deleteIcon.setPrefSize(40, 40);
-        deleteIcon.setAlignment(Pos.CENTER);
-        deleteIcon.setStyle("-fx-background-color:#FEE2E2;-fx-background-radius:9;-fx-text-fill:#DC2626;");
-
-        Label deleteTitle = label("Delete Account", 13, FontWeight.BOLD, DARK);
-        Label deleteText = label("Permanently remove your OneSpace account and associated data.", 11, FontWeight.NORMAL, MUTED);
         SVGPath passIcon1 = createIcon("key");
         passIcon1.setStroke(Color.web("#38BDF8"));
         passIcon1.setStrokeWidth(2);
@@ -428,13 +393,13 @@ public class UserProfilePage {
 
         Button deleteButton = new Button("Delete Account");
         deleteButton.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        deleteButton.setStyle("-fx-background-color:#FEE2E2;-fx-text-fill:#B91C1C;-fx-border-color:#FECACA;-fx-border-radius:7;-fx-background-radius:7;-fx-cursor:hand;-fx-padding:8 12;");
+        deleteButton.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-text-fill: #F87171; -fx-border-color: rgba(239, 68, 68, 0.3); -fx-border-radius: 7; -fx-background-radius: 7; -fx-cursor: hand; -fx-padding: 8 12;");
         deleteButton.setOnAction(e -> showDeleteAccountDialog());
 
-        HBox deleteRow = new HBox(12, deleteIcon1, deleteInfo, deleteSpacer, deleteButton);
+        HBox deleteRow = new HBox(12, deleteIconPane, deleteInfo, deleteSpacer, deleteButton);
         deleteRow.setAlignment(Pos.CENTER_LEFT);
         deleteRow.setPadding(new Insets(16));
-        deleteRow.setStyle("-fx-background-color:" + BG_INNER + ";-fx-border-color:" + BORDER + ";-fx-border-radius:11;-fx-background-radius:11;");
+        deleteRow.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 11; -fx-background-radius: 11;");
 
         VBox actionsCard1 = card(
                 cardTitle("Account Actions"),
@@ -483,8 +448,9 @@ public class UserProfilePage {
     }
 
     private Region spacer() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'spacer'");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        return spacer;
     }
 
     private VBox createSidebar() {
@@ -521,8 +487,7 @@ public class UserProfilePage {
         Label storageValue = label("64.2 GB of 100 GB", 12, FontWeight.BOLD, WHITE);
         Label storagePercent = label("64%", 11, FontWeight.BOLD, LIGHT_SECONDARY);
 
-        Region storageSpacer = new Region();
-        HBox.setHgrow(storageSpacer, Priority.ALWAYS);
+        Region storageSpacer = spacer();
 
         HBox storageValues = new HBox(storageValue, storageSpacer, storagePercent);
         storageValues.setAlignment(Pos.CENTER_LEFT);
@@ -716,141 +681,6 @@ public class UserProfilePage {
         thread.start();
     }
 
-    private void showChangePasswordDialog() {
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Change Password");
-        dialog.setHeaderText("Update your account password");
-
-        PasswordField oldPass = new PasswordField();
-        oldPass.setPrefHeight(40);
-        oldPass.setStyle("-fx-background-color:#FFFFFF;-fx-border-color:" + BORDER + ";-fx-border-radius:8;-fx-background-radius:8;-fx-padding:0 12;-fx-text-fill:" + DARK + ";-fx-font-size:12px;");
-
-        PasswordField newPass = new PasswordField();
-        newPass.setPrefHeight(40);
-        newPass.setStyle("-fx-background-color:#FFFFFF;-fx-border-color:" + BORDER + ";-fx-border-radius:8;-fx-background-radius:8;-fx-padding:0 12;-fx-text-fill:" + DARK + ";-fx-font-size:12px;");
-
-        PasswordField confirmPass = new PasswordField();
-        confirmPass.setPrefHeight(40);
-        confirmPass.setStyle("-fx-background-color:#FFFFFF;-fx-border-color:" + BORDER + ";-fx-border-radius:8;-fx-background-radius:8;-fx-padding:0 12;-fx-text-fill:" + DARK + ";-fx-font-size:12px;");
-
-        VBox content = new VBox(10,
-                fieldBox("Current Password", oldPass),
-                fieldBox("New Password", newPass),
-                fieldBox("Confirm New Password", confirmPass)
-        );
-        content.setPadding(new Insets(10));
-        content.setPrefWidth(350);
-
-        ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-        ButtonType update = new ButtonType("Update Password", ButtonBar.ButtonData.OK_DONE);
-
-        dialog.getDialogPane().getButtonTypes().addAll(cancel, update);
-        dialog.getDialogPane().setContent(content);
-        styleDialog(dialog);
-
-        Button updateBtn = (Button) dialog.getDialogPane().lookupButton(update);
-        updateBtn.setStyle("-fx-background-color:" + BLUE + ";-fx-text-fill:white;-fx-font-weight:bold;-fx-background-radius:7;-fx-cursor:hand;");
-
-        dialog.setResultConverter(result -> {
-            if (result != update) return result;
-
-            String oldP = oldPass.getText();
-            String newP = newPass.getText();
-            String confirmP = confirmPass.getText();
-
-            if (oldP.isEmpty() || newP.isEmpty() || confirmP.isEmpty()) {
-                showAlert(Alert.AlertType.WARNING, "Invalid Input", "Please fill in all password fields.");
-                return null;
-            }
-            if (!newP.equals(confirmP)) {
-                showAlert(Alert.AlertType.WARNING, "Password Mismatch", "New password and confirm password do not match.");
-                return null;
-            }
-            if (newP.length() < 6) {
-                showAlert(Alert.AlertType.WARNING, "Weak Password", "New password must be at least 6 characters long.");
-                return null;
-            }
-
-            UserSession session = UserSession.getInstance();
-            if (session != null && UserSession.isLoggedIn()) {
-                Thread thread = new Thread(() -> {
-                    try {
-                        boolean success = authController.changePassword(session.getIdToken(), oldP, newP);
-                        Platform.runLater(() -> {
-                            if (success) {
-                                showAlert(Alert.AlertType.INFORMATION, "Success", "Password updated successfully.");
-                            } else {
-                                showAlert(Alert.AlertType.ERROR, "Failed", "Failed to update password. Please check your credentials.");
-                            }
-                        });
-                    } catch (Exception e) {
-                        Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Error", "An error occurred while changing password."));
-                    }
-                });
-                thread.setDaemon(true);
-                thread.start();
-            }
-            return result;
-        });
-
-        dialog.showAndWait();
-    }
-
-    private void loadProfileFromFirestore() {
-        UserSession session = UserSession.getInstance();
-        if (session == null || !UserSession.isLoggedIn()) {
-            return;
-        }
-
-        String uid = session.getUid();
-
-        Thread thread = new Thread(() -> {
-                try {
-                    Map<String, Object> profile = profileDAO.getProfile(uid);
-
-                    if (profile == null) {
-                        // No profile found, nothing to load
-                        return;
-                    }
-
-                    String username = readString(profile, "username");
-                    String bio = readString(profile, "bio");
-
-                    if (username == null || username.isBlank()) {
-                        username = createDefaultUsername(session.getDisplayName());
-                    }
-
-                    if (bio == null || bio.isBlank()) {
-                        bio = DEFAULT_BIO;
-                }
-
-                final String finalUsername = normalizeUsername(username);
-                final String finalBio = bio;
-
-                Platform.runLater(() -> {
-                    currentUsername = finalUsername;
-                    currentBio = finalBio;
-
-
-                    if (usernameField != null) usernameField.setText(finalUsername);
-                    if (bioField != null) bioField.setText(finalBio);
-                    if (profileUsernameLabel != null) profileUsernameLabel.setText(finalUsername);
-                    if (profileBioLabel != null) profileBioLabel.setText(finalBio);
-                });
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-
-        thread.setDaemon(true);
-        thread.start();
-    }
-
-    // =========================================================
-    // SAVE PROFILE
-    // =========================================================
-
     private void saveProfile() {
         UserSession session = UserSession.getInstance();
         if (session == null || !UserSession.isLoggedIn()) {
@@ -941,27 +771,9 @@ public class UserProfilePage {
         saveStatus.setText("");
     }
 
-    // =========================================================
-    // LOGOUT
-    // =========================================================
-
     private void handleLogout() {
-
-        UserSession session =
-                UserSession.getInstance();
-
-        if (session != null) {
-            // Clear or invalidate any active session in the app if needed.
-            // This page intentionally avoids direct UserSession mutation
-            // to keep the logout flow consistent with the app's login page.
-        }
-
         LandingPage.showUserLoginPage();
     }
-
-    // =========================================================
-    // EDIT PROFILE DIALOG
-    // =========================================================
 
     private void showEditProfileDialog() {
         Dialog<ButtonType> dialog = new Dialog<>();
@@ -1022,10 +834,6 @@ public class UserProfilePage {
         dialog.showAndWait();
     }
 
-    // =========================================================
-    // PROFILE PHOTO
-    // =========================================================
-
     private void chooseProfilePhoto() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Choose Profile Photo");
@@ -1049,10 +857,6 @@ public class UserProfilePage {
         }
     }
 
-    // =========================================================
-    // DELETE ACCOUNT
-    // =========================================================
-
     private void showDeleteAccountDialog() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Delete Account");
@@ -1065,86 +869,55 @@ public class UserProfilePage {
         alert.getButtonTypes().setAll(cancel, delete);
         styleDialog(alert);
 
-        alert.setHeaderText(
-                "Delete your OneSpace account?"
-        );
+        alert.showAndWait().ifPresent(result -> {
+            if (result == delete) {
+                UserSession session = UserSession.getInstance();
 
-        alert.setContentText(
-                "This action will permanently remove your account and associated data."
-        );
+                if (session == null || !UserSession.isLoggedIn()) {
+                    showAlert(
+                            Alert.AlertType.ERROR,
+                            "Session Error",
+                            "No authenticated user session was found."
+                    );
+                    return;
+                }
 
+                String uid = session.getUid();
+                String idToken = session.getIdToken();
 
-        alert.getButtonTypes()
-                .setAll(
-                        cancel,
-                        delete
-                );
+                Thread thread = new Thread(() -> {
+                    try {
+                        profileDAO.deleteProfile(uid);
+                        boolean authDeleted = authController.deleteAccount(idToken);
 
-        styleDialog(
-                alert
-        );
-
-        alert.showAndWait()
-                .ifPresent(
-                        result -> {
-
-                            if (result == delete) {
-
-                                UserSession session = UserSession.getInstance();
-
-                                if (session == null || !UserSession.isLoggedIn()) {
-                                    showAlert(
-                                            Alert.AlertType.ERROR,
-                                            "Session Error",
-                                            "No authenticated user session was found."
-                                    );
-                                    return;
-                                }
-
-                                String uid = session.getUid();
-                                String idToken = session.getIdToken();
-
-                                Thread thread = new Thread(() -> {
-                                    try {
-                                        // 1. Delete profile from Firestore
-                                        profileDAO.deleteProfile(uid);
-
-                                        // 2. Delete account from Firebase Authentication
-                                        boolean authDeleted = authController.deleteAccount(idToken);
-
-                                        if (!authDeleted) {
-                                            System.out.println("Warning: Firebase Auth deletion failed or requires recent login.");
-                                        }
-
-                                        Platform.runLater(() -> {
-                                            // Clear local session
-                                            UserSession.clearSession();
-
-                                            showAlert(
-                                                    Alert.AlertType.INFORMATION,
-                                                    "Account Deleted",
-                                                    "Your account has been permanently deleted."
-                                            );
-
-                                            // Return to landing page
-                                            LandingPage.showLandingPage();
-                                        });
-
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                        Platform.runLater(() -> showAlert(
-                                                Alert.AlertType.ERROR,
-                                                "Deletion Failed",
-                                                "Unable to delete your account. Please try again."
-                                        ));
-                                    }
-                                });
-
-                                thread.setDaemon(true);
-                                thread.start();
-                            }
+                        if (!authDeleted) {
+                            System.out.println("Warning: Firebase Auth deletion failed or requires recent login.");
                         }
-                );
+
+                        Platform.runLater(() -> {
+                            UserSession.clearSession();
+                            showAlert(
+                                    Alert.AlertType.INFORMATION,
+                                    "Account Deleted",
+                                    "Your account has been permanently deleted."
+                            );
+                            LandingPage.showLandingPage();
+                        });
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Platform.runLater(() -> showAlert(
+                                Alert.AlertType.ERROR,
+                                "Deletion Failed",
+                                "Unable to delete your account. Please try again."
+                        ));
+                    }
+                });
+
+                thread.setDaemon(true);
+                thread.start();
+            }
+        });
     }
 
     private Scene createUnauthenticatedScene() {
@@ -1153,8 +926,7 @@ public class UserProfilePage {
         box.setStyle("-fx-background-color:" + BG_CENTER + ";");
 
         Label title = label("No Active Session", 22, FontWeight.BOLD, LIGHT);
-        String MUTED_LIGHT = null;
-        Label message = label("Please sign in to view your profile.", 13, FontWeight.NORMAL, MUTED_LIGHT);
+        Label message = label("Please sign in to view your profile.", 13, FontWeight.NORMAL, LIGHT_SECONDARY);
 
         Button login = primaryButton("Go to Login", 13);
         login.setOnAction(e -> LandingPage.showUserLoginPage());
@@ -1295,8 +1067,7 @@ public class UserProfilePage {
         Label titleLabel = label(title, 11, FontWeight.SEMI_BOLD, LIGHT_SECONDARY);
         Label valueLabel = label(value, 12, FontWeight.BOLD, WHITE);
 
-        HBox row = new HBox(titleLabel, new Region(), valueLabel);
-        HBox.setHgrow(row.getChildren().get(1), Priority.ALWAYS);
+        HBox row = new HBox(titleLabel, spacer(), valueLabel);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(12, 4, 12, 4));
         row.setStyle("-fx-border-color: transparent transparent rgba(255, 255, 255, 0.08) transparent; -fx-border-width: 0 0 1 0;");
@@ -1345,6 +1116,7 @@ public class UserProfilePage {
         styleDialog(alert);
         alert.showAndWait();
     }
+
     private void resetFieldsToDefaults() {
         currentUsername = DEFAULT_USERNAME;
         currentBio = DEFAULT_BIO;

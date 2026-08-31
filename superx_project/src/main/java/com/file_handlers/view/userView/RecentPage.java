@@ -5,9 +5,12 @@ import com.file_handlers.model.FileData;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -18,6 +21,7 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
+import javafx.util.Duration;
 import java.awt.Desktop;
 import java.io.File;
 import java.util.List;
@@ -68,11 +72,13 @@ public class RecentPage {
         bell.setGraphic(bellIcon);
         bell.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         bell.setOnAction(e -> LandingPage.showNotificationPage());
+        applyHoverAnimation(bell, 1.08, 0);
 
         Label avatar = label(initials, 12, FontWeight.BOLD, WHITE);
         avatar.setMinSize(34, 34); avatar.setPrefSize(34, 34); avatar.setMaxSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        applyHoverAnimation(avatar, 1.15, 0);
 
         Label userName = label(activeUserName, 13, FontWeight.SEMI_BOLD, WHITE);
         Label dropDown = label("⌄", 12, FontWeight.NORMAL, LIGHT_SECONDARY);
@@ -81,6 +87,7 @@ public class RecentPage {
         profileOption.setAlignment(Pos.CENTER);
         profileOption.setPadding(new Insets(4, 12, 4, 6));
         profileOption.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+        applyHoverAnimation(profileOption, 1.04, 0);
 
         // Custom Dropdown Menu
         Popup userDropdownPopup = new Popup();
@@ -116,7 +123,7 @@ public class RecentPage {
         ));
         profileDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
-            LandingPage.showUserProfilePage();
+            Platform.runLater(LandingPage::showUserProfilePage);
         });
 
         Button settingsDropdownBtn = new Button("⚙   Settings");
@@ -149,7 +156,7 @@ public class RecentPage {
         ));
         settingsDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
-            LandingPage.showSettingPage();
+            Platform.runLater(LandingPage::showSettingPage);
         });
 
         Separator dropdownSeparator = new Separator();
@@ -186,7 +193,7 @@ public class RecentPage {
         logoutDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
             UserSession.clearSession();
-            LandingPage.showUserLoginPage();
+            Platform.runLater(LandingPage::showUserLoginPage);
         });
 
         VBox dropdownContainer = new VBox(4, profileDropdownBtn, settingsDropdownBtn, dropdownSeparator, logoutDropdownBtn);
@@ -266,6 +273,41 @@ public class RecentPage {
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
+    private void applyHoverAnimation(Node node, double scaleTo, double translateY) {
+        node.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(scaleTo);
+            st.setToY(scaleTo);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(translateY);
+                tt.play();
+            }
+        });
+
+        node.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(0);
+                tt.play();
+            }
+        });
+    }
+
+    private void animateTranslate(Node node, double xTo, double yTo) {
+        TranslateTransition tt = new TranslateTransition(Duration.millis(130), node);
+        tt.setToX(xTo);
+        tt.setToY(yTo);
+        tt.play();
+    }
+
     private VBox createSidebar() {
         Image logoImage = new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
         ImageView logoView = new ImageView(logoImage);
@@ -276,6 +318,7 @@ public class RecentPage {
         StackPane logoIcon = new StackPane(logoView);
         logoIcon.setPrefSize(42, 42);
         logoIcon.setAlignment(Pos.CENTER);
+        applyHoverAnimation(logoIcon, 1.1, 0);
 
         Label logoText = label("OneSpace", 19, FontWeight.BOLD, WHITE);
         HBox logoHeader = new HBox(10, logoIcon, logoText);
@@ -315,10 +358,13 @@ public class RecentPage {
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
         manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexPage());
+        manageStorageBtn.setOnMouseEntered(e -> animateTranslate(manageStorageBtn, 4, 0));
+        manageStorageBtn.setOnMouseExited(e -> animateTranslate(manageStorageBtn, 0, 0));
 
         VBox storageCard = new VBox(8, storageTitle, storageValGroup, progress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
         storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+        applyHoverAnimation(storageCard, 1.01, -1);
 
         Region navGap = new Region();
         VBox.setVgrow(navGap, Priority.ALWAYS);
@@ -366,14 +412,16 @@ public class RecentPage {
         } else {
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
-                icon.setStroke(Color.WHITE);
-                textLabel.setTextFill(Color.WHITE);
+                button.setStyle("-fx-background-color: rgba(56, 189, 248, 0.12); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
+                icon.setStroke(Color.web("#38BDF8"));
+                textLabel.setTextFill(Color.web("#38BDF8"));
+                animateTranslate(button, 4, 0);
             });
             button.setOnMouseExited(e -> {
                 button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
                 textLabel.setTextFill(Color.web(WHITE));
+                animateTranslate(button, 0, 0);
             });
         }
 
@@ -460,11 +508,17 @@ public class RecentPage {
         row.setMinHeight(56);
 
         String baseStyle = "-fx-background-color: transparent; -fx-background-radius: 10; -fx-cursor: hand;";
-        String hoverStyle = "-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.2); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;";
+        String hoverStyle = "-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 8, 0, 0, 2);";
 
         row.setStyle(baseStyle);
-        row.setOnMouseEntered(e -> row.setStyle(hoverStyle));
-        row.setOnMouseExited(e -> row.setStyle(baseStyle));
+        row.setOnMouseEntered(e -> {
+            row.setStyle(hoverStyle);
+            animateTranslate(row, 4, 0);
+        });
+        row.setOnMouseExited(e -> {
+            row.setStyle(baseStyle);
+            animateTranslate(row, 0, 0);
+        });
         row.setOnMouseClicked(e -> openFile(file));
 
         return row;
