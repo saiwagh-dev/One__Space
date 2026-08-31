@@ -773,7 +773,7 @@ public class CollaborationPage {
         if (filesValue != null) filesValue.setText(totalFiles + " Files");
     }
 
-    private void rebuildWorkspaceCards(BorderPane root) {
+   private void rebuildWorkspaceCards(BorderPane root) {
         workspaceListPane.getChildren().clear();
 
         if (!isGridView) {
@@ -781,7 +781,11 @@ public class CollaborationPage {
             list.setFillWidth(true);
 
             for (WorkspaceData workspace : workspaces) {
+<<<<<<< HEAD
+                HBox card = createWorkspaceCard(workspace, root, workspace.docId);
+=======
                 HBox card = createWorkspaceCard(workspace);
+>>>>>>> origin/Development
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
                 list.getChildren().add(card);
@@ -796,7 +800,11 @@ public class CollaborationPage {
             int col = 0, row = 0;
 
             for (WorkspaceData workspace : workspaces) {
+<<<<<<< HEAD
+                VBox card = createWorkspaceGridCard(workspace, root, workspace.docId);
+=======
                 VBox card = createWorkspaceGridCard(workspace);
+>>>>>>> origin/Development
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
 
@@ -838,7 +846,31 @@ public class CollaborationPage {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox card = new HBox(12, iconPane, text, spacer, role);
+        HBox rightBox = new HBox(8, role);
+        rightBox.setAlignment(Pos.CENTER_RIGHT);
+
+        // Render delete icon only for the Owner
+        if ("Owner".equalsIgnoreCase(w.role) && root != null && docId != null && !docId.isEmpty()) {
+            Button deleteBtn = new Button();
+            SVGPath trashIcon = createIcon("trash");
+            trashIcon.setStroke(Color.web("#F87171"));
+            trashIcon.setStrokeWidth(1.8);
+            deleteBtn.setGraphic(trashIcon);
+            deleteBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.12); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;");
+
+            deleteBtn.setOnMouseEntered(e -> deleteBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.3); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;"));
+            deleteBtn.setOnMouseExited(e -> deleteBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.12); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;"));
+
+            deleteBtn.setOnAction(e -> {
+                e.consume(); // Prevent navigating into workspace
+                deleteWorkspace(docId, root);
+            });
+            deleteBtn.setOnMouseClicked(javafx.event.Event::consume);
+
+            rightBox.getChildren().add(deleteBtn);
+        }
+
+        HBox card = new HBox(12, iconPane, text, spacer, rightBox);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setPadding(new Insets(14));
         applyHover(card);
@@ -846,9 +878,7 @@ public class CollaborationPage {
         return card;
     }
 
-    private HBox createWorkspaceCard(WorkspaceData w) {
-        return createWorkspaceCard(w, null, w.docId);
-    }
+    
 
     private VBox createWorkspaceGridCard(WorkspaceData w, BorderPane root, String docId) {
         SVGPath icon = createIcon(w.iconType);
@@ -865,7 +895,32 @@ public class CollaborationPage {
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox top = new HBox(iconPane, spacer, roleTag);
+
+        HBox topRight = new HBox(6, roleTag);
+        topRight.setAlignment(Pos.CENTER_RIGHT);
+
+        // Render delete icon only for the Owner
+        if ("Owner".equalsIgnoreCase(w.role) && root != null && docId != null && !docId.isEmpty()) {
+            Button deleteBtn = new Button();
+            SVGPath trashIcon = createIcon("trash");
+            trashIcon.setStroke(Color.web("#F87171"));
+            trashIcon.setStrokeWidth(1.8);
+            deleteBtn.setGraphic(trashIcon);
+            deleteBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.12); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;");
+
+            deleteBtn.setOnMouseEntered(e -> deleteBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.3); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;"));
+            deleteBtn.setOnMouseExited(e -> deleteBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.12); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;"));
+
+            deleteBtn.setOnAction(e -> {
+                e.consume(); // Prevent navigating into workspace
+                deleteWorkspace(docId, root);
+            });
+            deleteBtn.setOnMouseClicked(javafx.event.Event::consume);
+
+            topRight.getChildren().add(deleteBtn);
+        }
+
+        HBox top = new HBox(iconPane, spacer, topRight);
         top.setAlignment(Pos.CENTER);
 
         Label title = new Label(w.name);
@@ -884,7 +939,6 @@ public class CollaborationPage {
 
         return card;
     }
-
     private VBox createWorkspaceGridCard(WorkspaceData w) {
         return createWorkspaceGridCard(w, null, w.docId);
     }
@@ -897,6 +951,38 @@ public class CollaborationPage {
 
         confirmDialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
+<<<<<<< HEAD
+                // Instantly remove from local list and refresh UI so it disappears immediately
+                workspaces.removeIf(w -> w.docId != null && w.docId.equals(docId));
+                updateMetrics();
+                rebuildActivityList();
+                if (root != null) {
+                    rebuildWorkspaceCards(root);
+                }
+
+                new Thread(() -> {
+                    try {
+                        com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
+
+                        // 1. Delete members subcollection documents
+                        var members = db.collection("workspaces").document(docId).collection("members").get().get().getDocuments();
+                        for (var m : members) {
+                            m.getReference().delete();
+                        }
+
+                        // 2. Delete files subcollection documents
+                        var files = db.collection("workspaces").document(docId).collection("files").get().get().getDocuments();
+                        for (var f : files) {
+                            f.getReference().delete();
+                        }
+
+                        // 3. Delete parent workspace document
+                        db.collection("workspaces").document(docId).delete().get();
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }).start();
+=======
                 try {
                     com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
                     
@@ -920,6 +1006,7 @@ public class CollaborationPage {
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
+>>>>>>> origin/Development
             }
         });
     }
@@ -954,7 +1041,11 @@ public class CollaborationPage {
         list.setPadding(new Insets(10));
 
         for (WorkspaceData w : workspaces) {
+<<<<<<< HEAD
+            HBox card = createWorkspaceCard(w, root, w.docId);
+=======
             HBox card = createWorkspaceCard(w);
+>>>>>>> origin/Development
             card.setMaxWidth(Double.MAX_VALUE);
             card.setOnMouseClicked(e -> {
                 dialog.close();
@@ -973,6 +1064,65 @@ public class CollaborationPage {
         dialog.getDialogPane().getButtonTypes().add(close);
         dialog.getDialogPane().setContent(padded(scroll, 5));
         styleDialog(dialog, 660, 520);
+        dialog.showAndWait();
+    }
+
+    private void showManageMembersPopup(String spaceDocId) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Manage Workspace Members");
+        dialog.setHeaderText("Member Status & Invites");
+
+        VBox list = new VBox(10);
+        list.setPadding(new Insets(10));
+
+        ScrollPane scroll = new ScrollPane(list);
+        scroll.setFitToWidth(true);
+        scroll.setPrefViewportHeight(400);
+        scroll.setPrefWidth(520);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+
+        try {
+            com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
+            var membersDocs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
+
+            for (var mDoc : membersDocs) {
+                String name = mDoc.getString("name");
+                String email = mDoc.getString("email");
+                String role = mDoc.getString("role");
+                String status = mDoc.getString("status"); // "active", "pending", "declined"
+
+                if (name == null) name = "Unknown";
+                if (status == null) status = "active";
+
+                Label nameLbl = new Label(name + " (" + email + ")");
+                nameLbl.setStyle("-fx-text-fill: #FFFFFF; -fx-font-weight: bold; -fx-font-size: 13px;");
+
+                Label statusLbl = new Label();
+                if ("active".equalsIgnoreCase(status) || "Owner".equalsIgnoreCase(role)) {
+                    statusLbl.setText("Active (" + role + ")");
+                    statusLbl.setStyle("-fx-text-fill: #34D399; -fx-font-size: 11px;");
+                } else if ("pending".equalsIgnoreCase(status)) {
+                    statusLbl.setText("Pending Acceptance");
+                    statusLbl.setStyle("-fx-text-fill: #FBBF24; -fx-font-size: 11px;");
+                } else if ("declined".equalsIgnoreCase(status)) {
+                    statusLbl.setText("✕ Declined Invitation");
+                    statusLbl.setStyle("-fx-text-fill: #F87171; -fx-font-size: 11px;");
+                }
+
+                VBox memberCard = new VBox(4, nameLbl, statusLbl);
+                memberCard.setPadding(new Insets(10));
+                memberCard.setStyle("-fx-background-color: rgba(13, 22, 38, 0.9); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 8; -fx-background-radius: 8;");
+                
+                list.getChildren().add(memberCard);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        ButtonType close = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().add(close);
+        dialog.getDialogPane().setContent(scroll);
+        dialog.getDialogPane().setStyle("-fx-background-color: #0A121E;");
         dialog.showAndWait();
     }
 
@@ -1019,8 +1169,14 @@ public class CollaborationPage {
                     String email = mDoc.getString("email");
                     String status = mDoc.getString("status");
 
+<<<<<<< HEAD
+                if (email != null && email.equalsIgnoreCase(myEmail) && ("pending".equalsIgnoreCase(status) || "declined".equalsIgnoreCase(status))) {
+                foundAny = true;
+
+=======
                     if (email != null && email.equalsIgnoreCase(myEmail) && "pending".equalsIgnoreCase(status)) {
                         foundAny = true;
+>>>>>>> origin/Development
                         String name = mDoc.getString("name");
                         if (name == null) name = "Unknown";
 
@@ -1096,6 +1252,9 @@ public class CollaborationPage {
         row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08);" +
                 "-fx-border-radius: 10; -fx-background-radius: 10;");
 
+<<<<<<< HEAD
+       accept.setOnAction(e -> {
+=======
         row.setOnMouseEntered(e -> {
             row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-radius: 10; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 8, 0, 0, 2);");
             animateTranslate(row, 3, 0);
@@ -1106,6 +1265,7 @@ public class CollaborationPage {
         });
 
         accept.setOnAction(e -> {
+>>>>>>> origin/Development
             try {
                 var db = com.file_handlers.config.FirebaseConfig.getFirestore();
                 var docs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
@@ -1120,24 +1280,33 @@ public class CollaborationPage {
             nameLbl.setText(name + " ✓ Accepted");
             accept.setDisable(true);
             decline.setDisable(true);
+
+            // Instantly refresh the collaboration page so the new workspace shows up right away
+            javafx.application.Platform.runLater(() -> LandingPage.showCollaborationPage());
         });
 
         decline.setOnAction(e -> {
-            try {
-                var db = com.file_handlers.config.FirebaseConfig.getFirestore();
-                var docs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
-                for (var doc : docs) {
-                    if (email.equalsIgnoreCase(doc.getString("email"))) {
-                        doc.getReference().delete();
-                        break;
-                    }
-                }
-            } catch (Exception ex) { ex.printStackTrace(); }
+    try {
+        var db = com.file_handlers.config.FirebaseConfig.getFirestore();
+        // Update the member status in Firestore to "declined" instead of deleting it
+        var docs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
+        for (var doc : docs) {
+            if (email.equalsIgnoreCase(doc.getString("email"))) {
+                doc.getReference().update("status", "declined");
+                break;
+            }
+        }
+    } catch (Exception ex) { 
+        ex.printStackTrace(); 
+    }
 
-            nameLbl.setText(name + " ✕ Declined");
-            accept.setDisable(true);
-            decline.setDisable(true);
-        });
+    // Visually update UI: mark it declined, disable decline button, but KEEP accept button enabled!
+    nameLbl.setText(name + " (Declined)");
+    nameLbl.setStyle("-fx-text-fill: #991B1B; -fx-font-weight: bold;");
+    
+    accept.setDisable(false); // Allows the user to change their mind and accept later!
+    decline.setDisable(true); // Disable decline since it's already declined
+});
 
         return row;
     }
