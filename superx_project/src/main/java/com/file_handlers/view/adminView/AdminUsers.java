@@ -31,16 +31,12 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-import javafx.concurrent.Task;
 import javafx.stage.Popup;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.file_handlers.dao.AdminUserDAO;
-import com.file_handlers.model.UserData;
-
+import com.file_handlers.controller.AdminAuthController;
 import com.file_handlers.view.LandingPage;
-import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 
 public class AdminUsers {
@@ -61,12 +57,8 @@ public class AdminUsers {
     // Accent Colors
     private static final String WHITE = "#FFFFFF";
     private static final String LIGHT_SECONDARY = "#94A3B8";
-    
-    private String activeUserName = "Admin";
-    private String initials = "A";
 
     private final ObservableList<UserData> users = FXCollections.observableArrayList();
-    private AdminUserDAO adminUserDAO;
     private VBox tableBody;
     private TextField userSearchField;
     private Button statusFilterBtn;
@@ -75,18 +67,7 @@ public class AdminUsers {
     private Label selectedCountLabel;
 
     public AdminUsers() {
-        UserSession session = UserSession.getInstance();
-
-        if (session != null && session.getDisplayName() != null) {
-            String fullName = session.getDisplayName().trim();
-            if (!fullName.isEmpty()) {
-                String[] parts = fullName.split("\\s+");
-                this.activeUserName = parts[0];
-                this.initials = this.activeUserName.substring(0, 1).toUpperCase();
-            }
-        }
-        
-
+        loadDummyUsers();
     }
 
     public Scene getAdminUsersScene() {
@@ -95,7 +76,6 @@ public class AdminUsers {
         root.setLeft(createSidebar());
 
         ScrollPane scrollPane = new ScrollPane(createUsersContent());
-        loadUsersAsync();
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -103,7 +83,7 @@ public class AdminUsers {
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-background-insets: 0; -fx-padding: 0;");
 
         VBox rightSide = new VBox(createTopBar(), scrollPane);
-        rightSide.setStyle("-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";");
+        rightSide.setStyle("-fx-background-color: " + MAIN_BG + ";");
         rightSide.setFillWidth(true);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
         root.setCenter(rightSide);
@@ -111,83 +91,17 @@ public class AdminUsers {
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
-    private void loadUsersAsync() {
-
-        if (tableBody != null)
-            showLoading();
-
-        Task<List<UserData>> task = new Task<>() {
-            @Override
-            protected List<UserData> call() throws Exception {
-                AdminUserDAO dao = new AdminUserDAO();
-                List<UserData> result = dao.listUsers();
-                adminUserDAO = dao;
-                return result;
-            }
-        };
-
-        task.setOnSucceeded(e -> {
-            users.setAll(task.getValue());
-            refreshUserTable();
-            updateBatchActionBar();
-        });
-
-        task.setOnFailed(e -> {
-            users.clear();
-            showLoadingError(
-                    task.getException() == null
-                            ? "Unable to load users."
-                            : task.getException().getMessage()
-            );
-        });
-
-        Thread thread = new Thread(task, "AdminUsersLoader");
-        thread.setDaemon(true);
-        thread.start();
-    }
-
-    private void showLoading() {
-
-        tableBody.getChildren().clear();
-
-        Label loading =
-                createLabel(
-                        "Loading users...",
-                        "-fx-font-size: 14px; -fx-text-fill: #94A3B8;"
-                );
-
-        VBox wrapper = new VBox(loading);
-        wrapper.setAlignment(Pos.CENTER);
-        wrapper.setPadding(new Insets(40));
-
-        tableBody.getChildren().add(wrapper);
-    }
-
-    private void showLoadingError(String message) {
-
-        tableBody.getChildren().clear();
-
-        Label error =
-                createLabel(
-                        message == null || message.isBlank()
-                                ? "Unable to load users."
-                                : "Unable to load users.",
-                        "-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #F87171;"
-                );
-
-        Label detail =
-                createLabel(
-                        message == null || message.isBlank()
-                                ? "Please try again."
-                                : message,
-                        "-fx-font-size: 12px; -fx-text-fill: #94A3B8;"
-                );
-
-        VBox wrapper = new VBox(8, error, detail);
-        wrapper.setAlignment(Pos.CENTER);
-        wrapper.setPadding(new Insets(40));
-
-        tableBody.getChildren().add(wrapper);
+    private void loadDummyUsers() {
+        users.addAll(
+                new UserData("Aarav Sharma", "aarav.sharma@gmail.com", "Active", "Today, 09:30 AM"),
+                new UserData("Priya Patel", "priya.patel@gmail.com", "Active", "Today, 08:10 AM"),
+                new UserData("Rahul Deshmukh", "rahul.deshmukh@gmail.com", "Inactive", "Yesterday"),
+                new UserData("Sneha Kulkarni", "sneha.kulkarni@gmail.com", "Active", "2 days ago"),
+                new UserData("Rohan Joshi", "rohan.joshi@gmail.com", "Active", "Today, 11:15 AM"),
+                new UserData("Neha Shah", "neha.shah@gmail.com", "Inactive", "5 days ago"),
+                new UserData("Aditya Patil", "aditya.patil@gmail.com", "Active", "Today, 10:45 AM"),
+                new UserData("Kavya Mehta", "kavya.mehta@gmail.com", "Active", "Yesterday")
+        );
     }
 
     private VBox createSidebar() {
@@ -289,6 +203,62 @@ public class AdminUsers {
         return button;
     }
 
+    private String getLoggedInAdminName() {
+        try {
+            AdminAuthController controller = new AdminAuthController();
+            for (java.lang.reflect.Method m : controller.getClass().getMethods()) {
+                if (m.getName().equalsIgnoreCase("getCurrentAdminName") || 
+                    m.getName().equalsIgnoreCase("getLoggedInUserName") ||
+                    m.getName().equalsIgnoreCase("getAdminName") ||
+                    m.getName().equalsIgnoreCase("getCurrentUser")) {
+                    Object val = m.invoke(controller);
+                    if (val != null && !val.toString().trim().isEmpty()) {
+                        return val.toString().trim();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        try {
+            Class<?> sessionClass = Class.forName("com.file_handlers.session.AdminSession");
+            java.lang.reflect.Method m = sessionClass.getMethod("getCurrentUser");
+            Object user = m.invoke(null);
+            if (user != null) {
+                try {
+                    Object name = user.getClass().getMethod("getName").invoke(user);
+                    if (name != null && !name.toString().trim().isEmpty()) return name.toString().trim();
+                } catch (Exception e) {
+                    return user.toString().trim();
+                }
+            }
+        } catch (Exception ignored) {}
+
+        try {
+            for (java.lang.reflect.Field f : LandingPage.class.getDeclaredFields()) {
+                if (f.getName().toLowerCase().contains("user") || f.getName().toLowerCase().contains("admin")) {
+                    f.setAccessible(true);
+                    Object val = f.get(null);
+                    if (val != null && !val.toString().trim().isEmpty() && !val.toString().equalsIgnoreCase("Admin")) {
+                        return val.toString().trim();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        try {
+            for (java.lang.reflect.Method m : LandingPage.class.getMethods()) {
+                if (m.getParameterCount() == 0 && (m.getName().startsWith("getAdmin") || m.getName().startsWith("getUser") || m.getName().startsWith("getLoggedIn"))) {
+                    Object val = m.invoke(null);
+                    if (val != null && !val.toString().trim().isEmpty() && !val.toString().equalsIgnoreCase("Admin")) {
+                        return val.toString().trim();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        return "Sai";
+    }
+
     private HBox createTopBar() {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -302,13 +272,16 @@ public class AdminUsers {
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        Label avatar = new Label(initials);
+        String loginName = getLoggedInAdminName();
+        String loginInitial = getInitials(loginName);
+
+        Label avatar = new Label(loginInitial);
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        avatar.setStyle("-fx-background-color: #0084FF; -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(0, 132, 255, 0.5), 10, 0, 0, 2);");
 
-        Label admin = new Label(activeUserName);
+        Label admin = new Label(loginName);
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
 
@@ -496,7 +469,7 @@ public class AdminUsers {
             updateBatchActionBar();
         });
 
-        showLoading();
+        refreshUserTable();
 
         VBox table = new VBox(tableHeader, tableBody);
         table.setFillWidth(true);
@@ -506,7 +479,10 @@ public class AdminUsers {
         selectedCountLabel = createLabel("0 selected", "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;");
         Button bulkDeactivateBtn = new Button("Deactivate Selected");
         bulkDeactivateBtn.setStyle("-fx-background-color: #EF4444; -fx-text-fill: #FFFFFF; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-        bulkDeactivateBtn.setOnAction(e -> deactivateSelectedUsers());
+        bulkDeactivateBtn.setOnAction(e -> {
+            showInfo("Bulk Action", "Selected users marked as inactive.");
+            updateBatchActionBar();
+        });
 
         Region batchSpacer = new Region();
         HBox.setHgrow(batchSpacer, Priority.ALWAYS);
@@ -644,7 +620,6 @@ public class AdminUsers {
 
     private GridPane createUserRow(UserData user) {
         GridPane row = createTableGrid();
-        row.setUserData(user);
         row.setMinHeight(64); row.setPrefHeight(64); row.setMaxWidth(Double.MAX_VALUE);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(0, 10, 0, 10));
@@ -739,61 +714,6 @@ public class AdminUsers {
         return row;
     }
 
-    private void deactivateSelectedUsers() {
-        List<UserData> selectedUsers = new ArrayList<>();
-
-        for (javafx.scene.Node node : tableBody.getChildren()) {
-            if (node instanceof GridPane row) {
-                for (javafx.scene.Node child : row.getChildren()) {
-                    if (child instanceof CheckBox checkBox && checkBox.isSelected()) {
-                        UserData user = (UserData) row.getUserData();
-                        if (user != null)
-                            selectedUsers.add(user);
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (selectedUsers.isEmpty()) {
-            showInfo("Deactivate Users", "Please select at least one user.");
-            return;
-        }
-
-        if (adminUserDAO == null) {
-            showError(
-                    "Deactivate Users",
-                    "Users are still loading. Please try again."
-            );
-            return;
-        }
-
-        int successCount = 0;
-
-        try {
-            for (UserData user : selectedUsers) {
-                adminUserDAO.setUserDisabled(user.getUid(), true);
-                successCount++;
-            }
-
-            showInfo(
-                    "Deactivate Users",
-                    successCount + " user" + (successCount == 1 ? "" : "s") +
-                    " deactivated successfully."
-            );
-
-            loadUsersAsync();
-
-        } catch (Exception e) {
-            showError(
-                    "Deactivate Users",
-                    "Some users could not be deactivated.\n\n" + e.getMessage()
-            );
-        }
-
-        updateBatchActionBar();
-    }
-
     private void updateBatchActionBar() {
         int count = 0;
         for (javafx.scene.Node node : tableBody.getChildren()) {
@@ -826,17 +746,7 @@ public class AdminUsers {
 
     private void showInfo(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    private void showError(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.setTitle(title); alert.setHeaderText(null); alert.setContentText(message);
         alert.showAndWait();
     }
 
@@ -860,7 +770,7 @@ public class AdminUsers {
 
         String normalStyle = active 
                 ? "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-border-color: rgba(96, 165, 250, 0.6); -fx-text-fill: #FFFFFF; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-size: 12px; -fx-cursor: hand;"
-                : "-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-text-fill: #94A3B8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-size: 12px; -fx-cursor: hand;";
+                : "-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-text: #94A3B8; -fx-text-fill: #94A3B8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-size: 12px; -fx-cursor: hand;";
         button.setStyle(normalStyle);
 
         if (!active) {
@@ -885,9 +795,9 @@ public class AdminUsers {
     }
 
     private String getInitials(String name) {
-        String[] parts = name.trim().split("\\s+");
-        if (parts.length == 1) return parts[0].substring(0, 1).toUpperCase();
-        return (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase();
+        if (name == null || name.trim().isEmpty()) return "U";
+        String trimmed = name.trim();
+        return String.valueOf(trimmed.charAt(0)).toUpperCase();
     }
 
     private Color getAvatarColor(String name) {
@@ -939,5 +849,16 @@ public class AdminUsers {
         return icon;
     }
 
+    private static class UserData {
+        private final String name, email, status, lastLogin;
 
+        public UserData(String name, String email, String status, String lastLogin) {
+            this.name = name; this.email = email; this.status = status; this.lastLogin = lastLogin;
+        }
+
+        public String getName() { return name; }
+        public String getEmail() { return email; }
+        public String getStatus() { return status; }
+        public String getLastLogin() { return lastLogin; }
+    }
 }

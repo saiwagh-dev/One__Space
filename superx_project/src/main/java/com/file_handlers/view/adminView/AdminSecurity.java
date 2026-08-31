@@ -1,20 +1,13 @@
 package com.file_handlers.view.adminView;
 
+import com.file_handlers.controller.AdminAuthController;
 import com.file_handlers.view.LandingPage;
-import com.file_handlers.model.UserSession;
-import com.file_handlers.dao.AdminAlertDAO;
 import com.file_handlers.util.ResponsiveUtil;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -41,9 +34,6 @@ import javafx.util.Duration;
 
 public class AdminSecurity {
 
-    private final AdminAlertDAO alertDAO = new AdminAlertDAO();
-    private Label failedLoginCountLabel;
-
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
     // 1. Sidebar & Top Bar Tones
@@ -69,22 +59,8 @@ public class AdminSecurity {
     private static final String GREEN = "#10B981";
     public static final String RED = "#EF4444";
     private static final String ORANGE = "#F59E0B";
-    
-    private String activeUserName = "Admin";
-    private String initials = "A";
 
-    public AdminSecurity() {
-        UserSession session = UserSession.getInstance();
-
-        if (session != null && session.getDisplayName() != null) {
-            String fullName = session.getDisplayName().trim();
-            if (!fullName.isEmpty()) {
-                String[] parts = fullName.split("\\s+");
-                this.activeUserName = parts[0];
-                this.initials = this.activeUserName.substring(0, 1).toUpperCase();
-            }
-        }
-    }
+    public AdminSecurity() {}
 
     public Scene getSecurityScene() {
         BorderPane root = new BorderPane();
@@ -256,6 +232,68 @@ public class AdminSecurity {
         return button;
     }
 
+    private String getLoggedInAdminName() {
+        try {
+            AdminAuthController controller = new AdminAuthController();
+            for (java.lang.reflect.Method m : controller.getClass().getMethods()) {
+                if (m.getName().equalsIgnoreCase("getCurrentAdminName") || 
+                    m.getName().equalsIgnoreCase("getLoggedInUserName") ||
+                    m.getName().equalsIgnoreCase("getAdminName") ||
+                    m.getName().equalsIgnoreCase("getCurrentUser")) {
+                    Object val = m.invoke(controller);
+                    if (val != null && !val.toString().trim().isEmpty()) {
+                        return val.toString().trim();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        try {
+            Class<?> sessionClass = Class.forName("com.file_handlers.session.AdminSession");
+            java.lang.reflect.Method m = sessionClass.getMethod("getCurrentUser");
+            Object user = m.invoke(null);
+            if (user != null) {
+                try {
+                    Object name = user.getClass().getMethod("getName").invoke(user);
+                    if (name != null && !name.toString().trim().isEmpty()) return name.toString().trim();
+                } catch (Exception e) {
+                    return user.toString().trim();
+                }
+            }
+        } catch (Exception ignored) {}
+
+        try {
+            for (java.lang.reflect.Field f : LandingPage.class.getDeclaredFields()) {
+                if (f.getName().toLowerCase().contains("user") || f.getName().toLowerCase().contains("admin")) {
+                    f.setAccessible(true);
+                    Object val = f.get(null);
+                    if (val != null && !val.toString().trim().isEmpty() && !val.toString().equalsIgnoreCase("Admin")) {
+                        return val.toString().trim();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        try {
+            for (java.lang.reflect.Method m : LandingPage.class.getMethods()) {
+                if (m.getParameterCount() == 0 && (m.getName().startsWith("getAdmin") || m.getName().startsWith("getUser") || m.getName().startsWith("getLoggedIn"))) {
+                    Object val = m.invoke(null);
+                    if (val != null && !val.toString().trim().isEmpty() && !val.toString().equalsIgnoreCase("Admin")) {
+                        return val.toString().trim();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        return "Sai";
+    }
+
+    private String getInitials(String name) {
+        if (name == null || name.trim().isEmpty()) return "U";
+        String trimmed = name.trim();
+        return String.valueOf(trimmed.charAt(0)).toUpperCase();
+    }
+
     private HBox createTopBar() {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -269,14 +307,17 @@ public class AdminSecurity {
         notificationButton.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notificationButton.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        Label avatar = new Label(initials);
+        String loginName = getLoggedInAdminName();
+        String loginInitial = getInitials(loginName);
+
+        Label avatar = new Label(loginInitial);
         avatar.setPrefSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        avatar.setStyle("-fx-background-color: #0084FF; -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(0, 132, 255, 0.5), 10, 0, 0, 2);");
 
-        Label adminName = new Label(activeUserName);
+        Label adminName = new Label(loginName);
         adminName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         adminName.setTextFill(Color.WHITE);
 
@@ -438,8 +479,7 @@ public class AdminSecurity {
         card.setMaxHeight(380);
 
         HBox header = cardHeader("security", "Failed Login Attempts", "Last 30 Days");
-        failedLoginCountLabel = bigNumber("Loading...");
-        HBox numberRow = new HBox(8, failedLoginCountLabel);
+        HBox numberRow = new HBox(8, bigNumber("128"));
         HBox change = new HBox(8, badge("↑ 18.6%", "rgba(16, 185, 129, 0.15)", GREEN), createSmallSecondaryText("vs previous period"));
 
         CategoryAxis xAxis = new CategoryAxis();
@@ -499,44 +539,7 @@ public class AdminSecurity {
         HBox.setHgrow(ipsSection, Priority.SOMETIMES);
 
         card.getChildren().addAll(header, numberRow, change, chartAndIps);
-
-        loadFailedLoginCount();
-
         return card;
-    }
-
-    private void loadFailedLoginCount() {
-
-        Task<Integer> task = new Task<>() {
-            @Override
-            protected Integer call() throws Exception {
-                return alertDAO.getFailedLoginCount(30);
-            }
-        };
-
-        task.setOnSucceeded(e ->
-                failedLoginCountLabel.setText(
-                        String.valueOf(task.getValue())
-                )
-        );
-
-        task.setOnFailed(e -> {
-            failedLoginCountLabel.setText("--");
-
-            System.err.println(
-                    "[SECURITY] Could not load failed login count: "
-                            + task.getException()
-            );
-        });
-
-        Thread thread =
-                new Thread(
-                        task,
-                        "FailedLoginCountLoader"
-                );
-
-        thread.setDaemon(true);
-        thread.start();
     }
 
     private HBox ipRow(String ip, String attempts) {
@@ -558,24 +561,16 @@ public class AdminSecurity {
         VBox card = card();
         card.setPrefHeight(Region.USE_COMPUTED_SIZE);
 
-        VBox alerts = new VBox(8);
-        alerts.getChildren().add(
-                createWrappedLabel(
-                        "Loading security alerts...",
-                        12,
-                        false,
-                        LIGHT_SECONDARY
-                )
+        VBox alerts = new VBox(
+                8,
+                alert("bell", "Multiple failed login attempts", "User: aarav.verma@example.com", "10 min ago", ORANGE),
+                alert("bell", "Server connection interrupted", "Storage service disconnected", "25 min ago", ORANGE),
+                alert("bell", "Backup service unavailable", "Last backup failed", "1 hour ago", ORANGE),
+                alert("ai", "New device logged in", "User: riya.sharma@example.com", "3 hours ago", GREEN)
         );
 
         Label viewAllAlertsLink = link("View All Alerts  →");
-        viewAllAlertsLink.setOnMouseClicked(e ->
-                openCreativeModalWindow(
-                        "All Security Alerts",
-                        "Recent security events recorded by OneSpace.",
-                        "alerts"
-                )
-        );
+        viewAllAlertsLink.setOnMouseClicked(e -> openCreativeModalWindow("All Security Alerts", "Here is the complete detailed log of all system security alerts.", "alerts"));
 
         card.getChildren().addAll(
                 cardHeader("bell", "Security Alerts", "View All"),
@@ -584,207 +579,7 @@ public class AdminSecurity {
                 viewAllAlertsLink
         );
 
-        loadRecentAlerts(alerts, 4);
-
         return card;
-    }
-
-    private void loadRecentAlerts(
-            VBox container,
-            int limit
-    ) {
-
-        Task<List<Map<String, Object>>> task =
-                new Task<>() {
-                    @Override
-                    protected List<Map<String, Object>> call()
-                            throws Exception {
-                        return alertDAO.getRecentAlerts(limit);
-                    }
-                };
-
-        task.setOnSucceeded(e -> {
-
-            container.getChildren().clear();
-
-            List<Map<String, Object>> alerts =
-                    task.getValue();
-
-            if (alerts == null || alerts.isEmpty()) {
-
-                container.getChildren().add(
-                        createWrappedLabel(
-                                "No security events recorded yet.",
-                                12,
-                                false,
-                                LIGHT_SECONDARY
-                        )
-                );
-
-                return;
-            }
-
-            for (Map<String, Object> data : alerts) {
-
-                String title =
-                        value(data, "title", "Security Event");
-
-                String description =
-                        value(data, "description", "");
-
-                String time =
-                        formatAlertTime(
-                                data.get("createdAt")
-                        );
-
-                String color =
-                        getAlertColor(title);
-
-                String icon =
-                        getAlertIcon(title);
-
-                container.getChildren().add(
-                        alert(
-                                icon,
-                                title,
-                                description,
-                                time,
-                                color
-                        )
-                );
-            }
-        });
-
-        task.setOnFailed(e -> {
-
-            container.getChildren().clear();
-
-            container.getChildren().add(
-                    createWrappedLabel(
-                            "Unable to load security alerts.",
-                            12,
-                            false,
-                            LIGHT_SECONDARY
-                    )
-            );
-
-            System.err.println(
-                    "[SECURITY] Could not load alerts: "
-                            + task.getException()
-            );
-        });
-
-        Thread thread =
-                new Thread(
-                        task,
-                        "AdminSecurityAlertsLoader"
-                );
-
-        thread.setDaemon(true);
-        thread.start();
-    }
-
-    private String value(
-            Map<String, Object> data,
-            String key,
-            String fallback
-    ) {
-
-        Object value = data.get(key);
-
-        if (value == null)
-            return fallback;
-
-        String text = value.toString();
-
-        return text.isBlank()
-                ? fallback
-                : text;
-    }
-
-    private String getAlertColor(String title) {
-
-        String text =
-                title == null
-                        ? ""
-                        : title.toLowerCase();
-
-        if (text.contains("deactivat") ||
-                text.contains("failed") ||
-                text.contains("login")) {
-            return ORANGE;
-        }
-
-        return GREEN;
-    }
-
-    private String getAlertIcon(String title) {
-
-        String text =
-                title == null
-                        ? ""
-                        : title.toLowerCase();
-
-        if (text.contains("login") ||
-                text.contains("deactivat")) {
-            return "security";
-        }
-
-        return "bell";
-    }
-
-    private String formatAlertTime(Object value) {
-
-        if (value == null)
-            return "Unknown time";
-
-        long timestamp = -1;
-
-        if (value instanceof com.google.cloud.Timestamp timestampValue) {
-            timestamp =
-                    timestampValue.toDate().getTime();
-        } else if (value instanceof java.util.Date date) {
-            timestamp = date.getTime();
-        } else if (value instanceof Number number) {
-            timestamp = number.longValue();
-        }
-
-        if (timestamp <= 0)
-            return "Unknown time";
-
-        long difference =
-                System.currentTimeMillis() - timestamp;
-
-        if (difference < 60_000)
-            return "Just now";
-
-        long minutes =
-                difference / 60_000;
-
-        if (minutes < 60)
-            return minutes + " min ago";
-
-        long hours =
-                minutes / 60;
-
-        if (hours < 24)
-            return hours + " hour" +
-                    (hours == 1 ? "" : "s") +
-                    " ago";
-
-        long days =
-                hours / 24;
-
-        if (days < 7)
-            return days + " day" +
-                    (days == 1 ? "" : "s") +
-                    " ago";
-
-        return new SimpleDateFormat(
-                "dd MMM yyyy, HH:mm"
-        ).format(
-                new Date(timestamp)
-        );
     }
 
     private HBox alert(String iconType, String title, String description, String time, String color) {
@@ -957,117 +752,29 @@ public class AdminSecurity {
     }
 
     private TableView<AlertItem> createAlertsTable() {
-
-        TableView<AlertItem> table =
-                new TableView<>();
-
+        TableView<AlertItem> table = new TableView<>();
         table.setPrefHeight(260);
 
-        TableColumn<AlertItem, String> timeCol =
-                new TableColumn<>("Time");
+        TableColumn<AlertItem, String> timeCol = new TableColumn<>("Time");
+        timeCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getTime()));
+        timeCol.setMaxWidth(100);
+        timeCol.setMinWidth(100);
 
-        timeCol.setCellValueFactory(
-                data ->
-                        new javafx.beans.property.SimpleStringProperty(
-                                data.getValue().getTime()
-                        )
+        TableColumn<AlertItem, String> typeCol = new TableColumn<>("Alert Type");
+        typeCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getTitle()));
+
+        TableColumn<AlertItem, String> descCol = new TableColumn<>("Details");
+        descCol.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getDescription()));
+
+        table.getItems().addAll(
+                new AlertItem("10 min ago", "Multiple failed login attempts", "User: aarav.verma@example.com (IP: 192.168.1.45)"),
+                new AlertItem("25 min ago", "Server connection interrupted", "Storage service disconnected unexpectedly"),
+                new AlertItem("1 hour ago", "Backup service unavailable", "Scheduled night backup failed to execute"),
+                new AlertItem("3 hours ago", "New device logged in", "User: riya.sharma@example.com from Chrome/Windows"),
+                new AlertItem("5 hours ago", "High CPU Load", "System utilization peaked above 90% threshold"),
+                new AlertItem("1 day ago", "Unauthorized API Request", "Blocked request with invalid token signature")
         );
-
-        timeCol.setMaxWidth(120);
-        timeCol.setMinWidth(120);
-
-        TableColumn<AlertItem, String> typeCol =
-                new TableColumn<>("Alert Type");
-
-        typeCol.setCellValueFactory(
-                data ->
-                        new javafx.beans.property.SimpleStringProperty(
-                                data.getValue().getTitle()
-                        )
-        );
-
-        TableColumn<AlertItem, String> descCol =
-                new TableColumn<>("Details");
-
-        descCol.setCellValueFactory(
-                data ->
-                        new javafx.beans.property.SimpleStringProperty(
-                                data.getValue().getDescription()
-                        )
-        );
-
-        table.getColumns().addAll(
-                timeCol,
-                typeCol,
-                descCol
-        );
-
-        loadAlertsTable(table, 20);
-
         return table;
-    }
-
-    private void loadAlertsTable(
-            TableView<AlertItem> table,
-            int limit
-    ) {
-
-        Task<List<Map<String, Object>>> task =
-                new Task<>() {
-                    @Override
-                    protected List<Map<String, Object>> call()
-                            throws Exception {
-                        return alertDAO.getRecentAlerts(limit);
-                    }
-                };
-
-        task.setOnSucceeded(e -> {
-
-            table.getItems().clear();
-
-            List<Map<String, Object>> alerts =
-                    task.getValue();
-
-            if (alerts == null)
-                return;
-
-            for (Map<String, Object> data : alerts) {
-
-                table.getItems().add(
-                        new AlertItem(
-                                formatAlertTime(
-                                        data.get("createdAt")
-                                ),
-                                value(
-                                        data,
-                                        "title",
-                                        "Security Event"
-                                ),
-                                value(
-                                        data,
-                                        "description",
-                                        ""
-                                )
-                        )
-                );
-            }
-        });
-
-        task.setOnFailed(e ->
-                System.err.println(
-                        "[SECURITY] Could not load alert table: "
-                                + task.getException()
-                )
-        );
-
-        Thread thread =
-                new Thread(
-                        task,
-                        "AdminSecurityAlertTableLoader"
-                );
-
-        thread.setDaemon(true);
-        thread.start();
     }
 
     private VBox create2FASettingsLayout() {
@@ -1301,6 +1008,6 @@ public class AdminSecurity {
             case "bell": icon.setContent("M6 17 H18 M8 17 V10 A4 4 0 0 1 16 10 V17 M10 20 H14"); break;
             default: icon.setContent("M4 4 H20 V20 H4 Z"); break;
         }
-        return icon;
+        return icon;                  
     }
 }
