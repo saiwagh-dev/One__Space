@@ -215,6 +215,16 @@ public class SharedSpacePage {
         membersList.clear();
         filesList.clear();
 
+        String currentUserName = (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) 
+                ? UserSession.getInstance().getDisplayName() : "Workspace Owner";
+        String currentUserEmail = (UserSession.getInstance() != null && UserSession.getInstance().getEmail() != null) 
+                ? UserSession.getInstance().getEmail() : "owner@email.com";
+        
+        workspaceOwnerName = currentUserName;
+        workspaceOwnerEmail = currentUserEmail;
+
+        String initials = getInitials(workspaceOwnerName);
+
         membersList.add(new CollaborationMemberData(
                 "AV", workspaceOwnerName, workspaceOwnerEmail,
                 "Owner", PRIMARY_LIGHT_BLUE, PRIMARY_BLUE, "active"));
