@@ -1,7 +1,6 @@
 package com.file_handlers.view.userView;
 
 import com.file_handlers.controller.AuthController;
-import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
 

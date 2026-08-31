@@ -49,11 +49,12 @@ public class CollaborationPage {
     private static final String BLUE = "#2563EB";
 
     private static class WorkspaceData {
-        String iconType, iconColor, name, storage, role, badgeBg, badgeText, ownerEmail;
+        String iconType, iconColor, name, storage, role, badgeBg, badgeText, docId;
+        String ownerEmail;
         int members, files;
 
         WorkspaceData(String iconType, String iconColor, String name, int members, int files,
-                      String storage, String role, String badgeBg, String badgeText, String ownerEmail) {
+                      String storage, String role, String badgeBg, String badgeText, String ownerEmail, String docId) {
             this.iconType = iconType;
             this.iconColor = iconColor;
             this.name = name;
@@ -196,7 +197,7 @@ public class CollaborationPage {
 
         if (workspaces.isEmpty()) {
             workspaces.add(new WorkspaceData("files", "#38BDF8", "College Presentation", 4, 32,
-                    "12.4 GB", "Owner", "rgba(37, 99, 235, 0.2)", "#60A5FA", ""));
+                    "12.4 GB", "Owner", "rgba(37, 99, 235, 0.2)", "#60A5FA", "", ""));
         }
 
         if (activitiesList.isEmpty()) {
@@ -690,7 +691,7 @@ public class CollaborationPage {
             list.setFillWidth(true);
 
             for (WorkspaceData workspace : workspaces) {
-    HBox card = createWorkspaceCard(workspace, root, workspace.docId);
+    HBox card = createWorkspaceCard(workspace);
     card.setOnMouseClicked(e -> root.setCenter(
             new SharedSpacePage(workspace.name).getSharedSpaceContent()));
     list.getChildren().add(card);
@@ -704,8 +705,8 @@ public class CollaborationPage {
 
             int col = 0, row = 0;
 
-           for (WorkspaceData workspace : workspaces) {
-                VBox card = createWorkspaceGridCard(workspace, root, workspace.docId); // <--- Added workspace.docId here
+         for (WorkspaceData workspace : workspaces) {
+             VBox card = createWorkspaceGridCard(workspace);
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
 
@@ -848,7 +849,7 @@ public class CollaborationPage {
         list.setPadding(new Insets(10));
 
         for (WorkspaceData w : workspaces) {
-    HBox card = createWorkspaceCard(w, root, w.docId); // Pass root and docId here
+    HBox card = createWorkspaceCard(w);
     card.setMaxWidth(Double.MAX_VALUE);
     card.setOnMouseClicked(e -> {
         dialog.close();
@@ -913,6 +914,7 @@ public class CollaborationPage {
                 for (var mDoc : membersDocs) {
                     String email = mDoc.getString("email");
 
+                    String status = null;
                     if (email != null && email.equalsIgnoreCase(myEmail) && "pending".equalsIgnoreCase(status)) {
                         foundAny = true;
                         String name = mDoc.getString("name");
@@ -1258,7 +1260,8 @@ public class CollaborationPage {
                                 "Owner",
                                 "#BFDBFE",
                                 "#1D4ED8",
-                                ownerEmail
+                                ownerEmail,
+                                docId
                         ));
 
                         javafx.application.Platform.runLater(() -> {

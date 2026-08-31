@@ -1,8 +1,8 @@
 package com.file_handlers.view.adminView;
 
-import com.file_handlers.view.LandingPage;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
+import com.file_handlers.view.LandingPage;
 import com.file_handlers.dao.AdminFileStatsDAO;
 
 import javafx.geometry.Insets;
@@ -572,6 +572,8 @@ public class AdminFiles {
 
         HBox.setHgrow(progressBackground, Priority.ALWAYS);
 
+        String count = null;
+        String percentageText = null;
         Label countLabel = new Label(count + " (" + percentageText + ")");
         countLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + CARD_SECONDARY + ";");
         countLabel.setPrefWidth(100);

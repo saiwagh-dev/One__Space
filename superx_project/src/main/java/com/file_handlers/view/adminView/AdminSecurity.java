@@ -1,9 +1,9 @@
 package com.file_handlers.view.adminView;
 
 import com.file_handlers.controller.AdminAuthController;
-import com.file_handlers.view.LandingPage;
 import com.file_handlers.dao.AdminAlertDAO;
 import com.file_handlers.util.ResponsiveUtil;
+import com.file_handlers.view.LandingPage;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

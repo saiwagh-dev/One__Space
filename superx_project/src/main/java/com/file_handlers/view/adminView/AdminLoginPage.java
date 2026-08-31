@@ -30,17 +30,24 @@ import com.file_handlers.util.ResponsiveUtil;
 
 public class AdminLoginPage {
 
-    // Dark Glassmorphic Theme Constants
+    // Typography
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    private static final String BG_APP = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
-    private static final String BG_CARD = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
+
+    // Theme Constants synchronized with AdminDashboard
+    private static final String SIDEBAR_BG = "#070C16";
+    private static final String SIDEBAR_BORDER = "rgba(255, 255, 255, 0.07)";
+    private static final String MAIN_BG = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
+    private static final String CARD_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
+    private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
     private static final String BG_INPUT = "rgba(10, 18, 33, 0.85)";
-    private static final String BORDER_COLOR = "rgba(56, 189, 248, 0.22)";
-    private static final String PRIMARY_BLUE = "#2563EB";
-    private static final String TEXT_DARK = "#FFFFFF";
-    private static final String TEXT_MUTED_DARK = "#94A3B8";
-    private static final String TEXT_MUTED_LIGHT = "#94A3B8";
+    private static final String INPUT_BORDER = "rgba(255, 255, 255, 0.08)";
+    
+    private static final String WHITE = "#FFFFFF";
+    private static final String LIGHT_SECONDARY = "#94A3B8";
+    private static final String BLUE = "#2563EB";
+    private static final String CYAN = "#00D2FF";
     private static final String ERROR_COLOR = "#EF4444";
+    private static final String FORGOT_LINK_COLOR = "#38BDF8";
     
     private String activeUserName = "Admin";
     private String initials = "A";
@@ -50,8 +57,10 @@ public class AdminLoginPage {
         // App Header Bar
         Button backBtn = new Button("← Back to home");
         backBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        backBtn.setTextFill(Color.web(TEXT_MUTED_LIGHT));
+        backBtn.setTextFill(Color.web(LIGHT_SECONDARY));
         backBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+        backBtn.setOnMouseEntered(e -> backBtn.setTextFill(Color.web(WHITE)));
+        backBtn.setOnMouseExited(e -> backBtn.setTextFill(Color.web(LIGHT_SECONDARY)));
         backBtn.setOnAction(e -> { 
             LandingPage.setScene(new LandingPage().getLandingPageScene()); 
         });
@@ -60,17 +69,18 @@ public class AdminLoginPage {
         HBox.setHgrow(appHeader.getChildren().get(0), Priority.ALWAYS);
         appHeader.setAlignment(Pos.CENTER_LEFT);
         appHeader.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 16, ResponsiveUtil.PAGE_PADDING));
+        appHeader.setStyle("-fx-background-color: transparent; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 0 1 0;");
 
         // Branding Text: Negative margin cancels PNG transparency padding
         Label brandingText = new Label("OneSpace");
         brandingText.setFont(Font.font(FONT, FontWeight.BOLD, 22));
-        brandingText.setTextFill(Color.web(TEXT_DARK));
+        brandingText.setTextFill(Color.web(WHITE));
         VBox.setMargin(brandingText, new Insets(-26, 0, 4, 0));
 
         // Subtitle
         Label subtitle = new Label("Enter your credentials to access OneSpace");
         subtitle.setFont(Font.font(FONT, 13));
-        subtitle.setTextFill(Color.web(TEXT_MUTED_DARK));
+        subtitle.setTextFill(Color.web(LIGHT_SECONDARY));
 
         // Error Feedback Label
         Label errorLabel = new Label();
@@ -86,7 +96,7 @@ public class AdminLoginPage {
         // Form Fields
         Label emailLabel = new Label("Email Address");
         emailLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        emailLabel.setTextFill(Color.web(TEXT_DARK));
+        emailLabel.setTextFill(Color.web(WHITE));
 
         TextField emailField = new TextField();
         emailField.setPromptText("name@example.com");
@@ -97,11 +107,11 @@ public class AdminLoginPage {
 
         Label passwordLabel = new Label("Password");
         passwordLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        passwordLabel.setTextFill(Color.web(TEXT_DARK));
+        passwordLabel.setTextFill(Color.web(WHITE));
 
         Label forgotPassword = new Label("Forgot?");
         forgotPassword.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        forgotPassword.setTextFill(Color.web("#38BDF8"));
+        forgotPassword.setTextFill(Color.web(FORGOT_LINK_COLOR));
         forgotPassword.setStyle("-fx-cursor: hand;");
 
         HBox passwordHeader = new HBox(passwordLabel, new Region(), forgotPassword);
@@ -128,7 +138,7 @@ public class AdminLoginPage {
 
         SVGPath iconPath = new SVGPath();
         iconPath.setContent(eyeOpenSvg);
-        iconPath.setFill(Color.web(TEXT_MUTED_DARK));
+        iconPath.setFill(Color.web(LIGHT_SECONDARY));
         iconPath.setScaleX(0.75);
         iconPath.setScaleY(0.75);
 
@@ -170,13 +180,14 @@ public class AdminLoginPage {
         loginButton.setMaxWidth(Double.MAX_VALUE);
         loginButton.setPrefHeight(42);
         loginButton.setStyle(
-            "-fx-background-color: linear-gradient(to right, #1D4ED8, #0284C7);" +
+            "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
             "-fx-text-fill: #FFFFFF;" +
             "-fx-background-radius: 12;" +
             "-fx-border-color: rgba(96, 165, 250, 0.6);" +
             "-fx-border-radius: 12;" +
+            "-fx-border-width: 1;" +
             "-fx-cursor: hand;" +
-            "-fx-effect: dropshadow(three-pass-box, rgba(2, 132, 199, 0.5), 14, 0, 0, 3);"
+            "-fx-effect: dropshadow(three-pass-box, rgba(37, 99, 235, 0.55), 14, 0, 0, 2);"
         );
         
         loginButton.setOnAction(e -> {
@@ -203,7 +214,6 @@ public class AdminLoginPage {
         });
 
         // Footer Link
-       
         HBox signUpBox = new HBox(4);
         signUpBox.setAlignment(Pos.CENTER);
 
@@ -213,8 +223,8 @@ public class AdminLoginPage {
         card.setPrefWidth(360);
         card.setMaxWidth(360);
         card.setStyle(
-                "-fx-background-color: " + BG_CARD + ";" +
-                "-fx-border-color: " + BORDER_COLOR + ";" +
+                "-fx-background-color: " + CARD_BG + ";" +
+                "-fx-border-color: " + CARD_BORDER + ";" +
                 "-fx-border-radius: 20;" +
                 "-fx-background-radius: 20;" +
                 "-fx-border-width: 1.2;" +
@@ -232,7 +242,7 @@ public class AdminLoginPage {
         centerBody.setPadding(new Insets(0, ResponsiveUtil.PAGE_PADDING, 24, ResponsiveUtil.PAGE_PADDING));
 
         BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: transparent;");
+        root.setStyle("-fx-background-color: " + MAIN_BG + ";");
         root.setTop(appHeader);
         root.setCenter(centerBody);
 
@@ -252,7 +262,7 @@ public class AdminLoginPage {
             logoHolder.setAlignment(Pos.CENTER);
             return logoHolder;
         }
-        Circle circle = new Circle(42, Color.web(PRIMARY_BLUE));
+        Circle circle = new Circle(42, Color.web(BLUE));
         Label fallback = new Label("O");
         fallback.setFont(Font.font(FONT, FontWeight.BOLD, 36));
         fallback.setTextFill(Color.WHITE);
@@ -261,11 +271,11 @@ public class AdminLoginPage {
 
     private String getFieldStyle() {
         return "-fx-background-color: " + BG_INPUT + ";" +
-               "-fx-border-color: " + BORDER_COLOR + ";" +
+               "-fx-border-color: " + INPUT_BORDER + ";" +
                "-fx-border-radius: 10;" +
                "-fx-background-radius: 10;" +
                "-fx-font-size: 13px;" +
                "-fx-prompt-text-fill: #64748B;" +
-               "-fx-text-fill: " + TEXT_DARK + ";";
+               "-fx-text-fill: " + WHITE + ";";
     }
 }

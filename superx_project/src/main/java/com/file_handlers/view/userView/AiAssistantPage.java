@@ -4,8 +4,9 @@ import com.file_handlers.dao.FileDAO;
 import com.file_handlers.model.FileData;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.service.GeminiClient;
-import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
+import com.file_handlers.view.LandingPage;
+
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
