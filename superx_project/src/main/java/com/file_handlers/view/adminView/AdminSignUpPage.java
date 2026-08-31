@@ -223,7 +223,7 @@ public class AdminSignUpPage {
         centerBody.setPadding(new Insets(0, ResponsiveUtil.PAGE_PADDING, 24, ResponsiveUtil.PAGE_PADDING));
 
         BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: transparent;");
+        root.setStyle("-fx-background-color: " + BG_APP + ";");
         root.setTop(appHeader);
         root.setCenter(centerBody);
 

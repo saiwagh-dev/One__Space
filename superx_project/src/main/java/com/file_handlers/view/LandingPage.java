@@ -52,6 +52,7 @@ public class LandingPage extends Application {
     private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
 
     private static Stage primaryStage;
+	public static Object loggedInUserName;
 
     @Override
     public void start(Stage stage) {
