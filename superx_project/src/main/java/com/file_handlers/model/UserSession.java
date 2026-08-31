@@ -7,10 +7,7 @@ import org.json.JSONObject;
 
 public class UserSession {
 
-    // ---------------------------------------------------------
-    // Current session
-    // ---------------------------------------------------------
-
+    
     private static UserSession instance;
 
     private final String uid;
@@ -19,9 +16,7 @@ public class UserSession {
     private String displayName;
     private final boolean admin;
 
-    // ---------------------------------------------------------
-    // Constructor
-    // ---------------------------------------------------------
+   
 
     private UserSession(
             String uid,
@@ -38,11 +33,7 @@ public class UserSession {
         this.admin = admin;
     }
 
-    // ---------------------------------------------------------
-    // NEW SESSION METHOD
-    //
-    // Use this when UID is already available.
-    // ---------------------------------------------------------
+    
 
     public static void setInstance(
             String uid,
@@ -61,15 +52,7 @@ public class UserSession {
         );
     }
 
-    // ---------------------------------------------------------
-    // BACKWARD-COMPATIBLE SESSION METHOD
-    //
-    // Existing AdminAuthController and UserSignupPage
-    // can continue using this method.
-    //
-    // UID is extracted from the Firebase ID token.
-    // ---------------------------------------------------------
-
+   
     public static void setInstance(
             String idToken,
             String email,
@@ -88,46 +71,34 @@ public class UserSession {
         );
     }
 
-    // ---------------------------------------------------------
-    // Get current session
-    // ---------------------------------------------------------
+  
 
     public static UserSession getInstance() {
 
         return instance;
     }
 
-    // ---------------------------------------------------------
-    // UID
-    // ---------------------------------------------------------
 
     public String getUid() {
 
         return uid;
     }
 
-    // ---------------------------------------------------------
-    // ID Token
-    // ---------------------------------------------------------
+   
 
     public String getIdToken() {
 
         return idToken;
     }
 
-    // ---------------------------------------------------------
-    // Email
-    // ---------------------------------------------------------
+    
 
     public String getEmail() {
 
         return email;
     }
 
-    // ---------------------------------------------------------
-    // Display Name
-    // ---------------------------------------------------------
-
+    
     public String getDisplayName() {
 
         return displayName;
@@ -140,19 +111,14 @@ public class UserSession {
         this.displayName = displayName;
     }
 
-    // ---------------------------------------------------------
-    // Admin
-    // ---------------------------------------------------------
+    
 
     public boolean isAdmin() {
 
         return admin;
     }
 
-    // ---------------------------------------------------------
-    // Login check
-    // ---------------------------------------------------------
-
+   
     public static boolean isLoggedIn() {
 
         return instance != null
@@ -160,18 +126,13 @@ public class UserSession {
                 && !instance.uid.isBlank();
     }
 
-    // ---------------------------------------------------------
-    // Logout
-    // ---------------------------------------------------------
-
+   
     public static void clearSession() {
 
         instance = null;
     }
 
-    // ---------------------------------------------------------
-    // Extract Firebase UID from ID token
-    // ---------------------------------------------------------
+    
 
     private static String extractUidFromToken(
             String idToken
@@ -221,8 +182,6 @@ public class UserSession {
             if (uid == null ||
                     uid.isBlank()) {
 
-                // "sub" is also the Firebase
-                // authenticated user's UID.
 
                 uid =
                         payloadJson.optString(
