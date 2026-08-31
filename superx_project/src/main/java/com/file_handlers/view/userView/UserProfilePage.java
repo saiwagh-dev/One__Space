@@ -65,7 +65,7 @@ public class UserProfilePage {
         if (session == null || !UserSession.isLoggedIn()) {
             return createUnauthenticatedScene();
         }
-
+        resetFieldsToDefaults();
         String displayName = getDisplayName(session);
         String email = getEmail(session);
 
@@ -435,18 +435,23 @@ public class UserProfilePage {
 
     private void loadProfileFromFirestore() {
         UserSession session = UserSession.getInstance();
-        if (session == null || !UserSession.isLoggedIn()) return;
+        if (session == null || !UserSession.isLoggedIn()) {
+            return;
+        }
 
         String uid = session.getUid();
+
         Thread thread = new Thread(() -> {
             try {
                 Map<String, Object> profile = profileDAO.getProfile(uid);
+
                 String username = readString(profile, "username");
                 String bio = readString(profile, "bio");
 
                 if (username == null || username.isBlank()) {
                     username = createDefaultUsername(session.getDisplayName());
                 }
+
                 if (bio == null || bio.isBlank()) {
                     bio = DEFAULT_BIO;
                 }
@@ -457,19 +462,22 @@ public class UserProfilePage {
                 Platform.runLater(() -> {
                     currentUsername = finalUsername;
                     currentBio = finalBio;
+
                     if (usernameField != null) usernameField.setText(finalUsername);
                     if (bioField != null) bioField.setText(finalBio);
                     if (profileUsernameLabel != null) profileUsernameLabel.setText(finalUsername);
                     if (profileBioLabel != null) profileBioLabel.setText(finalBio);
                 });
+
             } catch (Exception e) {
-                System.out.println("Unable to load user profile:");
                 e.printStackTrace();
             }
         });
+
         thread.setDaemon(true);
         thread.start();
     }
+
 
     private void saveProfile() {
         UserSession session = UserSession.getInstance();
@@ -663,6 +671,14 @@ public class UserProfilePage {
         });
     }
 
+    // =========================================================
+    // DELETE ACCOUNT
+    // =========================================================
+
+    // =========================================================
+    // DELETE ACCOUNT
+    // =========================================================
+
     private void showDeleteAccountDialog() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Delete Account");
@@ -675,11 +691,86 @@ public class UserProfilePage {
         alert.getButtonTypes().setAll(cancel, delete);
         styleDialog(alert);
 
-        alert.showAndWait().ifPresent(result -> {
-            if (result == delete) {
-                showAlert(Alert.AlertType.INFORMATION, "Account Deleted", "Account deletion is not implemented yet.");
-            }
-        });
+        alert.setHeaderText(
+                "Delete your OneSpace account?"
+        );
+
+        alert.setContentText(
+                "This action will permanently remove your account and associated data."
+        );
+
+
+        alert.getButtonTypes()
+                .setAll(
+                        cancel,
+                        delete
+                );
+
+        styleDialog(
+                alert
+        );
+
+        alert.showAndWait()
+                .ifPresent(
+                        result -> {
+
+                            if (result == delete) {
+
+                                UserSession session = UserSession.getInstance();
+
+                                if (session == null || !UserSession.isLoggedIn()) {
+                                    showAlert(
+                                            Alert.AlertType.ERROR,
+                                            "Session Error",
+                                            "No authenticated user session was found."
+                                    );
+                                    return;
+                                }
+
+                                String uid = session.getUid();
+                                String idToken = session.getIdToken();
+
+                                Thread thread = new Thread(() -> {
+                                    try {
+                                        // 1. Delete profile from Firestore
+                                        profileDAO.deleteProfile(uid);
+
+                                        // 2. Delete account from Firebase Authentication
+                                        boolean authDeleted = authController.deleteAccount(idToken);
+
+                                        if (!authDeleted) {
+                                            System.out.println("Warning: Firebase Auth deletion failed or requires recent login.");
+                                        }
+
+                                        Platform.runLater(() -> {
+                                            // Clear local session
+                                            UserSession.clearSession();
+
+                                            showAlert(
+                                                    Alert.AlertType.INFORMATION,
+                                                    "Account Deleted",
+                                                    "Your account has been permanently deleted."
+                                            );
+
+                                            // Return to landing page
+                                            LandingPage.showLandingPage();
+                                        });
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        Platform.runLater(() -> showAlert(
+                                                Alert.AlertType.ERROR,
+                                                "Deletion Failed",
+                                                "Unable to delete your account. Please try again."
+                                        ));
+                                    }
+                                });
+
+                                thread.setDaemon(true);
+                                thread.start();
+                            }
+                        }
+                );
     }
 
     private Scene createUnauthenticatedScene() {
@@ -900,5 +991,20 @@ public class UserProfilePage {
         alert.setContentText(message);
         styleDialog(alert);
         alert.showAndWait();
+    }
+    private void resetFieldsToDefaults() {
+        currentUsername = DEFAULT_USERNAME;
+        currentBio = DEFAULT_BIO;
+
+        if (nameField != null) nameField.setText("");
+        if (emailField != null) emailField.setText("");
+        if (usernameField != null) usernameField.setText(DEFAULT_USERNAME);
+        if (bioField != null) bioField.setText(DEFAULT_BIO);
+        if (saveStatus != null) saveStatus.setText("");
+        
+        if (profileAvatar != null) {
+            profileAvatar.setGraphic(null);
+            profileAvatar.setText("U");
+        }
     }
 }

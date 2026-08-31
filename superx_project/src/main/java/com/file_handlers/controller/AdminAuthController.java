@@ -53,7 +53,11 @@ public class AdminAuthController {
 
             // ALLOW MULTIPLE ADMINS: Check if email matches either authorized administrator
             boolean isAuthorizedAdmin = trimmedEmail.equalsIgnoreCase("sai12@gmail.com") || 
-                                        trimmedEmail.equalsIgnoreCase("xavierwagh@gmail.com");
+                                        trimmedEmail.equalsIgnoreCase("xavierwagh@gmail.com") ||
+                                        trimmedEmail.equalsIgnoreCase("vaishnavi@gmail.com")|| 
+                                        trimmedEmail.equalsIgnoreCase("pratiksha@gmail.com") ||
+                                        trimmedEmail.equalsIgnoreCase("ananta22@gmail.com")||
+                                        trimmedEmail.equalsIgnoreCase("mohite@gmail.com");
 
             if (!isAuthorizedAdmin) {
                 System.out.println("Access Denied: Only authorized administrators can log in here.");
@@ -80,8 +84,19 @@ public class AdminAuthController {
                 JSONObject jsonResponse = new JSONObject(response.body());
                 String idToken = jsonResponse.optString("idToken", null);
 
-                // Save session with admin flag set to true
-                UserSession.setInstance(idToken, trimmedEmail, "Administrator", true);
+                // Map the logged-in email to their actual display name
+                String displayName = switch (trimmedEmail.toLowerCase()) {
+                    case "sai12@gmail.com" -> "Sai";
+                    case "xavierwagh@gmail.com" -> "Xavier";
+                    case "vaishnavi@gmail.com" -> "Vaishnavi";
+                    case "pratiksha@gmail.com" -> "Pratiksha";
+                    case "ananta22@gmail.com" -> "Ananta";
+                    case "mohite@gmail.com" -> "Mohite";
+                    default -> "Admin";
+                };
+
+                // Save session with the dynamic display name and admin flag set to true
+                UserSession.setInstance(idToken, trimmedEmail, displayName, true);
                 return true;
             } else {
                 JSONObject errorJson = new JSONObject(response.body());

@@ -143,7 +143,6 @@ public class UserSignupPage {
             String password = passwordField.getText();
             String confirmPassword = confirmField.getText();
             
-            // Provide a default bio since there isn't a bio text field on the signup screen yet
             String bio = "OneSpace user";
 
             if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
@@ -166,15 +165,11 @@ public class UserSignupPage {
                 errorLabel.setVisible(true);
                 return;
             }
+
             String idToken = authController.signUpAndGetToken(email, password, fullName, bio);
 
             if (idToken != null) {
                 authController.updateProfile(idToken, fullName);
-                
-                // Fix UserSession call: pass positional arguments (uid, idToken, email, displayName, isAdmin)
-                // Note: If you need the exact UID here, you can have your controller return it or fetch it, 
-                // but setting instance with token/email/name updates the active session.
-                UserSession.setInstance(null, idToken, email, fullName, false);
 
                 errorLabel.setManaged(false);
                 errorLabel.setVisible(false);
