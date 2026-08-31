@@ -242,6 +242,27 @@ public class AdminSettings {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
+        UserSession session = UserSession.getInstance();
+        String activeUserName = (session != null && session.getDisplayName() != null && !session.getDisplayName().isBlank())
+                ? session.getDisplayName()
+                : ((session != null && session.getEmail() != null && !session.getEmail().isBlank()) ? session.getEmail() : "Admin");
+        String initials = "A";
+        String[] nameParts = activeUserName.trim().split("\\s+");
+        if (nameParts.length > 0) {
+            StringBuilder initialsBuilder = new StringBuilder();
+            for (String part : nameParts) {
+                if (!part.isBlank()) {
+                    initialsBuilder.append(part.charAt(0));
+                    if (initialsBuilder.length() >= 2) {
+                        break;
+                    }
+                }
+            }
+            if (initialsBuilder.length() > 0) {
+                initials = initialsBuilder.toString().toUpperCase();
+            }
+        }
+
         SVGPath bell = createIcon("bell");
         bell.setStroke(Color.web(isLightMode ? textPrimary : "#FFFFFF"));
         bell.setStrokeWidth(2);
@@ -471,8 +492,8 @@ public class AdminSettings {
         box.setFillWidth(true);
         box.setPadding(new Insets(20));
         box.setStyle(
-                "-fx-background-color: " + CARD_BG + ";" +
-                "-fx-border-color: " + CARD_BORDER + ";" +
+                "-fx-background-color: " + cardBg + ";" +
+                "-fx-border-color: " + cardBorder + ";" +
                 "-fx-border-width: 1.2;" +
                 "-fx-border-radius: 20;" +
                 "-fx-background-radius: 20;" +

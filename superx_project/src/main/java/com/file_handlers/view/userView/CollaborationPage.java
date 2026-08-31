@@ -722,7 +722,7 @@ public class CollaborationPage {
         }
     }
 
-    private HBox createWorkspaceCard(WorkspaceData w) {
+    private HBox createWorkspaceCard(WorkspaceData w, BorderPane root, String docId) {
         SVGPath icon = createIcon(w.iconType);
         icon.setStroke(Color.web(w.iconColor));
         icon.setStrokeWidth(2);
@@ -756,7 +756,11 @@ public class CollaborationPage {
         return card;
     }
 
-    private VBox createWorkspaceGridCard(WorkspaceData w) {
+    private HBox createWorkspaceCard(WorkspaceData w) {
+        return createWorkspaceCard(w, null, w.docId);
+    }
+
+    private VBox createWorkspaceGridCard(WorkspaceData w, BorderPane root, String docId) {
         SVGPath icon = createIcon(w.iconType);
         icon.setStroke(Color.web(w.iconColor));
         icon.setStrokeWidth(2);
@@ -789,6 +793,10 @@ public class CollaborationPage {
         applyHover(card);
 
         return card;
+    }
+
+    private VBox createWorkspaceGridCard(WorkspaceData w) {
+        return createWorkspaceGridCard(w, null, w.docId);
     }
 
     private void deleteWorkspace(String docId, BorderPane root) {
@@ -913,6 +921,7 @@ public class CollaborationPage {
 
                 for (var mDoc : membersDocs) {
                     String email = mDoc.getString("email");
+                    String status = mDoc.getString("status");
 
                     String status = null;
                     if (email != null && email.equalsIgnoreCase(myEmail) && "pending".equalsIgnoreCase(status)) {

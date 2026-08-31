@@ -73,6 +73,7 @@ public class AdminDashboard {
 
     private String activeUserName = "Admin";
     private String initials = "A";
+
     public AdminDashboard() {
         UserSession session = UserSession.getInstance();
 
