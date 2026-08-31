@@ -87,7 +87,7 @@ public class UserProfilePage {
         if (session == null || !UserSession.isLoggedIn()) {
             return createUnauthenticatedScene();
         }
-
+        resetFieldsToDefaults();
         String displayName = getDisplayName(session);
         String email = getEmail(session);
 
@@ -801,6 +801,9 @@ public class UserProfilePage {
         if (session == null || !UserSession.isLoggedIn()) {
             return;
         }
+        if (session == null || !UserSession.isLoggedIn()) {
+            return;
+        }
 
         String uid = session.getUid();
 
@@ -808,12 +811,14 @@ public class UserProfilePage {
             try {
                 Map<String, Object> profile = profileDAO.getProfile(uid);
 
+
                 String username = readString(profile, "username");
                 String bio = readString(profile, "bio");
 
                 if (username == null || username.isBlank()) {
                     username = createDefaultUsername(session.getDisplayName());
                 }
+
 
                 if (bio == null || bio.isBlank()) {
                     bio = DEFAULT_BIO;
@@ -825,6 +830,7 @@ public class UserProfilePage {
                 Platform.runLater(() -> {
                     currentUsername = finalUsername;
                     currentBio = finalBio;
+
 
                     if (usernameField != null) usernameField.setText(finalUsername);
                     if (bioField != null) bioField.setText(finalBio);
@@ -1058,6 +1064,25 @@ public class UserProfilePage {
 
         alert.getButtonTypes().setAll(cancel, delete);
         styleDialog(alert);
+
+        alert.setHeaderText(
+                "Delete your OneSpace account?"
+        );
+
+        alert.setContentText(
+                "This action will permanently remove your account and associated data."
+        );
+
+
+        alert.getButtonTypes()
+                .setAll(
+                        cancel,
+                        delete
+                );
+
+        styleDialog(
+                alert
+        );
 
         alert.showAndWait()
                 .ifPresent(
@@ -1319,5 +1344,20 @@ public class UserProfilePage {
         alert.setContentText(message);
         styleDialog(alert);
         alert.showAndWait();
+    }
+    private void resetFieldsToDefaults() {
+        currentUsername = DEFAULT_USERNAME;
+        currentBio = DEFAULT_BIO;
+
+        if (nameField != null) nameField.setText("");
+        if (emailField != null) emailField.setText("");
+        if (usernameField != null) usernameField.setText(DEFAULT_USERNAME);
+        if (bioField != null) bioField.setText(DEFAULT_BIO);
+        if (saveStatus != null) saveStatus.setText("");
+        
+        if (profileAvatar != null) {
+            profileAvatar.setGraphic(null);
+            profileAvatar.setText("U");
+        }
     }
 }

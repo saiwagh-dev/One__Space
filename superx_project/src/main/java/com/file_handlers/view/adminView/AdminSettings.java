@@ -47,9 +47,6 @@ public class AdminSettings {
     private static final String GREEN_LIGHT = "rgba(16, 185, 129, 0.15)";
     private static final String PURPLE = "#00D2FF";
     private static final String PURPLE_LIGHT = "rgba(0, 210, 255, 0.15)";
-    
-    private String activeUserName = "Admin";
-    private String initials = "A";
 
     // Root Containers for Theme Updates
     private BorderPane rootLayout;
@@ -60,18 +57,7 @@ public class AdminSettings {
 
     private boolean isLightMode = false;
 
-    public AdminSettings() {
-        UserSession session = UserSession.getInstance();
-
-        if (session != null && session.getDisplayName() != null) {
-            String fullName = session.getDisplayName().trim();
-            if (!fullName.isEmpty()) {
-                String[] parts = fullName.split("\\s+");
-                this.activeUserName = parts[0];
-                this.initials = this.activeUserName.substring(0, 1).toUpperCase();
-            }
-        }
-    }
+    public AdminSettings() {}
 
     public Scene getAdminSettingsScene() {
         rootLayout = new BorderPane();
@@ -84,12 +70,12 @@ public class AdminSettings {
         scrollPaneNode.setFitToWidth(true);
         scrollPaneNode.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPaneNode.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPaneNode.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-background-insets: 0; -fx-padding: 0;");
+        scrollPaneNode.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0;");
 
         topBarNode = createTopBar();
 
         rightSideNode = new VBox(topBarNode, scrollPaneNode);
-        rightSideNode.setStyle("-fx-background: " + mainBg + "; -fx-background-color: " + mainBg + ";");
+        rightSideNode.setStyle("-fx-background: " + mainBg + "; -fx-background-color: " + (isLightMode ? "#F8FAFC" : "#060B14") + ";");
         rightSideNode.setFillWidth(true);
         VBox.setVgrow(scrollPaneNode, Priority.ALWAYS);
         rootLayout.setCenter(rightSideNode);
@@ -129,7 +115,7 @@ public class AdminSettings {
         scrollPaneNode.setContent(createMainContent());
 
         rightSideNode.getChildren().setAll(topBarNode, scrollPaneNode);
-        rightSideNode.setStyle("-fx-background: " + mainBg + "; -fx-background-color: " + mainBg + ";");
+        rightSideNode.setStyle("-fx-background: " + mainBg + "; -fx-background-color: " + (isLightMode ? "#F8FAFC" : "#060B14") + ";");
     }
 
     private VBox createSidebar() {
@@ -479,8 +465,8 @@ public class AdminSettings {
         box.setFillWidth(true);
         box.setPadding(new Insets(20));
         box.setStyle(
-                "-fx-background-color: " + cardBg + ";" +
-                "-fx-border-color: " + cardBorder + ";" +
+                "-fx-background-color: " + CARD_BG + ";" +
+                "-fx-border-color: " + CARD_BORDER + ";" +
                 "-fx-border-width: 1.2;" +
                 "-fx-border-radius: 20;" +
                 "-fx-background-radius: 20;" +

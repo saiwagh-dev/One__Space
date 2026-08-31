@@ -64,6 +64,7 @@ public class CollaborationPage {
             this.badgeBg = badgeBg;
             this.badgeText = badgeText;
             this.ownerEmail = ownerEmail;
+            this.docId = docId;
         }
     }
 
@@ -185,7 +186,8 @@ public class CollaborationPage {
                     userAssignedRole, 
                     badgeBg, 
                     badgeText,
-                    fetchedOwnerEmail
+                    fetchedOwnerEmail,
+                    docId
                 ));
             }
         } catch (Exception ex) {
@@ -688,11 +690,11 @@ public class CollaborationPage {
             list.setFillWidth(true);
 
             for (WorkspaceData workspace : workspaces) {
-                HBox card = createWorkspaceCard(workspace);
-                card.setOnMouseClicked(e -> root.setCenter(
-                        new SharedSpacePage(workspace.name).getSharedSpaceContent()));
-                list.getChildren().add(card);
-            }
+    HBox card = createWorkspaceCard(workspace, root, workspace.docId);
+    card.setOnMouseClicked(e -> root.setCenter(
+            new SharedSpacePage(workspace.name).getSharedSpaceContent()));
+    list.getChildren().add(card);
+}
 
             workspaceListPane.getChildren().add(list);
         } else {
@@ -702,8 +704,8 @@ public class CollaborationPage {
 
             int col = 0, row = 0;
 
-            for (WorkspaceData workspace : workspaces) {
-                VBox card = createWorkspaceGridCard(workspace);
+           for (WorkspaceData workspace : workspaces) {
+                VBox card = createWorkspaceGridCard(workspace, root, workspace.docId); // <--- Added workspace.docId here
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
 
@@ -788,6 +790,44 @@ public class CollaborationPage {
         return card;
     }
 
+    private void deleteWorkspace(String docId, BorderPane root) {
+    Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+    confirmDialog.setTitle("Delete Workspace");
+    confirmDialog.setHeaderText("Are you sure you want to delete this shared space?");
+    confirmDialog.setContentText("This action cannot be undone and will remove access for all members.");
+
+    confirmDialog.showAndWait().ifPresent(response -> {
+        if (response == ButtonType.OK) {
+            try {
+                com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
+                
+                // Optional: Clear out members and files subcollections first
+                var members = db.collection("workspaces").document(docId).collection("members").get().get().getDocuments();
+                for (var m : members) {
+                    m.getReference().delete();
+                }
+                var files = db.collection("workspaces").document(docId).collection("files").get().get().getDocuments();
+                for (var f : files) {
+                    f.getReference().delete();
+                }
+
+                // Delete parent workspace document
+                db.collection("workspaces").document(docId).delete().get();
+
+                // Refresh UI
+                initializeWorkspacesAndActivities();
+                javafx.application.Platform.runLater(() -> {
+                    rebuildWorkspaceCards(root);
+                    updateMetrics();
+                    rebuildActivityList();
+                });
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    });
+}
+
     private void applyHover(Region card) {
         String normal = "-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08);" +
                 "-fx-border-radius: 12; -fx-background-radius: 12; -fx-cursor: hand;";
@@ -808,14 +848,14 @@ public class CollaborationPage {
         list.setPadding(new Insets(10));
 
         for (WorkspaceData w : workspaces) {
-            HBox card = createWorkspaceCard(w);
-            card.setMaxWidth(Double.MAX_VALUE);
-            card.setOnMouseClicked(e -> {
-                dialog.close();
-                root.setCenter(new SharedSpacePage(w.name).getSharedSpaceContent());
-            });
-            list.getChildren().add(card);
-        }
+    HBox card = createWorkspaceCard(w, root, w.docId); // Pass root and docId here
+    card.setMaxWidth(Double.MAX_VALUE);
+    card.setOnMouseClicked(e -> {
+        dialog.close();
+        root.setCenter(new SharedSpacePage(w.name).getSharedSpaceContent());
+    });
+    list.getChildren().add(card);
+}
 
         ScrollPane scroll = new ScrollPane(list);
         scroll.setFitToWidth(true);
@@ -852,25 +892,39 @@ public class CollaborationPage {
             boolean foundAny = false;
             for (com.google.cloud.firestore.DocumentSnapshot wsDoc : workspacesDocs) {
                 String spaceDocId = wsDoc.getId();
-                String spaceName = spaceDocId.replaceAll("_", " ");
+                String spaceName = wsDoc.getString("spaceName");
+                if (spaceName == null) {
+                    spaceName = spaceDocId.replaceAll("_", " ");
+                }
                 
-                var memberQuery = db.collection("workspaces").document(spaceDocId).collection("members")
-                    .whereEqualTo("status", "pending")
-                    .get().get();
+                // Fetch members list to find pending requests and identify the workspace owner/sender
+                var membersDocs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
+                
+                String ownerName = "Workspace Owner";
+                for (var mDoc : membersDocs) {
+                    if ("Owner".equalsIgnoreCase(mDoc.getString("role"))) {
+                        String oName = mDoc.getString("name");
+                        if (oName != null) {
+                            ownerName = oName;
+                        }
+                    }
+                }
 
-                for (com.google.cloud.firestore.DocumentSnapshot mDoc : memberQuery.getDocuments()) {
+                for (var mDoc : membersDocs) {
                     String email = mDoc.getString("email");
 
-                    if (email != null && email.equalsIgnoreCase(myEmail)) {
+                    if (email != null && email.equalsIgnoreCase(myEmail) && "pending".equalsIgnoreCase(status)) {
                         foundAny = true;
                         String name = mDoc.getString("name");
                         if (name == null) name = "Unknown";
 
                         final String finalName = name;
                         final String finalEmail = email;
+                        final String finalOwner = ownerName;
+                        final String finalSpaceName = spaceName;
                         
                         javafx.application.Platform.runLater(() -> {
-                            list.getChildren().add(pendingRequest(finalName, finalEmail, spaceName, "Pending Request", spaceDocId));
+                            list.getChildren().add(pendingRequest(finalName, finalEmail, finalSpaceName, finalOwner, spaceDocId));
                         });
                     }
                 }
@@ -895,7 +949,7 @@ public class CollaborationPage {
         dialog.showAndWait();
     }
 
-    private HBox pendingRequest(String name, String email, String space, String requestedTime, String spaceDocId) {
+    private HBox pendingRequest(String name, String email, String space, String invitedBy, String spaceDocId) {
         Label avatar = new Label(getInitials(name));
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 11));
         avatar.setPrefSize(38, 38);
@@ -910,7 +964,7 @@ public class CollaborationPage {
         emailLbl.setFont(Font.font(FONT, 10));
         emailLbl.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
-        Label spaceLbl = new Label("Invited to: " + space);
+        Label spaceLbl = new Label("Invited to: " + space + "  ·  Invited by: " + invitedBy);
         spaceLbl.setFont(Font.font(FONT, 11));
         spaceLbl.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
@@ -970,6 +1024,8 @@ public class CollaborationPage {
 
         return row;
     }
+
+    
 
     private String getInitials(String name) {
         String[] parts = name.trim().split(" ");
@@ -1200,8 +1256,8 @@ public class CollaborationPage {
                                 fileCount,
                                 fileCount > 0 ? "Synced" : "No files",
                                 "Owner",
-                                "rgba(37, 99, 235, 0.2)",
-                                "#60A5FA",
+                                "#BFDBFE",
+                                "#1D4ED8",
                                 ownerEmail
                         ));
 

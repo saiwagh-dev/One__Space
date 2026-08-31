@@ -12,7 +12,7 @@ public class AdminAuthController {
 
     private final String API_KEY = "AIzaSyBzqJUI39goTF-9Mz14gbxsxKYs-pAHVlY";
 
-    // 1. Admin Sign Up - Returns idToken on success
+    
     public String adminSignUpAndGetToken(String email, String password) {
         try {
             JSONObject payload = new JSONObject()
@@ -46,12 +46,11 @@ public class AdminAuthController {
         return null;
     }
 
-    // 2. Admin Sign In - Authenticates and checks if email matches your admin credentials
+   
     public boolean adminSignInAndSetSession(String email, String password) {
         try {
             String trimmedEmail = email.trim();
 
-            // ALLOW MULTIPLE ADMINS: Check if email matches either authorized administrator
             boolean isAuthorizedAdmin = trimmedEmail.equalsIgnoreCase("sai12@gmail.com") || 
                                         trimmedEmail.equalsIgnoreCase("xavierwagh@gmail.com") ||
                                         trimmedEmail.equalsIgnoreCase("vaishnavi@gmail.com")|| 
@@ -95,7 +94,11 @@ public class AdminAuthController {
                     default -> "Admin";
                 };
 
+<<<<<<< HEAD
                 // Save session with the dynamic display name and admin flag set to true
+=======
+                
+>>>>>>> origin/Development
                 UserSession.setInstance(idToken, trimmedEmail, displayName, true);
                 return true;
             } else {

@@ -17,6 +17,11 @@ import com.file_handlers.view.userView.UserSettingPage;
 import com.file_handlers.view.userView.UserSignupPage;
 import com.file_handlers.view.userView.UserSpaces;
 import com.file_handlers.view.userView.UserTrash;
+<<<<<<< HEAD
+=======
+import com.file_handlers.view.userView.StorageIndexPage;
+import com.file_handlers.view.userView.UnifiedSpaceView;
+>>>>>>> origin/Development
 
 import javafx.animation.*;
 import javafx.application.Application;
@@ -58,6 +63,7 @@ public class LandingPage extends Application {
     private static final String BLUE = "#2563EB";
 
     private static Stage primaryStage;
+	public static Object loggedInUserName;
 
     @Override
     public void start(Stage stage) {
@@ -158,6 +164,7 @@ public class LandingPage extends Application {
 
     // ================= DYNAMIC SPACE =================
 
+<<<<<<< HEAD
     public static void showUnifiedSpace(String spaceId, String spaceName) {
         try {
             UnifiedSpaceView view =
@@ -166,7 +173,16 @@ public class LandingPage extends Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
+=======
+    public static void showUnifiedSpace(String spaceId,String spaceName){
+    try{
+        UnifiedSpaceView view=new UnifiedSpaceView(spaceId,spaceName);
+        setScene(view.getUnifiedSpaceScene());
+    }catch(Exception e){
+        e.printStackTrace();
+>>>>>>> origin/Development
     }
+}
 
     public static void showUnifiedSpaceView() {
         showUnifiedSpace("all", "All Spaces");
@@ -477,6 +493,7 @@ public class LandingPage extends Application {
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     private SVGPath createIcon(String type) {
         SVGPath icon = new SVGPath();
         icon.setFill(Color.TRANSPARENT);
@@ -491,4 +508,7 @@ public class LandingPage extends Application {
 =======
     
 >>>>>>> 9827c6e (updated admin ui)
+=======
+    
+>>>>>>> origin/Development
 }

@@ -16,9 +16,6 @@ public class AuthController {
     private static final String API_KEY =
             "AIzaSyBzqJUI39goTF-9Mz14gbxsxKYs-pAHVlY";
 
-    // ---------------------------------------------------------
-    // Sign Up
-    // ---------------------------------------------------------
 
     public String signUpAndGetToken(
             String email,
@@ -75,9 +72,7 @@ public class AuthController {
         return null;
     }
 
-    // ---------------------------------------------------------
-    // Sign In
-    // ---------------------------------------------------------
+   
 
     public boolean signIn(
             String email,
@@ -126,10 +121,7 @@ public class AuthController {
                 return false;
             }
 
-            // -------------------------------------------------
-            // Login request
-            // -------------------------------------------------
-
+            
             JSONObject payload =
                     new JSONObject()
                             .put(
@@ -175,9 +167,7 @@ public class AuthController {
                             HttpResponse.BodyHandlers.ofString()
                     );
 
-            // -------------------------------------------------
-            // Successful login
-            // -------------------------------------------------
+           
 
             if (response.statusCode() == 200) {
 
@@ -210,9 +200,6 @@ public class AuthController {
                     displayName = "User";
                 }
 
-                // -------------------------------------------------
-                // Ensure existing users populate in Firestore on login
-                // -------------------------------------------------
                 if (uid != null && idToken != null) {
                     checkAndCreateUserInFirestore(uid, trimmedEmail, idToken, displayName);
                 }
@@ -278,9 +265,7 @@ public class AuthController {
     }
 }
 
-    // ---------------------------------------------------------
-    // Helper: Check if user document exists in Firestore
-    // ---------------------------------------------------------
+    
 
     private void checkAndCreateUserInFirestore(String uid, String email, String idToken, String fullName) {
         try {
@@ -316,9 +301,7 @@ public class AuthController {
         }
     }
 
-    // ---------------------------------------------------------
-    // Helper: Create User Document in Firestore via REST API
-    // ---------------------------------------------------------
+    
 
     private void createUserInFirestore(String uid, String email, String idToken, String fullName, String bio) {
         try {
@@ -352,13 +335,7 @@ public class AuthController {
         }
     }
 
-    // ---------------------------------------------------------
-    // Password Reset
-    // ---------------------------------------------------------
-
-   // ---------------------------------------------------------
-    // Password Reset
-    // ---------------------------------------------------------
+    
 
     public String sendPasswordResetEmail(String email) {
         try {
@@ -397,10 +374,7 @@ public class AuthController {
 
         return "ERROR";
     }
-    // ---------------------------------------------------------
-    // Update Profile
-    // ---------------------------------------------------------
-
+    
     public boolean updateProfile(
             String idToken,
             String displayName
@@ -463,9 +437,7 @@ public class AuthController {
         return false;
     }
 
-    // ---------------------------------------------------------
-    // Change Password
-    // ---------------------------------------------------------
+    
 
     public boolean changePassword(
             String email,

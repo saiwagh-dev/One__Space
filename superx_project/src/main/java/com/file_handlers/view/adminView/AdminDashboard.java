@@ -3,11 +3,13 @@ package com.file_handlers.view.adminView;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.CustomMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -29,10 +31,14 @@ import javafx.concurrent.Task;
 import java.io.InputStream;
 
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 import com.file_handlers.dao.AdminStatsDAO;
 
+import java.time.LocalTime;
+
 public class AdminDashboard {
+    
 
     // Typography
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -65,9 +71,27 @@ public class AdminDashboard {
     private Label totalUsersValue;
     private Label totalFilesValue;
 
-    public AdminDashboard() {}
+    private String activeUserName = "Admin";
+    private String initials = "A";
+    public AdminDashboard() {
+        UserSession session = UserSession.getInstance();
+
+        if (session != null && session.getDisplayName() != null) {
+            String fullName = session.getDisplayName().trim();
+            if (!fullName.isEmpty()) {
+                String[] parts = fullName.split("\\s+");
+                this.activeUserName = parts[0];
+                this.initials = this.activeUserName.substring(0, 1).toUpperCase();
+            }
+        }}
+    private final AdminStatsDAO statsDAO = new AdminStatsDAO();
+    private Label totalUsersValue;
+    private Label totalFilesValue;
+
+  
 
     public Scene getAdminDashboardScene() {
+       
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: " + SIDEBAR_BG + ";");
         root.setLeft(createSidebar());
@@ -207,31 +231,6 @@ public class AdminDashboard {
     }
 
     private HBox createTopBar() {
-        SVGPath searchIcon = createIcon("search");
-        searchIcon.setStroke(Color.web("#64748B"));
-        searchIcon.setStrokeWidth(2);
-
-        StackPane searchIconBox = new StackPane(searchIcon);
-        searchIconBox.setPrefSize(24, 24);
-
-        TextField search = new TextField();
-        search.setPromptText("Search in OneSpace...");
-        search.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
-        search.setPrefHeight(38);
-        search.setStyle("-fx-background-color: transparent; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #64748B; -fx-border-color: transparent; -fx-padding: 0;");
-
-        HBox searchBox = new HBox(8, searchIconBox, search);
-        searchBox.setAlignment(Pos.CENTER_LEFT);
-        searchBox.setPrefHeight(38); 
-        searchBox.setMinHeight(38);
-        searchBox.setMaxHeight(38);
-        searchBox.setPrefWidth(420);
-        searchBox.setMinWidth(420);
-        searchBox.setMaxWidth(420);
-        searchBox.setPadding(new Insets(0, 12, 0, 14));
-        searchBox.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20;");
-        HBox.setHgrow(search, Priority.ALWAYS);
-
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -242,14 +241,15 @@ public class AdminDashboard {
         Button notification = new Button();
         notification.setGraphic(bell);
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
+        notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        Label avatar = new Label("AV");
+        Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
-        Label admin = new Label("Admin");
+        Label admin = new Label(activeUserName);
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
 
@@ -257,12 +257,18 @@ public class AdminDashboard {
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+
+        ContextMenu profileMenu = createProfileMenu();
         profile.setOnMouseClicked(e -> {
-            LandingPage.showAdminProfilePage();
+            if (profileMenu.isShowing()) {
+                profileMenu.hide();
+            } else {
+                profileMenu.show(profile, Side.BOTTOM, -50, 8);
+            }
         });
 
-        HBox topBar = new HBox(20, searchBox, spacer, notification, profile);
-        topBar.setAlignment(Pos.CENTER_LEFT);
+        HBox topBar = new HBox(16, spacer, notification, profile);
+        topBar.setAlignment(Pos.CENTER_RIGHT);
         topBar.setPrefHeight(70);
         topBar.setMinHeight(70);
         topBar.setMaxHeight(70);
@@ -271,8 +277,140 @@ public class AdminDashboard {
         return topBar;
     }
 
+    private ContextMenu createProfileMenu() {
+        ContextMenu contextMenu = new ContextMenu();
+        contextMenu.setStyle(
+            "-fx-background-color: #0B132B;" +
+            "-fx-background-insets: 0;" +
+            "-fx-background-radius: 14;" +
+            "-fx-border-color: rgba(255, 255, 255, 0.1);" +
+            "-fx-border-width: 1;" +
+            "-fx-border-radius: 14;" +
+            "-fx-padding: 6;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.75), 24, 0, 0, 8);"
+        );
+
+        Button profileBtn = createProfileMenuItem(
+            "users", 
+            "Profile Page", 
+            "#F59E0B", 
+            "linear-gradient(to right, #D97706, #F59E0B)", 
+            "rgba(245, 158, 11, 0.8)", 
+            () -> {
+                contextMenu.hide();
+                LandingPage.showAdminProfilePage();
+            }
+        );
+
+        Button settingsBtn = createProfileMenuItem(
+            "settings", 
+            "Settings", 
+            "#38BDF8", 
+            "linear-gradient(to right, #0284C7, #00D2FF)", 
+            "rgba(56, 189, 248, 0.8)", 
+            () -> {
+                contextMenu.hide();
+                LandingPage.showAdminSettings();
+            }
+        );
+
+        Button signOutBtn = createProfileMenuItem(
+            "logout", 
+            "Sign Out", 
+            "#F87171", 
+            "linear-gradient(to right, #DC2626, #EF4444)", 
+            "rgba(248, 113, 113, 0.8)", 
+            () -> {
+                contextMenu.hide();
+                LandingPage.showAdminLoginPage();
+            }
+        );
+
+        Region menuDivider = new Region();
+        menuDivider.setPrefHeight(1);
+        menuDivider.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-margin: 4 0;");
+
+        VBox menuBox = new VBox(4, profileBtn, settingsBtn, menuDivider, signOutBtn);
+        menuBox.setPrefWidth(168);
+        menuBox.setStyle("-fx-background-color: transparent; -fx-background-insets: 0;");
+
+        CustomMenuItem customMenuItem = new CustomMenuItem(menuBox, false);
+        customMenuItem.setHideOnClick(false);
+        customMenuItem.setStyle("-fx-background-color: transparent; -fx-padding: 0; -fx-background-insets: 0;");
+        contextMenu.getItems().add(customMenuItem);
+
+        return contextMenu;
+    }
+
+    private Button createProfileMenuItem(String iconType, String text, String iconColor, String activeGradient, String activeBorder, Runnable action) {
+        SVGPath icon = createIcon(iconType);
+        icon.setStroke(Color.web(iconColor));
+        icon.setStrokeWidth(1.8);
+
+        StackPane iconBox = new StackPane(icon);
+        iconBox.setPrefSize(20, 20);
+
+        Label label = new Label(text);
+        label.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
+        label.setTextFill(Color.web("#E2E8F0"));
+
+        HBox row = new HBox(12, iconBox, label);
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        Button button = new Button();
+        button.setGraphic(row);
+        button.setMaxWidth(Double.MAX_VALUE);
+        button.setAlignment(Pos.CENTER_LEFT);
+        button.setPadding(new Insets(8, 12, 8, 12));
+
+        String idleStyle = "-fx-background-color: transparent; -fx-background-radius: 8; -fx-border-width: 0; -fx-cursor: hand;";
+        String hoverStyle = "-fx-background-color: rgba(255, 255, 255, 0.06); -fx-background-radius: 8; -fx-border-width: 0; -fx-cursor: hand;";
+        String clickStyle = "-fx-background-color: " + activeGradient + "; -fx-border-color: " + activeBorder + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-border-width: 1; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, " + iconColor + "66, 12, 0, 0, 2);";
+
+        button.setStyle(idleStyle);
+
+        button.setOnMouseEntered(e -> {
+            button.setStyle(hoverStyle);
+            label.setTextFill(Color.WHITE);
+        });
+
+        button.setOnMouseExited(e -> {
+            button.setStyle(idleStyle);
+            icon.setStroke(Color.web(iconColor));
+            label.setTextFill(Color.web("#E2E8F0"));
+        });
+
+        button.setOnMousePressed(e -> {
+            button.setStyle(clickStyle);
+            icon.setStroke(Color.WHITE);
+            label.setTextFill(Color.WHITE);
+        });
+
+        button.setOnMouseReleased(e -> {
+            button.setStyle(hoverStyle);
+            icon.setStroke(Color.web(iconColor));
+            label.setTextFill(Color.WHITE);
+        });
+
+        button.setOnAction(e -> action.run());
+        return button;
+    }
+
+    private String getTimeBasedGreeting() {
+        int hour = LocalTime.now().getHour();
+        if (hour >= 5 && hour < 12) {
+            return "Good Morning, Admin!";
+        } else if (hour >= 12 && hour < 17) {
+            return "Good Afternoon, Admin!";
+        } else if (hour >= 17 && hour < 22) {
+            return "Good Evening, Admin!";
+        } else {
+            return "Good Night, Admin!";
+        }
+    }
+
     private VBox createDashboardContent() {
-        Label welcome = new Label("Good Evening, Admin!");
+        Label welcome = new Label(getTimeBasedGreeting());
         welcome.setFont(Font.font(FONT, FontWeight.BOLD, 26));
         welcome.setTextFill(Color.web(WHITE));
 
