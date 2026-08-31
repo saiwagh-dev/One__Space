@@ -416,9 +416,6 @@ public class AdminSecurity {
         HBox header = new HBox(headerText, headerSpacer, date);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        Region fullWidthTwoFA = createTwoFACard();
-        fullWidthTwoFA.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(fullWidthTwoFA, Priority.ALWAYS);
 
         Region fullWidthFailedLogin = createFailedLoginCard();
         fullWidthFailedLogin.setMaxWidth(Double.MAX_VALUE);
@@ -428,7 +425,7 @@ public class AdminSecurity {
         fullWidthAlerts.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(fullWidthAlerts, Priority.ALWAYS);
 
-        root.getChildren().addAll(header, fullWidthTwoFA, fullWidthFailedLogin, fullWidthAlerts);
+        root.getChildren().addAll(header, fullWidthFailedLogin, fullWidthAlerts);
         return root;
     }
 
@@ -816,38 +813,6 @@ public class AdminSecurity {
         return row;
     }
 
-    private VBox createTwoFACard() {
-        VBox card = card();
-        card.setPrefHeight(250);
-        card.setMaxHeight(250);
-
-        card.getChildren().add(cardHeader("ai", "Users with 2FA Enabled", ""));
-
-        HBox donutArea = new HBox(24);
-        donutArea.setAlignment(Pos.CENTER_LEFT);
-        StackPane donut = donut();
-        donut.setPrefSize(120, 120);
-
-        VBox legendArea = new VBox(
-                12,
-                legend(GREEN, "2FA Enabled", "342 (68.4%)"),
-                legend("#94A3B8", "2FA Disabled", "158 (31.6%)")
-        );
-        legendArea.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(legendArea, Priority.ALWAYS);
-
-        donutArea.getChildren().addAll(donut, legendArea);
-
-        VBox container = new VBox(12, donutArea);
-        container.setAlignment(Pos.CENTER);
-        VBox.setVgrow(container, Priority.ALWAYS);
-
-        Label manage2FALink = link("Manage 2FA Settings  →");
-        manage2FALink.setOnMouseClicked(e -> openCreativeModalWindow("Manage 2FA Settings", "Configure organizational Two-Factor Authentication policies and requirements here.", "2fa"));
-
-        card.getChildren().addAll(container, separator(), manage2FALink);
-        return card;
-    }
 
     private void openCreativeModalWindow(String windowTitle, String message, String type) {
         Stage modalStage = new Stage();
