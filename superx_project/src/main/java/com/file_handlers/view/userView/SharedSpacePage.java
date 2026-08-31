@@ -731,21 +731,33 @@ public class SharedSpacePage {
         HBox tableHeader = new HBox();
         tableHeader.setPadding(new Insets(7, 10, 7, 10));
 
-        Label name = new Label("Name");
-        Label size = new Label("Size");
-        Label uploaded = new Label("Uploaded On");
-        Label more = new Label("");
+       Label name = new Label("Name");
+Label size = new Label("Size");
+Label uploaded = new Label("Uploaded On");
+Label more = new Label("");
 
-        styleTableHeader(name);
-        styleTableHeader(size);
-        styleTableHeader(uploaded);
+styleTableHeader(name);
+styleTableHeader(size);
+styleTableHeader(uploaded);
 
-        name.setPrefWidth(260);
-        size.setPrefWidth(110);
-        uploaded.setPrefWidth(180);
-        more.setPrefWidth(30);
+// Use explicit fixed widths for reliable column tracking
+name.setPrefWidth(260);
+name.setMinWidth(260);
+name.setMaxWidth(260);
 
-        HBox.setHgrow(name, Priority.ALWAYS);
+size.setPrefWidth(110);
+size.setMinWidth(110);
+size.setMaxWidth(110);
+
+uploaded.setPrefWidth(180);
+uploaded.setMinWidth(180);
+uploaded.setMaxWidth(180);
+
+more.setPrefWidth(30);
+more.setMinWidth(30);
+more.setMaxWidth(30);
+
+        
         tableHeader.getChildren().addAll(name, size, uploaded, more);
 
         fileListBox = new VBox(0);
@@ -978,6 +990,8 @@ public class SharedSpacePage {
         HBox nameBox = new HBox(12, icon, name);
         nameBox.setAlignment(Pos.CENTER_LEFT);
         nameBox.setPrefWidth(260);
+        nameBox.setMinWidth(260);
+        nameBox.setMaxWidth(260);
         HBox.setHgrow(nameBox, Priority.ALWAYS);
 
         String displaySize = (file.size == null || file.size.equalsIgnoreCase("Cloud File") || file.size.equalsIgnoreCase("Local File") || file.size.isEmpty()) ? "1.2 MB" : file.size;
@@ -985,17 +999,23 @@ public class SharedSpacePage {
         size.setFont(Font.font(FONT, 12));
         size.setStyle("-fx-text-fill: #000000;");
         size.setPrefWidth(110);
+        size.setMinWidth(110);
+        size.setMaxWidth(110);
 
         String displayDate = (file.uploadedOn == null || file.uploadedOn.equalsIgnoreCase("Just now") || file.uploadedOn.isEmpty()) ? "26 Aug 2026" : file.uploadedOn;
         Label date = new Label(displayDate);
         date.setFont(Font.font(FONT, 12));
         date.setStyle("-fx-text-fill: #000000;");
         date.setPrefWidth(180);
+        date.setMinWidth(180);
+        date.setMaxWidth(180);;
 
         Button more = new Button("⋮");
         more.setFont(Font.font(FONT, FontWeight.BOLD, 18));
         more.setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-cursor: hand;");
         more.setPrefWidth(30);
+        more.setMinWidth(30);
+        more.setMaxWidth(30);
 
         ContextMenu menu = new ContextMenu();
         
