@@ -3,6 +3,7 @@ package com.file_handlers.view.userView;
 import com.file_handlers.dao.FileDAO;
 import com.file_handlers.model.FileData;
 import com.file_handlers.model.UserSession;
+import com.file_handlers.service.FileProcessingService;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
 import javafx.application.Platform;
@@ -15,10 +16,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
 import javafx.stage.Popup;
 
 import java.awt.Desktop;
 import java.io.File;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
@@ -51,12 +54,14 @@ public class UnifiedSpaceView {
 
     private final String spaceId, spaceName;
     private final FileDAO fileDAO = new FileDAO();
+    private final FileProcessingService fileProcessingService = new FileProcessingService();
     private List<FileData> files = new ArrayList<>();
     private FlowPane filePane;
     private Label countLabel, storageLabel, updatedLabel, previewName, previewDate, previewType, previewSize;
     private StackPane previewIconPane;
     private Button previewButton, detailsButton, removeButton;
     private FileData selectedFile;
+    private String selectedType="All";
 
     public UnifiedSpaceView() { this("all", "All Spaces"); }
 
@@ -279,6 +284,24 @@ public class UnifiedSpaceView {
         stats.add(statCard("Storage", storageLabel, "storage"), 1, 0);
         stats.add(statCard("Last Updated", updatedLabel, "recent"), 2, 0);
 
+        Region statsRowSpacer = new Region();
+        HBox.setHgrow(statsRowSpacer, Priority.ALWAYS);
+
+        HBox statsRow = new HBox(stats, statsRowSpacer);
+        statsRow.setAlignment(Pos.CENTER_LEFT);
+
+        if (!"all".equals(spaceId)) {
+            Button importFilesBtn = new Button("⬆   Import Files");
+            importFilesBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
+            String importIdle = "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 10 18; -fx-cursor: hand; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 10;";
+            String importHover = "-fx-background-color: linear-gradient(to right, #2563EB, #3B82F6); -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 10 18; -fx-cursor: hand; -fx-border-color: rgba(96, 165, 250, 0.85); -fx-border-radius: 10;";
+            importFilesBtn.setStyle(importIdle);
+            importFilesBtn.setOnMouseEntered(e -> importFilesBtn.setStyle(importHover));
+            importFilesBtn.setOnMouseExited(e -> importFilesBtn.setStyle(importIdle));
+            importFilesBtn.setOnAction(e -> importFilesDirectly());
+            statsRow.getChildren().add(importFilesBtn);
+        }
+
         filePane = new FlowPane(12, 12);
         filePane.setPadding(new Insets(4));
 
@@ -289,7 +312,34 @@ public class UnifiedSpaceView {
         fileScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
         VBox.setVgrow(fileScroll, Priority.ALWAYS);
 
-        VBox fileArea = new VBox(12, label("Files", 17, FontWeight.BOLD, WHITE), fileScroll);
+        // Filter Dropdown Button for Filtering Files based on Type
+        ComboBox<String> typeFilterCombo = new ComboBox<>();
+        typeFilterCombo.getItems().addAll("All", "PDF", "Image", "Video", "Audio", "Document", "Text", "Code", "Archive");
+        typeFilterCombo.setValue(selectedType);
+        typeFilterCombo.setStyle(
+                "-fx-background-color: " + INPUT_BG + ";" +
+                "-fx-text-fill: " + WHITE + ";" +
+                "-fx-border-color: rgba(255, 255, 255, 0.1);" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-font-size: 12px;" +
+                "-fx-cursor: hand;"
+        );
+        typeFilterCombo.setOnAction(e -> {
+            String val = typeFilterCombo.getValue();
+            selectedType = (val == null || val.isBlank()) ? "All" : val;
+            refreshFiles("");
+        });
+
+        Region filterGap = new Region();
+        HBox.setHgrow(filterGap, Priority.ALWAYS);
+
+        HBox fileHeaderBox = new HBox(10, label("Files", 17, FontWeight.BOLD, WHITE), filterGap, typeFilterCombo);
+        fileHeaderBox.setAlignment(Pos.CENTER_LEFT);
+
+        VBox fileArea = new VBox(12, fileHeaderBox, fileScroll);
+        
         fileArea.setPadding(new Insets(18));
         fileArea.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
         HBox.setHgrow(fileArea, Priority.ALWAYS);
@@ -341,7 +391,7 @@ public class UnifiedSpaceView {
         HBox main = new HBox(16, fileArea, preview);
         VBox.setVgrow(main, Priority.ALWAYS);
 
-        VBox content = new VBox(20, header, stats, main);
+        VBox content = new VBox(20, header, statsRow, main);
         content.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 28, ResponsiveUtil.PAGE_PADDING));
         content.setStyle("-fx-background-color: transparent;");
 
@@ -362,6 +412,55 @@ public class UnifiedSpaceView {
 
         loadFiles();
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
+    }
+
+    private void importFilesDirectly() {
+        if ("all".equals(spaceId)) {
+            showAlert("Open a specific Space to import files directly into it.");
+            return;
+        }
+
+        UserSession session = UserSession.getInstance();
+        if (session == null || !UserSession.isLoggedIn() || session.getUid() == null || session.getUid().isBlank()) {
+            showAlert("No authenticated user.");
+            return;
+        }
+
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Import Files into " + spaceName);
+
+        List<File> selected = chooser.showOpenMultipleDialog(filePane.getScene().getWindow());
+        if (selected == null || selected.isEmpty()) return;
+
+        Thread thread = new Thread(() -> {
+            int imported = 0, duplicates = 0, failed = 0;
+
+            for (File selectedFile : selected) {
+                try {
+                    String result = fileProcessingService.processFileToSpace(selectedFile.toPath(), spaceId, spaceName, null);
+                    if (result != null && result.startsWith("DUPLICATE:")) duplicates++;
+                    else imported++;
+                } catch (Exception e) {
+                    failed++;
+                }
+            }
+
+            int finalImported = imported, finalDuplicates = duplicates, finalFailed = failed;
+
+            Platform.runLater(() -> {
+                StringBuilder summary = new StringBuilder();
+                summary.append(finalImported).append(finalImported == 1 ? " file" : " files")
+                        .append(" imported directly into ").append(spaceName).append(" without AI categorization.");
+                if (finalDuplicates > 0) summary.append(" ").append(finalDuplicates).append(" already existed and were skipped.");
+                if (finalFailed > 0) summary.append(" ").append(finalFailed).append(" failed to import.");
+
+                showAlert(summary.toString());
+                loadFiles();
+            });
+        });
+
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private void loadFiles() {
@@ -400,6 +499,12 @@ public class UnifiedSpaceView {
         for (FileData file : files) {
             String name = file.getFileName() == null ? "Unnamed file" : file.getFileName();
             if (!search.isEmpty() && !name.toLowerCase().contains(search)) continue;
+
+            if (selectedType != null && !"All".equalsIgnoreCase(selectedType)) {
+                String fType = file.getFileType() == null ? "" : file.getFileType().toLowerCase();
+                if (!fType.contains(selectedType.toLowerCase())) continue;
+            }
+
             filePane.getChildren().add(createFileCard(file));
             shown++;
         }

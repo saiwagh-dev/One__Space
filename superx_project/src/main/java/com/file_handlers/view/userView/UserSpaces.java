@@ -1,7 +1,9 @@
 package com.file_handlers.view.userView;
 
 import com.file_handlers.dao.FileDAO;
+import com.file_handlers.dao.SpaceDAO;
 import com.file_handlers.model.FileData;
+import com.file_handlers.model.SpaceData;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 import com.file_handlers.view.LandingPage;
@@ -10,6 +12,7 @@ import com.google.cloud.Timestamp;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -23,9 +26,12 @@ import javafx.stage.Popup;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public class UserSpaces {
 
@@ -52,6 +58,19 @@ public class UserSpaces {
     private static final String BLUE = "#2563EB";
 
     private final FileDAO fileDAO = new FileDAO();
+    private final SpaceDAO spaceDAO = new SpaceDAO();
+
+    // Cycled through for custom (user-created) Spaces, which have no fixed icon/color.
+    private static final String[] CUSTOM_ICONS = {"🗂", "📌", "🧩", "🚀", "🌿", "🎯", "📚", "🎨"};
+    private static final String[] CUSTOM_BG = {"rgba(99, 102, 241, 0.2)", "rgba(20, 184, 166, 0.2)", "rgba(234, 88, 12, 0.2)", "rgba(190, 24, 93, 0.2)"};
+    private static final String[] CUSTOM_FG = {"#818CF8", "#2DD4BF", "#FB923C", "#F472B6"};
+    private static final String INPUT_BG = "rgba(13, 22, 38, 0.85)";
+
+    // Populated once custom Spaces are fetched/created, so the grid can be rebuilt on demand.
+    private final List<SpaceInfo> customSpaceInfos = new ArrayList<>();
+    private GridPane spacesGrid;
+    private Map<String, SpaceCardView> spaceCards;
+    private Label spacesFooter;
 
     private final List<SpaceInfo> spaces = List.of(
         new SpaceInfo("Personal", "personal", "IDs, certificates, personal photos and everyday documents.", "👤", "rgba(124, 58, 237, 0.2)", "#A78BFA"),
@@ -243,28 +262,42 @@ public class UserSpaces {
         Label description = label("Virtual groupings built by AI. Files remain in their original folders.", 13, FontWeight.MEDIUM, LIGHT_SECONDARY);
         VBox titleBox = new VBox(4, title, description);
 
-        GridPane grid = new GridPane();
-        grid.setHgap(16);
-        grid.setVgap(16);
+        Button newSpaceBtn = new Button("+  New Space");
+        newSpaceBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
+        String newSpaceIdle = "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 10 18; -fx-cursor: hand; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 10;";
+        String newSpaceHover = "-fx-background-color: linear-gradient(to right, #2563EB, #3B82F6); -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 10 18; -fx-cursor: hand; -fx-border-color: rgba(96, 165, 250, 0.85); -fx-border-radius: 10;";
+        newSpaceBtn.setStyle(newSpaceIdle);
+        newSpaceBtn.setOnMouseEntered(e -> newSpaceBtn.setStyle(newSpaceHover));
+        newSpaceBtn.setOnMouseExited(e -> newSpaceBtn.setStyle(newSpaceIdle));
+        newSpaceBtn.setOnAction(e -> showCreateSpaceDialog());
+
+        Region titleGap = new Region();
+        HBox.setHgrow(titleGap, Priority.ALWAYS);
+        HBox spacesHeader = new HBox(titleBox, titleGap, newSpaceBtn);
+        spacesHeader.setAlignment(Pos.CENTER_LEFT);
+
+        spacesGrid = new GridPane();
+        spacesGrid.setHgap(16);
+        spacesGrid.setVgap(16);
 
         for (int i = 0; i < 3; i++) {
             ColumnConstraints c = new ColumnConstraints();
             c.setPercentWidth(33.33);
-            grid.getColumnConstraints().add(c);
+            spacesGrid.getColumnConstraints().add(c);
         }
 
-        Map<String, SpaceCardView> cards = new HashMap<>();
+        spaceCards = new HashMap<>();
 
         for (int i = 0; i < spaces.size(); i++) {
             SpaceInfo info = spaces.get(i);
             SpaceCardView card = createSpaceCard(info);
-            cards.put(info.spaceId, card);
-            grid.add(card.card, i % 3, i / 3);
+            spaceCards.put(info.spaceId, card);
+            spacesGrid.add(card.card, i % 3, i / 3);
         }
 
-        Label footer = label("ⓘ Loading spaces...", 12, FontWeight.NORMAL, LIGHT_SECONDARY);
+        spacesFooter = label("ⓘ Loading spaces...", 12, FontWeight.NORMAL, LIGHT_SECONDARY);
 
-        VBox content = new VBox(22, titleBox, grid, footer);
+        VBox content = new VBox(22, spacesHeader, spacesGrid, spacesFooter);
         content.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 28, ResponsiveUtil.PAGE_PADDING));
         content.setStyle("-fx-background-color: transparent;");
 
@@ -284,9 +317,181 @@ public class UserSpaces {
         root.setCenter(center);
         root.setStyle("-fx-background-color: " + SIDEBAR_BG + ";");
 
-        loadSpaceStatistics(cards, footer);
+        loadSpaceStatistics(spaceCards, spacesFooter);
+        loadCustomSpacesIntoGrid(session);
 
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
+    }
+
+    private void loadCustomSpacesIntoGrid(UserSession session) {
+        if (session == null || !UserSession.isLoggedIn()
+                || session.getUid() == null || session.getUid().isBlank()) {
+            return;
+        }
+
+        Thread thread = new Thread(() -> {
+            try {
+                List<SpaceData> customSpaces = spaceDAO.getUserSpaces(session.getUid());
+
+                Platform.runLater(() -> {
+                    for (SpaceData space : customSpaces) {
+                        addSpaceCardToGrid(toSpaceInfo(space));
+                    }
+                    loadSpaceStatistics(spaceCards, spacesFooter);
+                });
+            } catch (Exception e) {
+                System.out.println("[SPACES] Unable to load custom spaces: " + e.getMessage());
+            }
+        });
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private SpaceInfo toSpaceInfo(SpaceData space) {
+        int index = customSpaceInfos.size();
+        String description = space.getDescription() == null || space.getDescription().isBlank()
+                ? "Custom space." : space.getDescription();
+
+        return new SpaceInfo(
+                space.getName(),
+                space.getSpaceId(),
+                description,
+                CUSTOM_ICONS[index % CUSTOM_ICONS.length],
+                CUSTOM_BG[index % CUSTOM_BG.length],
+                CUSTOM_FG[index % CUSTOM_FG.length]
+        );
+    }
+
+    private void addSpaceCardToGrid(SpaceInfo info) {
+        customSpaceInfos.add(info);
+
+        SpaceCardView card = createSpaceCard(info);
+        spaceCards.put(info.spaceId, card);
+
+        int totalIndex = spaces.size() + customSpaceInfos.size() - 1;
+        spacesGrid.add(card.card, totalIndex % 3, totalIndex / 3);
+    }
+
+    private void showCreateSpaceDialog() {
+        UserSession session = UserSession.getInstance();
+
+        if (session == null || !UserSession.isLoggedIn()
+                || session.getUid() == null || session.getUid().isBlank()) {
+            showAlert("You need to be signed in to create a Space.");
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Create New Space");
+        dialog.getDialogPane().setStyle("-fx-background-color: #0A121E; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+
+        ButtonType createButtonType = new ButtonType("Create Space", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
+
+        Label nameLabel = label("Space Name", 11, FontWeight.BOLD, LIGHT_SECONDARY);
+        TextField nameField = new TextField();
+        nameField.setPromptText("e.g. Travel, Wedding, Startup Docs");
+        styleField(nameField);
+
+        Label descLabel = label("Description", 11, FontWeight.BOLD, LIGHT_SECONDARY);
+        TextArea descField = new TextArea();
+
+        descField.setPromptText(
+                "What kind of files belong here? This is what the AI reads to sort files into this Space automatically."
+        );
+
+        descField.setWrapText(true);
+        descField.setPrefRowCount(3);
+
+        descField.setStyle(
+                "-fx-control-inner-background: " + INPUT_BG + ";" +
+                "-fx-background-color: " + INPUT_BG + ";" +
+                "-fx-text-fill: white;" +
+                "-fx-prompt-text-fill: " + LIGHT_SECONDARY + ";" +
+                "-fx-border-color: rgba(255,255,255,0.12);" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;" +
+                "-fx-padding: 8;"
+        );
+
+        Label tagsLabel = label("Smart Tags (optional)", 11, FontWeight.BOLD, LIGHT_SECONDARY);
+        TextField tagsField = new TextField();
+        tagsField.setPromptText("one word each, comma separated — e.g. flights, hotel, passport");
+        styleField(tagsField);
+
+        Label hint = label("The AI checks this description and these tags, alongside the fixed categories, when deciding where a new file belongs.", 10, FontWeight.NORMAL, LIGHT_SECONDARY);
+        hint.setWrapText(true);
+        hint.setMaxWidth(380);
+
+        VBox content = new VBox(6, nameLabel, nameField, descLabel, descField, tagsLabel, tagsField, hint);
+        content.setPadding(new Insets(16));
+        content.setPrefWidth(420);
+        content.setStyle("-fx-background-color: #0A121E;");
+
+        dialog.getDialogPane().setContent(content);
+
+        Node createButton = dialog.getDialogPane().lookupButton(createButtonType);
+        createButton.setDisable(true);
+        nameField.textProperty().addListener((obs, oldV, newV) -> createButton.setDisable(newV == null || newV.isBlank()));
+
+        Optional<ButtonType> result = dialog.showAndWait();
+
+        if (result.isEmpty() || result.get() != createButtonType) {
+            return;
+        }
+
+        String name = nameField.getText() == null ? "" : nameField.getText().trim();
+        String desc = descField.getText() == null ? "" : descField.getText().trim();
+        List<String> tags = parseSmartTags(tagsField.getText());
+
+        if (name.isBlank()) {
+            return;
+        }
+
+        Thread thread = new Thread(() -> {
+            try {
+                SpaceData created = spaceDAO.createSpace(session.getUid(), name, desc, tags);
+
+                Platform.runLater(() -> {
+                    addSpaceCardToGrid(toSpaceInfo(created));
+                    loadSpaceStatistics(spaceCards, spacesFooter);
+                });
+            } catch (Exception e) {
+                Platform.runLater(() ->
+                        showAlert(e.getMessage() == null ? "Unable to create the Space." : e.getMessage()));
+            }
+        });
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    
+
+    private List<String> parseSmartTags(String raw) {
+        List<String> tags = new ArrayList<>();
+        if (raw == null || raw.isBlank()) {
+            return tags;
+        }
+
+        for (String piece : raw.split("[,\\n]")) {
+            String token = piece.trim().toLowerCase(Locale.ROOT);
+            if (token.isEmpty()) continue;
+
+            // Keep tags to a single word each; if the user typed a phrase, take the first word.
+            token = token.split("\\s+")[0];
+
+            if (!tags.contains(token)) tags.add(token);
+            if (tags.size() == 8) break;
+        }
+
+        return tags;
+    }
+
+    private void styleField(TextInputControl field) {
+        field.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: white; -fx-prompt-text-fill: " + LIGHT_SECONDARY
+                + "; -fx-border-color: rgba(255,255,255,0.12); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
     }
 
     private VBox createSidebar() {
@@ -509,29 +714,23 @@ public class UserSpaces {
 
                 Platform.runLater(() -> {
 
-                    for (SpaceInfo info : spaces) {
+                    for (Map.Entry<String, SpaceCardView> entry : cards.entrySet()) {
 
                         SpaceStats stat =
                                 stats.getOrDefault(
-                                        info.spaceId,
+                                        entry.getKey(),
                                         new SpaceStats()
                                 );
 
-                        SpaceCardView card =
-                                cards.get(info.spaceId);
-
-                        if (card != null) {
-
-                            card.setStats(
-                                    stat.fileCount,
-                                    formatUpdated(
-                                            stat.latestUpdate
-                                    ),
-                                    formatSize(
-                                            stat.totalSize
-                                    )
-                            );
-                        }
+                        entry.getValue().setStats(
+                                stat.fileCount,
+                                formatUpdated(
+                                        stat.latestUpdate
+                                ),
+                                formatSize(
+                                        stat.totalSize
+                                )
+                        );
                     }
 
                     footer.setText(
@@ -607,6 +806,14 @@ public class UserSpaces {
                 "%.1f GB",
                 bytes / 1073741824.0
         );
+    }
+
+    private void showAlert(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("OneSpace");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     private Label label(
