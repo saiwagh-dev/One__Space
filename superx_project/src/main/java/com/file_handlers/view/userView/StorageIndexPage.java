@@ -2,6 +2,7 @@ package com.file_handlers.view.userView;
 
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -11,7 +12,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -27,10 +27,6 @@ import java.util.Comparator;
 import java.util.List;
 
 public class StorageIndexPage {
-
-    // =========================================================
-    // ONESPACE DASHBOARD THEME
-    // =========================================================
 
     private static final String TOPBAR = "#1E2A3A";
     private static final String BACKGROUND = "#31445D";
@@ -48,19 +44,11 @@ public class StorageIndexPage {
 
     private static final String BORDER = "#C2D4E8";
 
-    // =========================================================
-    // ONESPACE STORAGE LOCATION
-    // =========================================================
-
     private final File oneSpace =
             new File(
                     System.getProperty("user.home"),
                     "OneSpace"
             );
-
-    // =========================================================
-    // SCENE
-    // =========================================================
 
     public Scene getStorageIndexPageScene() {
 
@@ -72,12 +60,8 @@ public class StorageIndexPage {
                 "-fx-background-color:" + BACKGROUND + ";"
         );
 
-        return new Scene(root, 1200, 750);
+        return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
-
-    // =========================================================
-    // MAIN AREA
-    // =========================================================
 
     private VBox createMainArea() {
 
@@ -92,10 +76,6 @@ public class StorageIndexPage {
 
         return main;
     }
-
-    // =========================================================
-    // TOP BAR
-    // =========================================================
 
     private HBox createTopBar() {
 
@@ -145,26 +125,6 @@ public class StorageIndexPage {
 
         backButton.setOnAction(
                 e -> LandingPage.showUserDashboard()
-        );
-
-        TextField search = new TextField();
-
-        search.setPromptText(
-                "Search in OneSpace..."
-        );
-
-        search.setPrefWidth(460);
-        search.setPrefHeight(44);
-
-        search.setStyle(
-                "-fx-background-color:#142030;" +
-                "-fx-text-fill:#FFFFFF;" +
-                "-fx-prompt-text-fill:#91A4BD;" +
-                "-fx-font-size:14px;" +
-                "-fx-border-color:#30445D;" +
-                "-fx-border-radius:12;" +
-                "-fx-background-radius:12;" +
-                "-fx-padding:0 16;"
         );
 
         Button notification =
@@ -252,7 +212,6 @@ public class StorageIndexPage {
                 new HBox(
                         16,
                         backButton,
-                        search,
                         spacer,
                         notification,
                         profile
@@ -265,9 +224,9 @@ public class StorageIndexPage {
         bar.setPadding(
                 new Insets(
                         20,
-                        24,
+                        ResponsiveUtil.PAGE_PADDING,
                         20,
-                        36
+                        ResponsiveUtil.PAGE_PADDING
                 )
         );
 
@@ -281,10 +240,6 @@ public class StorageIndexPage {
         return bar;
     }
 
-    // =========================================================
-    // STORAGE CONTENT
-    // =========================================================
-
     private ScrollPane createStorageContent() {
 
         VBox content = new VBox(18);
@@ -292,9 +247,9 @@ public class StorageIndexPage {
         content.setPadding(
                 new Insets(
                         28,
-                        34,
+                        ResponsiveUtil.PAGE_PADDING,
                         30,
-                        34
+                        ResponsiveUtil.PAGE_PADDING
                 )
         );
 
@@ -303,7 +258,6 @@ public class StorageIndexPage {
                 BACKGROUND + ";"
         );
 
-        // Actual storage values
         long oneSpaceSize =
                 folderSize(oneSpace);
 
@@ -331,10 +285,6 @@ public class StorageIndexPage {
                           100.0 /
                           usedPC;
 
-        // -----------------------------------------------------
-        // HEADER
-        // -----------------------------------------------------
-
         HBox header =
                 new HBox(
                         createPageHeading(),
@@ -354,20 +304,12 @@ public class StorageIndexPage {
                 refresh
         );
 
-        // -----------------------------------------------------
-        // MAIN USAGE CARD
-        // -----------------------------------------------------
-
         HBox usage =
                 createUsageCard(
                         oneSpaceSize,
                         oneSpaceOfTotal,
                         oneSpaceOfUsed
                 );
-
-        // -----------------------------------------------------
-        // TWO CARDS
-        // -----------------------------------------------------
 
         VBox storageBySpace =
                 createStorageBySpace(
@@ -399,27 +341,15 @@ public class StorageIndexPage {
                 Priority.ALWAYS
         );
 
-        // -----------------------------------------------------
-        // FILES
-        // -----------------------------------------------------
-
         VBox files =
                 createFileActivity(
                         oneSpaceSize
                 );
 
-        // -----------------------------------------------------
-        // SUMMARY
-        // -----------------------------------------------------
-
         HBox summary =
                 createSummary(
                         oneSpace
                 );
-
-        // -----------------------------------------------------
-        // FOOTER
-        // -----------------------------------------------------
 
         Separator separator =
                 new Separator();
@@ -474,10 +404,6 @@ public class StorageIndexPage {
         return scroll;
     }
 
-    // =========================================================
-    // PAGE TITLE
-    // =========================================================
-
     private VBox createPageHeading() {
 
         Label title =
@@ -503,10 +429,6 @@ public class StorageIndexPage {
                 subtitle
         );
     }
-
-    // =========================================================
-    // MAIN USAGE CARD
-    // =========================================================
 
     private HBox createUsageCard(
             long size,
@@ -631,10 +553,6 @@ public class StorageIndexPage {
         return card;
     }
 
-    // =========================================================
-    // STORAGE BY SPACE
-    // =========================================================
-
     private VBox createStorageBySpace(
             long total) {
 
@@ -706,10 +624,6 @@ public class StorageIndexPage {
 
         return card;
     }
-
-    // =========================================================
-    // SPACE ROW
-    // =========================================================
 
     private HBox createSpaceRow(
             String name,
@@ -793,10 +707,6 @@ public class StorageIndexPage {
 
         return row;
     }
-
-    // =========================================================
-    // PC STORAGE
-    // =========================================================
 
     private VBox createPCStorage(
             long oneSpaceSize,
@@ -890,10 +800,6 @@ public class StorageIndexPage {
         return card;
     }
 
-    // =========================================================
-    // INFO ROW
-    // =========================================================
-
     private HBox infoRow(
             String name,
             String value) {
@@ -930,10 +836,6 @@ public class StorageIndexPage {
 
         return row;
     }
-
-    // =========================================================
-    // FILE ACTIVITY
-    // =========================================================
 
     private VBox createFileActivity(
             long totalSize) {
@@ -1012,10 +914,6 @@ public class StorageIndexPage {
 
         return card;
     }
-
-    // =========================================================
-    // FILE ROW
-    // =========================================================
 
     private HBox createFileRow(
             File file,
@@ -1098,10 +996,6 @@ public class StorageIndexPage {
         return row;
     }
 
-    // =========================================================
-    // SUMMARY
-    // =========================================================
-
     private HBox createSummary(
             File folder) {
 
@@ -1171,10 +1065,6 @@ public class StorageIndexPage {
         return summary;
     }
 
-    // =========================================================
-    // STAT CARD
-    // =========================================================
-
     private VBox stat(
             String value,
             String title) {
@@ -1211,10 +1101,6 @@ public class StorageIndexPage {
 
         return box;
     }
-
-    // =========================================================
-    // BLUE BUTTON
-    // =========================================================
 
     private Button blueButton(
             String text) {
@@ -1263,10 +1149,6 @@ public class StorageIndexPage {
         return button;
     }
 
-    // =========================================================
-    // ACTUAL FOLDER SIZE
-    // =========================================================
-
     private long folderSize(
             File folder) {
 
@@ -1290,10 +1172,6 @@ public class StorageIndexPage {
 
         return total;
     }
-
-    // =========================================================
-    // GET ALL FILES
-    // =========================================================
 
     private List<File> getFiles(
             File folder) {
@@ -1327,10 +1205,6 @@ public class StorageIndexPage {
         return result;
     }
 
-    // =========================================================
-    // GET INTERNAL DRIVE
-    // =========================================================
-
     private File getInternalDrive() {
 
         String systemDrive =
@@ -1347,10 +1221,6 @@ public class StorageIndexPage {
 
         return new File("/");
     }
-
-    // =========================================================
-    // FORMAT FILE SIZE
-    // =========================================================
 
     private String format(
             long bytes) {
@@ -1378,10 +1248,6 @@ public class StorageIndexPage {
         );
     }
 
-    // =========================================================
-    // LABEL
-    // =========================================================
-
     private Label label(
             String text,
             double size,
@@ -1408,10 +1274,6 @@ public class StorageIndexPage {
         return label;
     }
 
-    // =========================================================
-    // SPACER
-    // =========================================================
-
     private Region spacer() {
 
         Region spacer =
@@ -1425,10 +1287,6 @@ public class StorageIndexPage {
         return spacer;
     }
 
-    // =========================================================
-    // SEPARATOR
-    // =========================================================
-
     private Separator separator() {
 
         Separator separator =
@@ -1441,10 +1299,6 @@ public class StorageIndexPage {
 
         return separator;
     }
-
-    // =========================================================
-    // CARD STYLE
-    // =========================================================
 
     private String cardStyle() {
 

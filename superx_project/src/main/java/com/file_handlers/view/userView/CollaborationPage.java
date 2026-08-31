@@ -70,10 +70,13 @@ public class CollaborationPage {
         activitiesList.clear();
         
         String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
+        if (myEmail == null || myEmail.trim().isEmpty()) {
+            return; // Exit if no user is logged in
+        }
         
         try {
-            com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
-            List<com.google.cloud.firestore.QueryDocumentSnapshot> workspacesDocs = db.collection("workspaces").get().get().getDocuments();
+                        com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
+                        List<com.google.cloud.firestore.QueryDocumentSnapshot> workspacesDocs = db.collection("workspaces").get().get().getDocuments();
             
             for (com.google.cloud.firestore.DocumentSnapshot doc : workspacesDocs) {
                 String docId = doc.getId();
@@ -86,6 +89,9 @@ public class CollaborationPage {
                 int fileCount = 0;
                 String fetchedOwnerEmail = "";
                 String userAssignedRole = "Viewer";
+                boolean isUserMemberOrOwner = false;
+                
+                List<ActivityItem> tempWorkspaceActivities = new ArrayList<>();
                 
                 try {
                     var membersDocs = db.collection("workspaces").document(docId).collection("members").get().get().getDocuments();
@@ -96,22 +102,30 @@ public class CollaborationPage {
                         String mName = mDoc.getString("name");
                         String mRole = mDoc.getString("role");
                         String mEmail = mDoc.getString("email");
+                        String mStatus = mDoc.getString("status");
                         
                         if ("Owner".equalsIgnoreCase(mRole)) {
                             fetchedOwnerEmail = mEmail != null ? mEmail : "";
                         }
                         
                         if (mEmail != null && mEmail.equalsIgnoreCase(myEmail)) {
+                            if ("active".equalsIgnoreCase(mStatus) || "Owner".equalsIgnoreCase(mRole)) {
+                                isUserMemberOrOwner = true;
+                            }
                             if (mRole != null && !mRole.isEmpty()) {
                                 userAssignedRole = mRole;
                             }
                         }
 
                         if (mName != null) {
-                            activitiesList.add(new ActivityItem(mName, "joined '" + spaceName + "'", "Recently"));
+                            tempWorkspaceActivities.add(new ActivityItem(mName, "joined '" + spaceName + "'", "Recently"));
                         }
                     }
                 } catch (Exception ignored) {}
+
+                if (!isUserMemberOrOwner) {
+                    continue;
+                }
 
                 try {
                     var filesDocs = db.collection("workspaces").document(docId).collection("files").get().get().getDocuments();
@@ -119,12 +133,13 @@ public class CollaborationPage {
                     for (var fDoc : filesDocs) {
                         String fName = fDoc.getString("fileName");
                         if (fName != null) {
-                            activitiesList.add(new ActivityItem("Team Member", "uploaded '" + fName + "' to " + spaceName, "Just now"));
+                            tempWorkspaceActivities.add(new ActivityItem("Team Member", "uploaded '" + fName + "' to " + spaceName, "Just now"));
                         }
                     }
                 } catch (Exception ignored) {}
                 
-                // Configure role badge colors based on exact role
+                activitiesList.addAll(tempWorkspaceActivities);
+                
                 String badgeBg = "#E2E8F0";
                 String badgeText = "#334155";
                 
@@ -159,15 +174,8 @@ public class CollaborationPage {
             ex.printStackTrace();
         }
 
-        if (workspaces.isEmpty()) {
-            workspaces.add(new WorkspaceData("🎓", "#0284C7", "College Presentation", 4, 32,
-                    "12.4 GB", "Owner", "#BFDBFE", "#1D4ED8", ""));
-        }
-
         if (activitiesList.isEmpty()) {
-            activitiesList.add(new ActivityItem("Priya Sharma", "uploaded 'SVM_Optimization.pdf'", "10 mins ago"));
-            activitiesList.add(new ActivityItem("Rohan Patel", "viewed 'College_Assignments'", "1 hour ago"));
-            activitiesList.add(new ActivityItem("Aarav Verma", "updated access permissions for Sneha", "3 hours ago"));
+            activitiesList.add(new ActivityItem("System", "No recent activity in your workspaces", "Just now"));
         }
     }
 
