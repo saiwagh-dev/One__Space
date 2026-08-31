@@ -94,11 +94,7 @@ public class AdminAuthController {
                     default -> "Admin";
                 };
 
-<<<<<<< HEAD
-                // Save session with the dynamic display name and admin flag set to true
-=======
                 
->>>>>>> origin/Development
                 UserSession.setInstance(idToken, trimmedEmail, displayName, true);
                 return true;
             } else {

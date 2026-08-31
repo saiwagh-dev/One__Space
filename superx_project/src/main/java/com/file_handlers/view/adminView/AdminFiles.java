@@ -572,7 +572,7 @@ public class AdminFiles {
 
         HBox.setHgrow(progressBackground, Priority.ALWAYS);
 
-        Label countLabel = new Label(count + " (" + percentageText + ")");
+        Label countLabel = new Label("0 (" + formatPercentage(0) + ")");
         countLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + CARD_SECONDARY + ";");
         countLabel.setPrefWidth(100);
         countLabel.setAlignment(Pos.CENTER_RIGHT);

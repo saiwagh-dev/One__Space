@@ -49,11 +49,11 @@ public class CollaborationPage {
     private static final String BLUE = "#2563EB";
 
     private static class WorkspaceData {
-        String iconType, iconColor, name, storage, role, badgeBg, badgeText, ownerEmail;
+        String iconType, iconColor, name, storage, role, badgeBg, badgeText, ownerEmail, docId;
         int members, files;
 
         WorkspaceData(String iconType, String iconColor, String name, int members, int files,
-                      String storage, String role, String badgeBg, String badgeText, String ownerEmail) {
+                      String storage, String role, String badgeBg, String badgeText, String ownerEmail, String docId) {
             this.iconType = iconType;
             this.iconColor = iconColor;
             this.name = name;
@@ -196,7 +196,7 @@ public class CollaborationPage {
 
         if (workspaces.isEmpty()) {
             workspaces.add(new WorkspaceData("files", "#38BDF8", "College Presentation", 4, 32,
-                    "12.4 GB", "Owner", "rgba(37, 99, 235, 0.2)", "#60A5FA", ""));
+                    "12.4 GB", "Owner", "rgba(37, 99, 235, 0.2)", "#60A5FA", "", ""));
         }
 
         if (activitiesList.isEmpty()) {
@@ -721,7 +721,7 @@ public class CollaborationPage {
         }
     }
 
-    private HBox createWorkspaceCard(WorkspaceData w) {
+    private HBox createWorkspaceCard(WorkspaceData w, BorderPane root, String docId) {
         SVGPath icon = createIcon(w.iconType);
         icon.setStroke(Color.web(w.iconColor));
         icon.setStrokeWidth(2);
@@ -755,7 +755,11 @@ public class CollaborationPage {
         return card;
     }
 
-    private VBox createWorkspaceGridCard(WorkspaceData w) {
+    private HBox createWorkspaceCard(WorkspaceData w) {
+        return createWorkspaceCard(w, null, w.docId);
+    }
+
+    private VBox createWorkspaceGridCard(WorkspaceData w, BorderPane root, String docId) {
         SVGPath icon = createIcon(w.iconType);
         icon.setStroke(Color.web(w.iconColor));
         icon.setStrokeWidth(2);
@@ -788,6 +792,10 @@ public class CollaborationPage {
         applyHover(card);
 
         return card;
+    }
+
+    private VBox createWorkspaceGridCard(WorkspaceData w) {
+        return createWorkspaceGridCard(w, null, w.docId);
     }
 
     private void deleteWorkspace(String docId, BorderPane root) {
@@ -912,6 +920,7 @@ public class CollaborationPage {
 
                 for (var mDoc : membersDocs) {
                     String email = mDoc.getString("email");
+                    String status = mDoc.getString("status");
 
                     if (email != null && email.equalsIgnoreCase(myEmail) && "pending".equalsIgnoreCase(status)) {
                         foundAny = true;
@@ -1258,7 +1267,8 @@ public class CollaborationPage {
                                 "Owner",
                                 "#BFDBFE",
                                 "#1D4ED8",
-                                ownerEmail
+                                ownerEmail,
+                                docId
                         ));
 
                         javafx.application.Platform.runLater(() -> {

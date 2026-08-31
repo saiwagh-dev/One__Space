@@ -18,7 +18,7 @@ public final class FirebaseConfig {
     // =========================================================
 
     private static final String SERVICE_ACCOUNT_ENV = "FIREBASE_SERVICE_ACCOUNT";
-    private static final String CREDENTIALS_FILE = "serviceAccountKey.json";
+    private static final String CREDENTIALS_FILE = "onespace_firebase_credentials.json";
 
     // =========================================================
     // FIREBASE INITIALIZATION

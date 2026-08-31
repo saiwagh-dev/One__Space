@@ -73,6 +73,7 @@ public class AdminDashboard {
 
     private String activeUserName = "Admin";
     private String initials = "A";
+
     public AdminDashboard() {
         UserSession session = UserSession.getInstance();
 
@@ -83,12 +84,8 @@ public class AdminDashboard {
                 this.activeUserName = parts[0];
                 this.initials = this.activeUserName.substring(0, 1).toUpperCase();
             }
-        }}
-    private final AdminStatsDAO statsDAO = new AdminStatsDAO();
-    private Label totalUsersValue;
-    private Label totalFilesValue;
-
-  
+        }
+    }
 
     public Scene getAdminDashboardScene() {
        
