@@ -7,9 +7,12 @@ import com.file_handlers.util.ResponsiveUtil;
 import com.file_handlers.view.LandingPage;
 import com.google.cloud.Timestamp;
 
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -20,8 +23,8 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
+import javafx.util.Duration;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -83,6 +86,7 @@ public class UserSpaces {
         notification.setGraphic(bellIcon);
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notification.setOnAction(e -> LandingPage.showNotificationPage());
+        applyHoverAnimation(notification, 1.08, 0);
 
         Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setMinSize(34, 34); avatar.setMaxSize(34, 34);
@@ -90,6 +94,7 @@ public class UserSpaces {
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        applyHoverAnimation(avatar, 1.15, 0);
 
         Label userLabel = label(user, 13, FontWeight.SEMI_BOLD, WHITE);
         Label dropDown = label("⌄", 12, FontWeight.NORMAL, LIGHT_SECONDARY);
@@ -98,6 +103,7 @@ public class UserSpaces {
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+        applyHoverAnimation(profile, 1.04, 0);
 
         // Custom Dropdown Menu
         Popup userDropdownPopup = new Popup();
@@ -289,6 +295,25 @@ public class UserSpaces {
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
+    private void applyHoverAnimation(Node node, double scaleTo, double translateY) {
+        node.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(scaleTo); st.setToY(scaleTo); st.play();
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(translateY); tt.play();
+            }
+        });
+        node.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(1.0); st.setToY(1.0); st.play();
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(0); tt.play();
+            }
+        });
+    }
+
     private VBox createSidebar() {
         Image image = new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
         ImageView view = new ImageView(image);
@@ -299,6 +324,7 @@ public class UserSpaces {
         StackPane logoIcon = new StackPane(view);
         logoIcon.setPrefSize(42, 42);
         logoIcon.setAlignment(Pos.CENTER);
+        applyHoverAnimation(logoIcon, 1.1, 0);
 
         Label logoText = label("OneSpace", 19, FontWeight.BOLD, WHITE);
         HBox logoHeader = new HBox(10, logoIcon, logoText);
@@ -342,6 +368,7 @@ public class UserSpaces {
         VBox storageCard = new VBox(8, storageTitle, storageValGroup, storageBar, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
         storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+        applyHoverAnimation(storageCard, 1.01, -1);
 
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
@@ -388,14 +415,18 @@ public class UserSpaces {
         } else {
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
-                icon.setStroke(Color.WHITE);
-                label.setTextFill(Color.WHITE);
+                button.setStyle("-fx-background-color: rgba(56, 189, 248, 0.12); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
+                icon.setStroke(Color.web("#38BDF8"));
+                label.setTextFill(Color.web("#38BDF8"));
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), button);
+                tt.setToX(4); tt.play();
             });
             button.setOnMouseExited(e -> {
                 button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
                 label.setTextFill(Color.web(WHITE));
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), button);
+                tt.setToX(0); tt.play();
             });
         }
 
@@ -437,8 +468,20 @@ public class UserSpaces {
         String styleHover = "-fx-background-color: " + CARD_BG_HOVER + "; -fx-border-color: " + info.iconTextColor + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, " + info.iconTextColor + "66, 20, 0, 0, 6);";
 
         card.setStyle(styleIdle);
-        card.setOnMouseEntered(e -> card.setStyle(styleHover));
-        card.setOnMouseExited(e -> card.setStyle(styleIdle));
+        card.setOnMouseEntered(e -> {
+            card.setStyle(styleHover);
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), card);
+            st.setToX(1.02); st.setToY(1.02); st.play();
+            TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
+            tt.setToY(-2); tt.play();
+        });
+        card.setOnMouseExited(e -> {
+            card.setStyle(styleIdle);
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), card);
+            st.setToX(1.0); st.setToY(1.0); st.play();
+            TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
+            tt.setToY(0); tt.play();
+        });
         card.setOnMouseClicked(e -> LandingPage.showUnifiedSpace(info.spaceId, info.name));
 
         return new SpaceCardView(card, files, size, updated);
@@ -563,7 +606,7 @@ public class UserSpaces {
 
         long minutes = Math.max(
                 0,
-                Duration.between(
+                java.time.Duration.between(
                         time,
                         Instant.now()
                 ).toMinutes()

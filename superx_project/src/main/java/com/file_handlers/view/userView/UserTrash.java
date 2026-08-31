@@ -5,9 +5,12 @@ import com.file_handlers.model.FileData;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -18,6 +21,8 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
+import javafx.util.Duration;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,11 +75,13 @@ public class UserTrash {
         bellBtn.setGraphic(bellIcon);
         bellBtn.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         bellBtn.setOnAction(e -> LandingPage.showNotificationPage());
+        applyScaleHoverAnimation(bellBtn, 1.08);
 
         Label avatar = label(initials, 12, FontWeight.BOLD, WHITE);
         avatar.setMinSize(34, 34); avatar.setPrefSize(34, 34); avatar.setMaxSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        applyScaleHoverAnimation(avatar, 1.15);
 
         Label userName = label(activeUserName, 13, FontWeight.SEMI_BOLD, WHITE);
         Label dropDown = label("⌄", 12, FontWeight.NORMAL, LIGHT_SECONDARY);
@@ -83,6 +90,7 @@ public class UserTrash {
         profileOption.setAlignment(Pos.CENTER);
         profileOption.setPadding(new Insets(4, 12, 4, 6));
         profileOption.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+        applyScaleHoverAnimation(profileOption, 1.04);
 
         // Custom Dropdown Menu
         Popup userDropdownPopup = new Popup();
@@ -118,7 +126,7 @@ public class UserTrash {
         ));
         profileDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
-            LandingPage.showUserProfilePage();
+            Platform.runLater(LandingPage::showUserProfilePage);
         });
 
         Button settingsDropdownBtn = new Button("⚙   Settings");
@@ -151,7 +159,7 @@ public class UserTrash {
         ));
         settingsDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
-            LandingPage.showSettingPage();
+            Platform.runLater(LandingPage::showSettingPage);
         });
 
         Separator dropdownSeparator = new Separator();
@@ -188,7 +196,7 @@ public class UserTrash {
         logoutDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
             UserSession.clearSession();
-            LandingPage.showUserLoginPage();
+            Platform.runLater(LandingPage::showUserLoginPage);
         });
 
         VBox dropdownContainer = new VBox(4, profileDropdownBtn, settingsDropdownBtn, dropdownSeparator, logoutDropdownBtn);
@@ -232,9 +240,16 @@ public class UserTrash {
         Button emptyTrashBtn = new Button("Empty Trash");
         emptyTrashBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
         emptyTrashBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-text-fill: #F87171; -fx-border-color: rgba(239, 68, 68, 0.3); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 8 18;");
-        emptyTrashBtn.setOnMouseEntered(e -> emptyTrashBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.25); -fx-text-fill: #F87171; -fx-border-color: #F87171; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 8 18;"));
-        emptyTrashBtn.setOnMouseExited(e -> emptyTrashBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-text-fill: #F87171; -fx-border-color: rgba(239, 68, 68, 0.3); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 8 18;"));
         emptyTrashBtn.setOnAction(e -> emptyTrash());
+        applyScaleHoverAnimation(emptyTrashBtn, 1.04);
+        emptyTrashBtn.setOnMouseEntered(e -> {
+            emptyTrashBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.25); -fx-text-fill: #F87171; -fx-border-color: #F87171; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 8 18;");
+            animateScale(emptyTrashBtn, 1.04);
+        });
+        emptyTrashBtn.setOnMouseExited(e -> {
+            emptyTrashBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-text-fill: #F87171; -fx-border-color: rgba(239, 68, 68, 0.3); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 8 18;");
+            animateScale(emptyTrashBtn, 1.0);
+        });
 
         Region headerGap = new Region();
         HBox.setHgrow(headerGap, Priority.ALWAYS);
@@ -253,6 +268,18 @@ public class UserTrash {
 
         statusCard.setPadding(new Insets(16));
         statusCard.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
+        statusCard.setOnMouseEntered(e -> {
+            statusCard.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 24, 0, 0, 6);");
+            TranslateTransition tt = new TranslateTransition(Duration.millis(140), statusCard);
+            tt.setToY(-2);
+            tt.play();
+        });
+        statusCard.setOnMouseExited(e -> {
+            statusCard.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
+            TranslateTransition tt = new TranslateTransition(Duration.millis(140), statusCard);
+            tt.setToY(0);
+            tt.play();
+        });
 
         Label cardTitle = label("Removed Items", 17, FontWeight.BOLD, WHITE);
         Label cardSub = label("Files removed from their original Spaces.", 12, FontWeight.NORMAL, LIGHT_SECONDARY);
@@ -306,6 +333,7 @@ public class UserTrash {
         StackPane logoIcon = new StackPane(logoView);
         logoIcon.setPrefSize(42, 42);
         logoIcon.setAlignment(Pos.CENTER);
+        applyScaleHoverAnimation(logoIcon, 1.1);
 
         Label logoText = label("OneSpace", 19, FontWeight.BOLD, WHITE);
         HBox logoHeader = new HBox(10, logoIcon, logoText);
@@ -345,10 +373,12 @@ public class UserTrash {
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
         manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexPage());
+        applyTranslateHoverAnimation(manageStorageBtn, 4, 0);
 
         VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
         storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+        applyScaleHoverAnimation(storageCard, 1.02);
 
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
@@ -395,14 +425,16 @@ public class UserTrash {
         } else {
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
-                icon.setStroke(Color.WHITE);
-                textLabel.setTextFill(Color.WHITE);
+                button.setStyle("-fx-background-color: rgba(56, 189, 248, 0.12); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
+                icon.setStroke(Color.web("#38BDF8"));
+                textLabel.setTextFill(Color.web("#38BDF8"));
+                animateTranslate(button, 4, 0);
             });
             button.setOnMouseExited(e -> {
                 button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
                 textLabel.setTextFill(Color.web(WHITE));
+                animateTranslate(button, 0, 0);
             });
         }
 
@@ -496,10 +528,12 @@ public class UserTrash {
         Button restore = new Button("Restore");
         restore.setStyle("-fx-background-color: rgba(16, 185, 129, 0.15); -fx-text-fill: #34D399; -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 7; -fx-background-radius: 7; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 6 10; -fx-cursor: hand;");
         restore.setOnAction(e -> restoreFile(file));
+        applyScaleHoverAnimation(restore, 1.08);
 
         Button delete = new Button("Delete");
         delete.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-text-fill: #F87171; -fx-border-color: rgba(239, 68, 68, 0.3); -fx-border-radius: 7; -fx-background-radius: 7; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 6 10; -fx-cursor: hand;");
         delete.setOnAction(e -> permanentlyDelete(file));
+        applyScaleHoverAnimation(delete, 1.08);
 
         HBox actions = new HBox(8, restore, delete);
         actions.setAlignment(Pos.CENTER_LEFT);
@@ -507,10 +541,43 @@ public class UserTrash {
 
         HBox row = new HBox(nameGroup, spaceLabel, dateLabel, sizeLabel, actions);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(10, 0, 10, 0));
-        row.setStyle("-fx-border-color: transparent transparent rgba(255, 255, 255, 0.05) transparent; -fx-border-width: 0 0 1 0;");
+        row.setPadding(new Insets(10, 8, 10, 8));
+        row.setStyle("-fx-background-color: transparent; -fx-border-color: transparent transparent rgba(255, 255, 255, 0.05) transparent; -fx-border-width: 0 0 1 0; -fx-background-radius: 8;");
+
+        row.setOnMouseEntered(e -> {
+            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 10, 0, 0, 2);");
+            animateTranslate(row, 4, 0);
+        });
+        row.setOnMouseExited(e -> {
+            row.setStyle("-fx-background-color: transparent; -fx-border-color: transparent transparent rgba(255, 255, 255, 0.05) transparent; -fx-border-width: 0 0 1 0; -fx-background-radius: 8;");
+            animateTranslate(row, 0, 0);
+        });
 
         return row;
+    }
+
+    private void applyScaleHoverAnimation(Node node, double scaleTo) {
+        node.setOnMouseEntered(e -> animateScale(node, scaleTo));
+        node.setOnMouseExited(e -> animateScale(node, 1.0));
+    }
+
+    private void applyTranslateHoverAnimation(Node node, double xTo, double yTo) {
+        node.setOnMouseEntered(e -> animateTranslate(node, xTo, yTo));
+        node.setOnMouseExited(e -> animateTranslate(node, 0, 0));
+    }
+
+    private void animateScale(Node node, double scaleTo) {
+        ScaleTransition st = new ScaleTransition(Duration.millis(160), node);
+        st.setToX(scaleTo);
+        st.setToY(scaleTo);
+        st.play();
+    }
+
+    private void animateTranslate(Node node, double xTo, double yTo) {
+        TranslateTransition tt = new TranslateTransition(Duration.millis(160), node);
+        tt.setToX(xTo);
+        tt.setToY(yTo);
+        tt.play();
     }
 
     private void restoreFile(FileData file) {

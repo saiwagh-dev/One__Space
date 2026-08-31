@@ -1,8 +1,11 @@
 package com.file_handlers.view.userView;
 
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -16,6 +19,7 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import com.file_handlers.controller.AuthController;
 import com.file_handlers.model.UserSession;
@@ -51,7 +55,11 @@ public class UserSettingPage {
     // 4. Vibrant Typography & Accent Highlights
     private static final String WHITE = "#FFFFFF";
     private static final String BLUE = "#2563EB";
+    private static final String PURPLE = "#A855F7";
     private static final String LIGHT_SECONDARY = "#94A3B8";
+
+    private Button activeSidebarBtn;
+    private ProgressBar sidebarStorageProgress;
 
     public Scene getSettingPageScene() {
         UserSession session = UserSession.getInstance();
@@ -73,17 +81,19 @@ public class UserSettingPage {
         bellBtn.setGraphic(bellIcon);
         bellBtn.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         bellBtn.setOnAction(e -> LandingPage.showNotificationPage());
+        applyHoverAnimation(bellBtn, 1.08, 0);
 
         Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setMinSize(34, 34); avatar.setMaxSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #8B5CF6, #A855F7); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(168,85,247,0.5), 10, 0, 0, 2); -fx-cursor: hand;");
+        applyHoverAnimation(avatar, 1.15, 0);
 
         Label userName = new Label(getFirstName(displayName));
         userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
-        userName.setStyle("-fx-text-fill: " + WHITE + ";");
+        userName.setStyle("-fx-text-fill: " + PURPLE + ";");
 
         Label dropDown = new Label("⌄");
         dropDown.setFont(Font.font(FONT, FontWeight.NORMAL, 12));
@@ -128,7 +138,7 @@ public class UserSettingPage {
         ));
         profileDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
-            LandingPage.showUserProfilePage();
+            Platform.runLater(LandingPage::showUserProfilePage);
         });
 
         Button settingsDropdownBtn = new Button("⚙   Settings");
@@ -161,7 +171,7 @@ public class UserSettingPage {
         ));
         settingsDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
-            LandingPage.showSettingPage();
+            Platform.runLater(LandingPage::showSettingPage);
         });
 
         Separator dropdownSeparator = new Separator();
@@ -198,7 +208,7 @@ public class UserSettingPage {
         logoutDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
             UserSession.clearSession();
-            LandingPage.showUserLoginPage();
+            Platform.runLater(LandingPage::showUserLoginPage);
         });
 
         VBox dropdownContainer = new VBox(4, profileDropdownBtn, settingsDropdownBtn, dropdownSeparator, logoutDropdownBtn);
@@ -249,11 +259,12 @@ public class UserSettingPage {
         userAvatarBig.setAlignment(Pos.CENTER);
         userAvatarBig.setFont(Font.font(FONT, FontWeight.BOLD, 16));
         userAvatarBig.setTextFill(Color.WHITE);
-        userAvatarBig.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        userAvatarBig.setStyle("-fx-background-color: linear-gradient(to bottom right, #8B5CF6, #A855F7); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(168,85,247,0.5), 10, 0, 0, 2); -fx-cursor: hand;");
+        applyHoverAnimation(userAvatarBig, 1.15, 0);
 
         Label accountName = new Label(displayName);
         accountName.setFont(Font.font(FONT, FontWeight.BOLD, 15));
-        accountName.setStyle("-fx-text-fill: " + WHITE + ";");
+        accountName.setStyle("-fx-text-fill: " + PURPLE + ";");
 
         Label accountEmail = new Label(email);
         accountEmail.setFont(Font.font(FONT, 12));
@@ -265,13 +276,14 @@ public class UserSettingPage {
         editProfileBtn.setOnAction(e -> LandingPage.showUserProfilePage());
 
         Button switchAccountBtn = createActionButton("Switch Account");
-        switchAccountBtn.setOnAction(e -> showInfo("Switch Account", "Please sign out and sign in with another account."));
+        switchAccountBtn.setOnAction(e -> showAnimatedSwitchAccountDialog());
 
         HBox profileActions = new HBox(8, editProfileBtn, switchAccountBtn);
         HBox profileCard = new HBox(16, userAvatarBig, accountDetails, new Region(), profileActions);
         HBox.setHgrow(profileCard.getChildren().get(2), Priority.ALWAYS);
         profileCard.setAlignment(Pos.CENTER_LEFT);
         profileCard.setPadding(new Insets(14, 20, 14, 20));
+        applyRowHover(profileCard);
 
         HBox appearanceLeft = createSettingRowLeft("theme", "Appearance", "Customize how OneSpace looks and adapts.");
 
@@ -292,6 +304,7 @@ public class UserSettingPage {
         HBox.setHgrow(appearanceSection.getChildren().get(1), Priority.ALWAYS);
         appearanceSection.setPadding(new Insets(14, 20, 14, 20));
         appearanceSection.setAlignment(Pos.CENTER_LEFT);
+        applyRowHover(appearanceSection);
 
         HBox accentRow = createSettingRow("sparkles", "Accent color", "Choose the accent color palette used across indicators.");
 
@@ -306,6 +319,7 @@ public class UserSettingPage {
 
         accentColors.setAlignment(Pos.CENTER_RIGHT);
         accentRow.getChildren().add(accentColors);
+        applyRowHover(accentRow);
 
         HBox indexingRow = createSettingRow("ai", "Local AI Indexing", "Rescan local directories or clear cached search indices.");
 
@@ -316,6 +330,7 @@ public class UserSettingPage {
         clearIndexBtn.setOnAction(e -> showInfo("Clear Cache", "Search cache clearing will be connected when the indexing cache is implemented."));
 
         indexingRow.getChildren().add(new HBox(8, rescanBtn, clearIndexBtn));
+        applyRowHover(indexingRow);
 
         HBox securityRow = createSettingRow("security", "Security & Password", "Update your Firebase account password.");
 
@@ -323,6 +338,7 @@ public class UserSettingPage {
         changePasswordBtn.setOnAction(e -> openChangePasswordWindow());
 
         securityRow.getChildren().add(changePasswordBtn);
+        applyRowHover(securityRow);
 
         VBox settingsCard = new VBox(
                 profileCard, createSeparator(),
@@ -358,6 +374,124 @@ public class UserSettingPage {
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
+    private void showAnimatedSwitchAccountDialog() {
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setTitle("Switch Account");
+
+        Label title = new Label("Switch Account");
+        title.setFont(Font.font(FONT, FontWeight.BOLD, 18));
+        title.setStyle("-fx-text-fill: " + WHITE + ";");
+
+        Label desc = new Label("Sign out from the current active profile to authenticate with a different OneSpace account.");
+        desc.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
+        desc.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
+        desc.setWrapText(true);
+
+        VBox infoCard = new VBox(10);
+        infoCard.setPadding(new Insets(16));
+        infoCard.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10;");
+
+        String[] points = {
+                "Your locally indexed spaces and files will remain safely stored.",
+                "Current authentication token will be cleared securely.",
+                "You will be redirected to the sign-in page immediately."
+        };
+
+        for (String point : points) {
+            Label dot = new Label("•");
+            dot.setFont(Font.font(FONT, FontWeight.BOLD, 14));
+            dot.setStyle("-fx-text-fill: #38BDF8;");
+
+            Label pointText = new Label(point);
+            pointText.setFont(Font.font(FONT, 12));
+            pointText.setStyle("-fx-text-fill: " + WHITE + ";");
+            pointText.setWrapText(true);
+
+            HBox row = new HBox(8, dot, pointText);
+            row.setAlignment(Pos.TOP_LEFT);
+            infoCard.getChildren().add(row);
+        }
+
+        Button cancelBtn = new Button("Cancel");
+        cancelBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+        cancelBtn.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8 16; -fx-cursor: hand;");
+        cancelBtn.setOnAction(e -> stage.close());
+        applyHoverAnimation(cancelBtn, 1.05, 0);
+
+        Button switchBtn = new Button("Sign Out & Switch");
+        switchBtn.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        switchBtn.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: white; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8 18; -fx-cursor: hand;");
+        switchBtn.setOnAction(e -> {
+            stage.close();
+            UserSession.clearSession();
+            Platform.runLater(LandingPage::showUserLoginPage);
+        });
+        applyHoverAnimation(switchBtn, 1.05, 0);
+
+        HBox btnRow = new HBox(10, cancelBtn, switchBtn);
+        btnRow.setAlignment(Pos.CENTER_RIGHT);
+
+        VBox layout = new VBox(16, title, desc, infoCard, btnRow);
+        layout.setPadding(new Insets(24));
+        layout.setStyle("-fx-background-color: #0A121E; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 14; -fx-background-radius: 14;");
+
+        applyHoverAnimation(infoCard, 1.01, -2);
+
+        Scene modalScene = new Scene(layout, 500, 360);
+        stage.setScene(modalScene);
+        stage.setResizable(false);
+        stage.centerOnScreen();
+        stage.showAndWait();
+    }
+
+    private void applyHoverAnimation(Node node, double scaleTo, double translateY) {
+        node.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(scaleTo);
+            st.setToY(scaleTo);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(translateY);
+                tt.play();
+            }
+        });
+
+        node.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(0);
+                tt.play();
+            }
+        });
+    }
+
+    private void applyRowHover(HBox row) {
+        String normalStyle = "-fx-background-color: transparent; -fx-border-color: transparent; -fx-background-radius: 12; -fx-border-radius: 12;";
+        String hoverStyle = "-fx-background-color: rgba(56, 189, 248, 0.07); -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-width: 1; -fx-background-radius: 12; -fx-border-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 12, 0, 0, 2);";
+
+        row.setStyle(normalStyle);
+        row.setOnMouseEntered(e -> {
+            row.setStyle(hoverStyle);
+            TranslateTransition tt = new TranslateTransition(Duration.millis(130), row);
+            tt.setToX(4);
+            tt.play();
+        });
+        row.setOnMouseExited(e -> {
+            row.setStyle(normalStyle);
+            TranslateTransition tt = new TranslateTransition(Duration.millis(130), row);
+            tt.setToX(0);
+            tt.play();
+        });
+    }
+
     private VBox createSidebar() {
         Image logoImage = new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
         ImageView logoView = new ImageView(logoImage);
@@ -368,6 +502,7 @@ public class UserSettingPage {
         StackPane logoIcon = new StackPane(logoView);
         logoIcon.setPrefSize(42, 42);
         logoIcon.setAlignment(Pos.CENTER);
+        applyHoverAnimation(logoIcon, 1.1, 0);
 
         Label logoText = new Label("OneSpace");
         logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
@@ -388,6 +523,7 @@ public class UserSettingPage {
         Button recentBtn = createSidebarButton("recent", "Recent", false, e -> LandingPage.showRecentPage());
         Button trashBtn = createSidebarButton("trash", "Trash", false, e -> LandingPage.showTrashPage());
         Button settingsBtn = createSidebarButton("settings", "Settings", true, e -> LandingPage.showSettingPage());
+        activeSidebarBtn = settingsBtn;
 
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
 
@@ -410,18 +546,30 @@ public class UserSettingPage {
         storageValues.setAlignment(Pos.CENTER_LEFT);
 
         ProgressBar progress = new ProgressBar(.64);
+        sidebarStorageProgress = progress;
         progress.setMaxWidth(Double.MAX_VALUE);
         progress.setPrefHeight(6);
-        progress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
+        progress.setStyle("-fx-accent: " + primaryBlue + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
 
         Button manageStorageBtn = new Button("Storage Index ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
         manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexPage());
+        manageStorageBtn.setOnMouseEntered(e -> {
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), manageStorageBtn);
+            tt.setToX(3);
+            tt.play();
+        });
+        manageStorageBtn.setOnMouseExited(e -> {
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), manageStorageBtn);
+            tt.setToX(0);
+            tt.play();
+        });
 
         VBox storageCard = new VBox(8, storageTitle, storageValues, progress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
         storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+        applyHoverAnimation(storageCard, 1.01, -1);
 
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
@@ -459,7 +607,7 @@ public class UserSettingPage {
 
         if (active) {
             btn.setStyle(
-                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+                "-fx-background-color: linear-gradient(to right, " + primaryBlue + ", #2563EB);" +
                 "-fx-background-radius: 12;" +
                 "-fx-border-color: rgba(96, 165, 250, 0.6);" +
                 "-fx-border-radius: 12;" +
@@ -470,18 +618,41 @@ public class UserSettingPage {
         } else {
             btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             btn.setOnMouseEntered(e -> {
-                btn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
-                icon.setStroke(Color.WHITE);
-                textLbl.setTextFill(Color.WHITE);
+                btn.setStyle("-fx-background-color: rgba(56, 189, 248, 0.12); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
+                icon.setStroke(Color.web("#38BDF8"));
+                textLbl.setTextFill(Color.web("#38BDF8"));
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), btn);
+                tt.setToX(4);
+                tt.play();
             });
             btn.setOnMouseExited(e -> {
                 btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
                 textLbl.setTextFill(Color.web(WHITE));
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), btn);
+                tt.setToX(0);
+                tt.play();
             });
         }
 
         return btn;
+    }
+
+    private void updateSidebarAccentColor(String hexColor) {
+        if (activeSidebarBtn != null) {
+            activeSidebarBtn.setStyle(
+                    "-fx-background-color: linear-gradient(to right, " + hexColor + ", #2563EB);" +
+                    "-fx-background-radius: 12;" +
+                    "-fx-border-color: rgba(96, 165, 250, 0.6);" +
+                    "-fx-border-radius: 12;" +
+                    "-fx-border-width: 1;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);"
+            );
+        }
+        if (sidebarStorageProgress != null) {
+            sidebarStorageProgress.setStyle("-fx-accent: " + hexColor + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
+        }
     }
 
     private void setTheme(String theme) {
@@ -498,6 +669,22 @@ public class UserSettingPage {
         circle.setStroke(selected ? Color.web(WHITE) : Color.TRANSPARENT);
         circle.setStrokeWidth(selected ? 2.5 : 0);
         circle.setCursor(javafx.scene.Cursor.HAND);
+
+        circle.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(120), circle);
+            st.setToX(1.3);
+            st.setToY(1.3);
+            st.play();
+            updateSidebarAccentColor(hexColor);
+        });
+
+        circle.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(120), circle);
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+            updateSidebarAccentColor(primaryBlue);
+        });
 
         circle.setOnMouseClicked(e -> {
             primaryBlue = hexColor;
@@ -533,6 +720,7 @@ public class UserSettingPage {
         Button updateBtn = new Button("Update Password");
         updateBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
         updateBtn.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: white; -fx-background-radius: 8; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 8; -fx-cursor: hand;");
+        applyHoverAnimation(updateBtn, 1.04, 0);
 
         updateBtn.setOnAction(e -> {
             String current = currentPass.getText();
@@ -568,7 +756,7 @@ public class UserSettingPage {
             Thread thread = new Thread(() -> {
                 boolean success = AUTH.changePassword(session.getEmail(), current, password);
 
-                javafx.application.Platform.runLater(() -> {
+                Platform.runLater(() -> {
                     updateBtn.setDisable(false);
 
                     if (success) {
@@ -617,6 +805,7 @@ public class UserSettingPage {
         StackPane iconPane = new StackPane(icon);
         iconPane.setPrefSize(34, 34); iconPane.setMinSize(34, 34);
         iconPane.setStyle("-fx-background-color: rgba(56, 189, 248, 0.15); -fx-background-radius: 8; -fx-border-color: rgba(56, 189, 248, 0.3); -fx-border-radius: 8;");
+        applyHoverAnimation(iconPane, 1.1, 0);
         return iconPane;
     }
 
@@ -673,8 +862,20 @@ public class UserSettingPage {
         Button btn = new Button(text);
         btn.setFont(Font.font(FONT, FontWeight.MEDIUM, 12));
         btn.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: " + WHITE + "; -fx-pref-height: 32; -fx-padding: 0 12; -fx-cursor: hand;");
-        btn.setOnMouseEntered(e -> btn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-border-color: rgba(255, 255, 255, 0.2); -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: " + WHITE + "; -fx-pref-height: 32; -fx-padding: 0 12; -fx-cursor: hand;"));
-        btn.setOnMouseExited(e -> btn.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: " + WHITE + "; -fx-pref-height: 32; -fx-padding: 0 12; -fx-cursor: hand;"));
+        btn.setOnMouseEntered(e -> {
+            btn.setStyle("-fx-background-color: rgba(56, 189, 248, 0.18); -fx-border-color: #38BDF8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: #38BDF8; -fx-pref-height: 32; -fx-padding: 0 12; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 8, 0, 0, 2);");
+            ScaleTransition st = new ScaleTransition(Duration.millis(120), btn);
+            st.setToX(1.05);
+            st.setToY(1.05);
+            st.play();
+        });
+        btn.setOnMouseExited(e -> {
+            btn.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: " + WHITE + "; -fx-pref-height: 32; -fx-padding: 0 12; -fx-cursor: hand;");
+            ScaleTransition st = new ScaleTransition(Duration.millis(120), btn);
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+        });
         return btn;
     }
 
@@ -699,8 +900,24 @@ public class UserSettingPage {
             button.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: #38BDF8; -fx-border-width: 2; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
         } else {
             button.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
-            button.setOnMouseEntered(e -> button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-border-color: rgba(255, 255, 255, 0.2); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;"));
-            button.setOnMouseExited(e -> button.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;"));
+            button.setOnMouseEntered(e -> {
+                button.setStyle("-fx-background-color: rgba(56, 189, 248, 0.12); -fx-border-color: #38BDF8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
+                icon.setStroke(Color.web("#38BDF8"));
+                name.setTextFill(Color.web("#38BDF8"));
+                ScaleTransition st = new ScaleTransition(Duration.millis(120), button);
+                st.setToX(1.04);
+                st.setToY(1.04);
+                st.play();
+            });
+            button.setOnMouseExited(e -> {
+                button.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
+                icon.setStroke(Color.web(LIGHT_SECONDARY));
+                name.setTextFill(Color.web(WHITE));
+                ScaleTransition st = new ScaleTransition(Duration.millis(120), button);
+                st.setToX(1.0);
+                st.setToY(1.0);
+                st.play();
+            });
         }
 
         return button;
@@ -725,6 +942,8 @@ public class UserSettingPage {
     }
 
     private void styleDialog(Alert alert) {
+        alert.getDialogPane().setPrefWidth(480);
+        alert.getDialogPane().setPrefHeight(240);
         alert.getDialogPane().setStyle("-fx-background-color: #0A121E; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
     }
 
