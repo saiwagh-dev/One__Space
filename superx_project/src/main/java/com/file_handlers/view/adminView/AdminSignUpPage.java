@@ -1,8 +1,4 @@
-package com.file_handlers.view.userView;
-
-import com.file_handlers.controller.AuthController;
-import com.file_handlers.view.LandingPage;
-import com.file_handlers.util.ResponsiveUtil;
+package com.file_handlers.view.adminView;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -20,58 +16,54 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
-public class UserSignupPage {
+import java.io.InputStream;
 
-    // Typography
+import com.file_handlers.controller.AdminAuthController;
+import com.file_handlers.util.ResponsiveUtil;
+import com.file_handlers.view.LandingPage;
+
+public class AdminSignUpPage {
+
+    // Dark Glassmorphic Theme Constants
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    private static final String BG_APP = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
+    private static final String BG_CARD = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
+    private static final String BG_INPUT = "rgba(10, 18, 33, 0.85)";
+    private static final String BORDER_COLOR = "rgba(56, 189, 248, 0.22)";
+    private static final String PRIMARY_BLUE = "#2563EB";
+    private static final String TEXT_DARK = "#FFFFFF";
+    private static final String TEXT_MUTED_DARK = "#94A3B8";
+    private static final String TEXT_MUTED_LIGHT = "#94A3B8";
+    private static final String ERROR_COLOR = "#EF4444";
 
-    // 1. Sidebar & Top Bar Tones
-    private static final String SIDEBAR_BG = "#070C16";
+    public Scene getAdminSignUpScene() {
 
-    // 2. Center Workspace Canvas: Atmospheric Dark Radial Glow
-    private static final String MAIN_BG = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
-
-    // 3. Main Glassmorphic Cards & Container Colors
-    private static final String CARD_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
-    private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
-    private static final String INPUT_BG = "rgba(13, 22, 38, 0.85)";
-    private static final String INPUT_BORDER = "rgba(255, 255, 255, 0.1)";
-
-    // 4. Vibrant Typography & Accent Highlights
-    private static final String WHITE = "#FFFFFF";
-    private static final String LIGHT_SECONDARY = "#94A3B8";
-    private static final String BLUE = "#2563EB";
-    private static final String ERROR_COLOR = "#F87171";
-
-    public Scene getUserSignupPageScene() {
-
-        // App Header
+        // App Header Bar
         Button backBtn = new Button("← Back to home");
         backBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        backBtn.setTextFill(Color.web(LIGHT_SECONDARY));
+        backBtn.setTextFill(Color.web(TEXT_MUTED_LIGHT));
         backBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
-        backBtn.setOnMouseEntered(e -> backBtn.setTextFill(Color.web(WHITE)));
-        backBtn.setOnMouseExited(e -> backBtn.setTextFill(Color.web(LIGHT_SECONDARY)));
-        backBtn.setOnAction(e -> {LandingPage.setScene(new LandingPage().getLandingPageScene());});
+        backBtn.setOnAction(e -> LandingPage.setScene(new LandingPage().getLandingPageScene()));
 
         HBox appHeader = new HBox(new Region(), backBtn);
         HBox.setHgrow(appHeader.getChildren().get(0), Priority.ALWAYS);
         appHeader.setAlignment(Pos.CENTER_LEFT);
         appHeader.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 16, ResponsiveUtil.PAGE_PADDING));
 
-        // Signup Card Header
-        StackPane centerIconPane = createOneSpaceLogo(135);
+        // Branding Text: Negative margin cancels PNG transparency padding
+        Label brandingText = new Label("OneSpace");
+        brandingText.setFont(Font.font(FONT, FontWeight.BOLD, 22));
+        brandingText.setTextFill(Color.web(TEXT_DARK));
+        VBox.setMargin(brandingText, new Insets(-26, 0, 4, 0));
 
-        Label title = new Label("One Space");
-        title.setFont(Font.font(FONT, FontWeight.BOLD, 24));
-        title.setTextFill(Color.web(WHITE));
-
-        Label subtitle = new Label("Create your personal OneSpace workspace");
+        // Subtitle
+        Label subtitle = new Label("Register for administrative workspace access");
         subtitle.setFont(Font.font(FONT, 13));
-        subtitle.setTextFill(Color.web(LIGHT_SECONDARY));
+        subtitle.setTextFill(Color.web(TEXT_MUTED_DARK));
 
         // Error Feedback Label
         Label errorLabel = new Label();
@@ -80,13 +72,14 @@ public class UserSignupPage {
         errorLabel.setManaged(false);
         errorLabel.setVisible(false);
 
-        VBox cardHeader = new VBox(-3, centerIconPane, title, subtitle, errorLabel);
+        // Card Header
+        VBox cardHeader = new VBox(4, createLogo(), brandingText, subtitle, errorLabel);
         cardHeader.setAlignment(Pos.CENTER);
 
         // Name Field
         Label nameLabel = new Label("Full Name");
         nameLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        nameLabel.setTextFill(Color.web(WHITE));
+        nameLabel.setTextFill(Color.web(TEXT_DARK));
 
         TextField nameField = new TextField();
         nameField.setPromptText("Enter your full name");
@@ -96,12 +89,12 @@ public class UserSignupPage {
         VBox nameBox = new VBox(6, nameLabel, nameField);
 
         // Email Field
-        Label emailLabel = new Label("Email Address");
+        Label emailLabel = new Label("Admin Email Address");
         emailLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        emailLabel.setTextFill(Color.web(WHITE));
+        emailLabel.setTextFill(Color.web(TEXT_DARK));
 
         TextField emailField = new TextField();
-        emailField.setPromptText("name@example.com");
+        emailField.setPromptText("admin@example.com");
         emailField.setPrefHeight(42);
         emailField.setStyle(getFieldStyle());
 
@@ -110,7 +103,7 @@ public class UserSignupPage {
         // Password Fields
         Label passwordLabel = new Label("Password");
         passwordLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        passwordLabel.setTextFill(Color.web(WHITE));
+        passwordLabel.setTextFill(Color.web(TEXT_DARK));
 
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("At least 6 characters");
@@ -121,7 +114,7 @@ public class UserSignupPage {
 
         Label confirmLabel = new Label("Confirm Password");
         confirmLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        confirmLabel.setTextFill(Color.web(WHITE));
+        confirmLabel.setTextFill(Color.web(TEXT_DARK));
 
         PasswordField confirmField = new PasswordField();
         confirmField.setPromptText("Re-enter your password");
@@ -131,31 +124,29 @@ public class UserSignupPage {
         VBox confirmBox = new VBox(6, confirmLabel, confirmField);
 
         // Controller Instantiation
-        AuthController authController = new AuthController();
+        AdminAuthController adminController = new AdminAuthController();
 
         // Signup Button & Action Logic
-        Button signupButton = new Button("Create Account   →");
+        Button signupButton = new Button("Create Admin Account  →");
         signupButton.setFont(Font.font(FONT, FontWeight.BOLD, 13));
         signupButton.setTextFill(Color.WHITE);
         signupButton.setMaxWidth(Double.MAX_VALUE);
         signupButton.setPrefHeight(42);
         signupButton.setStyle(
-                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+                "-fx-background-color: linear-gradient(to right, #1D4ED8, #0284C7);" +
+                "-fx-text-fill: #FFFFFF;" +
+                "-fx-background-radius: 12;" +
                 "-fx-border-color: rgba(96, 165, 250, 0.6);" +
-                "-fx-border-radius: 10;" +
-                "-fx-border-width: 1;" +
-                "-fx-background-radius: 10;" +
+                "-fx-border-radius: 12;" +
                 "-fx-cursor: hand;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.45), 10, 0, 0, 2);"
+                "-fx-effect: dropshadow(three-pass-box, rgba(2, 132, 199, 0.5), 14, 0, 0, 3);"
         );
-
+        
         signupButton.setOnAction(e -> {
             String fullName = nameField.getText().trim();
             String email = emailField.getText().trim();
             String password = passwordField.getText();
             String confirmPassword = confirmField.getText();
-            
-            String bio = "OneSpace user";
 
             if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                 errorLabel.setText("Please fill out all fields.");
@@ -178,31 +169,19 @@ public class UserSignupPage {
                 return;
             }
 
-            String idToken = authController.signUpAndGetToken(email, password, fullName, bio);
-
-            if (idToken != null) {
-                authController.updateProfile(idToken, fullName);
-
-                errorLabel.setManaged(false);
-                errorLabel.setVisible(false);
-                LandingPage.showUserDashboard();
-            } else {
-                errorLabel.setText("Registration failed. Email may already be in use.");
-                errorLabel.setManaged(true);
-                errorLabel.setVisible(true);
-            }
+            
         });
 
         // Login Link
-        Label accountText = new Label("Already have an account?");
+        Label accountText = new Label("Already have an admin account?");
         accountText.setFont(Font.font(FONT, 12));
-        accountText.setTextFill(Color.web(LIGHT_SECONDARY));
+        accountText.setTextFill(Color.web(TEXT_MUTED_DARK));
 
         Label loginLink = new Label("Sign In");
         loginLink.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         loginLink.setTextFill(Color.web("#38BDF8"));
         loginLink.setStyle("-fx-cursor: hand;");
-        loginLink.setOnMouseClicked(e -> LandingPage.showUserLoginPage());
+        loginLink.setOnMouseClicked(e -> LandingPage.showAdminLoginPage());
 
         HBox loginBox = new HBox(4, accountText, loginLink);
         loginBox.setAlignment(Pos.CENTER);
@@ -219,19 +198,19 @@ public class UserSignupPage {
                 loginBox
         );
 
-        card.setPadding(new Insets(24, 28, 24, 28));
-        card.setPrefWidth(ResponsiveUtil.AUTH_CARD_WIDTH);
-        card.setMaxWidth(ResponsiveUtil.AUTH_CARD_WIDTH);
+        card.setPadding(new Insets(28));
+        card.setPrefWidth(380);
+        card.setMaxWidth(380);
         card.setStyle(
-                "-fx-background-color: " + CARD_BG + ";" +
-                "-fx-border-color: " + CARD_BORDER + ";" +
-                "-fx-border-width: 1.2;" +
+                "-fx-background-color: " + BG_CARD + ";" +
+                "-fx-border-color: " + BORDER_COLOR + ";" +
                 "-fx-border-radius: 20;" +
                 "-fx-background-radius: 20;" +
+                "-fx-border-width: 1.2;" +
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);"
         );
 
-        // Main Layout
+        // Main Layout Assembly
         Region topSpacer = new Region();
         Region bottomSpacer = new Region();
 
@@ -240,42 +219,44 @@ public class UserSignupPage {
 
         VBox centerBody = new VBox(topSpacer, card, bottomSpacer);
         centerBody.setAlignment(Pos.CENTER);
-        centerBody.setPadding(new Insets(0, ResponsiveUtil.PAGE_PADDING, ResponsiveUtil.PAGE_PADDING, ResponsiveUtil.PAGE_PADDING));
+        centerBody.setPadding(new Insets(0, ResponsiveUtil.PAGE_PADDING, 24, ResponsiveUtil.PAGE_PADDING));
 
         BorderPane root = new BorderPane();
-        root.setStyle("-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";");
+        root.setStyle("-fx-background-color: " + BG_APP + ";");
         root.setTop(appHeader);
         root.setCenter(centerBody);
 
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
-    // Input Style
+    private StackPane createLogo() {
+        InputStream stream = getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png");
+        if (stream != null) {
+            Image logoImage = new Image(stream);
+            ImageView imageView = new ImageView(logoImage);
+            imageView.setFitWidth(90); 
+            imageView.setFitHeight(90); 
+            imageView.setPreserveRatio(true);
+            
+            StackPane logoHolder = new StackPane(imageView);
+            logoHolder.setAlignment(Pos.CENTER);
+            return logoHolder;
+        }
+        Circle circle = new Circle(42, Color.web(PRIMARY_BLUE));
+        Label fallback = new Label("O");
+        fallback.setFont(Font.font(FONT, FontWeight.BOLD, 36));
+        fallback.setTextFill(Color.WHITE);
+        return new StackPane(circle, fallback);
+    }
+
     private String getFieldStyle() {
-        return "-fx-background-color: " + INPUT_BG + ";" +
-               "-fx-border-color: " + INPUT_BORDER + ";" +
+        return "-fx-background-color: " + BG_INPUT + ";" +
+               "-fx-border-color: " + BORDER_COLOR + ";" +
                "-fx-border-radius: 10;" +
                "-fx-background-radius: 10;" +
                "-fx-padding: 0 14;" +
                "-fx-font-size: 13px;" +
-               "-fx-prompt-text-fill: " + LIGHT_SECONDARY + ";" +
-               "-fx-text-fill: " + WHITE + ";";
-    }
-
-    private StackPane createOneSpaceLogo(double size) {
-        Image logoImage = new Image(
-                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
-        );
-
-        ImageView logoView = new ImageView(logoImage);
-        logoView.setFitWidth(size);
-        logoView.setFitHeight(size);
-        logoView.setPreserveRatio(true);
-
-        StackPane logoPane = new StackPane(logoView);
-        logoPane.setPrefSize(size, size);
-        logoPane.setAlignment(Pos.CENTER);
-
-        return logoPane;
+               "-fx-prompt-text-fill: #64748B;" +
+               "-fx-text-fill: " + TEXT_DARK + ";";
     }
 }

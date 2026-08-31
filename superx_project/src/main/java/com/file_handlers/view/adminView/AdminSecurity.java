@@ -1,0 +1,1322 @@
+package com.file_handlers.view.adminView;
+
+import com.file_handlers.controller.AdminAuthController;
+import com.file_handlers.dao.AdminAlertDAO;
+import com.file_handlers.util.ResponsiveUtil;
+import com.file_handlers.view.LandingPage;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.chart.*;
+import javafx.scene.control.*;
+import javafx.scene.effect.BlurType;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Arc;
+import javafx.scene.shape.ArcType;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.SVGPath;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Modality;
+import javafx.stage.Popup;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.util.Duration;
+
+public class AdminSecurity {
+
+    private final AdminAlertDAO alertDAO = new AdminAlertDAO();
+    private Label failedLoginCountLabel;
+
+    private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
+    // 1. Sidebar & Top Bar Tones
+    private static final String SIDEBAR_BG = "#070C16";
+    public static final String SIDEBAR_DARK = "#070C16";
+    private static final String SIDEBAR_BORDER = "rgba(255, 255, 255, 0.07)";
+
+    // 2. Center Canvas Radial Glow Background
+    private static final String MAIN_BG = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
+
+    // 3. Main Glassmorphic Cards & Text Colors
+    private static final String CARD_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
+    private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
+
+    private static final String BLACK = "#FFFFFF";
+    private static final String WHITE = "#FFFFFF";
+    private static final String LIGHT_SECONDARY = "#94A3B8";
+
+    // Accent Colors
+    private static final String BLUE = "#2563EB";
+    private static final String PURPLE = "#00D2FF";
+    private static final String PURPLE_LIGHT = "rgba(0, 210, 255, 0.15)";
+    private static final String GREEN = "#10B981";
+    public static final String RED = "#EF4444";
+    private static final String ORANGE = "#F59E0B";
+
+    public AdminSecurity() {}
+
+    public Scene getSecurityScene() {
+        BorderPane root = new BorderPane();
+        root.setStyle("-fx-background-color: " + SIDEBAR_BG + ";");
+        root.setLeft(createSidebar());
+
+        VBox contentContainer = createSecurityContent();
+
+        ScrollPane scrollPane = new ScrollPane(contentContainer);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-background: transparent;" +
+                "-fx-background-insets: 0;" +
+                "-fx-padding: 0;"
+        );
+
+        VBox rightSide = new VBox(createTopBar(), scrollPane);
+        rightSide.setStyle("-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";");
+        rightSide.setFillWidth(true);
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+        root.setCenter(rightSide);
+
+        Scene scene = new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
+
+        String cssOverride = "data:text/css," +
+                ".dark-grid-card * { -fx-text-fill: #FFFFFF !important; -fx-fill: #FFFFFF !important; }" +
+                ".dark-grid-card .text { -fx-text-fill: #FFFFFF !important; -fx-fill: #FFFFFF !important; }" +
+                ".axis-label, .axis .tick-label { -fx-fill: #94A3B8 !important; -fx-text-fill: #94A3B8 !important; }" +
+                ".slate-dark-combo .list-cell { -fx-text-fill: #F8FAFC !important; -fx-font-weight: bold; -fx-background-color: #0D1626 !important; -fx-padding: 10 14 10 14; }" +
+                ".slate-dark-combo .list-cell:hover { -fx-background-color: #2563EB !important; -fx-text-fill: #FFFFFF !important; }" +
+                ".slate-dark-combo .arrow { -fx-background-color: #94A3B8 !important; }" +
+                ".chart-bar { -fx-background-insets: 0; }" +
+                ".chart-horizontal-grid-lines { -fx-stroke: rgba(255,255,255,0.08) !important; -fx-stroke-width: 1px !important; }" +
+                ".chart-vertical-grid-lines { -fx-stroke: transparent !important; -fx-stroke-width: 0px !important; }" +
+                ".chart-horizontal-zero-line { -fx-stroke: transparent !important; }" +
+                ".chart-vertical-zero-line { -fx-stroke: transparent !important; }" +
+                ".axis { -fx-tick-mark-color: transparent; -fx-minor-tick-mark-visible: false; }" +
+                ".axis:left { -fx-border-color: transparent !important; }" +
+                ".axis:bottom { -fx-border-color: transparent !important; }";
+        scene.getStylesheets().add(cssOverride);
+
+        return scene;
+    }
+
+    private VBox createSidebar() {
+        VBox sidebar = new VBox(12);
+        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMaxWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setPadding(new Insets(20, 14, 20, 14));
+        sidebar.setStyle(
+                "-fx-background-color: " + SIDEBAR_BG + ";" +
+                "-fx-border-color: " + SIDEBAR_BORDER + ";" +
+                "-fx-border-width: 0 1 0 0;"
+        );
+
+        Label logoText = new Label("OneSpace");
+        logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
+        logoText.setTextFill(Color.web(WHITE));
+
+        HBox logoRow = new HBox(10, createLogo(), logoText);
+        logoRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox logoSection = new VBox(4, logoRow);
+        logoSection.setPadding(new Insets(0, 0, 18, 6));
+
+        Button dashboardButton = createSidebarButton("dashboard", "Dashboard", false);
+        Button usersButton = createSidebarButton("users", "Users", false);
+        Button filesButton = createSidebarButton("files", "Files", false);
+        Button collabButton = createSidebarButton("collaboration", "Collaboration", false);
+        Button aiButton = createSidebarButton("ai", "AI System", false);
+        Button analyticsButton = createSidebarButton("analytics", "Analytics", false);
+        Button securityButton = createSidebarButton("security", "Security", true);
+
+        dashboardButton.setOnAction(e -> LandingPage.showAdminDashboard());
+        usersButton.setOnAction(e -> LandingPage.showAdminUsers());
+        filesButton.setOnAction(e -> LandingPage.showAdminFiles());
+        collabButton.setOnAction(e -> LandingPage.showAdminCollaboration());
+        aiButton.setOnAction(e -> LandingPage.showAdminAISystem());
+        analyticsButton.setOnAction(e -> LandingPage.showAnalytics());
+        securityButton.setOnAction(e -> LandingPage.showAdminSecurity());
+
+        VBox navList = new VBox(4, dashboardButton, usersButton, filesButton, collabButton, aiButton, analyticsButton, securityButton);
+
+        Region sidebarSpacer = new Region();
+        VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
+
+        Button settingsButton = createSidebarButton("settings", "Settings", false);
+        settingsButton.setOnAction(e -> LandingPage.showAdminSettings());
+
+        Region divider = new Region();
+        divider.setPrefHeight(1);
+        divider.setStyle("-fx-background-color: " + SIDEBAR_BORDER + ";");
+
+        Button logoutButton = createSidebarButton("logout", "Logout", false);
+        logoutButton.setOnAction(e -> LandingPage.showAdminLoginPage());
+
+        sidebar.getChildren().addAll(logoSection, navList, sidebarSpacer, settingsButton, divider, logoutButton);
+        return sidebar;
+    }
+
+    private StackPane createLogo() {
+        Image logoImage = new Image(
+                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
+        );
+
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
+
+        StackPane logoPane = new StackPane(logoView);
+        logoPane.setPrefSize(42, 42);
+        logoPane.setAlignment(Pos.CENTER);
+
+        return logoPane;
+    }
+
+    private Button createSidebarButton(String type, String text, boolean selected) {
+        SVGPath icon = createIcon(type);
+        icon.setStroke(Color.web(selected ? WHITE : LIGHT_SECONDARY));
+        icon.setStrokeWidth(2);
+
+        StackPane iconBox = new StackPane(icon);
+        iconBox.setPrefSize(24, 24);
+
+        Label label = new Label(text);
+        label.setFont(Font.font(FONT, selected ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
+        label.setTextFill(Color.web(WHITE));
+
+        HBox row = new HBox(12, iconBox, label);
+        row.setAlignment(Pos.CENTER_LEFT);
+
+        Button button = new Button();
+        button.setGraphic(row);
+        button.setPrefHeight(38);
+        button.setMinHeight(38);
+        button.setMaxWidth(Double.MAX_VALUE);
+        button.setAlignment(Pos.CENTER_LEFT);
+        button.setPadding(new Insets(0, 12, 0, 12));
+
+        if (selected) {
+            button.setStyle(
+                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+                "-fx-background-radius: 12;" +
+                "-fx-border-color: rgba(96, 165, 250, 0.6);" +
+                "-fx-border-radius: 12;" +
+                "-fx-border-width: 1;" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);"
+            );
+        } else {
+            button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+            button.setOnMouseEntered(e -> {
+                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+                icon.setStroke(Color.WHITE);
+                label.setTextFill(Color.WHITE);
+            });
+            button.setOnMouseExited(e -> {
+                button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+                icon.setStroke(Color.web(LIGHT_SECONDARY));
+                label.setTextFill(Color.web(WHITE));
+            });
+        }
+        return button;
+    }
+
+    private String getLoggedInAdminName() {
+        try {
+            AdminAuthController controller = new AdminAuthController();
+            for (java.lang.reflect.Method m : controller.getClass().getMethods()) {
+                if (m.getName().equalsIgnoreCase("getCurrentAdminName") || 
+                    m.getName().equalsIgnoreCase("getLoggedInUserName") ||
+                    m.getName().equalsIgnoreCase("getAdminName") ||
+                    m.getName().equalsIgnoreCase("getCurrentUser")) {
+                    Object val = m.invoke(controller);
+                    if (val != null && !val.toString().trim().isEmpty()) {
+                        return val.toString().trim();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        try {
+            Class<?> sessionClass = Class.forName("com.file_handlers.session.AdminSession");
+            java.lang.reflect.Method m = sessionClass.getMethod("getCurrentUser");
+            Object user = m.invoke(null);
+            if (user != null) {
+                try {
+                    Object name = user.getClass().getMethod("getName").invoke(user);
+                    if (name != null && !name.toString().trim().isEmpty()) return name.toString().trim();
+                } catch (Exception e) {
+                    return user.toString().trim();
+                }
+            }
+        } catch (Exception ignored) {}
+
+        try {
+            for (java.lang.reflect.Field f : LandingPage.class.getDeclaredFields()) {
+                if (f.getName().toLowerCase().contains("user") || f.getName().toLowerCase().contains("admin")) {
+                    f.setAccessible(true);
+                    Object val = f.get(null);
+                    if (val != null && !val.toString().trim().isEmpty() && !val.toString().equalsIgnoreCase("Admin")) {
+                        return val.toString().trim();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        try {
+            for (java.lang.reflect.Method m : LandingPage.class.getMethods()) {
+                if (m.getParameterCount() == 0 && (m.getName().startsWith("getAdmin") || m.getName().startsWith("getUser") || m.getName().startsWith("getLoggedIn"))) {
+                    Object val = m.invoke(null);
+                    if (val != null && !val.toString().trim().isEmpty() && !val.toString().equalsIgnoreCase("Admin")) {
+                        return val.toString().trim();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        return "Sai";
+    }
+
+    private String getInitials(String name) {
+        if (name == null || name.trim().isEmpty()) return "U";
+        String trimmed = name.trim();
+        return String.valueOf(trimmed.charAt(0)).toUpperCase();
+    }
+
+    private HBox createTopBar() {
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        SVGPath bell = createIcon("bell");
+        bell.setStroke(Color.WHITE);
+        bell.setStrokeWidth(2);
+
+        Button notificationButton = new Button();
+        notificationButton.setGraphic(bell);
+        notificationButton.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
+        notificationButton.setOnAction(e -> LandingPage.showAdminNotificationPage());
+
+        String loginName = getLoggedInAdminName();
+        String loginInitial = getInitials(loginName);
+
+        Label avatar = new Label(loginInitial);
+        avatar.setPrefSize(34, 34);
+        avatar.setAlignment(Pos.CENTER);
+        avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        avatar.setTextFill(Color.WHITE);
+        avatar.setStyle("-fx-background-color: #0084FF; -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(0, 132, 255, 0.5), 10, 0, 0, 2);");
+
+        Label adminName = new Label(loginName);
+        adminName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
+        adminName.setTextFill(Color.WHITE);
+
+        HBox profile = new HBox(10, avatar, adminName);
+        profile.setAlignment(Pos.CENTER);
+        profile.setPadding(new Insets(4, 12, 4, 6));
+        profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+
+        Popup profilePopup = createProfilePopup();
+        profile.setOnMouseClicked(e -> {
+            if (profilePopup.isShowing()) {
+                profilePopup.hide();
+            } else {
+                javafx.geometry.Point2D p = profile.localToScreen(0.0, profile.getHeight());
+                profilePopup.show(profile, p.getX() - 30, p.getY() + 8);
+            }
+        });
+
+        HBox topBar = new HBox(16, spacer, notificationButton, profile);
+        topBar.setAlignment(Pos.CENTER_RIGHT);
+        topBar.setPrefHeight(70);
+        topBar.setMinHeight(70);
+        topBar.setMaxHeight(70);
+        topBar.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 14, ResponsiveUtil.PAGE_PADDING));
+        topBar.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-border-color: " + SIDEBAR_BORDER + ";" +
+                "-fx-border-width: 0 0 1 0;"
+        );
+        return topBar;
+    }
+
+    private Popup createProfilePopup() {
+        Popup popup = new Popup();
+        popup.setAutoHide(true);
+
+        HBox profileBtn = createProfilePopupItem("users", "Profile Page", "#F59E0B", () -> {
+            popup.hide();
+            LandingPage.showAdminProfilePage();
+        });
+
+        HBox settingsBtn = createProfilePopupItem("settings", "Settings", "#38BDF8", () -> {
+            popup.hide();
+            LandingPage.showAdminSettings();
+        });
+
+        HBox signOutBtn = createProfilePopupItem("logout", "Sign Out", "#F87171", () -> {
+            popup.hide();
+            LandingPage.showAdminLoginPage();
+        });
+
+        Region menuDivider = new Region();
+        menuDivider.setPrefHeight(1);
+        menuDivider.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08);");
+
+        VBox menuBox = new VBox(6, profileBtn, settingsBtn, menuDivider, signOutBtn);
+        menuBox.setPrefWidth(170);
+        menuBox.setPadding(new Insets(10, 8, 10, 8));
+        menuBox.setStyle(
+            "-fx-background-color: #0B132B;" +
+            "-fx-border-color: rgba(255, 255, 255, 0.12);" +
+            "-fx-border-width: 1.2;" +
+            "-fx-border-radius: 14;" +
+            "-fx-background-radius: 14;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 24, 0, 0, 10);"
+        );
+
+        popup.getContent().add(menuBox);
+        return popup;
+    }
+
+    private HBox createProfilePopupItem(String iconType, String text, String iconColor, Runnable action) {
+        SVGPath icon = createIcon(iconType);
+        icon.setStroke(Color.web(iconColor));
+        icon.setStrokeWidth(2.0);
+
+        StackPane iconBox = new StackPane(icon);
+        iconBox.setPrefSize(22, 22);
+
+        Label label = new Label(text);
+        label.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
+        label.setTextFill(Color.WHITE);
+
+        HBox item = new HBox(12, iconBox, label);
+        item.setAlignment(Pos.CENTER_LEFT);
+        item.setPadding(new Insets(8, 10, 8, 10));
+        item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+
+        item.setOnMouseClicked(e -> action.run());
+        return item;
+    }
+
+    private VBox createSecurityContent() {
+        VBox root = new VBox(22);
+        root.setFillWidth(true);
+        root.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 28, ResponsiveUtil.PAGE_PADDING));
+        root.setStyle("-fx-background-color: transparent;");
+
+        Label title = new Label("Security Overview");
+        title.setFont(Font.font(FONT, FontWeight.BOLD, 24));
+        title.setTextFill(Color.WHITE);
+
+        Label subtitle = new Label("Monitor and manage the security of your OneSpace system with real-time diagnostics.");
+        subtitle.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
+        subtitle.setTextFill(Color.web(LIGHT_SECONDARY));
+
+        VBox headerText = new VBox(4, title, subtitle);
+
+        ComboBox<String> date = new ComboBox<>();
+        date.getItems().addAll(
+                "Last 7 Days",
+                "Last 30 Days",
+                "Last 90 Days",
+                "This Year"
+        );
+        date.setValue("Last 30 Days");
+        date.setPrefWidth(160);
+        date.setPrefHeight(42);
+        date.getStyleClass().add("slate-dark-combo");
+        date.setStyle(
+                "-fx-background-color: rgba(13, 22, 38, 0.85);" +
+                "-fx-border-color: " + CARD_BORDER + ";" +
+                "-fx-border-width: 1.5;" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-text-fill: #F8FAFC;" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.25), 5, 0, 0, 2);"
+        );
+
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+
+        HBox header = new HBox(headerText, headerSpacer, date);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+
+        Region fullWidthFailedLogin = createFailedLoginCard();
+        fullWidthFailedLogin.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(fullWidthFailedLogin, Priority.ALWAYS);
+
+        Region fullWidthAlerts = createAlertsCard();
+        fullWidthAlerts.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(fullWidthAlerts, Priority.ALWAYS);
+
+        root.getChildren().addAll(header, fullWidthFailedLogin, fullWidthAlerts);
+        return root;
+    }
+
+    private VBox createFailedLoginCard() {
+        VBox card = card();
+        card.setPrefHeight(380);
+        card.setMaxHeight(380);
+
+        HBox header = cardHeader("security", "Failed Login Attempts", "Last 30 Days");
+        failedLoginCountLabel = bigNumber("Loading...");
+        HBox numberRow = new HBox(8, failedLoginCountLabel);
+        HBox change = new HBox(8, badge("↑ 18.6%", "rgba(16, 185, 129, 0.15)", GREEN), createSmallSecondaryText("vs previous period"));
+
+        CategoryAxis xAxis = new CategoryAxis();
+        NumberAxis yAxis = new NumberAxis();
+
+        xAxis.setTickLabelFill(Color.web(WHITE));
+        yAxis.setTickLabelFill(Color.web(WHITE));
+        xAxis.setTickLabelFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
+        yAxis.setTickLabelFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
+
+        xAxis.setTickMarkVisible(false);
+        yAxis.setTickMarkVisible(false);
+        yAxis.setMinorTickVisible(false);
+
+        LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
+        chart.setLegendVisible(false);
+        chart.setAnimated(false);
+        chart.setCreateSymbols(true);
+        chart.setHorizontalGridLinesVisible(true);
+        chart.setVerticalGridLinesVisible(false);
+        chart.setAlternativeRowFillVisible(false);
+        chart.setAlternativeColumnFillVisible(false);
+        chart.setPrefHeight(125);
+        chart.setMaxHeight(125);
+        chart.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0;");
+        chart.lookupAll(".chart-plot-background").forEach(n -> n.setStyle("-fx-background-color: transparent;"));
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.getData().add(new XYChart.Data<>("Week 1", 18));
+        series.getData().add(new XYChart.Data<>("Week 2", 32));
+        series.getData().add(new XYChart.Data<>("Week 3", 47));
+        series.getData().add(new XYChart.Data<>("Week 4", 65));
+        chart.getData().add(series);
+
+        Platform.runLater(() -> {
+            chart.applyCss();
+            chart.layout();
+            for (XYChart.Data<String, Number> d : series.getData()) {
+                if (d.getNode() != null) {
+                    d.getNode().setStyle("-fx-background-color: " + ORANGE + ", white; -fx-background-radius: 6px; -fx-padding: 4px;");
+                }
+            }
+        });
+
+        VBox ips = new VBox(
+                6,
+                ipRow("192.168.1.45", "28 attempts"),
+                ipRow("203.0.113.10", "21 attempts"),
+                ipRow("45.77.32.11", "17 attempts")
+        );
+
+        VBox ipsSection = new VBox(6, sectionLabel("Top IP Addresses"), ips);
+
+        HBox chartAndIps = new HBox(16, chart, ipsSection);
+        chartAndIps.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(chart, Priority.ALWAYS);
+        HBox.setHgrow(ipsSection, Priority.SOMETIMES);
+
+        card.getChildren().addAll(header, numberRow, change, chartAndIps);
+
+        loadFailedLoginCount();
+
+        return card;
+    }
+
+    private void loadFailedLoginCount() {
+
+        Task<Integer> task = new Task<>() {
+            @Override
+            protected Integer call() throws Exception {
+                return alertDAO.getFailedLoginCount(30);
+            }
+        };
+
+        task.setOnSucceeded(e ->
+                failedLoginCountLabel.setText(
+                        String.valueOf(task.getValue())
+                )
+        );
+
+        task.setOnFailed(e -> {
+            failedLoginCountLabel.setText("--");
+
+            System.err.println(
+                    "[SECURITY] Could not load failed login count: "
+                            + task.getException()
+            );
+        });
+
+        Thread thread =
+                new Thread(
+                        task,
+                        "FailedLoginCountLoader"
+                );
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private HBox ipRow(String ip, String attempts) {
+        Label ipLabel = createWrappedLabel(ip, 11, false, WHITE);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label attemptsLabel = createWrappedLabel(attempts, 11, true, ORANGE);
+
+        HBox row = new HBox(10, new Circle(3.5, Color.web(ORANGE)), ipLabel, spacer, attemptsLabel);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(4, 10, 4, 10));
+        row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8;");
+        return row;
+    }
+
+    private VBox createAlertsCard() {
+        VBox card = card();
+        card.setPrefHeight(Region.USE_COMPUTED_SIZE);
+
+        VBox alerts = new VBox(8);
+        alerts.getChildren().add(
+                createWrappedLabel(
+                        "Loading security alerts...",
+                        12,
+                        false,
+                        LIGHT_SECONDARY
+                )
+        );
+
+        Label viewAllAlertsLink = link("View All Alerts  →");
+        viewAllAlertsLink.setOnMouseClicked(e ->
+                openCreativeModalWindow(
+                        "All Security Alerts",
+                        "Recent security events recorded by OneSpace.",
+                        "alerts"
+                )
+        );
+
+        card.getChildren().addAll(
+                cardHeader("bell", "Security Alerts", "View All"),
+                alerts,
+                separator(),
+                viewAllAlertsLink
+        );
+
+        loadRecentAlerts(alerts, 4);
+
+        return card;
+    }
+
+    private void loadRecentAlerts(
+            VBox container,
+            int limit
+    ) {
+
+        Task<List<Map<String, Object>>> task =
+                new Task<>() {
+                    @Override
+                    protected List<Map<String, Object>> call()
+                            throws Exception {
+                        return alertDAO.getRecentAlerts(limit);
+                    }
+                };
+
+        task.setOnSucceeded(e -> {
+
+            container.getChildren().clear();
+
+            List<Map<String, Object>> alerts =
+                    task.getValue();
+
+            if (alerts == null || alerts.isEmpty()) {
+
+                container.getChildren().add(
+                        createWrappedLabel(
+                                "No security events recorded yet.",
+                                12,
+                                false,
+                                LIGHT_SECONDARY
+                        )
+                );
+
+                return;
+            }
+
+            for (Map<String, Object> data : alerts) {
+
+                String title =
+                        value(data, "title", "Security Event");
+
+                String description =
+                        value(data, "description", "");
+
+                String time =
+                        formatAlertTime(
+                                data.get("createdAt")
+                        );
+
+                String color =
+                        getAlertColor(title);
+
+                String icon =
+                        getAlertIcon(title);
+
+                container.getChildren().add(
+                        alert(
+                                icon,
+                                title,
+                                description,
+                                time,
+                                color
+                        )
+                );
+            }
+        });
+
+        task.setOnFailed(e -> {
+
+            container.getChildren().clear();
+
+            container.getChildren().add(
+                    createWrappedLabel(
+                            "Unable to load security alerts.",
+                            12,
+                            false,
+                            LIGHT_SECONDARY
+                    )
+            );
+
+            System.err.println(
+                    "[SECURITY] Could not load alerts: "
+                            + task.getException()
+            );
+        });
+
+        Thread thread =
+                new Thread(
+                        task,
+                        "AdminSecurityAlertsLoader"
+                );
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private String value(
+            Map<String, Object> data,
+            String key,
+            String fallback
+    ) {
+
+        Object value = data.get(key);
+
+        if (value == null)
+            return fallback;
+
+        String text = value.toString();
+
+        return text.isBlank()
+                ? fallback
+                : text;
+    }
+
+    private String getAlertColor(String title) {
+
+        String text =
+                title == null
+                        ? ""
+                        : title.toLowerCase();
+
+        if (text.contains("deactivat") ||
+                text.contains("failed") ||
+                text.contains("login")) {
+            return ORANGE;
+        }
+
+        return GREEN;
+    }
+
+    private String getAlertIcon(String title) {
+
+        String text =
+                title == null
+                        ? ""
+                        : title.toLowerCase();
+
+        if (text.contains("login") ||
+                text.contains("deactivat")) {
+            return "security";
+        }
+
+        return "bell";
+    }
+
+    private String formatAlertTime(Object value) {
+
+        if (value == null)
+            return "Unknown time";
+
+        long timestamp = -1;
+
+        if (value instanceof com.google.cloud.Timestamp timestampValue) {
+            timestamp =
+                    timestampValue.toDate().getTime();
+        } else if (value instanceof java.util.Date date) {
+            timestamp = date.getTime();
+        } else if (value instanceof Number number) {
+            timestamp = number.longValue();
+        }
+
+        if (timestamp <= 0)
+            return "Unknown time";
+
+        long difference =
+                System.currentTimeMillis() - timestamp;
+
+        if (difference < 60_000)
+            return "Just now";
+
+        long minutes =
+                difference / 60_000;
+
+        if (minutes < 60)
+            return minutes + " min ago";
+
+        long hours =
+                minutes / 60;
+
+        if (hours < 24)
+            return hours + " hour" +
+                    (hours == 1 ? "" : "s") +
+                    " ago";
+
+        long days =
+                hours / 24;
+
+        if (days < 7)
+            return days + " day" +
+                    (days == 1 ? "" : "s") +
+                    " ago";
+
+        return new SimpleDateFormat(
+                "dd MMM yyyy, HH:mm"
+        ).format(
+                new Date(timestamp)
+        );
+    }
+
+    private HBox alert(String iconType, String title, String description, String time, String color) {
+        SVGPath icon = createIcon(iconType);
+        icon.setStroke(Color.web(color));
+        icon.setStrokeWidth(2);
+
+        StackPane iconPane = new StackPane(icon);
+        iconPane.setMinSize(28, 28);
+        iconPane.setPrefSize(28, 28);
+        iconPane.setMaxSize(28, 28);
+        iconPane.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-background-radius: 8;");
+
+        Label titleLabel = createWrappedLabel(title, 12, true, WHITE);
+        Label descriptionLabel = createWrappedLabel(description, 11, false, LIGHT_SECONDARY);
+
+        VBox text = new VBox(2, titleLabel, descriptionLabel);
+        HBox.setHgrow(text, Priority.ALWAYS);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Label timeLabel = createWrappedLabel(time, 11, false, LIGHT_SECONDARY);
+
+        HBox row = new HBox(12, iconPane, text, spacer, timeLabel);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(8, 12, 8, 12));
+        row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 10; -fx-background-radius: 10;");
+        return row;
+    }
+
+
+    private void openCreativeModalWindow(String windowTitle, String message, String type) {
+        Stage modalStage = new Stage();
+        modalStage.initModality(Modality.APPLICATION_MODAL);
+        modalStage.initStyle(StageStyle.TRANSPARENT);
+
+        Label titleLabel = new Label(windowTitle);
+        titleLabel.setFont(Font.font(FONT, FontWeight.BOLD, 22));
+        titleLabel.setTextFill(Color.web(WHITE));
+
+        Label descLabel = new Label(message);
+        descLabel.setFont(Font.font(FONT, FontWeight.NORMAL, 13));
+        descLabel.setTextFill(Color.web(LIGHT_SECONDARY));
+        descLabel.setWrapText(true);
+
+        VBox headerText = new VBox(4, titleLabel, descLabel);
+        HBox.setHgrow(headerText, Priority.ALWAYS);
+
+        SVGPath closeIcon = new SVGPath();
+        closeIcon.setContent("M18 6 L6 18 M6 6 L18 18");
+        closeIcon.setStroke(Color.web(LIGHT_SECONDARY));
+        closeIcon.setStrokeWidth(2);
+
+        StackPane closeBtnPane = new StackPane(closeIcon);
+        closeBtnPane.setPrefSize(34, 34);
+        closeBtnPane.setStyle("-fx-background-radius: 8; -fx-cursor: hand; -fx-background-color: transparent;");
+        closeBtnPane.setOnMouseEntered(e -> {
+            closeBtnPane.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-background-radius: 8; -fx-cursor: hand;");
+            closeIcon.setStroke(Color.WHITE);
+        });
+        closeBtnPane.setOnMouseExited(e -> {
+            closeBtnPane.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;");
+            closeIcon.setStroke(Color.web(LIGHT_SECONDARY));
+        });
+
+        HBox headerRow = new HBox(headerText, closeBtnPane);
+        headerRow.setAlignment(Pos.TOP_LEFT);
+
+        Node contentNode;
+        if ("alerts".equals(type)) {
+            contentNode = createAlertsTable();
+        } else {
+            contentNode = create2FASettingsLayout();
+        }
+
+        Button actionBtn = new Button("Done & Close");
+        actionBtn.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #0284C7); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 24; -fx-font-size: 13px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(2, 132, 199, 0.5), 14, 0, 0, 3);");
+
+        closeBtnPane.setOnMouseClicked(e -> closeModalWithAnimation(modalStage, headerRow.getParent()));
+        actionBtn.setOnAction(e -> closeModalWithAnimation(modalStage, headerRow.getParent()));
+
+        HBox bottomRow = new HBox(actionBtn);
+        bottomRow.setAlignment(Pos.CENTER_RIGHT);
+        bottomRow.setPadding(new Insets(10, 0, 0, 0));
+
+        VBox rootBox = new VBox(24, headerRow, contentNode, bottomRow);
+        rootBox.setPadding(new Insets(32));
+        rootBox.setStyle("-fx-background-color: #0D1626; -fx-background-radius: 20; -fx-border-radius: 20; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2;");
+
+        final double[] xOffset = {0};
+        final double[] yOffset = {0};
+        rootBox.setOnMousePressed(event -> {
+            xOffset[0] = event.getSceneX();
+            yOffset[0] = event.getSceneY();
+        });
+        rootBox.setOnMouseDragged(event -> {
+            modalStage.setX(event.getScreenX() - xOffset[0]);
+            modalStage.setY(event.getScreenY() - yOffset[0]);
+        });
+
+        rootBox.setEffect(new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(0,0,0,0.6), 25, 0, 0, 10));
+
+        StackPane wrapper = new StackPane(rootBox);
+        wrapper.setPadding(new Insets(30));
+        wrapper.setStyle("-fx-background-color: transparent;");
+
+        Scene modalScene = new Scene(wrapper, 650, 520);
+        modalScene.setFill(Color.TRANSPARENT);
+        modalScene.getStylesheets().add(createModalCss());
+
+        modalStage.setScene(modalScene);
+
+        rootBox.setOpacity(0);
+        rootBox.setTranslateY(30);
+        modalStage.show();
+
+        FadeTransition ft = new FadeTransition(Duration.millis(300), rootBox);
+        ft.setToValue(1.0);
+
+        TranslateTransition tt = new TranslateTransition(Duration.millis(300), rootBox);
+        tt.setToY(0);
+
+        ParallelTransition pt = new ParallelTransition(ft, tt);
+        pt.play();
+    }
+
+    private void closeModalWithAnimation(Stage stage, Node rootBox) {
+        FadeTransition ft = new FadeTransition(Duration.millis(200), rootBox);
+        ft.setToValue(0.0);
+
+        TranslateTransition tt = new TranslateTransition(Duration.millis(200), rootBox);
+        tt.setToY(20);
+
+        ParallelTransition pt = new ParallelTransition(ft, tt);
+        pt.setOnFinished(e -> stage.close());
+        pt.play();
+    }
+
+    private TableView<AlertItem> createAlertsTable() {
+
+        TableView<AlertItem> table =
+                new TableView<>();
+
+        table.setPrefHeight(260);
+
+        TableColumn<AlertItem, String> timeCol =
+                new TableColumn<>("Time");
+
+        timeCol.setCellValueFactory(
+                data ->
+                        new javafx.beans.property.SimpleStringProperty(
+                                data.getValue().getTime()
+                        )
+        );
+
+        timeCol.setMaxWidth(120);
+        timeCol.setMinWidth(120);
+
+        TableColumn<AlertItem, String> typeCol =
+                new TableColumn<>("Alert Type");
+
+        typeCol.setCellValueFactory(
+                data ->
+                        new javafx.beans.property.SimpleStringProperty(
+                                data.getValue().getTitle()
+                        )
+        );
+
+        TableColumn<AlertItem, String> descCol =
+                new TableColumn<>("Details");
+
+        descCol.setCellValueFactory(
+                data ->
+                        new javafx.beans.property.SimpleStringProperty(
+                                data.getValue().getDescription()
+                        )
+        );
+
+        table.getColumns().addAll(
+                timeCol,
+                typeCol,
+                descCol
+        );
+
+        loadAlertsTable(table, 20);
+
+        return table;
+    }
+
+    private void loadAlertsTable(
+            TableView<AlertItem> table,
+            int limit
+    ) {
+
+        Task<List<Map<String, Object>>> task =
+                new Task<>() {
+                    @Override
+                    protected List<Map<String, Object>> call()
+                            throws Exception {
+                        return alertDAO.getRecentAlerts(limit);
+                    }
+                };
+
+        task.setOnSucceeded(e -> {
+
+            table.getItems().clear();
+
+            List<Map<String, Object>> alerts =
+                    task.getValue();
+
+            if (alerts == null)
+                return;
+
+            for (Map<String, Object> data : alerts) {
+
+                table.getItems().add(
+                        new AlertItem(
+                                formatAlertTime(
+                                        data.get("createdAt")
+                                ),
+                                value(
+                                        data,
+                                        "title",
+                                        "Security Event"
+                                ),
+                                value(
+                                        data,
+                                        "description",
+                                        ""
+                                )
+                        )
+                );
+            }
+        });
+
+        task.setOnFailed(e ->
+                System.err.println(
+                        "[SECURITY] Could not load alert table: "
+                                + task.getException()
+                )
+        );
+
+        Thread thread =
+                new Thread(
+                        task,
+                        "AdminSecurityAlertTableLoader"
+                );
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private VBox create2FASettingsLayout() {
+        VBox container = new VBox(14);
+        container.getChildren().addAll(
+            createToggleSetting("Enforce 2FA for all Administrators", "Require two-factor authentication for accounts with admin privileges.", true),
+            createToggleSetting("Enforce 2FA for all Users", "Mandate 2FA for every regular user logging into OneSpace.", false),
+            createToggleSetting("Allow SMS Recovery", "Permit users to recover their accounts via SMS codes if authenticator is lost.", true),
+            createToggleSetting("Remember Devices", "Allow users to skip 2FA for 30 days on trusted network devices.", true)
+        );
+        return container;
+    }
+
+    private HBox createToggleSetting(String title, String desc, boolean defaultState) {
+        Label tLabel = new Label(title);
+        tLabel.setFont(Font.font(FONT, FontWeight.BOLD, 14));
+        tLabel.setTextFill(Color.web(WHITE));
+
+        Label dLabel = new Label(desc);
+        dLabel.setFont(Font.font(FONT, FontWeight.NORMAL, 12));
+        dLabel.setTextFill(Color.web(LIGHT_SECONDARY));
+        dLabel.setWrapText(true);
+
+        VBox text = new VBox(4, tLabel, dLabel);
+        HBox.setHgrow(text, Priority.ALWAYS);
+
+        ToggleButton toggle = new ToggleButton(defaultState ? "ON" : "OFF");
+        toggle.setSelected(defaultState);
+        toggle.setPrefWidth(60);
+        toggle.setStyle(defaultState ? 
+            "-fx-background-color: " + GREEN + "; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-weight: bold; -fx-cursor: hand;" :
+            "-fx-background-color: rgba(255, 255, 255, 0.08); -fx-text-fill: #94A3B8; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-weight: bold; -fx-cursor: hand;"
+        );
+
+        toggle.setOnAction(e -> {
+            if (toggle.isSelected()) {
+                toggle.setText("ON");
+                toggle.setStyle("-fx-background-color: " + GREEN + "; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-weight: bold; -fx-cursor: hand;");
+            } else {
+                toggle.setText("OFF");
+                toggle.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-text-fill: #94A3B8; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-weight: bold; -fx-cursor: hand;");
+            }
+        });
+
+        HBox row = new HBox(16, text, toggle);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(16));
+        row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-background-radius: 12; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 12;");
+        return row;
+    }
+
+    private String createModalCss() {
+        return "data:text/css," +
+                ".table-view { -fx-background-color: transparent; -fx-padding: 0; }" +
+                ".table-view .column-header-background { -fx-background-color: rgba(10, 18, 33, 0.85); -fx-background-radius: 8 8 0 0; }" +
+                ".table-view .column-header { -fx-background-color: transparent; -fx-size: 40; }" +
+                ".table-view .column-header .label { -fx-text-fill: #94A3B8; -fx-font-weight: bold; -fx-font-size: 13px; }" +
+                ".table-view .table-row-cell { -fx-background-color: rgba(16, 28, 48, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-width: 0 0 1 0; }" +
+                ".table-view .table-row-cell:odd { -fx-background-color: rgba(9, 16, 30, 0.95); }" +
+                ".table-view .table-row-cell:hover { -fx-background-color: #2563EB; }" +
+                ".table-view .table-cell { -fx-text-fill: #F8FAFC; -fx-padding: 10 12; -fx-font-size: 13px; -fx-border-width: 0; }" +
+                ".table-view .virtual-flow .scroll-bar:vertical, " +
+                ".table-view .virtual-flow .scroll-bar:horizontal { -fx-opacity: 0; -fx-padding: 0; -fx-pref-width: 0; -fx-pref-height: 0; }";
+    }
+
+    public static class AlertItem {
+        private final String time;
+        private final String title;
+        private final String description;
+
+        public AlertItem(String time, String title, String description) {
+            this.time = time;
+            this.title = title;
+            this.description = description;
+        }
+
+        public String getTime() { return time; }
+        public String getTitle() { return title; }
+        public String getDescription() { return description; }
+    }
+
+    private StackPane donut() {
+        Arc backgroundArc = new Arc(0, 0, 52, 52, 0, 360);
+        backgroundArc.setType(ArcType.OPEN);
+        backgroundArc.setFill(Color.TRANSPARENT);
+        backgroundArc.setStroke(Color.web("rgba(255, 255, 255, 0.1)"));
+        backgroundArc.setStrokeWidth(12);
+
+        Arc enabledArc = new Arc(0, 0, 52, 52, 90, -246);
+        enabledArc.setType(ArcType.OPEN);
+        enabledArc.setFill(Color.TRANSPARENT);
+        enabledArc.setStroke(Color.web(GREEN));
+        enabledArc.setStrokeWidth(12);
+
+        Label number = createWrappedLabel("342", 20, true, WHITE);
+        Label total = createWrappedLabel("Total Users", 10, false, LIGHT_SECONDARY);
+
+        VBox center = new VBox(2, number, total);
+        center.setAlignment(Pos.CENTER);
+
+        StackPane pane = new StackPane(backgroundArc, enabledArc, center);
+        pane.setPrefSize(120, 120);
+        return pane;
+    }
+
+    private VBox legend(String color, String title, String value) {
+        Label titleLabel = createWrappedLabel(title, 11, false, LIGHT_SECONDARY);
+        Label valueLabel = createWrappedLabel(value, 13, true, WHITE);
+
+        HBox titleRow = new HBox(8, new Circle(4, Color.web(color)), titleLabel);
+        titleRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox box = new VBox(4, titleRow, valueLabel);
+        box.setPadding(new Insets(8, 12, 8, 12));
+        box.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8;");
+        return box;
+    }
+
+    private VBox card() {
+        VBox box = new VBox(14);
+        box.setFillWidth(true);
+        box.setPadding(new Insets(20));
+        box.getStyleClass().add("dark-grid-card");
+        box.setStyle(
+                "-fx-background-color: " + CARD_BG + ";" +
+                "-fx-border-color: " + CARD_BORDER + ";" +
+                "-fx-border-width: 1.2;" +
+                "-fx-border-radius: 20;" +
+                "-fx-background-radius: 20;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);"
+        );
+        return box;
+    }
+
+    private HBox cardHeader(String iconType, String title, String right) {
+        SVGPath icon = createIcon(iconType);
+        icon.setStroke(Color.web(PURPLE));
+        icon.setStrokeWidth(2);
+
+        StackPane iconBox = new StackPane(icon);
+        iconBox.setMinSize(32, 32);
+        iconBox.setPrefSize(32, 32);
+        iconBox.setMaxSize(32, 32);
+        iconBox.setStyle("-fx-background-color: " + PURPLE_LIGHT + "; -fx-border-color: rgba(0, 210, 255, 0.3); -fx-border-radius: 8; -fx-background-radius: 8;");
+
+        Label titleLabel = createWrappedLabel(title, 14, true, WHITE);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(12, iconBox, titleLabel, spacer);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        if (!right.isEmpty()) {
+            Label rightLabel = createWrappedLabel(right, 12, true, PURPLE);
+            header.getChildren().add(rightLabel);
+        }
+
+        return header;
+    }
+
+    private Label sectionLabel(String text) {
+        return createWrappedLabel(text, 12, true, WHITE);
+    }
+
+    private Label bigNumber(String value) {
+        return createWrappedLabel(value, 28, true, WHITE);
+    }
+
+    private Label createSmallSecondaryText(String text) {
+        return createWrappedLabel(text, 11, false, LIGHT_SECONDARY);
+    }
+
+    private Label badge(String text, String bgColor, String textColor) {
+        Label badge = new Label(text);
+        badge.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+        badge.setStyle("-fx-text-fill: " + textColor + " !important; -fx-background-color: " + bgColor + "; -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 3 8 3 8;");
+        return badge;
+    }
+
+    private Label createWrappedLabel(String text, double fontSize, boolean isBold, String hexColor) {
+        Label label = new Label(text);
+        label.setFont(Font.font(FONT, isBold ? FontWeight.BOLD : FontWeight.NORMAL, fontSize));
+        label.setTextFill(Color.web(hexColor));
+        label.setWrapText(true);
+        label.setStyle("-fx-text-fill: " + hexColor + " !important;");
+        return label;
+    }
+
+    private Label link(String text) {
+        Label label = new Label(text);
+        label.setMaxWidth(Double.MAX_VALUE);
+        label.setAlignment(Pos.CENTER);
+        label.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        label.setStyle("-fx-text-fill: " + PURPLE + " !important;");
+        label.setCursor(javafx.scene.Cursor.HAND);
+
+        label.setOnMouseEntered(e -> {
+            label.setUnderline(true);
+            label.setStyle("-fx-text-fill: #38BDF8 !important;");
+        });
+        label.setOnMouseExited(e -> {
+            label.setUnderline(false);
+            label.setStyle("-fx-text-fill: " + PURPLE + " !important;");
+        });
+
+        return label;
+    }
+
+    private Separator separator() {
+        Separator separator = new Separator();
+        separator.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08);");
+        return separator;
+    }
+
+    private SVGPath createIcon(String type) {
+        SVGPath icon = new SVGPath();
+        icon.setFill(Color.TRANSPARENT);
+        icon.setStrokeWidth(2);
+        switch (type) {
+            case "dashboard": icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z"); break;
+            case "users": icon.setContent("M8 11 A3 3 0 1 0 8 5 A3 3 0 0 0 8 11 Z M16 11 A3 3 0 1 0 16 5 A3 3 0 0 0 16 11 Z M2 20 C2 16 5 14 8 14 C11 14 14 16 14 20 M12 15 C14 14 17 14 19 15 C21 16 22 18 22 20"); break;
+            case "files": icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13"); break;
+            case "collaboration": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
+            case "ai": icon.setContent("M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z"); break;
+            case "analytics": icon.setContent("M4 20 V11 M10 20 V6 M16 20 V13 M22 20 V3"); break;
+            case "security": icon.setContent("M12 2 L20 5 V11 C20 16 17 20 12 22 C7 20 4 16 4 11 V5 Z M9 12 L11 14 L15 9"); break;
+            case "settings": icon.setContent("M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21 M5.6 5.6 L7.7 7.7 M16.3 16.3 L18.4 18.4 M18.4 5.6 L16.3 7.7 M7.7 16.3 L5.6 18.4 M12 8 A4 4 0 1 0 12 16 A4 4 0 0 0 12 8"); break;
+            case "logout": icon.setContent("M10 4 H5 V20 H10 M14 8 L19 12 L14 16 M19 12 H8"); break;
+            case "search": icon.setContent("M10 3 A7 7 0 1 0 10 17 A7 7 0 0 0 10 3 Z M15 15 L21 21"); break;
+            case "bell": icon.setContent("M6 17 H18 M8 17 V10 A4 4 0 0 1 16 10 V17 M10 20 H14"); break;
+            default: icon.setContent("M4 4 H20 V20 H4 Z"); break;
+        }
+        return icon;                  
+    }
+}
