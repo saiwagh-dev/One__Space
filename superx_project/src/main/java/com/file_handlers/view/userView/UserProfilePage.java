@@ -52,6 +52,18 @@ public class UserProfilePage {
     private static final String DEFAULT_USERNAME = "@user";
     private static final String DEFAULT_BIO = "OneSpace user.";
 
+    private static final String BG_INNER = null;
+
+    private static final String BORDER = null;
+
+    private static final String DARK = null;
+
+    private static final String BG_CENTER = null;
+
+    private static final String LIGHT = null;
+
+    private static final String MUTED = null;
+
     private TextField nameField;
     private TextField emailField;
     private TextField usernameField;
@@ -344,58 +356,90 @@ public class UserProfilePage {
                 accountRows
         );
 
-        SVGPath passIcon = createIcon("key");
-        passIcon.setStroke(Color.web("#38BDF8"));
-        passIcon.setStrokeWidth(2);
+        Label passIcon = label("🔑", 18, FontWeight.NORMAL, BLUE);
+        passIcon.setPrefSize(40, 40);
+        passIcon.setAlignment(Pos.CENTER);
+        passIcon.setStyle("-fx-background-color:#DBEAFE;-fx-background-radius:9;-fx-text-fill:" + BLUE + ";");
 
-        StackPane passIconPane = new StackPane(passIcon);
-        passIconPane.setPrefSize(40, 40); passIconPane.setMinSize(40, 40);
-        passIconPane.setStyle("-fx-background-color: rgba(56, 189, 248, 0.15); -fx-background-radius: 9; -fx-border-color: rgba(56, 189, 248, 0.3); -fx-border-radius: 9;");
-
-        Label passTitle = label("Change Password", 13, FontWeight.BOLD, WHITE);
-        Label passText = label("Update your password to keep your account secure.", 11, FontWeight.NORMAL, LIGHT_SECONDARY);
+        Label passTitle = label("Change Password", 13, FontWeight.BOLD, DARK);
+        Label passText = label("Update your password to keep your account secure.", 11, FontWeight.NORMAL, MUTED);
         passText.setWrapText(true);
         VBox passInfo = new VBox(3, passTitle, passText);
 
+        Region passSpacer = spacer();
+        HBox.setHgrow(passSpacer, Priority.ALWAYS);
+
         Button passButton = new Button("Change Password");
         passButton.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        passButton.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 7; -fx-background-radius: 7; -fx-cursor: hand; -fx-padding: 8 12;");
-        passButton.setOnAction(e -> showChangePasswordDialog());
+        passButton.setStyle("-fx-background-color:" + BG_INNER + ";-fx-text-fill:" + DARK + ";-fx-border-color:" + BORDER + ";-fx-border-radius:7;-fx-background-radius:7;-fx-cursor:hand;-fx-padding:8 12;");
+        passButton.setOnAction(e -> showChangePasswordDialog1());
 
-        HBox passRow = new HBox(12, passIconPane, passInfo, new Region(), passButton);
-        HBox.setHgrow(passRow.getChildren().get(2), Priority.ALWAYS);
+        HBox passRow = new HBox(12, passIcon, passInfo, passSpacer, passButton);
         passRow.setAlignment(Pos.CENTER_LEFT);
         passRow.setPadding(new Insets(16));
-        passRow.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 11; -fx-background-radius: 11;");
+        passRow.setStyle("-fx-background-color:" + BG_INNER + ";-fx-border-color:" + BORDER + ";-fx-border-radius:11;-fx-background-radius:11;");
 
-        SVGPath deleteIcon = createIcon("trash");
-        deleteIcon.setStroke(Color.web("#F87171"));
-        deleteIcon.setStrokeWidth(2);
+        Label deleteIcon = label("⚠", 18, FontWeight.NORMAL, "#DC2626");
+        deleteIcon.setPrefSize(40, 40);
+        deleteIcon.setAlignment(Pos.CENTER);
+        deleteIcon.setStyle("-fx-background-color:#FEE2E2;-fx-background-radius:9;-fx-text-fill:#DC2626;");
 
-        StackPane deleteIconPane = new StackPane(deleteIcon);
+        Label deleteTitle = label("Delete Account", 13, FontWeight.BOLD, DARK);
+        Label deleteText = label("Permanently remove your OneSpace account and associated data.", 11, FontWeight.NORMAL, MUTED);
+        SVGPath passIcon1 = createIcon("key");
+        passIcon1.setStroke(Color.web("#38BDF8"));
+        passIcon1.setStrokeWidth(2);
+
+        StackPane passIconPane = new StackPane(passIcon1);
+        passIconPane.setPrefSize(40, 40); passIconPane.setMinSize(40, 40);
+        passIconPane.setStyle("-fx-background-color: rgba(56, 189, 248, 0.15); -fx-background-radius: 9; -fx-border-color: rgba(56, 189, 248, 0.3); -fx-border-radius: 9;");
+
+        Label passTitle1 = label("Change Password", 13, FontWeight.BOLD, WHITE);
+        Label passText1 = label("Update your password to keep your account secure.", 11, FontWeight.NORMAL, LIGHT_SECONDARY);
+        passText1.setWrapText(true);
+        VBox passInfo1 = new VBox(3, passTitle1, passText1);
+
+        Button passButton1 = new Button("Change Password");
+        passButton1.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+        passButton1.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 7; -fx-background-radius: 7; -fx-cursor: hand; -fx-padding: 8 12;");
+        passButton1.setOnAction(e -> showChangePasswordDialog1());
+
+        HBox passRow1 = new HBox(12, passIconPane, passInfo1, new Region(), passButton1);
+        HBox.setHgrow(passRow1.getChildren().get(2), Priority.ALWAYS);
+        passRow1.setAlignment(Pos.CENTER_LEFT);
+        passRow1.setPadding(new Insets(16));
+        passRow1.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 11; -fx-background-radius: 11;");
+
+        SVGPath deleteIcon1 = createIcon("trash");
+        deleteIcon1.setStroke(Color.web("#F87171"));
+        deleteIcon1.setStrokeWidth(2);
+
+        StackPane deleteIconPane = new StackPane(deleteIcon1);
         deleteIconPane.setPrefSize(40, 40); deleteIconPane.setMinSize(40, 40);
         deleteIconPane.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-background-radius: 9; -fx-border-color: rgba(239, 68, 68, 0.3); -fx-border-radius: 9;");
 
-        Label deleteTitle = label("Delete Account", 13, FontWeight.BOLD, WHITE);
-        Label deleteText = label("Permanently remove your OneSpace account and associated data.", 11, FontWeight.NORMAL, LIGHT_SECONDARY);
-        deleteText.setWrapText(true);
-        VBox deleteInfo = new VBox(3, deleteTitle, deleteText);
+        Label deleteTitle1 = label("Delete Account", 13, FontWeight.BOLD, WHITE);
+        Label deleteText1 = label("Permanently remove your OneSpace account and associated data.", 11, FontWeight.NORMAL, LIGHT_SECONDARY);
+        deleteText1.setWrapText(true);
+        VBox deleteInfo = new VBox(3, deleteTitle1, deleteText1);
+
+        Region deleteSpacer = spacer();
+        HBox.setHgrow(deleteSpacer, Priority.ALWAYS);
 
         Button deleteButton = new Button("Delete Account");
         deleteButton.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        deleteButton.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-text-fill: #F87171; -fx-border-color: rgba(239, 68, 68, 0.3); -fx-border-radius: 7; -fx-background-radius: 7; -fx-cursor: hand; -fx-padding: 8 12;");
+        deleteButton.setStyle("-fx-background-color:#FEE2E2;-fx-text-fill:#B91C1C;-fx-border-color:#FECACA;-fx-border-radius:7;-fx-background-radius:7;-fx-cursor:hand;-fx-padding:8 12;");
         deleteButton.setOnAction(e -> showDeleteAccountDialog());
 
-        HBox deleteRow = new HBox(12, deleteIconPane, deleteInfo, new Region(), deleteButton);
-        HBox.setHgrow(deleteRow.getChildren().get(2), Priority.ALWAYS);
+        HBox deleteRow = new HBox(12, deleteIcon1, deleteInfo, deleteSpacer, deleteButton);
         deleteRow.setAlignment(Pos.CENTER_LEFT);
         deleteRow.setPadding(new Insets(16));
-        deleteRow.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 11; -fx-background-radius: 11;");
+        deleteRow.setStyle("-fx-background-color:" + BG_INNER + ";-fx-border-color:" + BORDER + ";-fx-border-radius:11;-fx-background-radius:11;");
 
-        VBox actionsCard = card(
+        VBox actionsCard1 = card(
                 cardTitle("Account Actions"),
                 cardDescription("Manage important actions related to your account."),
-                new VBox(10, passRow, deleteRow)
+                new VBox(10, passRow1, deleteRow)
         );
 
         Button saveButton = primaryButton("Save Changes", 13);
@@ -412,7 +456,7 @@ public class UserProfilePage {
         HBox.setHgrow(actionButtons.getChildren().get(0), Priority.ALWAYS);
         actionButtons.setAlignment(Pos.CENTER_RIGHT);
 
-        VBox content = new VBox(20, pageHeader, profileSummary, detailsCard, accountCard, actionsCard, actionButtons);
+        VBox content = new VBox(20, pageHeader, profileSummary, detailsCard, accountCard, actionsCard1, actionButtons);
         content.setPadding(new Insets(14, ResponsiveUtil.PAGE_PADDING, 28, ResponsiveUtil.PAGE_PADDING));
         content.setStyle("-fx-background-color: transparent;");
 
@@ -433,9 +477,14 @@ public class UserProfilePage {
         root.setCenter(mainArea);
         root.setStyle("-fx-background-color: " + SIDEBAR_BG + ";");
 
-        loadProfileFromFirestore();
+        loadProfileFromFirestore1();
 
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
+    }
+
+    private Region spacer() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'spacer'");
     }
 
     private VBox createSidebar() {
@@ -548,7 +597,7 @@ public class UserProfilePage {
         return button;
     }
 
-    private void showChangePasswordDialog() {
+    private void showChangePasswordDialog1() {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Change Password");
         dialog.setHeaderText("Update your account password");
@@ -628,7 +677,7 @@ public class UserProfilePage {
         dialog.showAndWait();
     }
 
-    private void loadProfileFromFirestore() {
+    private void loadProfileFromFirestore1() {
         UserSession session = UserSession.getInstance();
         if (session == null || !UserSession.isLoggedIn()) return;
 
@@ -662,9 +711,139 @@ public class UserProfilePage {
                 e.printStackTrace();
             }
         });
+
         thread.setDaemon(true);
         thread.start();
     }
+
+    private void showChangePasswordDialog() {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Change Password");
+        dialog.setHeaderText("Update your account password");
+
+        PasswordField oldPass = new PasswordField();
+        oldPass.setPrefHeight(40);
+        oldPass.setStyle("-fx-background-color:#FFFFFF;-fx-border-color:" + BORDER + ";-fx-border-radius:8;-fx-background-radius:8;-fx-padding:0 12;-fx-text-fill:" + DARK + ";-fx-font-size:12px;");
+
+        PasswordField newPass = new PasswordField();
+        newPass.setPrefHeight(40);
+        newPass.setStyle("-fx-background-color:#FFFFFF;-fx-border-color:" + BORDER + ";-fx-border-radius:8;-fx-background-radius:8;-fx-padding:0 12;-fx-text-fill:" + DARK + ";-fx-font-size:12px;");
+
+        PasswordField confirmPass = new PasswordField();
+        confirmPass.setPrefHeight(40);
+        confirmPass.setStyle("-fx-background-color:#FFFFFF;-fx-border-color:" + BORDER + ";-fx-border-radius:8;-fx-background-radius:8;-fx-padding:0 12;-fx-text-fill:" + DARK + ";-fx-font-size:12px;");
+
+        VBox content = new VBox(10,
+                fieldBox("Current Password", oldPass),
+                fieldBox("New Password", newPass),
+                fieldBox("Confirm New Password", confirmPass)
+        );
+        content.setPadding(new Insets(10));
+        content.setPrefWidth(350);
+
+        ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType update = new ButtonType("Update Password", ButtonBar.ButtonData.OK_DONE);
+
+        dialog.getDialogPane().getButtonTypes().addAll(cancel, update);
+        dialog.getDialogPane().setContent(content);
+        styleDialog(dialog);
+
+        Button updateBtn = (Button) dialog.getDialogPane().lookupButton(update);
+        updateBtn.setStyle("-fx-background-color:" + BLUE + ";-fx-text-fill:white;-fx-font-weight:bold;-fx-background-radius:7;-fx-cursor:hand;");
+
+        dialog.setResultConverter(result -> {
+            if (result != update) return result;
+
+            String oldP = oldPass.getText();
+            String newP = newPass.getText();
+            String confirmP = confirmPass.getText();
+
+            if (oldP.isEmpty() || newP.isEmpty() || confirmP.isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Invalid Input", "Please fill in all password fields.");
+                return null;
+            }
+            if (!newP.equals(confirmP)) {
+                showAlert(Alert.AlertType.WARNING, "Password Mismatch", "New password and confirm password do not match.");
+                return null;
+            }
+            if (newP.length() < 6) {
+                showAlert(Alert.AlertType.WARNING, "Weak Password", "New password must be at least 6 characters long.");
+                return null;
+            }
+
+            UserSession session = UserSession.getInstance();
+            if (session != null && UserSession.isLoggedIn()) {
+                Thread thread = new Thread(() -> {
+                    try {
+                        boolean success = authController.changePassword(session.getIdToken(), oldP, newP);
+                        Platform.runLater(() -> {
+                            if (success) {
+                                showAlert(Alert.AlertType.INFORMATION, "Success", "Password updated successfully.");
+                            } else {
+                                showAlert(Alert.AlertType.ERROR, "Failed", "Failed to update password. Please check your credentials.");
+                            }
+                        });
+                    } catch (Exception e) {
+                        Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Error", "An error occurred while changing password."));
+                    }
+                });
+                thread.setDaemon(true);
+                thread.start();
+            }
+            return result;
+        });
+
+        dialog.showAndWait();
+    }
+
+    private void loadProfileFromFirestore() {
+        UserSession session = UserSession.getInstance();
+        if (session == null || !UserSession.isLoggedIn()) {
+            return;
+        }
+
+        String uid = session.getUid();
+
+        Thread thread = new Thread(() -> {
+            try {
+                Map<String, Object> profile = profileDAO.getProfile(uid);
+
+                String username = readString(profile, "username");
+                String bio = readString(profile, "bio");
+
+                if (username == null || username.isBlank()) {
+                    username = createDefaultUsername(session.getDisplayName());
+                }
+
+                if (bio == null || bio.isBlank()) {
+                    bio = DEFAULT_BIO;
+                }
+
+                final String finalUsername = normalizeUsername(username);
+                final String finalBio = bio;
+
+                Platform.runLater(() -> {
+                    currentUsername = finalUsername;
+                    currentBio = finalBio;
+
+                    if (usernameField != null) usernameField.setText(finalUsername);
+                    if (bioField != null) bioField.setText(finalBio);
+                    if (profileUsernameLabel != null) profileUsernameLabel.setText(finalUsername);
+                    if (profileBioLabel != null) profileBioLabel.setText(finalBio);
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    // =========================================================
+    // SAVE PROFILE
+    // =========================================================
 
     private void saveProfile() {
         UserSession session = UserSession.getInstance();
@@ -858,6 +1037,10 @@ public class UserProfilePage {
         });
     }
 
+    // =========================================================
+    // DELETE ACCOUNT
+    // =========================================================
+
     private void showDeleteAccountDialog() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Delete Account");
@@ -870,20 +1053,77 @@ public class UserProfilePage {
         alert.getButtonTypes().setAll(cancel, delete);
         styleDialog(alert);
 
-        alert.showAndWait().ifPresent(result -> {
-            if (result == delete) {
-                showAlert(Alert.AlertType.INFORMATION, "Account Deleted", "Account deletion is not implemented yet.");
-            }
-        });
+        alert.showAndWait()
+                .ifPresent(
+                        result -> {
+
+                            if (result == delete) {
+
+                                UserSession session = UserSession.getInstance();
+
+                                if (session == null || !UserSession.isLoggedIn()) {
+                                    showAlert(
+                                            Alert.AlertType.ERROR,
+                                            "Session Error",
+                                            "No authenticated user session was found."
+                                    );
+                                    return;
+                                }
+
+                                String uid = session.getUid();
+                                String idToken = session.getIdToken();
+
+                                Thread thread = new Thread(() -> {
+                                    try {
+                                        // 1. Delete profile from Firestore
+                                        profileDAO.deleteProfile(uid);
+
+                                        // 2. Delete account from Firebase Authentication
+                                        boolean authDeleted = authController.deleteAccount(idToken);
+
+                                        if (!authDeleted) {
+                                            System.out.println("Warning: Firebase Auth deletion failed or requires recent login.");
+                                        }
+
+                                        Platform.runLater(() -> {
+                                            // Clear local session
+                                            UserSession.clearSession();
+
+                                            showAlert(
+                                                    Alert.AlertType.INFORMATION,
+                                                    "Account Deleted",
+                                                    "Your account has been permanently deleted."
+                                            );
+
+                                            // Return to landing page
+                                            LandingPage.showLandingPage();
+                                        });
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        Platform.runLater(() -> showAlert(
+                                                Alert.AlertType.ERROR,
+                                                "Deletion Failed",
+                                                "Unable to delete your account. Please try again."
+                                        ));
+                                    }
+                                });
+
+                                thread.setDaemon(true);
+                                thread.start();
+                            }
+                        }
+                );
     }
 
     private Scene createUnauthenticatedScene() {
         VBox box = new VBox(12);
         box.setAlignment(Pos.CENTER);
-        box.setStyle("-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";");
+        box.setStyle("-fx-background-color:" + BG_CENTER + ";");
 
-        Label title = label("No Active Session", 22, FontWeight.BOLD, WHITE);
-        Label message = label("Please sign in to view your profile.", 13, FontWeight.NORMAL, LIGHT_SECONDARY);
+        Label title = label("No Active Session", 22, FontWeight.BOLD, LIGHT);
+        String MUTED_LIGHT = null;
+        Label message = label("Please sign in to view your profile.", 13, FontWeight.NORMAL, MUTED_LIGHT);
 
         Button login = primaryButton("Go to Login", 13);
         login.setOnAction(e -> LandingPage.showUserLoginPage());

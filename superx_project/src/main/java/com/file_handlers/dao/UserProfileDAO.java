@@ -112,4 +112,25 @@ public class UserProfileDAO {
             );
         }
     }
+
+    public boolean deleteProfile(
+            String uid
+    ) throws Exception {
+
+        validateUid(uid);
+
+        db.collection(USERS_COLLECTION)
+                .document(uid)
+                .delete()
+                .get();
+
+        System.out.println(
+                "User profile deleted: " + uid
+        );
+
+        return true;
+    }
+
+
+
 }
