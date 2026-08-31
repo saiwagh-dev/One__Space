@@ -23,8 +23,8 @@ import java.util.Map;
 import com.file_handlers.controller.AuthController;
 import com.file_handlers.dao.UserProfileDAO;
 import com.file_handlers.model.UserSession;
-import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
+import com.file_handlers.view.LandingPage;
 
 public class UserProfilePage {
 
@@ -801,27 +801,27 @@ public class UserProfilePage {
         if (session == null || !UserSession.isLoggedIn()) {
             return;
         }
-        if (session == null || !UserSession.isLoggedIn()) {
-            return;
-        }
 
         String uid = session.getUid();
 
         Thread thread = new Thread(() -> {
-            try {
-                Map<String, Object> profile = profileDAO.getProfile(uid);
+                try {
+                    Map<String, Object> profile = profileDAO.getProfile(uid);
 
+                    if (profile == null) {
+                        // No profile found, nothing to load
+                        return;
+                    }
 
-                String username = readString(profile, "username");
-                String bio = readString(profile, "bio");
+                    String username = readString(profile, "username");
+                    String bio = readString(profile, "bio");
 
-                if (username == null || username.isBlank()) {
-                    username = createDefaultUsername(session.getDisplayName());
-                }
+                    if (username == null || username.isBlank()) {
+                        username = createDefaultUsername(session.getDisplayName());
+                    }
 
-
-                if (bio == null || bio.isBlank()) {
-                    bio = DEFAULT_BIO;
+                    if (bio == null || bio.isBlank()) {
+                        bio = DEFAULT_BIO;
                 }
 
                 final String finalUsername = normalizeUsername(username);

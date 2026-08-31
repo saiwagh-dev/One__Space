@@ -1,8 +1,8 @@
 package com.file_handlers.view.userView;
 
 import com.file_handlers.controller.AuthController;
-import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
+import com.file_handlers.view.LandingPage;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
