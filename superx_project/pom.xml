@@ -80,4 +80,26 @@
 
     </dependencies>
 
+    <configuration>
+    <mainClass>com.file_handlers.Main</mainClass>
+    <options>
+        <option>--add-exports</option>
+        <option>javafx.graphics/com.sun.javafx.sg.prism=ALL-UNNAMED</option>
+        <option>--add-opens</option>
+        <option>javafx.graphics/com.sun.javafx.sg.prism=ALL-UNNAMED</option>
+        <option>--add-exports</option>
+        <option>javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED</option>
+        <option>--add-opens</option>
+        <option>javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED</option>
+        <option>--add-exports</option>
+        <option>javafx.graphics/com.sun.javafx.util=ALL-UNNAMED</option>
+        <option>--add-opens</option>
+        <option>javafx.graphics/com.sun.javafx.util=ALL-UNNAMED</option>
+        <option>--add-exports</option>
+        <option>javafx.base/com.sun.javafx.reflect=ALL-UNNAMED</option>
+        <option>--add-opens</option>
+        <option>javafx.base/com.sun.javafx.reflect=ALL-UNNAMED</option>
+    </options>
+</configuration>
+
 </project>

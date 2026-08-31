@@ -29,26 +29,38 @@ import javafx.stage.Stage;
 
 public class UserLoginPage {
 
-    // Slate Blue Theme Constants
+    // Typography
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    private static final String BG_APP = "#3A4D67";
-    private static final String BG_CARD = "#DDE8F5";
-    private static final String BG_INPUT = "#EDF3FA";
-    private static final String BORDER_COLOR = "#C9DAEE";
-    private static final String PRIMARY_BLUE = "#2563EB";
-    private static final String TEXT_DARK = "#142338";
-    private static final String TEXT_MUTED_DARK = "#506580";
-    private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
-    private static final String ERROR_COLOR = "#DC2626";
-    private static final String SUCCESS_COLOR = "#16A34A";
+
+    // 1. Sidebar & Top Bar Tones
+    private static final String SIDEBAR_BG = "#070C16";
+    private static final String SIDEBAR_BORDER = "rgba(255, 255, 255, 0.07)";
+
+    // 2. Center Workspace Canvas: Atmospheric Dark Radial Glow
+    private static final String MAIN_BG = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
+
+    // 3. Main Glassmorphic Cards & Container Colors
+    private static final String CARD_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
+    private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
+    private static final String INPUT_BG = "rgba(13, 22, 38, 0.85)";
+    private static final String INPUT_BORDER = "rgba(255, 255, 255, 0.1)";
+
+    // 4. Vibrant Typography & Accent Highlights
+    private static final String WHITE = "#FFFFFF";
+    private static final String LIGHT_SECONDARY = "#94A3B8";
+    private static final String BLUE = "#2563EB";
+    private static final String ERROR_COLOR = "#F87171";
+    private static final String SUCCESS_COLOR = "#34D399";
 
     public Scene getUserLoginPageScene() {
 
         // App Header Bar
         Button backBtn = new Button("← Back to home");
         backBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        backBtn.setTextFill(Color.web(TEXT_MUTED_LIGHT));
+        backBtn.setTextFill(Color.web(LIGHT_SECONDARY));
         backBtn.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+        backBtn.setOnMouseEntered(e -> backBtn.setTextFill(Color.web(WHITE)));
+        backBtn.setOnMouseExited(e -> backBtn.setTextFill(Color.web(LIGHT_SECONDARY)));
         backBtn.setOnAction(e -> { LandingPage.setScene(new LandingPage().getLandingPageScene()); });
 
         HBox appHeader = new HBox(new Region(), backBtn);
@@ -61,11 +73,11 @@ public class UserLoginPage {
 
         Label title = new Label("OneSpace");
         title.setFont(Font.font(FONT, FontWeight.BOLD, 22));
-        title.setTextFill(Color.web(TEXT_DARK));
+        title.setTextFill(Color.web(WHITE));
 
         Label subtitle = new Label("Enter your credentials to access OneSpace");
         subtitle.setFont(Font.font(FONT, 13));
-        subtitle.setTextFill(Color.web(TEXT_MUTED_DARK));
+        subtitle.setTextFill(Color.web(LIGHT_SECONDARY));
 
         // Error Feedback Label
         Label errorLabel = new Label();
@@ -80,7 +92,7 @@ public class UserLoginPage {
         // Form Fields
         Label emailLabel = new Label("Email Address");
         emailLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        emailLabel.setTextFill(Color.web(TEXT_DARK));
+        emailLabel.setTextFill(Color.web(WHITE));
 
         TextField emailField = new TextField();
         emailField.setPromptText("name@example.com");
@@ -91,11 +103,11 @@ public class UserLoginPage {
 
         Label passwordLabel = new Label("Password");
         passwordLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        passwordLabel.setTextFill(Color.web(TEXT_DARK));
+        passwordLabel.setTextFill(Color.web(WHITE));
 
         Label forgotPassword = new Label("Forgot?");
         forgotPassword.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        forgotPassword.setTextFill(Color.web(PRIMARY_BLUE));
+        forgotPassword.setTextFill(Color.web("#38BDF8"));
         forgotPassword.setStyle("-fx-cursor: hand;");
         forgotPassword.setOnMouseClicked(e -> showForgotPasswordModal());
 
@@ -122,7 +134,7 @@ public class UserLoginPage {
 
         SVGPath iconPath = new SVGPath();
         iconPath.setContent(eyeOpenSvg);
-        iconPath.setFill(Color.web(TEXT_MUTED_DARK));
+        iconPath.setFill(Color.web(LIGHT_SECONDARY));
         iconPath.setScaleX(0.75);
         iconPath.setScaleY(0.75);
 
@@ -158,12 +170,20 @@ public class UserLoginPage {
         AuthController authController = new AuthController();
 
         // Action Buttons & Login Logic
-        Button loginButton = new Button("Sign In  →");
+        Button loginButton = new Button("Sign In   →");
         loginButton.setFont(Font.font(FONT, FontWeight.BOLD, 13));
         loginButton.setTextFill(Color.WHITE);
         loginButton.setMaxWidth(Double.MAX_VALUE);
         loginButton.setPrefHeight(42);
-        loginButton.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 10; -fx-cursor: hand;");
+        loginButton.setStyle(
+            "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+            "-fx-border-color: rgba(96, 165, 250, 0.6);" +
+            "-fx-border-radius: 10;" +
+            "-fx-border-width: 1;" +
+            "-fx-background-radius: 10;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.45), 10, 0, 0, 2);"
+        );
         
         loginButton.setOnAction(e -> {
             String email = emailField.getText().trim();
@@ -191,11 +211,11 @@ public class UserLoginPage {
         // Footer Link
         Label noAccountText = new Label("Don't have an account?");
         noAccountText.setFont(Font.font(FONT, 12));
-        noAccountText.setTextFill(Color.web(TEXT_MUTED_DARK));
+        noAccountText.setTextFill(Color.web(LIGHT_SECONDARY));
 
         Label signUpLink = new Label("Sign Up");
         signUpLink.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        signUpLink.setTextFill(Color.web(PRIMARY_BLUE));
+        signUpLink.setTextFill(Color.web("#38BDF8"));
         signUpLink.setStyle("-fx-cursor: hand;");
         signUpLink.setOnMouseClicked(e -> { LandingPage.showUserSignupPage(); });
 
@@ -208,11 +228,12 @@ public class UserLoginPage {
         card.setPrefWidth(ResponsiveUtil.AUTH_CARD_WIDTH);
         card.setMaxWidth(ResponsiveUtil.AUTH_CARD_WIDTH);
         card.setStyle(
-                "-fx-background-color: " + BG_CARD + ";" +
-                "-fx-border-color: " + BORDER_COLOR + ";" +
-                "-fx-border-radius: 18;" +
-                "-fx-background-radius: 18;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.12), 16, 0, 0, 6);"
+                "-fx-background-color: " + CARD_BG + ";" +
+                "-fx-border-color: " + CARD_BORDER + ";" +
+                "-fx-border-width: 1.2;" +
+                "-fx-border-radius: 20;" +
+                "-fx-background-radius: 20;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);"
         );
 
         // Main Layout Assembly
@@ -226,7 +247,7 @@ public class UserLoginPage {
         centerBody.setPadding(new Insets(0, ResponsiveUtil.PAGE_PADDING, ResponsiveUtil.PAGE_PADDING, ResponsiveUtil.PAGE_PADDING));
 
         BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: " + BG_APP + ";");
+        root.setStyle("-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";");
         root.setTop(appHeader);
         root.setCenter(centerBody);
 
@@ -242,11 +263,11 @@ public class UserLoginPage {
 
         Label modalTitle = new Label("Reset Your Password");
         modalTitle.setFont(Font.font(FONT, FontWeight.BOLD, 16));
-        modalTitle.setTextFill(Color.web(TEXT_DARK));
+        modalTitle.setTextFill(Color.web(WHITE));
 
         Label modalSub = new Label("Enter your email and we'll send you a reset link.");
         modalSub.setFont(Font.font(FONT, 12));
-        modalSub.setTextFill(Color.web(TEXT_MUTED_DARK));
+        modalSub.setTextFill(Color.web(LIGHT_SECONDARY));
 
         Label feedbackLabel = new Label();
         feedbackLabel.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
@@ -263,7 +284,15 @@ public class UserLoginPage {
         sendBtn.setTextFill(Color.WHITE);
         sendBtn.setMaxWidth(Double.MAX_VALUE);
         sendBtn.setPrefHeight(42);
-        sendBtn.setStyle("-fx-background-color: " + PRIMARY_BLUE + "; -fx-background-radius: 10; -fx-cursor: hand;");
+        sendBtn.setStyle(
+            "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+            "-fx-border-color: rgba(96, 165, 250, 0.6);" +
+            "-fx-border-radius: 10;" +
+            "-fx-border-width: 1;" +
+            "-fx-background-radius: 10;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.45), 10, 0, 0, 2);"
+        );
 
         AuthController authController = new AuthController();
 
@@ -300,7 +329,13 @@ public class UserLoginPage {
         VBox modalLayout = new VBox(14, modalTitle, modalSub, feedbackLabel, resetEmailField, sendBtn);
         modalLayout.setPadding(new Insets(24));
         modalLayout.setAlignment(Pos.CENTER_LEFT);
-        modalLayout.setStyle("-fx-background-color: " + BG_CARD + ";");
+        modalLayout.setStyle(
+                "-fx-background-color: #0A121E;" +
+                "-fx-border-color: " + CARD_BORDER + ";" +
+                "-fx-border-width: 1px;" +
+                "-fx-border-radius: 16px;" +
+                "-fx-background-radius: 16px;"
+        );
 
         Scene modalScene = new Scene(modalLayout, 340, 260);
         modalStage.setScene(modalScene);
@@ -308,13 +343,13 @@ public class UserLoginPage {
     }
 
     private String getFieldStyle() {
-        return "-fx-background-color: " + BG_INPUT + ";" +
-               "-fx-border-color: " + BORDER_COLOR + ";" +
+        return "-fx-background-color: " + INPUT_BG + ";" +
+               "-fx-border-color: " + INPUT_BORDER + ";" +
                "-fx-border-radius: 10;" +
                "-fx-background-radius: 10;" +
                "-fx-font-size: 13px;" +
-               "-fx-prompt-text-fill: " + TEXT_MUTED_DARK + ";" +
-               "-fx-text-fill: " + TEXT_DARK + ";";
+               "-fx-prompt-text-fill: " + LIGHT_SECONDARY + ";" +
+               "-fx-text-fill: " + WHITE + ";";
     }
 
     private StackPane createOneSpaceLogo(double size) {

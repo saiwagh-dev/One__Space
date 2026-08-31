@@ -28,7 +28,6 @@ import java.util.List;
 
 public class AdminCollaboration {
 
-    // Typography
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
     // 1. Sidebar & Top Bar: Deep Sleek Obsidian/Navy Tones

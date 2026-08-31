@@ -18,7 +18,7 @@ public final class FirebaseConfig {
     // =========================================================
 
     private static final String SERVICE_ACCOUNT_ENV = "FIREBASE_SERVICE_ACCOUNT";
-    private static final String CREDENTIALS_FILE = "serviceAccountKey.json";
+    private static final String CREDENTIALS_FILE = "onespace_firebase_credentials.json";
 
     // =========================================================
     // FIREBASE INITIALIZATION
@@ -71,7 +71,8 @@ public final class FirebaseConfig {
         if (credentialsPath != null && !credentialsPath.isBlank()) {
             Path credentialsFile = Path.of(credentialsPath);
             if (!Files.exists(credentialsFile)) {
-                throw new IllegalStateException("Firebase credentials file not found at environment path: " + credentialsFile);
+                throw new IllegalStateException(
+                        "Firebase credentials file not found at environment path: " + credentialsFile);
             }
 
             try (InputStream input = new FileInputStream(credentialsFile.toFile())) {
@@ -83,7 +84,7 @@ public final class FirebaseConfig {
         // OPTION 2: Check src/main/resources (Standard Classloader)
         // -----------------------------------------------------
         InputStream input = FirebaseConfig.class.getClassLoader().getResourceAsStream(CREDENTIALS_FILE);
-        
+
         // Fallback check with leading slash if standard lookup fails
         if (input == null) {
             input = FirebaseConfig.class.getResourceAsStream("/" + CREDENTIALS_FILE);
@@ -100,9 +101,9 @@ public final class FirebaseConfig {
         // -----------------------------------------------------
         throw new IllegalStateException(
                 "Firebase credentials missing!\n" +
-                "-> Place '" + CREDENTIALS_FILE + "' inside your 'src/main/resources' folder, OR\n" +
-                "-> Set the '" + SERVICE_ACCOUNT_ENV + "' environment variable to point to your JSON file path."
-        );
+                        "-> Place '" + CREDENTIALS_FILE + "' inside your 'src/main/resources' folder, OR\n" +
+                        "-> Set the '" + SERVICE_ACCOUNT_ENV
+                        + "' environment variable to point to your JSON file path.");
     }
 
     // =========================================================

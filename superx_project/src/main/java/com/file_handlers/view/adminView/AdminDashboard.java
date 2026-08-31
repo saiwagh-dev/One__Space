@@ -67,6 +67,10 @@ public class AdminDashboard {
     private static final String CYAN_LIGHT = "rgba(0, 210, 255, 0.15)";
     private static final String GREEN = "#10B981";
 
+    private final AdminStatsDAO statsDAO = new AdminStatsDAO();
+    private Label totalUsersValue;
+    private Label totalFilesValue;
+
     private String activeUserName = "Admin";
     private String initials = "A";
     public AdminDashboard() {
@@ -80,9 +84,9 @@ public class AdminDashboard {
                 this.initials = this.activeUserName.substring(0, 1).toUpperCase();
             }
         }}
-    private final AdminStatsDAO statsDAO = new AdminStatsDAO();
-    private Label totalUsersValue;
-    private Label totalFilesValue;
+    private final AdminStatsDAO statsDAO1 = new AdminStatsDAO();
+    private Label totalUsersValue1;
+    private Label totalFilesValue1;
 
   
 

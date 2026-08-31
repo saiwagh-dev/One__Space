@@ -2,6 +2,7 @@ package com.file_handlers.view.adminView;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -35,6 +36,9 @@ import javafx.stage.Popup;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.file_handlers.dao.AdminUserDAO;
+import com.file_handlers.model.UserData;
+
 import com.file_handlers.controller.AdminAuthController;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
@@ -59,6 +63,7 @@ public class AdminUsers {
     private static final String LIGHT_SECONDARY = "#94A3B8";
 
     private final ObservableList<UserData> users = FXCollections.observableArrayList();
+    private AdminUserDAO adminUserDAO;
     private VBox tableBody;
     private TextField userSearchField;
     private Button statusFilterBtn;
@@ -67,7 +72,6 @@ public class AdminUsers {
     private Label selectedCountLabel;
 
     public AdminUsers() {
-        loadDummyUsers();
     }
 
     public Scene getAdminUsersScene() {
@@ -76,6 +80,7 @@ public class AdminUsers {
         root.setLeft(createSidebar());
 
         ScrollPane scrollPane = new ScrollPane(createUsersContent());
+        loadUsersAsync();
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -91,17 +96,83 @@ public class AdminUsers {
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
-    private void loadDummyUsers() {
-        users.addAll(
-                new UserData("Aarav Sharma", "aarav.sharma@gmail.com", "Active", "Today, 09:30 AM"),
-                new UserData("Priya Patel", "priya.patel@gmail.com", "Active", "Today, 08:10 AM"),
-                new UserData("Rahul Deshmukh", "rahul.deshmukh@gmail.com", "Inactive", "Yesterday"),
-                new UserData("Sneha Kulkarni", "sneha.kulkarni@gmail.com", "Active", "2 days ago"),
-                new UserData("Rohan Joshi", "rohan.joshi@gmail.com", "Active", "Today, 11:15 AM"),
-                new UserData("Neha Shah", "neha.shah@gmail.com", "Inactive", "5 days ago"),
-                new UserData("Aditya Patil", "aditya.patil@gmail.com", "Active", "Today, 10:45 AM"),
-                new UserData("Kavya Mehta", "kavya.mehta@gmail.com", "Active", "Yesterday")
-        );
+    private void loadUsersAsync() {
+
+        if (tableBody != null)
+            showLoading();
+
+        Task<List<UserData>> task = new Task<>() {
+            @Override
+            protected List<UserData> call() throws Exception {
+                AdminUserDAO dao = new AdminUserDAO();
+                List<UserData> result = dao.listUsers();
+                adminUserDAO = dao;
+                return result;
+            }
+        };
+
+        task.setOnSucceeded(e -> {
+            users.setAll(task.getValue());
+            refreshUserTable();
+            updateBatchActionBar();
+        });
+
+        task.setOnFailed(e -> {
+            users.clear();
+            showLoadingError(
+                    task.getException() == null
+                            ? "Unable to load users."
+                            : task.getException().getMessage()
+            );
+        });
+
+        Thread thread = new Thread(task, "AdminUsersLoader");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void showLoading() {
+
+        tableBody.getChildren().clear();
+
+        Label loading =
+                createLabel(
+                        "Loading users...",
+                        "-fx-font-size: 14px; -fx-text-fill: #94A3B8;"
+                );
+
+        VBox wrapper = new VBox(loading);
+        wrapper.setAlignment(Pos.CENTER);
+        wrapper.setPadding(new Insets(40));
+
+        tableBody.getChildren().add(wrapper);
+    }
+
+    private void showLoadingError(String message) {
+
+        tableBody.getChildren().clear();
+
+        Label error =
+                createLabel(
+                        message == null || message.isBlank()
+                                ? "Unable to load users."
+                                : "Unable to load users.",
+                        "-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #F87171;"
+                );
+
+        Label detail =
+                createLabel(
+                        message == null || message.isBlank()
+                                ? "Please try again."
+                                : message,
+                        "-fx-font-size: 12px; -fx-text-fill: #94A3B8;"
+                );
+
+        VBox wrapper = new VBox(8, error, detail);
+        wrapper.setAlignment(Pos.CENTER);
+        wrapper.setPadding(new Insets(40));
+
+        tableBody.getChildren().add(wrapper);
     }
 
     private VBox createSidebar() {
@@ -469,7 +540,7 @@ public class AdminUsers {
             updateBatchActionBar();
         });
 
-        refreshUserTable();
+        showLoading();
 
         VBox table = new VBox(tableHeader, tableBody);
         table.setFillWidth(true);
@@ -479,10 +550,7 @@ public class AdminUsers {
         selectedCountLabel = createLabel("0 selected", "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF;");
         Button bulkDeactivateBtn = new Button("Deactivate Selected");
         bulkDeactivateBtn.setStyle("-fx-background-color: #EF4444; -fx-text-fill: #FFFFFF; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-        bulkDeactivateBtn.setOnAction(e -> {
-            showInfo("Bulk Action", "Selected users marked as inactive.");
-            updateBatchActionBar();
-        });
+        bulkDeactivateBtn.setOnAction(e -> deactivateSelectedUsers());
 
         Region batchSpacer = new Region();
         HBox.setHgrow(batchSpacer, Priority.ALWAYS);
@@ -620,6 +688,7 @@ public class AdminUsers {
 
     private GridPane createUserRow(UserData user) {
         GridPane row = createTableGrid();
+        row.setUserData(user);
         row.setMinHeight(64); row.setPrefHeight(64); row.setMaxWidth(Double.MAX_VALUE);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(0, 10, 0, 10));
@@ -714,6 +783,61 @@ public class AdminUsers {
         return row;
     }
 
+    private void deactivateSelectedUsers() {
+        List<UserData> selectedUsers = new ArrayList<>();
+
+        for (javafx.scene.Node node : tableBody.getChildren()) {
+            if (node instanceof GridPane row) {
+                for (javafx.scene.Node child : row.getChildren()) {
+                    if (child instanceof CheckBox checkBox && checkBox.isSelected()) {
+                        UserData user = (UserData) row.getUserData();
+                        if (user != null)
+                            selectedUsers.add(user);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (selectedUsers.isEmpty()) {
+            showInfo("Deactivate Users", "Please select at least one user.");
+            return;
+        }
+
+        if (adminUserDAO == null) {
+            showError(
+                    "Deactivate Users",
+                    "Users are still loading. Please try again."
+            );
+            return;
+        }
+
+        int successCount = 0;
+
+        try {
+            for (UserData user : selectedUsers) {
+                adminUserDAO.setUserDisabled(user.getUid(), true);
+                successCount++;
+            }
+
+            showInfo(
+                    "Deactivate Users",
+                    successCount + " user" + (successCount == 1 ? "" : "s") +
+                    " deactivated successfully."
+            );
+
+            loadUsersAsync();
+
+        } catch (Exception e) {
+            showError(
+                    "Deactivate Users",
+                    "Some users could not be deactivated.\n\n" + e.getMessage()
+            );
+        }
+
+        updateBatchActionBar();
+    }
+
     private void updateBatchActionBar() {
         int count = 0;
         for (javafx.scene.Node node : tableBody.getChildren()) {
@@ -746,7 +870,17 @@ public class AdminUsers {
 
     private void showInfo(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title); alert.setHeaderText(null); alert.setContentText(message);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
         alert.showAndWait();
     }
 
@@ -849,16 +983,5 @@ public class AdminUsers {
         return icon;
     }
 
-    private static class UserData {
-        private final String name, email, status, lastLogin;
 
-        public UserData(String name, String email, String status, String lastLogin) {
-            this.name = name; this.email = email; this.status = status; this.lastLogin = lastLogin;
-        }
-
-        public String getName() { return name; }
-        public String getEmail() { return email; }
-        public String getStatus() { return status; }
-        public String getLastLogin() { return lastLogin; }
-    }
 }

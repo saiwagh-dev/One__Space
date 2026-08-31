@@ -1,6 +1,5 @@
 package com.file_handlers.view.userView;
 
-
 import java.io.File;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -13,26 +12,17 @@ import com.file_handlers.model.CollaborationFileData;
 import com.file_handlers.model.CollaborationMemberData;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
+import javafx.scene.control.*;
 import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -40,23 +30,12 @@ import javafx.scene.web.WebView;
 
 public class SharedSpacePage {
 
-    private static final String FONT = "Inter";
-    private static final String BG_APP = "#3A4D67";
-    private static final String BG_CARD = "#DDE8F5";
-    private static final String BG_CARD_INNER = "#D1E1F1";
-    private static final String BG_INPUT = "#EDF3FA";
-    private static final String BG_SIDEBAR_CARD = "#2E3F55";
-    private static final String BORDER_COLOR = "#C9DAEE";
-    private static final String PRIMARY_BLUE = "#2563EB";
-    private static final String PRIMARY_LIGHT_BLUE = "#93C5FD";
-    private static final String TEXT_DARK = "#000000"; 
-    private static final String TEXT_MUTED_DARK = "#1E293B"; 
-    private static final String TEXT_LIGHT = "#FFFFFF";
-    private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
-    private static final String SUCCESS = "#15803D"; 
-    private static final String SUCCESS_LIGHT = "#86EFAC"; 
-    private static final String ORANGE = "#C2410C";
-    private static final String ORANGE_LIGHT = "#FFEDD5";
+    private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    private static final String BG_SIDEBAR = "#1E2A3A", BG_SIDEBAR_CARD = "#141D29", SIDEBAR_BORDER = "#2D3D52";
+    private static final String BG_APP = "#31435B", BG_CARD = "#DDE8F5", BG_CARD_INNER = "#D1E1F1", BG_INPUT = "#EDF3FA";
+    private static final String BORDER_COLOR = "#C9DAEE", PRIMARY_BLUE = "#2563EB", PRIMARY_LIGHT_BLUE = "#93C5FD";
+    private static final String TEXT_DARK = "#000000", TEXT_MUTED_DARK = "#1E293B", TEXT_LIGHT = "#FFFFFF", TEXT_MUTED_LIGHT = "#9EB0C6";
+    private static final String SUCCESS = "#15803D", SUCCESS_LIGHT = "#86EFAC", ORANGE = "#C2410C", ORANGE_LIGHT = "#FFEDD5";
     private static final String RED = "#DC2626";
     public static final String RED_LIGHT = "#FEE2E2";
 
@@ -235,6 +214,16 @@ public class SharedSpacePage {
     private void loadDefaultData() {
         membersList.clear();
         filesList.clear();
+
+        String currentUserName = (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) 
+                ? UserSession.getInstance().getDisplayName() : "Workspace Owner";
+        String currentUserEmail = (UserSession.getInstance() != null && UserSession.getInstance().getEmail() != null) 
+                ? UserSession.getInstance().getEmail() : "owner@email.com";
+        
+        workspaceOwnerName = currentUserName;
+        workspaceOwnerEmail = currentUserEmail;
+
+        String initials = getInitials(workspaceOwnerName);
 
         membersList.add(new CollaborationMemberData(
                 "AV", workspaceOwnerName, workspaceOwnerEmail,
@@ -1683,7 +1672,7 @@ public class SharedSpacePage {
                     role,
                     background,
                     avatarColor,
-                    "pending" // <-- Set to pending so it routes to the Pending Invites queue
+                    "pending"
             );
 
             try {
@@ -1753,182 +1742,116 @@ public class SharedSpacePage {
     }
 
     private VBox createSidebar() {
-        VBox sidebar = new VBox(8);
-        sidebar.setPrefWidth(230);
-        sidebar.setMinWidth(230);
-        sidebar.setPadding(new Insets(22, 14, 20, 14));
-        sidebar.setStyle(
-                "-fx-background-color:" + BG_SIDEBAR_CARD + ";" +
-                "-fx-border-color:transparent;");
+        Image logoImage = new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
+        ImageView logoView = new ImageView(logoImage);
+        logoView.setFitWidth(42);
+        logoView.setFitHeight(42);
+        logoView.setPreserveRatio(true);
 
-        Label logoIcon = new Label("◉");
-        logoIcon.setFont(Font.font(FONT, FontWeight.BOLD, 20));
-        logoIcon.setTextFill(Color.web(PRIMARY_LIGHT_BLUE));
+        StackPane logoIcon = new StackPane(logoView);
+        logoIcon.setPrefSize(42, 42);
+        logoIcon.setAlignment(Pos.CENTER);
 
-        Label logo = new Label("OneSpace");
-        logo.setFont(Font.font(FONT, FontWeight.BOLD, 18));
-        logo.setTextFill(Color.web(TEXT_LIGHT));
+        Label logoText = new Label("OneSpace");
+        logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
+        logoText.setStyle("-fx-text-fill:" + TEXT_LIGHT + ";");
 
-        HBox logoRow = new HBox(9, logoIcon, logo);
-        logoRow.setAlignment(Pos.CENTER_LEFT);
+        HBox logoHeader = new HBox(10, logoIcon, logoText);
+        logoHeader.setAlignment(Pos.CENTER_LEFT);
 
-        Label local = new Label("Local • AI Indexed");
-        local.setFont(Font.font(FONT, 11));
-        local.setTextFill(Color.web(TEXT_MUTED_LIGHT));
+        VBox logoBox = new VBox(4, logoHeader);
+        logoBox.setPadding(new Insets(0, 0, 18, 6));
 
-        VBox logoBox = new VBox(4, logoRow, local);
-        logoBox.setPadding(new Insets(0, 8, 25, 8));
+        Button dashboardBtn = createSidebarButton("⌂", "Dashboard", false, e -> LandingPage.showUserDashboard());
+        Button spacesBtn = createSidebarButton("📁", "Spaces", false, e -> LandingPage.showUserSpace());
+        Button searchBtn = createSidebarButton("⌕", "Search", false, e -> LandingPage.showUserSearch());
+        Button calendarBtn = createSidebarButton("📅", "Calendar", false, e -> LandingPage.showCalendarPage());
+        Button aiBtn = createSidebarButton("✧", "AI Assistant", false, e -> LandingPage.showAiAssistantPage());
+        Button collabBtn = createSidebarButton("👥", "Collaboration", true, e -> LandingPage.showCollaborationPage());
+        Button recentBtn = createSidebarButton("🕒", "Recent", false, e -> LandingPage.showRecentPage());
+        Button trashBtn = createSidebarButton("🗑", "Trash", false, e -> LandingPage.showTrashPage());
+        Button settingsBtn = createSidebarButton("⚙", "Settings", false, e -> LandingPage.showSettingPage());
 
-        Button dashboard = createSidebarButton("⌂", "Dashboard", false);
+        VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
 
-        Button spaces = createSidebarButton("▦", "Spaces", false);
-        Button search = createSidebarButton("⌕", "Search", false);
-        Button calendar = createSidebarButton("□", "Calendar", false);
-        Button aiAssistant = createSidebarButton("✧", "AI Assistant", false);
+        Label storageTitle = new Label("Storage Used");
+        storageTitle.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+        storageTitle.setStyle("-fx-text-fill:" + TEXT_LIGHT + ";");
 
-        Button collaboration = createSidebarButton("♧", "Collaboration", true);
+        Label storageVal = new Label("64.2 GB of 100 GB");
+        storageVal.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        storageVal.setStyle("-fx-text-fill:" + TEXT_LIGHT + ";");
 
-        Button recent = createSidebarButton("◷", "Recent", false);
-        Button trash = createSidebarButton("♧", "Trash", false);
-        Button logoutBtn = createSidebarButton("🚪", "Logout", false);
+        Label storagePercent = new Label("64%");
+        storagePercent.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+        storagePercent.setStyle("-fx-text-fill:" + TEXT_MUTED_LIGHT + ";");
 
+        Region storageSpacer = new Region();
+        HBox.setHgrow(storageSpacer, Priority.ALWAYS);
 
+        HBox storageValueGroup = new HBox(storageVal, storageSpacer, storagePercent);
+        storageValueGroup.setAlignment(Pos.CENTER_LEFT);
 
-        dashboard.setOnAction(e -> LandingPage.showUserDashboard());
-        spaces.setOnAction(e -> LandingPage.showUserSpace());
-        search.setOnAction(e -> LandingPage.showUserSearch());
-        calendar.setOnAction(e -> LandingPage.showCalendarPage());
-        aiAssistant.setOnAction(e -> LandingPage.showAiAssistantPage());
-        collaboration.setOnAction(e -> LandingPage.showCollaborationPage());
-        recent.setOnAction(e -> LandingPage.showRecentPage());
-        trash.setOnAction(e -> LandingPage.showTrashPage());
-        logoutBtn.setOnAction(e -> LandingPage.showUserLoginPage());
+        ProgressBar storageProgress = new ProgressBar(.64);
+        storageProgress.setMaxWidth(Double.MAX_VALUE);
+        storageProgress.setPrefHeight(6);
+        storageProgress.setStyle("-fx-accent:" + PRIMARY_BLUE + ";-fx-control-inner-background:#0E1520;");
 
+        Button manageStorageBtn = new Button("Manage Storage ›");
+        manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
+        manageStorageBtn.setStyle("-fx-background-color:transparent;-fx-text-fill:#60A5FA;-fx-padding:2 0 0 0;-fx-cursor:hand;");
+        manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
 
+        VBox storageCard = new VBox(8, storageTitle, storageValueGroup, storageProgress, manageStorageBtn);
+        storageCard.setPadding(new Insets(14));
+        storageCard.setStyle("-fx-background-color:" + BG_SIDEBAR_CARD + ";-fx-border-color:" + SIDEBAR_BORDER +
+                ";-fx-border-radius:12;-fx-background-radius:12;");
 
-        Region spacer = new Region();
-        VBox.setVgrow(spacer, Priority.ALWAYS);
+        Region sidebarSpacer = new Region();
+        VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
 
-        Button settings = createSidebarButton("⚙", "Settings", false);
-        settings.setOnAction(e -> LandingPage.showSettingPage());
-
-        VBox storage = createStorageCard();
-
-        sidebar.getChildren().addAll(
-                logoBox,
-                dashboard,
-                spaces,
-                search,
-                calendar,
-                aiAssistant,
-                collaboration,
-                recent,
-                trash,
-                spacer,
-                settings,
-                storage);
+        VBox sidebar = new VBox(12, logoBox, navList, sidebarSpacer, settingsBtn, storageCard);
+        sidebar.setPadding(new Insets(20, 14, 20, 14));
+        sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
+        sidebar.setStyle("-fx-background-color:" + BG_SIDEBAR + ";-fx-border-color:" + SIDEBAR_BORDER +
+                ";-fx-border-width:0 1 0 0;");
 
         return sidebar;
     }
 
-    private Button createSidebarButton(
-            String icon,
-            String text,
-            boolean selected) {
+    private Button createSidebarButton(String icon, String text, boolean active, javafx.event.EventHandler<javafx.event.ActionEvent> action) {
+        Label iconLbl = new Label(icon);
+        iconLbl.setFont(Font.font(FONT, 14));
 
-        Button button = new Button(icon + "    " + text);
+        Label textLbl = new Label(text);
+        textLbl.setFont(Font.font(FONT, active ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
 
-        button.setAlignment(Pos.CENTER_LEFT);
-        button.setMaxWidth(Double.MAX_VALUE);
-        button.setPrefHeight(42);
-        button.setPadding(new Insets(0, 10, 0, 10));
-        button.setFont(Font.font(FONT, 12));
+        HBox content = new HBox(12, iconLbl, textLbl);
+        content.setAlignment(Pos.CENTER_LEFT);
 
-        if (selected) {
-            button.setTextFill(Color.web(TEXT_LIGHT));
-            button.setStyle(
-                    "-fx-background-color:" + PRIMARY_BLUE + ";" +
-                    "-fx-background-radius:8;" +
-                    "-fx-cursor:hand;");
+        Button btn = new Button("", content);
+        btn.setMaxWidth(Double.MAX_VALUE);
+        btn.setPrefHeight(38);
+        btn.setAlignment(Pos.CENTER_LEFT);
+        btn.setPadding(new Insets(0, 12, 0, 12));
+        btn.setOnAction(action);
+
+        if (active) {
+            btn.setStyle("-fx-background-color:" + PRIMARY_BLUE + ";-fx-background-radius:8;-fx-cursor:hand;");
+            iconLbl.setStyle("-fx-text-fill:" + TEXT_LIGHT + ";");
+            textLbl.setStyle("-fx-text-fill:" + TEXT_LIGHT + ";");
         } else {
-            button.setTextFill(Color.web(TEXT_MUTED_LIGHT));
-            button.setStyle(
-                    "-fx-background-color:transparent;" +
-                    "-fx-background-radius:8;" +
-                    "-fx-cursor:hand;");
+            btn.setStyle("-fx-background-color:transparent;-fx-background-radius:8;-fx-cursor:hand;");
+            iconLbl.setStyle("-fx-text-fill:" + TEXT_MUTED_LIGHT + ";");
+            textLbl.setStyle("-fx-text-fill:" + TEXT_LIGHT + ";");
 
-            button.setOnMouseEntered(e ->
-                    button.setStyle(
-                            "-fx-background-color:rgba(191,219,254,0.12);" +
-                            "-fx-background-radius:8;" +
-                            "-fx-cursor:hand;"));
-
-            button.setOnMouseExited(e ->
-                    button.setStyle(
-                            "-fx-background-color:transparent;" +
-                            "-fx-background-radius:8;" +
-                            "-fx-cursor:hand;"));
+            btn.setOnMouseEntered(e -> btn.setStyle(
+                    "-fx-background-color:#26354A;-fx-background-radius:8;-fx-cursor:hand;"));
+            btn.setOnMouseExited(e -> btn.setStyle(
+                    "-fx-background-color:transparent;-fx-background-radius:8;-fx-cursor:hand;"));
         }
 
-        return button;
-    }
-
-    private VBox createStorageCard() {
-        VBox card = new VBox(8);
-        card.setMinHeight(150);
-        card.setPrefHeight(150);
-        card.setMaxHeight(150);
-        card.setPadding(new Insets(15));
-        card.setStyle(
-                "-fx-background-color:" + BG_CARD + ";" +
-                "-fx-border-color:" + BORDER_COLOR + ";" +
-                "-fx-border-radius:10;" +
-                "-fx-background-radius:10;");
-
-        Label title = new Label("✧  Storage indexed");
-        title.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        title.setTextFill(Color.web(PRIMARY_BLUE));
-
-        Label amount = new Label("64.2 GB");
-        amount.setFont(Font.font(FONT, FontWeight.BOLD, 19));
-        amount.setTextFill(Color.web(TEXT_DARK));
-
-        Label used = new Label("of 100 GB used");
-        used.setFont(Font.font(FONT, 10));
-        used.setTextFill(Color.web(TEXT_MUTED_DARK));
-
-        HBox progressBox = new HBox();
-        progressBox.setPrefHeight(7);
-        progressBox.setMinHeight(7);
-        progressBox.setMaxWidth(Double.MAX_VALUE);
-        progressBox.setStyle(
-                "-fx-background-color:" + BORDER_COLOR + ";" +
-                "-fx-background-radius:10;");
-
-        Region progress = new Region();
-        progress.setPrefWidth(105);
-        progress.setPrefHeight(7);
-        progress.setStyle(
-                "-fx-background-color:" + PRIMARY_BLUE + ";" +
-                "-fx-background-radius:10;");
-
-        progressBox.getChildren().add(progress);
-
-        Label bottom = new Label(
-                "Files stay in place —\n" +
-                "nothing was moved or renamed.");
-
-        bottom.setFont(Font.font(FONT, 9));
-        bottom.setTextFill(Color.web(TEXT_MUTED_DARK));
-        bottom.setWrapText(true);
-
-        card.getChildren().addAll(
-                title,
-                amount,
-                used,
-                progressBox,
-                bottom);
-
-        return card;
+        return btn;
     }
 }
