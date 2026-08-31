@@ -8,6 +8,7 @@ import com.file_handlers.view.userView.CollaborationPage;
 import com.file_handlers.view.userView.NotificationPage;
 import com.file_handlers.view.userView.RecentPage;
 import com.file_handlers.view.userView.StorageIndexPage;
+import com.file_handlers.view.userView.UnifiedSpaceView;
 import com.file_handlers.view.userView.UserCalendar;
 import com.file_handlers.view.userView.UserDashboard;
 import com.file_handlers.view.userView.UserLoginPage;
@@ -160,14 +161,12 @@ public class LandingPage extends Application {
 
     public static void showUnifiedSpace(String spaceId, String spaceName) {
         try {
-            UnifiedSpaceView view =
-                    new UnifiedSpaceView();
+            UnifiedSpaceView view = new UnifiedSpaceView(spaceId, spaceName);  // pass the args, not the no-arg constructor
             setScene(view.getUnifiedSpaceScene());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
     public static void showUnifiedSpaceView() {
         showUnifiedSpace("all", "All Spaces");
     }
