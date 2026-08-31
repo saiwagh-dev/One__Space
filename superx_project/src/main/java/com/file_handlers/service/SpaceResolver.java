@@ -15,6 +15,13 @@ public class SpaceResolver {
             return SpaceConstants.OTHER;
         }
 
+        // The AI matched one of the user's custom Spaces by name; the
+        // AIClassificationService already resolved this to a real Space ID,
+        // so there's nothing left to normalize.
+        if (result.getCustomSpaceId() != null && !result.getCustomSpaceId().isBlank()) {
+            return result.getCustomSpaceId();
+        }
+
         if (result.getCategory() == null) {
             return SpaceConstants.OTHER;
         }
