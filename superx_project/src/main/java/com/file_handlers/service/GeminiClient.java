@@ -36,7 +36,7 @@ public class GeminiClient{
                 +"smartTags must contain exactly 5 or 6 useful short tags.\n"
                 +"Format:\n"
                 +"{\"category\":\"Office\",\"confidence\":0.95,\"description\":\"Short description.\",\"smartTags\":[\"tag1\",\"tag2\",\"tag3\",\"tag4\",\"tag5\"]}";
-        return sendRequest(prompt);
+        return extractJson(sendRequest(prompt));
     }
 
     public String chat(String userMessage,String conversationContext,String fileContext)throws IOException,InterruptedException{
@@ -58,6 +58,14 @@ public class GeminiClient{
                 +"\n\nUser Question:\n"+userMessage
                 +"\n\nAssistant:";
         return sendRequest(prompt);
+    }
+
+    private String extractJson(String text){
+        if(text==null||text.isBlank())return text;
+        int start=text.indexOf('{');
+        int end=text.lastIndexOf('}');
+        if(start==-1||end==-1||end<start)return text.trim();
+        return text.substring(start,end+1).trim();
     }
 
     private String sendRequest(String prompt)throws IOException,InterruptedException{
