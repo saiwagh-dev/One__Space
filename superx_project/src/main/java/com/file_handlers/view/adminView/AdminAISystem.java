@@ -435,6 +435,10 @@ public class AdminAISystem {
         return popup;
     }
 
+    // =========================================================
+    // AI STATUS
+    // =========================================================
+
     private HBox createProfilePopupItem(
             String iconType,
             String text,

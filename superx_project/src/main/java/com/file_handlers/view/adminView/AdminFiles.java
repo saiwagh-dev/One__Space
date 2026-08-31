@@ -569,15 +569,12 @@ public class AdminFiles {
 
         StackPane.setAlignment(progressFill, Pos.CENTER_LEFT);
         progressBackground.getChildren().add(progressFill);
+
         HBox.setHgrow(progressBackground, Priority.ALWAYS);
 
-        Label countLabel = new Label("0 (0%)");
-        countLabel.setStyle(
-                "-fx-font-family: " + FONT +
-                "; -fx-font-size: 12px; -fx-font-weight: 700;" +
-                " -fx-text-fill: " + CARD_SECONDARY + ";"
-        );
-        countLabel.setPrefWidth(95);
+        Label countLabel = new Label(count + " (" + percentageText + ")");
+        countLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + CARD_SECONDARY + ";");
+        countLabel.setPrefWidth(100);
         countLabel.setAlignment(Pos.CENTER_RIGHT);
 
         categoryCountLabels.put(category, countLabel);

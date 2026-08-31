@@ -17,8 +17,6 @@ import com.file_handlers.view.userView.UserSettingPage;
 import com.file_handlers.view.userView.UserSignupPage;
 import com.file_handlers.view.userView.UserSpaces;
 import com.file_handlers.view.userView.UserTrash;
-import com.file_handlers.view.userView.StorageIndexPage;
-import com.file_handlers.view.userView.UnifiedSpaceView;
 
 import javafx.animation.*;
 import javafx.application.Application;
@@ -31,6 +29,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
@@ -39,20 +38,26 @@ import javafx.util.Duration;
 
 public class LandingPage extends Application {
 
+    // Typography
     private static final String FONT =
             "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    private static final String BG_APP = "#3A4D67";
-    private static final String BG_CARD = "#DDE8F5";
-    private static final String BORDER_COLOR = "#C9DAEE";
-    private static final String PRIMARY_BLUE = "#2563EB";
-    private static final String PRIMARY_LIGHT_BLUE = "#BFDBFE";
-    private static final String TEXT_DARK = "#142338";
-    private static final String TEXT_MUTED_DARK = "#506580";
-    private static final String TEXT_LIGHT = "#FFFFFF";
-    private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
+
+    // 1. Sidebar & Top Bar Tones
+    private static final String SIDEBAR_BG = "#070C16";
+
+    // 2. Center Workspace Canvas: Atmospheric Dark Radial Glow
+    private static final String MAIN_BG = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
+
+    // 3. Main Glassmorphic Cards & Container Colors
+    private static final String CARD_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
+    private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
+
+    // 4. Vibrant Typography & Accent Highlights
+    private static final String WHITE = "#FFFFFF";
+    private static final String LIGHT_SECONDARY = "#94A3B8";
+    private static final String BLUE = "#2563EB";
 
     private static Stage primaryStage;
-	public static Object loggedInUserName;
 
     @Override
     public void start(Stage stage) {
@@ -148,19 +153,20 @@ public class LandingPage extends Application {
     }
 
     public static void showStorageIndexPage() {
-    setScene( new StorageIndexPage().getStorageIndexPageScene() );
+        setScene(new StorageIndexPage().getStorageIndexPageScene());
     }
 
     // ================= DYNAMIC SPACE =================
 
-    public static void showUnifiedSpace(String spaceId,String spaceName){
-    try{
-        UnifiedSpaceView view=new UnifiedSpaceView(spaceId,spaceName);
-        setScene(view.getUnifiedSpaceScene());
-    }catch(Exception e){
-        e.printStackTrace();
+    public static void showUnifiedSpace(String spaceId, String spaceName) {
+        try {
+            UnifiedSpaceView view =
+                    new UnifiedSpaceView();
+            setScene(view.getUnifiedSpaceScene());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-}
 
     public static void showUnifiedSpaceView() {
         showUnifiedSpace("all", "All Spaces");
@@ -196,7 +202,9 @@ public class LandingPage extends Application {
         setScene(new AdminSettings().getAdminSettingsScene());
     }
 
-   
+    public static void showAdminSignUp() {
+        setScene(new AdminSignUpPage().getAdminSignUpScene());
+    }
 
     public static void showAdminAISystem() {
         setScene(new AdminAISystem().getAdminAIScene());
@@ -225,37 +233,37 @@ public class LandingPage extends Application {
                 "Welcome to OneSpace",
                 ResponsiveUtil.COMPACT ? 24 : 28,
                 FontWeight.BOLD,
-                TEXT_LIGHT
+                WHITE
         );
 
         Label sub = label(
                 "Choose how you want to continue",
                 14,
-                FontWeight.NORMAL,
-                TEXT_MUTED_LIGHT
+                FontWeight.MEDIUM,
+                LIGHT_SECONDARY
         );
 
         VBox titleBox = new VBox(ResponsiveUtil.COMPACT ? 8 : 10, logo, title, sub);
         titleBox.setAlignment(Pos.CENTER);
 
         VBox userCard = createRoleCard(
-                "👤",
-                PRIMARY_LIGHT_BLUE,
-                PRIMARY_BLUE,
+                "user",
+                "rgba(37, 99, 235, 0.15)",
+                "#38BDF8",
                 "User Login",
                 "Access your personal space,\nmanage your files and more.",
-                "Continue as User  →",
-                PRIMARY_BLUE,
+                "Continue as User   →",
+                BLUE,
                 e -> showUserLoginPage()
         );
 
         VBox adminCard = createRoleCard(
-                "🛡",
-                "#BAE6FD",
-                PRIMARY_BLUE,
+                "security",
+                "rgba(0, 210, 255, 0.15)",
+                "#00D2FF",
                 "Admin Login",
                 "Manage users, oversee system\nactivities and configurations.",
-                "Continue as Admin  →",
+                "Continue as Admin   →",
                 "#0284C7",
                 e -> showAdminLoginPage()
         );
@@ -263,24 +271,24 @@ public class LandingPage extends Application {
         HBox cards = new HBox(ResponsiveUtil.COMPACT ? 20 : 28, userCard, adminCard);
         cards.setAlignment(Pos.CENTER);
 
-        Label footerIcon = new Label("🛡");
-        footerIcon.setFont(Font.font(14));
-        footerIcon.setTextFill(Color.web(TEXT_MUTED_LIGHT));
+        SVGPath footerShield = createIcon("security");
+        footerShield.setStroke(Color.web(LIGHT_SECONDARY));
+        footerShield.setStrokeWidth(2);
 
         Label footerText = label(
                 "Secure. Organized. Intelligent.",
                 12,
                 FontWeight.SEMI_BOLD,
-                TEXT_MUTED_LIGHT
+                LIGHT_SECONDARY
         );
 
-        HBox footerRow = new HBox(6, footerIcon, footerText);
+        HBox footerRow = new HBox(8, footerShield, footerText);
         footerRow.setAlignment(Pos.CENTER);
 
         VBox footer = new VBox(
                 4,
                 footerRow,
-                label("OneSpace", 12, FontWeight.BOLD, TEXT_LIGHT)
+                label("OneSpace", 12, FontWeight.BOLD, WHITE)
         );
         footer.setAlignment(Pos.CENTER);
 
@@ -301,7 +309,7 @@ public class LandingPage extends Application {
         body.setPadding(new Insets(ResponsiveUtil.COMPACT ? 16 : 24));
 
         BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color:" + BG_APP + ";");
+        root.setStyle("-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";");
         root.setCenter(body);
 
         playLandingAnimation(logo, title, sub, cards, footer);
@@ -393,7 +401,7 @@ public class LandingPage extends Application {
     }
 
     private VBox createRoleCard(
-            String iconSymbol,
+            String iconType,
             String iconBg,
             String iconColor,
             String title,
@@ -402,21 +410,18 @@ public class LandingPage extends Application {
             String buttonColor,
             javafx.event.EventHandler<javafx.event.ActionEvent> action) {
 
-        Label icon = new Label(iconSymbol);
-        icon.setFont(Font.font(20));
-        icon.setTextFill(Color.web(iconColor));
-        icon.setPrefSize(48, 48);
-        icon.setAlignment(Pos.CENTER);
-        icon.setStyle(
-                "-fx-background-color:" + iconBg +
-                ";-fx-background-radius:50%;"
-        );
+        SVGPath icon = createIcon(iconType);
+        icon.setStroke(Color.web(iconColor));
+        icon.setStrokeWidth(2);
+
+        StackPane iconPane = new StackPane(icon);
+        iconPane.setPrefSize(48, 48); iconPane.setMinSize(48, 48);
 
         Label cardTitle =
-                label(title, 18, FontWeight.BOLD, TEXT_DARK);
+                label(title, 18, FontWeight.BOLD, WHITE);
 
         Label desc =
-                label(description, 13, FontWeight.NORMAL, TEXT_MUTED_DARK);
+                label(description, 13, FontWeight.NORMAL, LIGHT_SECONDARY);
 
         desc.setTextAlignment(TextAlignment.CENTER);
         desc.setWrapText(true);
@@ -427,15 +432,19 @@ public class LandingPage extends Application {
         button.setMaxWidth(Double.MAX_VALUE);
         button.setPrefHeight(42);
         button.setStyle(
-                "-fx-background-color:" + buttonColor +
-                ";-fx-background-radius:10;" +
-                "-fx-cursor:hand;"
+                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+                "-fx-background-radius: 10;" +
+                "-fx-border-color: rgba(96, 165, 250, 0.6);" +
+                "-fx-border-radius: 10;" +
+                "-fx-border-width: 1;" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.45), 10, 0, 0, 2);"
         );
         button.setOnAction(action);
 
         VBox card = new VBox(
                 16,
-                icon,
+                iconPane,
                 cardTitle,
                 desc,
                 button
@@ -446,10 +455,12 @@ public class LandingPage extends Application {
         card.setPrefWidth(ResponsiveUtil.COMPACT ? 280 : 300);
         card.setMaxWidth(ResponsiveUtil.COMPACT ? 280 : 300);
         card.setStyle(
-                "-fx-background-color:" + BG_CARD +
-                ";-fx-border-color:" + BORDER_COLOR +
-                ";-fx-border-radius:18;" +
-                ";-fx-background-radius:18;"
+                "-fx-background-color: " + CARD_BG + ";" +
+                "-fx-border-color: " + CARD_BORDER + ";" +
+                "-fx-border-width: 1.2;" +
+                "-fx-border-radius: 20;" +
+                "-fx-background-radius: 20;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);"
         );
 
         return card;
@@ -463,9 +474,19 @@ public class LandingPage extends Application {
 
         Label label = new Label(text);
         label.setFont(Font.font(FONT, weight, size));
-        label.setTextFill(Color.web(color));
+        label.setStyle("-fx-text-fill: " + color + ";");
         return label;
     }
 
-    
+    private SVGPath createIcon(String type) {
+        SVGPath icon = new SVGPath();
+        icon.setFill(Color.TRANSPARENT);
+        icon.setStrokeWidth(2);
+        switch (type) {
+            case "user": icon.setContent("M8 11 A3 3 0 1 0 8 5 A3 3 0 0 0 8 11 Z M2 20 C2 16 5 14 8 14 C11 14 14 16 14 20"); break;
+            case "security": icon.setContent("M12 2 L20 5 V11 C20 16 17 20 12 22 C7 20 4 16 4 11 V5 Z M9 12 L11 14 L15 9"); break;
+            default: icon.setContent("M4 4 H20 V20 H4 Z"); break;
+        }
+        return icon;
+    }
 }

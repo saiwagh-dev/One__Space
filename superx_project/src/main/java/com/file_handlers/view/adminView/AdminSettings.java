@@ -1,6 +1,7 @@
 package com.file_handlers.view.adminView;
 
 import com.file_handlers.view.LandingPage;
+import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 
 import javafx.geometry.Insets;
@@ -246,14 +247,14 @@ public class AdminSettings {
         notificationButton.setStyle("-fx-background-color: " + topbarWidgetBg + "; -fx-border-color: " + sidebarBorder + "; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notificationButton.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        Label avatar = new Label("AV");
+        Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
-        Label adminName = new Label("Admin");
+        Label adminName = new Label(activeUserName);
         adminName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         adminName.setTextFill(Color.web(textPrimary));
 
@@ -464,9 +465,8 @@ public class AdminSettings {
         box.setFillWidth(true);
         box.setPadding(new Insets(20));
         box.setStyle(
-                "-fx-background: " + cardBg + ";" +
-                "-fx-background-color: " + (isLightMode ? "#FFFFFF" : "#0F1C30") + ";" +
-                "-fx-border-color: " + cardBorder + ";" +
+                "-fx-background-color: " + CARD_BG + ";" +
+                "-fx-border-color: " + CARD_BORDER + ";" +
                 "-fx-border-width: 1.2;" +
                 "-fx-border-radius: 20;" +
                 "-fx-background-radius: 20;" +

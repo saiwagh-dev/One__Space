@@ -67,6 +67,10 @@ public class AdminDashboard {
     private static final String CYAN_LIGHT = "rgba(0, 210, 255, 0.15)";
     private static final String GREEN = "#10B981";
 
+    private final AdminStatsDAO statsDAO = new AdminStatsDAO();
+    private Label totalUsersValue;
+    private Label totalFilesValue;
+
     private String activeUserName = "Admin";
     private String initials = "A";
     public AdminDashboard() {
