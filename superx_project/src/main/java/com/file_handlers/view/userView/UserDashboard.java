@@ -1,10 +1,13 @@
 package com.file_handlers.view.userView;
 
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.chart.PieChart;
 import javafx.scene.control.*;
@@ -17,6 +20,7 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
+import javafx.util.Duration;
 
 import com.file_handlers.dao.FileDAO;
 import com.file_handlers.model.FileData;
@@ -24,6 +28,7 @@ import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
 
+import java.time.LocalTime;
 import java.util.*;
 
 public class UserDashboard {
@@ -84,6 +89,7 @@ public class UserDashboard {
         bellBtn.setGraphic(bellIcon);
         bellBtn.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         bellBtn.setOnAction(e -> LandingPage.showNotificationPage());
+        applyHoverAnimation(bellBtn, 1.08, 0);
 
         Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setMinSize(34, 34); avatar.setMaxSize(34, 34);
@@ -91,6 +97,7 @@ public class UserDashboard {
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        applyHoverAnimation(avatar, 1.15, 0);
 
         Label userName = new Label(activeUserName);
         userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
@@ -104,6 +111,7 @@ public class UserDashboard {
         profileOption.setAlignment(Pos.CENTER);
         profileOption.setPadding(new Insets(4, 12, 4, 6));
         profileOption.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+        applyHoverAnimation(profileOption, 1.04, 0);
 
         // Custom Dropdown Menu
         Popup userDropdownPopup = new Popup();
@@ -139,7 +147,7 @@ public class UserDashboard {
         ));
         profileDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
-            LandingPage.showUserProfilePage();
+            Platform.runLater(LandingPage::showUserProfilePage);
         });
 
         Button settingsDropdownBtn = new Button("⚙   Settings");
@@ -172,7 +180,7 @@ public class UserDashboard {
         ));
         settingsDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
-            LandingPage.showSettingPage();
+            Platform.runLater(LandingPage::showSettingPage);
         });
 
         Separator dropdownSeparator = new Separator();
@@ -209,7 +217,7 @@ public class UserDashboard {
         logoutDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
             UserSession.clearSession();
-            LandingPage.showUserLoginPage();
+            Platform.runLater(LandingPage::showUserLoginPage);
         });
 
         VBox dropdownContainer = new VBox(4, profileDropdownBtn, settingsDropdownBtn, dropdownSeparator, logoutDropdownBtn);
@@ -249,7 +257,7 @@ public class UserDashboard {
                 "-fx-border-width: 0 0 1 0;"
         );
 
-        Label welcomeTitle = new Label("Good afternoon, " + activeUserName);
+        Label welcomeTitle = new Label(getTimeBasedGreeting() + ", " + activeUserName);
         welcomeTitle.setStyle(
                 "-fx-font-family: " + FONT + ";" +
                 "-fx-font-size: 26px;" +
@@ -289,6 +297,7 @@ public class UserDashboard {
                         ).getScene()
                 )
         );
+        applyHoverAnimation(addFilebtn, 1.05, 0);
 
         AnchorPane greetingHeader = new AnchorPane(greetingText, addFilebtn);
         AnchorPane.setTopAnchor(greetingText, 0.0);
@@ -352,6 +361,34 @@ public class UserDashboard {
                 "-fx-cursor: hand;"
         );
         viewAllBtn.setOnAction(e -> LandingPage.showUserSpace());
+        viewAllBtn.setOnMouseEntered(e -> {
+            viewAllBtn.setStyle(
+                    "-fx-background-color: rgba(56, 189, 248, 0.15);" +
+                    "-fx-border-color: #38BDF8;" +
+                    "-fx-border-radius: 8;" +
+                    "-fx-background-radius: 8;" +
+                    "-fx-text-fill: #38BDF8;" +
+                    "-fx-padding: 6 14;" +
+                    "-fx-cursor: hand;"
+            );
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), viewAllBtn);
+            tt.setToX(3);
+            tt.play();
+        });
+        viewAllBtn.setOnMouseExited(e -> {
+            viewAllBtn.setStyle(
+                    "-fx-background-color: " + CARD_BG_INNER + ";" +
+                    "-fx-border-color: rgba(255, 255, 255, 0.08);" +
+                    "-fx-border-radius: 8;" +
+                    "-fx-background-radius: 8;" +
+                    "-fx-text-fill: #60A5FA;" +
+                    "-fx-padding: 6 14;" +
+                    "-fx-cursor: hand;"
+            );
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), viewAllBtn);
+            tt.setToX(0);
+            tt.play();
+        });
 
         HBox cardHeader = new HBox(cardHeaderTitles, new Region(), viewAllBtn);
         HBox.setHgrow(cardHeader.getChildren().get(1), Priority.ALWAYS);
@@ -374,6 +411,8 @@ public class UserDashboard {
         chartCenterText.setAlignment(Pos.CENTER);
 
         StackPane donutChartPane = new StackPane(chart, donutHole, chartCenterText);
+        applyHoverAnimation(donutChartPane, 1.03, 0);
+
         HBox tableHeader = new HBox(
                 createHeaderLabel("Space", 200),
                 createHeaderLabel("Storage Used", 110),
@@ -451,6 +490,47 @@ public class UserDashboard {
         return scene;
     }
 
+    private String getTimeBasedGreeting() {
+        int hour = LocalTime.now().getHour();
+        if (hour >= 5 && hour < 12) {
+            return "Good morning";
+        } else if (hour >= 12 && hour < 17) {
+            return "Good afternoon";
+        } else if (hour >= 17 && hour < 22) {
+            return "Good evening";
+        } else {
+            return "Good Night";
+        }
+    }
+
+    private void applyHoverAnimation(Node node, double scaleTo, double translateY) {
+        node.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(scaleTo);
+            st.setToY(scaleTo);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(translateY);
+                tt.play();
+            }
+        });
+
+        node.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(0);
+                tt.play();
+            }
+        });
+    }
+
     private VBox createSidebar() {
         Image logoImage = new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
         ImageView logoView = new ImageView(logoImage);
@@ -461,6 +541,7 @@ public class UserDashboard {
         StackPane logoIcon = new StackPane(logoView);
         logoIcon.setPrefSize(42, 42);
         logoIcon.setAlignment(Pos.CENTER);
+        applyHoverAnimation(logoIcon, 1.1, 0);
 
         Label logoText = new Label("OneSpace");
         logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
@@ -511,10 +592,21 @@ public class UserDashboard {
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
         manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexPage());
+        manageStorageBtn.setOnMouseEntered(e -> {
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), manageStorageBtn);
+            tt.setToX(3);
+            tt.play();
+        });
+        manageStorageBtn.setOnMouseExited(e -> {
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), manageStorageBtn);
+            tt.setToX(0);
+            tt.play();
+        });
 
         VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
         storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+        applyHoverAnimation(storageCard, 1.01, -1);
 
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
@@ -564,14 +656,20 @@ public class UserDashboard {
         } else {
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
-                icon.setStroke(Color.WHITE);
-                label.setTextFill(Color.WHITE);
+                button.setStyle("-fx-background-color: rgba(56, 189, 248, 0.12); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
+                icon.setStroke(Color.web("#38BDF8"));
+                label.setTextFill(Color.web("#38BDF8"));
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), button);
+                tt.setToX(4);
+                tt.play();
             });
             button.setOnMouseExited(e -> {
                 button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
                 label.setTextFill(Color.web(WHITE));
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), button);
+                tt.setToX(0);
+                tt.play();
             });
         }
 
@@ -656,16 +754,16 @@ public class UserDashboard {
         icon.setStroke(Color.web(accentColor));
         icon.setStrokeWidth(2);
 
-        StackPane iconBox = new StackPane(icon);
-        iconBox.setPrefSize(32, 32); iconBox.setMinSize(32, 32);
-        iconBox.setStyle(
+        StackPane iconPane = new StackPane(icon);
+        iconPane.setPrefSize(32, 32); iconPane.setMinSize(32, 32);
+        iconPane.setStyle(
                 "-fx-background-color: " + bgAccent + ";" +
                 "-fx-border-color: " + accentColor + "55;" +
                 "-fx-border-radius: 8;" +
                 "-fx-background-radius: 8;"
         );
 
-        HBox topRow = new HBox(titleLbl, new Region(), iconBox);
+        HBox topRow = new HBox(titleLbl, new Region(), iconPane);
         HBox.setHgrow(topRow.getChildren().get(1), Priority.ALWAYS);
         topRow.setAlignment(Pos.CENTER_LEFT);
 
@@ -709,6 +807,34 @@ public class UserDashboard {
                 "-fx-background-radius: 20;" +
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);"
         );
+
+        card.setOnMouseEntered(e -> {
+            card.setStyle(
+                    "-fx-background-color: " + CARD_BG + ";" +
+                    "-fx-border-color: #38BDF8;" +
+                    "-fx-border-width: 1.2;" +
+                    "-fx-border-radius: 20;" +
+                    "-fx-background-radius: 20;" +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 24, 0, 0, 8);"
+            );
+            TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
+            tt.setToY(-4);
+            tt.play();
+        });
+
+        card.setOnMouseExited(e -> {
+            card.setStyle(
+                    "-fx-background-color: " + CARD_BG + ";" +
+                    "-fx-border-color: " + CARD_BORDER + ";" +
+                    "-fx-border-width: 1.2;" +
+                    "-fx-border-radius: 20;" +
+                    "-fx-background-radius: 20;" +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);"
+            );
+            TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
+            tt.setToY(0);
+            tt.play();
+        });
 
         return card;
     }
@@ -777,7 +903,26 @@ public class UserDashboard {
         progressGroup.setAlignment(Pos.CENTER_LEFT);
         progressGroup.setPrefWidth(140);
 
-        return new HBox(nameGroup, sizeLbl, progressGroup);
+        HBox row = new HBox(nameGroup, sizeLbl, progressGroup);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(6, 8, 6, 8));
+        row.setStyle("-fx-background-color: transparent; -fx-background-radius: 8;");
+
+        row.setOnMouseEntered(e -> {
+            row.setStyle("-fx-background-color: rgba(56, 189, 248, 0.08); -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+            tt.setToX(4);
+            tt.play();
+        });
+
+        row.setOnMouseExited(e -> {
+            row.setStyle("-fx-background-color: transparent; -fx-background-radius: 8;");
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+            tt.setToX(0);
+            tt.play();
+        });
+
+        return row;
     }
 
     private void applyPieChartColors(ObservableList<PieChart.Data> data) {

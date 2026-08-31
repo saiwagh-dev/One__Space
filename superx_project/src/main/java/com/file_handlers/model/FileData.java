@@ -22,6 +22,7 @@ public class FileData{
     private String spaceId;
     private boolean deleted;
     private Timestamp deletedAt;
+    private String fileNameLower;
 
     public FileData(){}
 
@@ -57,6 +58,8 @@ public class FileData{
     public void setDeleted(boolean deleted){this.deleted=deleted;}
     public Timestamp getDeletedAt(){return deletedAt;}
     public void setDeletedAt(Timestamp deletedAt){this.deletedAt=deletedAt;}
+    public String getFileNameLower(){return fileNameLower;}
+    public void setFileNameLower(String fileNameLower){this.fileNameLower=fileNameLower;}
 
     public Map<String,Object> toMap(){
         Map<String,Object> data=new HashMap<>();
@@ -76,6 +79,7 @@ public class FileData{
         data.put("spaceId",spaceId);
         data.put("deleted",deleted);
         data.put("deletedAt",deletedAt);
+        data.put("fileNameLower",fileNameLower);
         return data;
     }
 }

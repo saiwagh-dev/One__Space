@@ -167,7 +167,6 @@ public class LandingPage extends Application {
             e.printStackTrace();
         }
     }
-
     public static void showUnifiedSpaceView() {
         showUnifiedSpace("all", "All Spaces");
     }

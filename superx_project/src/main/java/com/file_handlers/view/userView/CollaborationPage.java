@@ -1,5 +1,8 @@
 package com.file_handlers.view.userView;
 
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -14,6 +17,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.stage.Popup;
+import javafx.util.Duration;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -95,8 +100,8 @@ public class CollaborationPage {
         }
         
         try {
-                        com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
-                        List<com.google.cloud.firestore.QueryDocumentSnapshot> workspacesDocs = db.collection("workspaces").get().get().getDocuments();
+            com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
+            List<com.google.cloud.firestore.QueryDocumentSnapshot> workspacesDocs = db.collection("workspaces").get().get().getDocuments();
             
             for (com.google.cloud.firestore.DocumentSnapshot doc : workspacesDocs) {
                 String docId = doc.getId();
@@ -225,6 +230,7 @@ public class CollaborationPage {
         bellBtn.setGraphic(bellIcon);
         bellBtn.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         bellBtn.setOnAction(e -> LandingPage.showNotificationPage());
+        applyHoverAnimation(bellBtn, 1.08, 0);
 
         Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setMinSize(34, 34); avatar.setMaxSize(34, 34);
@@ -232,6 +238,7 @@ public class CollaborationPage {
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        applyHoverAnimation(avatar, 1.15, 0);
 
         Label userName = new Label(activeUserName);
         userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
@@ -245,6 +252,7 @@ public class CollaborationPage {
         profileOption.setAlignment(Pos.CENTER);
         profileOption.setPadding(new Insets(4, 12, 4, 6));
         profileOption.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+        applyHoverAnimation(profileOption, 1.04, 0);
 
         // Custom Dropdown Menu
         Popup userDropdownPopup = new Popup();
@@ -280,7 +288,11 @@ public class CollaborationPage {
         ));
         profileDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
-            LandingPage.showUserProfilePage();
+            Platform.runLater(LandingPage::showUserProfilePage);
+        });
+        profileDropdownBtn.setOnMouseClicked(e -> {
+            userDropdownPopup.hide();
+            Platform.runLater(LandingPage::showUserProfilePage);
         });
 
         Button settingsDropdownBtn = new Button("⚙   Settings");
@@ -313,7 +325,11 @@ public class CollaborationPage {
         ));
         settingsDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
-            LandingPage.showSettingPage();
+            Platform.runLater(LandingPage::showSettingPage);
+        });
+        settingsDropdownBtn.setOnMouseClicked(e -> {
+            userDropdownPopup.hide();
+            Platform.runLater(LandingPage::showSettingPage);
         });
 
         Separator dropdownSeparator = new Separator();
@@ -350,7 +366,12 @@ public class CollaborationPage {
         logoutDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
             UserSession.clearSession();
-            LandingPage.showUserLoginPage();
+            Platform.runLater(LandingPage::showUserLoginPage);
+        });
+        logoutDropdownBtn.setOnMouseClicked(e -> {
+            userDropdownPopup.hide();
+            UserSession.clearSession();
+            Platform.runLater(LandingPage::showUserLoginPage);
         });
 
         VBox dropdownContainer = new VBox(4, profileDropdownBtn, settingsDropdownBtn, dropdownSeparator, logoutDropdownBtn);
@@ -402,13 +423,20 @@ public class CollaborationPage {
         pendingBtn.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE +
                 "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8;" +
                 "-fx-cursor: hand; -fx-padding: 8 14;");
-        pendingBtn.setOnMouseEntered(e -> pendingBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: " + WHITE + "; -fx-border-color: rgba(255, 255, 255, 0.2); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 14;"));
-        pendingBtn.setOnMouseExited(e -> pendingBtn.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 14;"));
+        pendingBtn.setOnMouseEntered(e -> {
+            pendingBtn.setStyle("-fx-background-color: rgba(56, 189, 248, 0.15); -fx-text-fill: #38BDF8; -fx-border-color: #38BDF8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 14;");
+            animateScale(pendingBtn, 1.04);
+        });
+        pendingBtn.setOnMouseExited(e -> {
+            pendingBtn.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 14;");
+            animateScale(pendingBtn, 1.0);
+        });
         pendingBtn.setOnAction(e -> showPendingRequestsPopup());
 
         Button newSpaceButton = new Button("+   New Shared Space");
         newSpaceButton.setFont(Font.font(FONT, FontWeight.BOLD, 13));
         newSpaceButton.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: #FFFFFF; -fx-background-radius: 10; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 10; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 18; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.45), 10, 0, 0, 2);");
+        applyHoverAnimation(newSpaceButton, 1.05, 0);
 
         BorderPane root = new BorderPane();
         newSpaceButton.setOnAction(e -> showCreateSharedSpacePopup(root));
@@ -444,6 +472,15 @@ public class CollaborationPage {
                 "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6;" +
                 "-fx-cursor: hand; -fx-padding: 5 10;");
 
+        toggleViewBtn.setOnMouseEntered(e -> {
+            toggleViewBtn.setStyle("-fx-background-color: rgba(56, 189, 248, 0.15); -fx-text-fill: #38BDF8; -fx-border-color: #38BDF8; -fx-border-radius: 6; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 10;");
+            animateScale(toggleViewBtn, 1.04);
+        });
+        toggleViewBtn.setOnMouseExited(e -> {
+            toggleViewBtn.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 10;");
+            animateScale(toggleViewBtn, 1.0);
+        });
+
         toggleViewBtn.setOnAction(e -> {
             isGridView = !isGridView;
             toggleViewBtn.setText(isGridView ? "Switch to List View" : "Switch to Grid View");
@@ -464,6 +501,8 @@ public class CollaborationPage {
         viewAllWorkspaces.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         viewAllWorkspaces.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-cursor: hand; -fx-padding: 8 0 4 0;");
         viewAllWorkspaces.setOnAction(e -> showAllWorkspacesPopup(root));
+        viewAllWorkspaces.setOnMouseEntered(e -> animateTranslate(viewAllWorkspaces, 4, 0));
+        viewAllWorkspaces.setOnMouseExited(e -> animateTranslate(viewAllWorkspaces, 0, 0));
 
         VBox workspacesBox = new VBox(14, workspaceHeaderBox, workspaceListPane, viewAllWorkspaces);
         workspacesBox.setPadding(new Insets(24));
@@ -480,6 +519,8 @@ public class CollaborationPage {
         viewAllActivities.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         viewAllActivities.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-cursor: hand;");
         viewAllActivities.setOnAction(e -> showAllActivitiesPopup());
+        viewAllActivities.setOnMouseEntered(e -> animateTranslate(viewAllActivities, 4, 0));
+        viewAllActivities.setOnMouseExited(e -> animateTranslate(viewAllActivities, 0, 0));
 
         VBox activityCard = new VBox(14, activityTitle, activityListPane, viewAllActivities);
         activityCard.setPadding(new Insets(24));
@@ -506,6 +547,7 @@ public class CollaborationPage {
         security.setAlignment(Pos.CENTER_LEFT);
         security.setPadding(new Insets(16, 20, 16, 20));
         security.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 14; -fx-background-radius: 14;");
+        applyHoverAnimation(security, 1.01, -1);
 
         VBox mainContent = new VBox(22, pageHeader, metrics, workspacesBox, activityCard, security);
         mainContent.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 28, ResponsiveUtil.PAGE_PADDING));
@@ -529,6 +571,48 @@ public class CollaborationPage {
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
+    private void applyHoverAnimation(Node node, double scaleTo, double translateY) {
+        node.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(scaleTo);
+            st.setToY(scaleTo);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(translateY);
+                tt.play();
+            }
+        });
+
+        node.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(0);
+                tt.play();
+            }
+        });
+    }
+
+    private void animateScale(Node node, double scaleTo) {
+        ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+        st.setToX(scaleTo);
+        st.setToY(scaleTo);
+        st.play();
+    }
+
+    private void animateTranslate(Node node, double xTo, double yTo) {
+        TranslateTransition tt = new TranslateTransition(Duration.millis(130), node);
+        tt.setToX(xTo);
+        tt.setToY(yTo);
+        tt.play();
+    }
+
     private VBox createSidebar() {
         Image logoImage = new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
         ImageView logoView = new ImageView(logoImage);
@@ -539,6 +623,7 @@ public class CollaborationPage {
         StackPane logoIcon = new StackPane(logoView);
         logoIcon.setPrefSize(42, 42);
         logoIcon.setAlignment(Pos.CENTER);
+        applyHoverAnimation(logoIcon, 1.1, 0);
 
         Label logoText = new Label("OneSpace");
         logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
@@ -589,10 +674,13 @@ public class CollaborationPage {
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
         manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
+        manageStorageBtn.setOnMouseEntered(e -> animateTranslate(manageStorageBtn, 4, 0));
+        manageStorageBtn.setOnMouseExited(e -> animateTranslate(manageStorageBtn, 0, 0));
 
         VBox storageCard = new VBox(8, storageTitle, storageValueGroup, storageProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
         storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+        applyHoverAnimation(storageCard, 1.01, -1);
 
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
@@ -641,14 +729,16 @@ public class CollaborationPage {
         } else {
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
-                icon.setStroke(Color.WHITE);
-                label.setTextFill(Color.WHITE);
+                button.setStyle("-fx-background-color: rgba(56, 189, 248, 0.12); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
+                icon.setStroke(Color.web("#38BDF8"));
+                label.setTextFill(Color.web("#38BDF8"));
+                animateTranslate(button, 4, 0);
             });
             button.setOnMouseExited(e -> {
                 button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
                 label.setTextFill(Color.web(WHITE));
+                animateTranslate(button, 0, 0);
             });
         }
 
@@ -691,7 +781,11 @@ public class CollaborationPage {
             list.setFillWidth(true);
 
             for (WorkspaceData workspace : workspaces) {
+<<<<<<< HEAD
                 HBox card = createWorkspaceCard(workspace, root, workspace.docId);
+=======
+                HBox card = createWorkspaceCard(workspace);
+>>>>>>> origin/Development
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
                 list.getChildren().add(card);
@@ -706,7 +800,11 @@ public class CollaborationPage {
             int col = 0, row = 0;
 
             for (WorkspaceData workspace : workspaces) {
+<<<<<<< HEAD
                 VBox card = createWorkspaceGridCard(workspace, root, workspace.docId);
+=======
+                VBox card = createWorkspaceGridCard(workspace);
+>>>>>>> origin/Development
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
 
@@ -853,6 +951,7 @@ public class CollaborationPage {
 
         confirmDialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
+<<<<<<< HEAD
                 // Instantly remove from local list and refresh UI so it disappears immediately
                 workspaces.removeIf(w -> w.docId != null && w.docId.equals(docId));
                 updateMetrics();
@@ -883,6 +982,31 @@ public class CollaborationPage {
                         ex.printStackTrace();
                     }
                 }).start();
+=======
+                try {
+                    com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
+                    
+                    var members = db.collection("workspaces").document(docId).collection("members").get().get().getDocuments();
+                    for (var m : members) {
+                        m.getReference().delete();
+                    }
+                    var files = db.collection("workspaces").document(docId).collection("files").get().get().getDocuments();
+                    for (var f : files) {
+                        f.getReference().delete();
+                    }
+
+                    db.collection("workspaces").document(docId).delete().get();
+
+                    initializeWorkspacesAndActivities();
+                    javafx.application.Platform.runLater(() -> {
+                        rebuildWorkspaceCards(root);
+                        updateMetrics();
+                        rebuildActivityList();
+                    });
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+>>>>>>> origin/Development
             }
         });
     }
@@ -890,12 +1014,22 @@ public class CollaborationPage {
     private void applyHover(Region card) {
         String normal = "-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08);" +
                 "-fx-border-radius: 12; -fx-background-radius: 12; -fx-cursor: hand;";
-        String hover = "-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: " + CARD_BORDER + ";" +
-                "-fx-border-radius: 12; -fx-background-radius: 12; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 12, 0, 0, 4);";
+        String hover = "-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: #38BDF8;" +
+                "-fx-border-radius: 12; -fx-background-radius: 12; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 14, 0, 0, 4);";
 
         card.setStyle(normal);
-        card.setOnMouseEntered(e -> card.setStyle(hover));
-        card.setOnMouseExited(e -> card.setStyle(normal));
+        card.setOnMouseEntered(e -> {
+            card.setStyle(hover);
+            TranslateTransition tt = new TranslateTransition(Duration.millis(130), card);
+            tt.setToY(-3);
+            tt.play();
+        });
+        card.setOnMouseExited(e -> {
+            card.setStyle(normal);
+            TranslateTransition tt = new TranslateTransition(Duration.millis(130), card);
+            tt.setToY(0);
+            tt.play();
+        });
     }
 
     private void showAllWorkspacesPopup(BorderPane root) {
@@ -907,7 +1041,11 @@ public class CollaborationPage {
         list.setPadding(new Insets(10));
 
         for (WorkspaceData w : workspaces) {
+<<<<<<< HEAD
             HBox card = createWorkspaceCard(w, root, w.docId);
+=======
+            HBox card = createWorkspaceCard(w);
+>>>>>>> origin/Development
             card.setMaxWidth(Double.MAX_VALUE);
             card.setOnMouseClicked(e -> {
                 dialog.close();
@@ -1015,7 +1153,6 @@ public class CollaborationPage {
                     spaceName = spaceDocId.replaceAll("_", " ");
                 }
                 
-                // Fetch members list to find pending requests and identify the workspace owner/sender
                 var membersDocs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
                 
                 String ownerName = "Workspace Owner";
@@ -1032,9 +1169,14 @@ public class CollaborationPage {
                     String email = mDoc.getString("email");
                     String status = mDoc.getString("status");
 
+<<<<<<< HEAD
                 if (email != null && email.equalsIgnoreCase(myEmail) && ("pending".equalsIgnoreCase(status) || "declined".equalsIgnoreCase(status))) {
                 foundAny = true;
 
+=======
+                    if (email != null && email.equalsIgnoreCase(myEmail) && "pending".equalsIgnoreCase(status)) {
+                        foundAny = true;
+>>>>>>> origin/Development
                         String name = mDoc.getString("name");
                         if (name == null) name = "Unknown";
 
@@ -1094,10 +1236,12 @@ public class CollaborationPage {
 
         Button accept = new Button("Accept");
         accept.setStyle("-fx-background-color: #10B981; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+        applyHoverAnimation(accept, 1.06, 0);
 
         Button decline = new Button("Decline");
         decline.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-text-fill: #F87171; -fx-border-color: rgba(239, 68, 68, 0.4);" +
                 "-fx-border-radius: 6; -fx-background-radius: 6; -fx-font-weight: bold; -fx-cursor: hand;");
+        applyHoverAnimation(decline, 1.06, 0);
 
         HBox buttons = new HBox(6, accept, decline);
         buttons.setAlignment(Pos.CENTER_RIGHT);
@@ -1108,7 +1252,20 @@ public class CollaborationPage {
         row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08);" +
                 "-fx-border-radius: 10; -fx-background-radius: 10;");
 
+<<<<<<< HEAD
        accept.setOnAction(e -> {
+=======
+        row.setOnMouseEntered(e -> {
+            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-radius: 10; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 8, 0, 0, 2);");
+            animateTranslate(row, 3, 0);
+        });
+        row.setOnMouseExited(e -> {
+            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10;");
+            animateTranslate(row, 0, 0);
+        });
+
+        accept.setOnAction(e -> {
+>>>>>>> origin/Development
             try {
                 var db = com.file_handlers.config.FirebaseConfig.getFirestore();
                 var docs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
@@ -1154,8 +1311,6 @@ public class CollaborationPage {
         return row;
     }
 
-    
-
     private String getInitials(String name) {
         String[] parts = name.trim().split(" ");
         if (parts.length >= 2)
@@ -1184,6 +1339,19 @@ public class CollaborationPage {
         card.setStyle(cardContainerStyle());
         HBox.setHgrow(card, Priority.ALWAYS);
 
+        card.setOnMouseEntered(e -> {
+            card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 20, 0, 0, 6);");
+            TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
+            tt.setToY(-4);
+            tt.play();
+        });
+        card.setOnMouseExited(e -> {
+            card.setStyle(cardContainerStyle());
+            TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
+            tt.setToY(0);
+            tt.play();
+        });
+
         return card;
     }
 
@@ -1207,7 +1375,20 @@ public class CollaborationPage {
         timeLbl.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
         VBox content = new VBox(2, text, timeLbl);
-        return new HBox(8, dot, content);
+        HBox row = new HBox(8, dot, content);
+        row.setPadding(new Insets(4, 6, 4, 6));
+        row.setStyle("-fx-background-color: transparent; -fx-background-radius: 6;");
+
+        row.setOnMouseEntered(e -> {
+            row.setStyle("-fx-background-color: rgba(56, 189, 248, 0.08); -fx-background-radius: 6;");
+            animateTranslate(row, 4, 0);
+        });
+        row.setOnMouseExited(e -> {
+            row.setStyle("-fx-background-color: transparent; -fx-background-radius: 6;");
+            animateTranslate(row, 0, 0);
+        });
+
+        return row;
     }
 
     private void showAllActivitiesPopup() {
@@ -1261,6 +1442,7 @@ public class CollaborationPage {
         Button browse = new Button("Browse");
         browse.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE +
                 "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 7; -fx-background-radius: 7; -fx-cursor: hand;");
+        applyHoverAnimation(browse, 1.05, 0);
 
         Region uploadSpacer = new Region();
         HBox.setHgrow(uploadSpacer, Priority.ALWAYS);
@@ -1308,11 +1490,13 @@ public class CollaborationPage {
 
         Button createBtn = (Button) dialog.getDialogPane().lookupButton(create);
         createBtn.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 7; -fx-cursor: hand;");
+        applyHoverAnimation(createBtn, 1.04, 0);
 
         Button cancelBtn = (Button) dialog.getDialogPane().lookupButton(cancel);
         cancelBtn.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE +
                 "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 7; -fx-background-radius: 7;" +
                 "-fx-font-weight: bold; -fx-cursor: hand;");
+        applyHoverAnimation(cancelBtn, 1.04, 0);
 
         dialog.setResultConverter(button -> {
             if (button == create) {
