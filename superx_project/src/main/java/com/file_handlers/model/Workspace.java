@@ -7,6 +7,7 @@ public class Workspace {
     private String ownerId;
     private int memberCount;
     private int fileCount;
+    
 
     public Workspace() {
     }
@@ -17,6 +18,7 @@ public class Workspace {
         this.ownerId = ownerId;
         this.memberCount = 1;
         this.fileCount = 0;
+        
     }
 
     public String getWorkspaceId() {

@@ -3,7 +3,10 @@ package com.file_handlers.view.adminView;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
+import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.QueryDocumentSnapshot;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -20,7 +23,7 @@ import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 public class AdminCollaboration {
@@ -52,8 +55,20 @@ public class AdminCollaboration {
     private String activeUserName = "Admin";
     private String initials = "A";
 
-    public AdminCollaboration() {UserSession session = UserSession.getInstance();
+    // Live Data Lists & Counters
+    private final List<Workspace> workspacesList = new ArrayList<>();
+    private final List<ActivityItem> activityLogsList = new ArrayList<>();
+    private int totalCollaboratorsCount = 0;
 
+    // UI Placeholders for Dynamic Updates
+    private Text summaryNumberText;
+    private Text summaryDetailText;
+    private Text tableHeaderTotalText;
+    private GridPane workspacesTablePane;
+    private VBox activityLogsPane;
+
+    public AdminCollaboration() {
+        UserSession session = UserSession.getInstance();
         if (session != null && session.getDisplayName() != null) {
             String fullName = session.getDisplayName().trim();
             if (!fullName.isEmpty()) {
@@ -61,7 +76,66 @@ public class AdminCollaboration {
                 this.activeUserName = parts[0];
                 this.initials = this.activeUserName.substring(0, 1).toUpperCase();
             }
-        }}
+        }
+        fetchAdminCollaborationData();
+    }
+
+    private void fetchAdminCollaborationData() {
+        workspacesList.clear();
+        activityLogsList.clear();
+        totalCollaboratorsCount = 0;
+
+        try {
+            Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
+            List<QueryDocumentSnapshot> workspaceDocs = db.collection("workspaces").get().get().getDocuments();
+
+            for (QueryDocumentSnapshot doc : workspaceDocs) {
+                String docId = doc.getId();
+                String spaceName = doc.getString("spaceName");
+                if (spaceName == null) {
+                    spaceName = docId.replaceAll("_", " ");
+                }
+
+                String ownerName = "System Owner";
+                int memberCount = 0;
+
+                try {
+                    var membersDocs = db.collection("workspaces").document(docId).collection("members").get().get().getDocuments();
+                    memberCount = membersDocs.size();
+                    totalCollaboratorsCount += memberCount;
+
+                    for (var mDoc : membersDocs) {
+                        String mRole = mDoc.getString("role");
+                        String mName = mDoc.getString("name");
+                        if ("Owner".equalsIgnoreCase(mRole) && mName != null) {
+                            ownerName = mName;
+                        }
+                        if (mName != null) {
+                            activityLogsList.add(new ActivityItem(mName, "joined", spaceName, "Recently"));
+                        }
+                    }
+                } catch (Exception ignored) {}
+
+                try {
+                    var filesDocs = db.collection("workspaces").document(docId).collection("files").get().get().getDocuments();
+                    for (var fDoc : filesDocs) {
+                        String fName = fDoc.getString("fileName");
+                        if (fName != null) {
+                            activityLogsList.add(new ActivityItem("Collaborator", "uploaded file to", spaceName, "Just now"));
+                        }
+                    }
+                } catch (Exception ignored) {}
+
+                workspacesList.add(new Workspace(spaceName, ownerName, memberCount + " Members", docId));
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        if (activityLogsList.isEmpty()) {
+            activityLogsList.add(new ActivityItem("System", "no recent activity recorded in", "Workspaces", "Just now"));
+        }
+    }
 
     public Scene getCollaborationScene() {
         BorderPane root = new BorderPane();
@@ -137,10 +211,7 @@ public class AdminCollaboration {
     }
 
     private StackPane createLogo() {
-        Image logoImage = new Image(
-                getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png")
-        );
-
+        Image logoImage = new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
         ImageView logoView = new ImageView(logoImage);
         logoView.setFitWidth(42);
         logoView.setFitHeight(42);
@@ -341,10 +412,10 @@ public class AdminCollaboration {
         HBox top = new HBox(8, icon, title);
         top.setAlignment(Pos.CENTER_LEFT);
 
-        Text number = createTextNode("24 Active Spaces", 20, true, WHITE);
-        Text detail = createTextNode("Connecting 186 active internal collaborators across organizations.", 11, false, LIGHT_SECONDARY);
+        summaryNumberText = createTextNode(workspacesList.size() + " Active Spaces", 20, true, WHITE);
+        summaryDetailText = createTextNode("Connecting " + totalCollaboratorsCount + " active internal collaborators across organizations.", 11, false, LIGHT_SECONDARY);
 
-        card.getChildren().addAll(top, number, detail);
+        card.getChildren().addAll(top, summaryNumberText, summaryDetailText);
         return card;
     }
 
@@ -352,50 +423,54 @@ public class AdminCollaboration {
         VBox card = card();
         card.setMinHeight(360);
 
-        HBox header = cardHeader("collaboration", "Shared Workspaces", "Total: 24");
+        tableHeaderTotalText = createTextNode("Total: " + workspacesList.size(), 11, true, PURPLE);
+        HBox header = cardHeader("collaboration", "Shared Workspaces", tableHeaderTotalText);
 
-        GridPane table = new GridPane();
-        table.setHgap(8); table.setVgap(16);
-        table.setMaxWidth(Double.MAX_VALUE);
+        workspacesTablePane = new GridPane();
+        workspacesTablePane.setHgap(8); 
+        workspacesTablePane.setVgap(16);
+        workspacesTablePane.setMaxWidth(Double.MAX_VALUE);
+
+        rebuildWorkspacesTable();
+
+        Label viewAllLink = link("View All Workspaces →");
+        viewAllLink.setOnMouseClicked(e -> showAllWorkspacesModal(workspacesList));
+
+        VBox.setVgrow(workspacesTablePane, Priority.ALWAYS);
+        card.getChildren().addAll(header, workspacesTablePane, separator(), viewAllLink);
+        return card;
+    }
+
+    private void rebuildWorkspacesTable() {
+        workspacesTablePane.getChildren().clear();
+        workspacesTablePane.getColumnConstraints().clear();
 
         ColumnConstraints c1 = new ColumnConstraints(); c1.setPercentWidth(35);
         ColumnConstraints c2 = new ColumnConstraints(); c2.setPercentWidth(25);
         ColumnConstraints c3 = new ColumnConstraints(); c3.setPercentWidth(20);
         ColumnConstraints c4 = new ColumnConstraints(); c4.setPercentWidth(20);
-        table.getColumnConstraints().addAll(c1, c2, c3, c4);
+        workspacesTablePane.getColumnConstraints().addAll(c1, c2, c3, c4);
 
         String[] headers = { "Workspace", "Owner", "Members", "Action" };
         for (int i = 0; i < headers.length; i++) {
-            table.add(createTextNode(headers[i], 12, true, LIGHT_SECONDARY), i, 0);
+            workspacesTablePane.add(createTextNode(headers[i], 12, true, LIGHT_SECONDARY), i, 0);
         }
 
-        List<Workspace> list = Arrays.asList(
-                new Workspace("AI Development", "Aarav Verma", "12 Members"),
-                new Workspace("Marketing Q3", "Neha Singh", "8 Members"),
-                new Workspace("Finance Audit", "Rahul Mehta", "5 Members"),
-                new Workspace("UI Redesign", "Riya Sharma", "15 Members")
-        );
-
         int r = 1;
-        for (Workspace w : list) {
-            table.add(createTextNode(w.name, 12, true, WHITE), 0, r);
-            table.add(createTextNode(w.owner, 12, false, LIGHT_SECONDARY), 1, r);
-            table.add(createTextNode(w.members, 12, false, LIGHT_SECONDARY), 2, r);
+        int limit = Math.min(4, workspacesList.size());
+        for (int i = 0; i < limit; i++) {
+            Workspace w = workspacesList.get(i);
+            workspacesTablePane.add(createTextNode(w.name, 12, true, WHITE), 0, r);
+            workspacesTablePane.add(createTextNode(w.owner, 12, false, LIGHT_SECONDARY), 1, r);
+            workspacesTablePane.add(createTextNode(w.members, 12, false, LIGHT_SECONDARY), 2, r);
 
             Button manage = new Button("Manage");
             manage.setFont(Font.font(FONT, FontWeight.BOLD, 10));
             manage.setStyle("-fx-text-fill: " + PURPLE + " !important; -fx-background-color: " + PURPLE_LIGHT + "; -fx-border-color: rgba(0, 210, 255, 0.3); -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand;");
             manage.setOnAction(e -> showManageWorkspaceDialog(w));
-            table.add(manage, 3, r);
+            workspacesTablePane.add(manage, 3, r);
             r++;
         }
-
-        Label viewAllLink = link("View All Workspaces →");
-        viewAllLink.setOnMouseClicked(e -> showAllWorkspacesModal(list));
-
-        VBox.setVgrow(table, Priority.ALWAYS);
-        card.getChildren().addAll(header, table, separator(), viewAllLink);
-        return card;
     }
 
     private VBox createActivityGridCard() {
@@ -404,26 +479,31 @@ public class AdminCollaboration {
 
         HBox header = cardHeader("security", "Internal Collaboration Log", "Recent Activity");
 
-        VBox logs = new VBox(14,
-                activityItem("Aarav Verma", "added Neha Singh to", "AI Development", "10 min ago"),
-                activityItem("Rahul Mehta", "updated roles in", "Finance Audit", "25 min ago"),
-                activityItem("Riya Sharma", "created new workspace", "UI Redesign", "1 hour ago"),
-                activityItem("Neha Singh", "removed member from", "Marketing Q3", "2 hours ago")
-        );
+        activityLogsPane = new VBox(14);
+        rebuildActivityLogsList();
 
         Label viewAuditLink = link("View Full Audit Log →");
         viewAuditLink.setOnMouseClicked(e -> showFullAuditLogModal());
 
-        VBox.setVgrow(logs, Priority.ALWAYS);
-        card.getChildren().addAll(header, logs, separator(), viewAuditLink);
+        VBox.setVgrow(activityLogsPane, Priority.ALWAYS);
+        card.getChildren().addAll(header, activityLogsPane, separator(), viewAuditLink);
         return card;
+    }
+
+    private void rebuildActivityLogsList() {
+        activityLogsPane.getChildren().clear();
+        int limit = Math.min(4, activityLogsList.size());
+        for (int i = 0; i < limit; i++) {
+            ActivityItem act = activityLogsList.get(i);
+            activityLogsPane.getChildren().add(activityItem(act.user, act.action, act.target, act.time));
+        }
     }
 
     private void showManageWorkspaceDialog(Workspace w) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Manage Workspace");
         alert.setHeaderText("Workspace Details: " + w.name);
-        alert.setContentText("Owner: " + w.owner + "\nMembers: " + w.members + "\n\nUse this dialog to update roles or remove users from this space.");
+        alert.setContentText("Owner: " + w.owner + "\nMembers Count: " + w.members + "\n\nLive Firestore Workspace ID: " + w.docId);
         alert.showAndWait();
     }
 
@@ -436,7 +516,7 @@ public class AdminCollaboration {
         container.setPadding(new Insets(20));
         container.setStyle("-fx-background-color: #0D1626; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1;");
 
-        Label header = new Label("All Active Shared Workspaces");
+        Label header = new Label("All Active Shared Workspaces (" + workspaces.size() + ")");
         header.setFont(Font.font(FONT, FontWeight.BOLD, 16));
         header.setTextFill(Color.web(WHITE));
 
@@ -451,21 +531,48 @@ public class AdminCollaboration {
             list.getChildren().add(item);
         }
 
+        ScrollPane scroll = new ScrollPane(list);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+
         Button close = new Button("Close");
         close.setStyle("-fx-background-color: " + BLUE + "; -fx-text-fill: white; -fx-cursor: hand;");
         close.setOnAction(e -> modal.close());
 
-        container.getChildren().addAll(header, list, close);
-        modal.setScene(new Scene(container, 500, 400));
+        container.getChildren().addAll(header, scroll, close);
+        modal.setScene(new Scene(container, 550, 450));
         modal.show();
     }
 
     private void showFullAuditLogModal() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Full Audit Log");
-        alert.setHeaderText("Complete Workspace Audit Log");
-        alert.setContentText("Displaying full log history of member assignments, permission updates, and workspace creation events.");
-        alert.showAndWait();
+        Stage modal = new Stage();
+        modal.initModality(Modality.APPLICATION_MODAL);
+        modal.setTitle("Full Audit Log");
+
+        VBox container = new VBox(14);
+        container.setPadding(new Insets(20));
+        container.setStyle("-fx-background-color: #0D1626; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1;");
+
+        Label header = new Label("Complete Workspace Audit Log (" + activityLogsList.size() + " events)");
+        header.setFont(Font.font(FONT, FontWeight.BOLD, 16));
+        header.setTextFill(Color.web(WHITE));
+
+        VBox list = new VBox(8);
+        for (ActivityItem act : activityLogsList) {
+            list.getChildren().add(activityItem(act.user, act.action, act.target, act.time));
+        }
+
+        ScrollPane scroll = new ScrollPane(list);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+
+        Button close = new Button("Close");
+        close.setStyle("-fx-background-color: " + BLUE + "; -fx-text-fill: white; -fx-cursor: hand;");
+        close.setOnAction(e -> modal.close());
+
+        container.getChildren().addAll(header, scroll, close);
+        modal.setScene(new Scene(container, 550, 450));
+        modal.show();
     }
 
     private HBox activityItem(String user, String action, String target, String time) {
@@ -516,6 +623,21 @@ public class AdminCollaboration {
         return header;
     }
 
+    private HBox cardHeader(String iconType, String title, Text rightNode) {
+        SVGPath icon = createIcon(iconType);
+        icon.setStroke(Color.web(PURPLE));
+        icon.setStrokeWidth(2);
+
+        Text titleLabel = createTextNode(title, 14, true, WHITE);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox header = new HBox(6, icon, titleLabel, spacer, rightNode);
+        header.setAlignment(Pos.CENTER_LEFT);
+        return header;
+    }
+
     private Text createTextNode(String text, double fontSize, boolean isBold, String hexColor) {
         Text textNode = new Text(text);
         textNode.setFont(Font.font(FONT, isBold ? FontWeight.BOLD : FontWeight.NORMAL, fontSize));
@@ -562,9 +684,22 @@ public class AdminCollaboration {
     }
 
     private static class Workspace {
-        String name, owner, members;
-        Workspace(String name, String owner, String members) {
-            this.name = name; this.owner = owner; this.members = members;
+        String name, owner, members, docId;
+        Workspace(String name, String owner, String members, String docId) {
+            this.name = name; 
+            this.owner = owner; 
+            this.members = members; 
+            this.docId = docId;
+        }
+    }
+
+    private static class ActivityItem {
+        String user, action, target, time;
+        ActivityItem(String user, String action, String target, String time) {
+            this.user = user;
+            this.action = action;
+            this.target = target;
+            this.time = time;
         }
     }
 }
