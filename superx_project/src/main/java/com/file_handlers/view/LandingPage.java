@@ -18,6 +18,7 @@ import com.file_handlers.view.userView.UserSignupPage;
 import com.file_handlers.view.userView.UserSpaces;
 import com.file_handlers.view.userView.UserTrash;
 import com.file_handlers.view.userView.StorageIndexPage;
+import com.file_handlers.view.userView.UnifiedSpaceView;
 
 import javafx.animation.*;
 import javafx.application.Application;
@@ -51,6 +52,7 @@ public class LandingPage extends Application {
     private static final String TEXT_MUTED_LIGHT = "#9EB0C6";
 
     private static Stage primaryStage;
+	public static Object loggedInUserName;
 
     @Override
     public void start(Stage stage) {
@@ -151,15 +153,14 @@ public class LandingPage extends Application {
 
     // ================= DYNAMIC SPACE =================
 
-    public static void showUnifiedSpace(String spaceId, String spaceName) {
-        try {
-            UnifiedSpaceView view =
-                    new UnifiedSpaceView();
-            setScene(view.getUnifiedSpaceScene());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public static void showUnifiedSpace(String spaceId,String spaceName){
+    try{
+        UnifiedSpaceView view=new UnifiedSpaceView(spaceId,spaceName);
+        setScene(view.getUnifiedSpaceScene());
+    }catch(Exception e){
+        e.printStackTrace();
     }
+}
 
     public static void showUnifiedSpaceView() {
         showUnifiedSpace("all", "All Spaces");
