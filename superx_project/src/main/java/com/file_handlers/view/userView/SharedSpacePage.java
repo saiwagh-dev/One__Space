@@ -251,6 +251,13 @@ public class SharedSpacePage {
 
         switch (role) {
             case "Owner":
+                return permission.equals("VIEW")
+                        || permission.equals("SEARCH")
+                        || permission.equals("DOWNLOAD")
+                        || permission.equals("UPLOAD")
+                        || permission.equals("EDIT_FILE")
+                        || permission.equals("DELETE_FILE")
+                        || permission.equals("ADD_MEMBER"); // <-- Add this line
             case "Editor":
             case "Moderator":
                 return permission.equals("VIEW")
@@ -801,12 +808,10 @@ public class SharedSpacePage {
         manageAccessButton.setAlignment(Pos.CENTER);
         manageAccessButton.setFont(Font.font(FONT, FontWeight.BOLD, 11));
         manageAccessButton.setTextFill(Color.WHITE);
-        manageAccessButton.setStyle(
-                "-fx-background-color: " + INPUT_BG + ";" +
-                "-fx-background-radius: 7;" +
-                "-fx-border-color: " + INPUT_BORDER + ";" +
-                "-fx-border-radius: 7;" +
-                "-fx-cursor: hand;");
+       manageAccessButton.setStyle(
+        "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+        "-fx-background-radius: 7;" +
+        "-fx-cursor: hand;");
 
         updateManageAccessPermission(manageAccessButton);
 
@@ -1483,6 +1488,35 @@ public class SharedSpacePage {
                 updateMemberRole(
                         member,
                         roleCombo.getValue()));
+
+        roleCombo.setCellFactory(lv -> new ListCell<String>() {
+    @Override
+    protected void updateItem(String item, boolean empty) {
+        super.updateItem(item, empty);
+        if (empty || item == null) {
+            setText(null);
+            setStyle("-fx-background-color: #0A121E;");
+        } else {
+            setText(item);
+            setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+            setTextFill(Color.WHITE);
+            setStyle("-fx-background-color: #0A121E;");
+        }
+    }
+});
+roleCombo.setButtonCell(new ListCell<String>() {
+    @Override
+    protected void updateItem(String item, boolean empty) {
+        super.updateItem(item, empty);
+        if (empty || item == null) {
+            setText(null);
+        } else {
+            setText(item);
+            setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+            setTextFill(Color.WHITE);
+        }
+    }
+});
 
         row.getChildren().addAll(
                 avatar,
