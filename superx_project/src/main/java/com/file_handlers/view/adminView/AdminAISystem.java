@@ -5,8 +5,11 @@ import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 import com.file_handlers.view.LandingPage;
 
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -29,6 +32,7 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
+import javafx.util.Duration;
 
 public class AdminAISystem {
 
@@ -58,7 +62,8 @@ public class AdminAISystem {
     private String activeUserName = "Admin";
     private String initials = "A";
 
-    public AdminAISystem() {UserSession session = UserSession.getInstance();
+    public AdminAISystem() {
+        UserSession session = UserSession.getInstance();
 
         if (session != null && session.getDisplayName() != null) {
             String fullName = session.getDisplayName().trim();
@@ -67,7 +72,8 @@ public class AdminAISystem {
                 this.activeUserName = parts[0];
                 this.initials = this.activeUserName.substring(0, 1).toUpperCase();
             }
-        }}
+        }
+    }
 
     public Scene getAdminAIScene() {
 
@@ -196,6 +202,7 @@ public class AdminAISystem {
         StackPane pane = new StackPane(logoView);
         pane.setPrefSize(42, 42);
         pane.setAlignment(Pos.CENTER);
+        applyHoverAnimation(pane, 1.08, 0);
 
         return pane;
     }
@@ -253,13 +260,18 @@ public class AdminAISystem {
 
             button.setOnMouseEntered(e -> {
                 button.setStyle(
-                        "-fx-background-color: rgba(255,255,255,0.05);" +
+                        "-fx-background-color: rgba(56, 189, 248, 0.12);" +
                         "-fx-background-radius: 12;" +
-                        "-fx-cursor: hand;" +
-                        "-fx-border-width: 0;"
+                        "-fx-border-color: rgba(56, 189, 248, 0.4);" +
+                        "-fx-border-radius: 12;" +
+                        "-fx-border-width: 1;" +
+                        "-fx-cursor: hand;"
                 );
-                icon.setStroke(Color.WHITE);
-                label.setTextFill(Color.WHITE);
+                icon.setStroke(Color.web("#38BDF8"));
+                label.setTextFill(Color.web("#38BDF8"));
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), button);
+                tt.setToX(4);
+                tt.play();
             });
 
             button.setOnMouseExited(e -> {
@@ -271,6 +283,9 @@ public class AdminAISystem {
                 );
                 icon.setStroke(Color.web(SECONDARY));
                 label.setTextFill(Color.WHITE);
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), button);
+                tt.setToX(0);
+                tt.play();
             });
         }
 
@@ -303,6 +318,7 @@ public class AdminAISystem {
         notification.setOnAction(
                 e -> LandingPage.showAdminNotificationPage()
         );
+        applyHoverAnimation(notification, 1.08, 0);
 
         Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
@@ -312,6 +328,7 @@ public class AdminAISystem {
                 "-fx-background-color: linear-gradient(to bottom right,#2563EB,#00D2FF);" +
                 "-fx-background-radius: 50%;"
         );
+        applyHoverAnimation(avatar, 1.15, 0);
 
         Label adminName = new Label(activeUserName);
         adminName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
@@ -327,6 +344,7 @@ public class AdminAISystem {
                 "-fx-background-radius: 20;" +
                 "-fx-cursor: hand;"
         );
+        applyHoverAnimation(profile, 1.03, 0);
 
         Popup profilePopup = createProfilePopup();
 
@@ -464,6 +482,8 @@ public class AdminAISystem {
                 "-fx-background-color: transparent;" +
                 "-fx-cursor: hand;"
         );
+        item.setOnMouseEntered(e -> item.setStyle("-fx-background-color: rgba(255, 255, 255, 0.06); -fx-background-radius: 8; -fx-cursor: hand;"));
+        item.setOnMouseExited(e -> item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;"));
         item.setOnMouseClicked(e -> action.run());
 
         return item;
@@ -513,7 +533,7 @@ public class AdminAISystem {
     }
 
     // =========================================================
-    // AI STATUS
+    // AI STATUS CARD
     // =========================================================
 
     private VBox createAIStatusCard() {
@@ -558,6 +578,7 @@ public class AdminAISystem {
         VBox card = new VBox(row);
         card.setPadding(new Insets(20));
         card.setStyle(cardStyle());
+        applyCardHover(card);
 
         return card;
     }
@@ -630,6 +651,7 @@ public class AdminAISystem {
                 "-fx-border-radius: 12;" +
                 "-fx-background-radius: 12;"
         );
+        applyHoverAnimation(ringBox, 1.03, 0);
 
         VBox metrics = new VBox(
                 14,
@@ -701,6 +723,7 @@ public class AdminAISystem {
         );
         card.setPadding(new Insets(20));
         card.setStyle(cardStyle());
+        applyCardHover(card);
 
         return card;
     }
@@ -848,6 +871,7 @@ public class AdminAISystem {
 
         card.setPadding(new Insets(20));
         card.setStyle(cardStyle());
+        applyCardHover(card);
 
         return card;
     }
@@ -870,12 +894,21 @@ public class AdminAISystem {
 
         VBox row = new VBox(3, label, value);
         row.setPadding(new Insets(10, 12, 10, 12));
-        row.setStyle(
-                "-fx-background-color: rgba(10,18,33,0.85);" +
-                "-fx-border-color: " + CARD_BORDER + ";" +
-                "-fx-border-radius: 10;" +
-                "-fx-background-radius: 10;"
-        );
+        String rowIdle = "-fx-background-color: rgba(10,18,33,0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 10; -fx-background-radius: 10;";
+        String rowHover = "-fx-background-color: rgba(16,28,48,0.95); -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 10; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 8, 0, 0, 2);";
+        row.setStyle(rowIdle);
+        row.setOnMouseEntered(e -> {
+            row.setStyle(rowHover);
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+            tt.setToX(4);
+            tt.play();
+        });
+        row.setOnMouseExited(e -> {
+            row.setStyle(rowIdle);
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+            tt.setToX(0);
+            tt.play();
+        });
 
         return row;
     }
@@ -927,6 +960,7 @@ public class AdminAISystem {
 
         card.setPadding(new Insets(20));
         card.setStyle(cardStyle());
+        applyCardHover(card);
 
         return card;
     }
@@ -952,6 +986,22 @@ public class AdminAISystem {
 
         HBox row = new HBox(10, check, text);
         row.setAlignment(Pos.TOP_LEFT);
+        row.setPadding(new Insets(6, 8, 6, 8));
+        String rowIdle = "-fx-background-color: transparent; -fx-background-radius: 8;";
+        String rowHover = "-fx-background-color: rgba(56, 189, 248, 0.08); -fx-background-radius: 8;";
+        row.setStyle(rowIdle);
+        row.setOnMouseEntered(e -> {
+            row.setStyle(rowHover);
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+            tt.setToX(4);
+            tt.play();
+        });
+        row.setOnMouseExited(e -> {
+            row.setStyle(rowIdle);
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+            tt.setToX(0);
+            tt.play();
+        });
 
         return row;
     }
@@ -988,6 +1038,7 @@ public class AdminAISystem {
 
         card.setPadding(new Insets(20));
         card.setStyle(cardStyle());
+        applyCardHover(card);
 
         return card;
     }
@@ -1024,6 +1075,7 @@ public class AdminAISystem {
         );
         box.setAlignment(Pos.CENTER);
         box.setMinWidth(120);
+        applyHoverAnimation(box, 1.05, -2);
 
         return box;
     }
@@ -1045,6 +1097,41 @@ public class AdminAISystem {
                "-fx-border-radius: 20;" +
                "-fx-background-radius: 20;" +
                "-fx-effect: dropshadow(three-pass-box,rgba(0,0,0,0.6),24,0,0,10);";
+    }
+
+    private void applyCardHover(VBox card) {
+        String idle = cardStyle();
+        String hover = "-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.9), rgba(12, 22, 40, 0.95)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 20, 0, 0, 6);";
+        card.setOnMouseEntered(e -> card.setStyle(hover));
+        card.setOnMouseExited(e -> card.setStyle(idle));
+    }
+
+    private void applyHoverAnimation(Node node, double scaleTo, double translateY) {
+        node.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(scaleTo);
+            st.setToY(scaleTo);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(translateY);
+                tt.play();
+            }
+        });
+
+        node.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(0);
+                tt.play();
+            }
+        });
     }
 
     private Label createLabel(

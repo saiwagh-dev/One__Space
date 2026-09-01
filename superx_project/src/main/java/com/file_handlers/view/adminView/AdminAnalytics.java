@@ -1,5 +1,7 @@
 package com.file_handlers.view.adminView;
 
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -11,6 +13,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.effect.BlurType;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -23,6 +27,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.util.Duration;
 import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -63,7 +68,8 @@ public class AdminAnalytics {
     private String activeUserName = "Admin";
     private String initials = "A";
 
-    public AdminAnalytics() {UserSession session = UserSession.getInstance();
+    public AdminAnalytics() {
+        UserSession session = UserSession.getInstance();
 
         if (session != null && session.getDisplayName() != null) {
             String fullName = session.getDisplayName().trim();
@@ -72,14 +78,14 @@ public class AdminAnalytics {
                 this.activeUserName = parts[0];
                 this.initials = this.activeUserName.substring(0, 1).toUpperCase();
             }
-        }}
+        }
+    }
+    
     private final AdminFileStatsDAO statsDAO = new AdminFileStatsDAO();
     private LineChart<String, Number> userGrowthChart;
     private ComboBox<String> periodSelector;
     private Label totalUsersAnalyticsValue;
     private Label filesUploadedAnalyticsValue;
-
-   
 
     public Scene getAnalyticsScene() {
         BorderPane root = new BorderPane();
@@ -172,6 +178,23 @@ public class AdminAnalytics {
         logoPane.setPrefSize(42, 42);
         logoPane.setAlignment(Pos.CENTER);
 
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.6), 12, 0, 0, 0);
+        ScaleTransition st = new ScaleTransition(Duration.millis(180), logoPane);
+        logoPane.setOnMouseEntered(e -> {
+            logoPane.setEffect(blueGlow);
+            st.stop();
+            st.setToX(1.08);
+            st.setToY(1.08);
+            st.play();
+        });
+        logoPane.setOnMouseExited(e -> {
+            logoPane.setEffect(null);
+            st.stop();
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+        });
+
         return logoPane;
     }
 
@@ -197,6 +220,10 @@ public class AdminAnalytics {
         button.setAlignment(Pos.CENTER_LEFT);
         button.setPadding(new Insets(0, 12, 0, 12));
 
+        ScaleTransition st = new ScaleTransition(Duration.millis(160), button);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(160), button);
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(37, 99, 235, 0.75), 14, 0, 0, 2);
+
         if (active) {
             button.setStyle(
                 "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
@@ -207,17 +234,39 @@ public class AdminAnalytics {
                 "-fx-cursor: hand;" +
                 "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);"
             );
+            button.setOnMouseEntered(e -> {
+                st.stop(); tt.stop();
+                st.setToX(1.02); st.setToY(1.02);
+                tt.setToX(3);
+                st.play(); tt.play();
+            });
+            button.setOnMouseExited(e -> {
+                st.stop(); tt.stop();
+                st.setToX(1.0); st.setToY(1.0);
+                tt.setToX(0);
+                st.play(); tt.play();
+            });
         } else {
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
-                icon.setStroke(Color.WHITE);
+                button.setStyle("-fx-background-color: rgba(37, 99, 235, 0.15); -fx-border-color: rgba(56, 189, 248, 0.5); -fx-border-radius: 12; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 1;");
+                button.setEffect(blueGlow);
+                icon.setStroke(Color.web("#38BDF8"));
                 label.setTextFill(Color.WHITE);
+                st.stop(); tt.stop();
+                st.setToX(1.02); st.setToY(1.02);
+                tt.setToX(3);
+                st.play(); tt.play();
             });
             button.setOnMouseExited(e -> {
                 button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+                button.setEffect(null);
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
                 label.setTextFill(Color.web(WHITE));
+                st.stop(); tt.stop();
+                st.setToX(1.0); st.setToY(1.0);
+                tt.setToX(0);
+                st.play(); tt.play();
             });
         }
         return button;
@@ -236,6 +285,26 @@ public class AdminAnalytics {
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.6), 14, 0, 0, 2);
+        ScaleTransition stNotif = new ScaleTransition(Duration.millis(180), notification);
+        TranslateTransition ttNotif = new TranslateTransition(Duration.millis(180), notification);
+        notification.setOnMouseEntered(e -> {
+            notification.setStyle("-fx-background-color: rgba(37, 99, 235, 0.2); -fx-border-color: #38BDF8; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
+            notification.setEffect(blueGlow);
+            stNotif.stop(); ttNotif.stop();
+            stNotif.setToX(1.05); stNotif.setToY(1.05);
+            ttNotif.setToY(-2);
+            stNotif.play(); ttNotif.play();
+        });
+        notification.setOnMouseExited(e -> {
+            notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
+            notification.setEffect(null);
+            stNotif.stop(); ttNotif.stop();
+            stNotif.setToX(1.0); stNotif.setToY(1.0);
+            ttNotif.setToY(0);
+            stNotif.play(); ttNotif.play();
+        });
+
         Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
@@ -250,6 +319,25 @@ public class AdminAnalytics {
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+
+        ScaleTransition stProf = new ScaleTransition(Duration.millis(180), profile);
+        TranslateTransition ttProf = new TranslateTransition(Duration.millis(180), profile);
+        profile.setOnMouseEntered(e -> {
+            profile.setStyle("-fx-background-color: rgba(37, 99, 235, 0.2); -fx-border-color: #38BDF8; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+            profile.setEffect(blueGlow);
+            stProf.stop(); ttProf.stop();
+            stProf.setToX(1.03); stProf.setToY(1.03);
+            ttProf.setToY(-1);
+            stProf.play(); ttProf.play();
+        });
+        profile.setOnMouseExited(e -> {
+            profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+            profile.setEffect(null);
+            stProf.stop(); ttProf.stop();
+            stProf.setToX(1.0); stProf.setToY(1.0);
+            ttProf.setToY(0);
+            stProf.play(); ttProf.play();
+        });
 
         Popup profilePopup = createProfilePopup();
         profile.setOnMouseClicked(e -> {
@@ -324,6 +412,24 @@ public class AdminAnalytics {
         item.setAlignment(Pos.CENTER_LEFT);
         item.setPadding(new Insets(8, 10, 8, 10));
         item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+
+        ScaleTransition st = new ScaleTransition(Duration.millis(150), item);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(150), item);
+
+        item.setOnMouseEntered(e -> {
+            item.setStyle("-fx-background-color: rgba(37, 99, 235, 0.2); -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
+            st.stop(); tt.stop();
+            st.setToX(1.03); st.setToY(1.03);
+            tt.setToX(3);
+            st.play(); tt.play();
+        });
+        item.setOnMouseExited(e -> {
+            item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+            st.stop(); tt.stop();
+            st.setToX(1.0); st.setToY(1.0);
+            tt.setToX(0);
+            st.play(); tt.play();
+        });
 
         item.setOnMouseClicked(e -> action.run());
         return item;
@@ -401,6 +507,21 @@ public class AdminAnalytics {
         iconBox.setMaxSize(48, 48);
         iconBox.setStyle("-fx-background-color: " + iconBackground + "; -fx-border-color: " + iconColor + "55; -fx-border-radius: 12; -fx-background-radius: 12;");
 
+        DropShadow iconGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.6), 14, 0, 0, 0);
+        ScaleTransition stIcon = new ScaleTransition(Duration.millis(180), iconBox);
+        iconBox.setOnMouseEntered(e -> {
+            iconBox.setEffect(iconGlow);
+            stIcon.stop();
+            stIcon.setToX(1.08); stIcon.setToY(1.08);
+            stIcon.play();
+        });
+        iconBox.setOnMouseExited(e -> {
+            iconBox.setEffect(null);
+            stIcon.stop();
+            stIcon.setToX(1.0); stIcon.setToY(1.0);
+            stIcon.play();
+        });
+
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
@@ -413,6 +534,26 @@ public class AdminAnalytics {
         card.setMaxHeight(160);
         card.setPadding(new Insets(18));
         card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
+
+        DropShadow blueCardGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.45), 24, 0, 0, 6);
+        ScaleTransition stCard = new ScaleTransition(Duration.millis(180), card);
+        TranslateTransition ttCard = new TranslateTransition(Duration.millis(180), card);
+        card.setOnMouseEntered(e -> {
+            card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20;");
+            card.setEffect(blueCardGlow);
+            stCard.stop(); ttCard.stop();
+            stCard.setToX(1.02); stCard.setToY(1.02);
+            ttCard.setToY(-3);
+            stCard.play(); ttCard.play();
+        });
+        card.setOnMouseExited(e -> {
+            card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
+            stCard.stop(); ttCard.stop();
+            stCard.setToX(1.0); stCard.setToY(1.0);
+            ttCard.setToY(0);
+            stCard.play(); ttCard.play();
+        });
+
         return card;
     }
 
@@ -510,6 +651,30 @@ public class AdminAnalytics {
         }
 
         userGrowthChart.getData().add(series);
+
+        javafx.application.Platform.runLater(() -> {
+            for (XYChart.Data<String, Number> d : series.getData()) {
+                if (d.getNode() != null) {
+                    DropShadow dotGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.8), 10, 0, 0, 0);
+                    ScaleTransition stNode = new ScaleTransition(Duration.millis(160), d.getNode());
+                    TranslateTransition ttNode = new TranslateTransition(Duration.millis(160), d.getNode());
+                    d.getNode().setOnMouseEntered(e -> {
+                        d.getNode().setEffect(dotGlow);
+                        stNode.stop(); ttNode.stop();
+                        stNode.setToX(1.4); stNode.setToY(1.4);
+                        ttNode.setToY(-2);
+                        stNode.play(); ttNode.play();
+                    });
+                    d.getNode().setOnMouseExited(e -> {
+                        d.getNode().setEffect(null);
+                        stNode.stop(); ttNode.stop();
+                        stNode.setToX(1.0); stNode.setToY(1.0);
+                        ttNode.setToY(0);
+                        stNode.play(); ttNode.play();
+                    });
+                }
+            }
+        });
     }
 
     private static class AnalyticsResult {
@@ -542,6 +707,26 @@ public class AdminAnalytics {
         period.setPrefHeight(30);
         period.getStyleClass().add("slate-dark-combo");
         period.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-family: '" + FONT + "'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
+
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.5), 10, 0, 0, 1);
+        ScaleTransition stPeriod = new ScaleTransition(Duration.millis(180), period);
+        TranslateTransition ttPeriod = new TranslateTransition(Duration.millis(180), period);
+        period.setOnMouseEntered(e -> {
+            period.setStyle("-fx-background-color: rgba(13, 22, 38, 0.95); -fx-border-color: #38BDF8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-family: '" + FONT + "'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
+            period.setEffect(blueGlow);
+            stPeriod.stop(); ttPeriod.stop();
+            stPeriod.setToX(1.03); stPeriod.setToY(1.03);
+            ttPeriod.setToY(-1);
+            stPeriod.play(); ttPeriod.play();
+        });
+        period.setOnMouseExited(e -> {
+            period.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-family: '" + FONT + "'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
+            period.setEffect(null);
+            stPeriod.stop(); ttPeriod.stop();
+            stPeriod.setToX(1.0); stPeriod.setToY(1.0);
+            ttPeriod.setToY(0);
+            stPeriod.play(); ttPeriod.play();
+        });
         periodSelector = period;
 
         Region headingSpacer = new Region();
@@ -593,6 +778,26 @@ public class AdminAnalytics {
         card.setMinHeight(390);
         card.setPadding(new Insets(20));
         card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: #FFFFFF; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
+
+        DropShadow blueCardGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.45), 28, 0, 0, 6);
+        ScaleTransition stCard = new ScaleTransition(Duration.millis(180), card);
+        TranslateTransition ttCard = new TranslateTransition(Duration.millis(180), card);
+        card.setOnMouseEntered(e -> {
+            card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: #FFFFFF;");
+            card.setEffect(blueCardGlow);
+            stCard.stop(); ttCard.stop();
+            stCard.setToX(1.01); stCard.setToY(1.01);
+            ttCard.setToY(-2);
+            stCard.play(); ttCard.play();
+        });
+        card.setOnMouseExited(e -> {
+            card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: #FFFFFF; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
+            stCard.stop(); ttCard.stop();
+            stCard.setToX(1.0); stCard.setToY(1.0);
+            ttCard.setToY(0);
+            stCard.play(); ttCard.play();
+        });
+
         return card;
     }
 

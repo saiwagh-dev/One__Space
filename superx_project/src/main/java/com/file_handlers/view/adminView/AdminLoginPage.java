@@ -1,7 +1,10 @@
 package com.file_handlers.view.adminView;
 
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -21,6 +24,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.util.Duration;
 
 import java.io.InputStream;
 
@@ -52,6 +56,34 @@ public class AdminLoginPage {
     private String activeUserName = "Admin";
     private String initials = "A";
 
+    private void applyHoverAnimation(Node node, double scaleTo, double translateY) {
+        node.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(scaleTo);
+            st.setToY(scaleTo);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(translateY);
+                tt.play();
+            }
+        });
+
+        node.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(0);
+                tt.play();
+            }
+        });
+    }
+
     public Scene getAdminLoginPageScene() {
 
         // App Header Bar
@@ -64,6 +96,7 @@ public class AdminLoginPage {
         backBtn.setOnAction(e -> { 
             LandingPage.setScene(new LandingPage().getLandingPageScene()); 
         });
+        applyHoverAnimation(backBtn, 1.05, 0);
 
         HBox appHeader = new HBox(new Region(), backBtn);
         HBox.setHgrow(appHeader.getChildren().get(0), Priority.ALWAYS);
@@ -113,6 +146,7 @@ public class AdminLoginPage {
         forgotPassword.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         forgotPassword.setTextFill(Color.web(FORGOT_LINK_COLOR));
         forgotPassword.setStyle("-fx-cursor: hand;");
+        applyHoverAnimation(forgotPassword, 1.05, 0);
 
         HBox passwordHeader = new HBox(passwordLabel, new Region(), forgotPassword);
         HBox.setHgrow(passwordHeader.getChildren().get(1), Priority.ALWAYS);
@@ -189,6 +223,7 @@ public class AdminLoginPage {
             "-fx-cursor: hand;" +
             "-fx-effect: dropshadow(three-pass-box, rgba(37, 99, 235, 0.55), 14, 0, 0, 2);"
         );
+        applyHoverAnimation(loginButton, 1.02, -1);
         
         loginButton.setOnAction(e -> {
             String email = emailField.getText().trim();
@@ -260,13 +295,16 @@ public class AdminLoginPage {
             
             StackPane logoHolder = new StackPane(imageView);
             logoHolder.setAlignment(Pos.CENTER);
+            applyHoverAnimation(logoHolder, 1.08, 0);
             return logoHolder;
         }
         Circle circle = new Circle(42, Color.web(BLUE));
         Label fallback = new Label("O");
         fallback.setFont(Font.font(FONT, FontWeight.BOLD, 36));
         fallback.setTextFill(Color.WHITE);
-        return new StackPane(circle, fallback);
+        StackPane fallbackHolder = new StackPane(circle, fallback);
+        applyHoverAnimation(fallbackHolder, 1.08, 0);
+        return fallbackHolder;
     }
 
     private String getFieldStyle() {
