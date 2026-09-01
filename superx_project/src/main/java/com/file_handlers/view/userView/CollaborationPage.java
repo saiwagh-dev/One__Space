@@ -781,11 +781,7 @@ public class CollaborationPage {
             list.setFillWidth(true);
 
             for (WorkspaceData workspace : workspaces) {
-<<<<<<< HEAD
                 HBox card = createWorkspaceCard(workspace, root, workspace.docId);
-=======
-                HBox card = createWorkspaceCard(workspace);
->>>>>>> origin/Development
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
                 list.getChildren().add(card);
@@ -800,11 +796,7 @@ public class CollaborationPage {
             int col = 0, row = 0;
 
             for (WorkspaceData workspace : workspaces) {
-<<<<<<< HEAD
                 VBox card = createWorkspaceGridCard(workspace, root, workspace.docId);
-=======
-                VBox card = createWorkspaceGridCard(workspace);
->>>>>>> origin/Development
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
 
@@ -951,7 +943,6 @@ public class CollaborationPage {
 
         confirmDialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-<<<<<<< HEAD
                 // Instantly remove from local list and refresh UI so it disappears immediately
                 workspaces.removeIf(w -> w.docId != null && w.docId.equals(docId));
                 updateMetrics();
@@ -982,31 +973,6 @@ public class CollaborationPage {
                         ex.printStackTrace();
                     }
                 }).start();
-=======
-                try {
-                    com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
-                    
-                    var members = db.collection("workspaces").document(docId).collection("members").get().get().getDocuments();
-                    for (var m : members) {
-                        m.getReference().delete();
-                    }
-                    var files = db.collection("workspaces").document(docId).collection("files").get().get().getDocuments();
-                    for (var f : files) {
-                        f.getReference().delete();
-                    }
-
-                    db.collection("workspaces").document(docId).delete().get();
-
-                    initializeWorkspacesAndActivities();
-                    javafx.application.Platform.runLater(() -> {
-                        rebuildWorkspaceCards(root);
-                        updateMetrics();
-                        rebuildActivityList();
-                    });
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
->>>>>>> origin/Development
             }
         });
     }
@@ -1041,11 +1007,7 @@ public class CollaborationPage {
         list.setPadding(new Insets(10));
 
         for (WorkspaceData w : workspaces) {
-<<<<<<< HEAD
             HBox card = createWorkspaceCard(w, root, w.docId);
-=======
-            HBox card = createWorkspaceCard(w);
->>>>>>> origin/Development
             card.setMaxWidth(Double.MAX_VALUE);
             card.setOnMouseClicked(e -> {
                 dialog.close();
@@ -1169,14 +1131,9 @@ public class CollaborationPage {
                     String email = mDoc.getString("email");
                     String status = mDoc.getString("status");
 
-<<<<<<< HEAD
                 if (email != null && email.equalsIgnoreCase(myEmail) && ("pending".equalsIgnoreCase(status) || "declined".equalsIgnoreCase(status))) {
                 foundAny = true;
 
-=======
-                    if (email != null && email.equalsIgnoreCase(myEmail) && "pending".equalsIgnoreCase(status)) {
-                        foundAny = true;
->>>>>>> origin/Development
                         String name = mDoc.getString("name");
                         if (name == null) name = "Unknown";
 
@@ -1252,20 +1209,7 @@ public class CollaborationPage {
         row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08);" +
                 "-fx-border-radius: 10; -fx-background-radius: 10;");
 
-<<<<<<< HEAD
-       accept.setOnAction(e -> {
-=======
-        row.setOnMouseEntered(e -> {
-            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-radius: 10; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 8, 0, 0, 2);");
-            animateTranslate(row, 3, 0);
-        });
-        row.setOnMouseExited(e -> {
-            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10;");
-            animateTranslate(row, 0, 0);
-        });
-
-        accept.setOnAction(e -> {
->>>>>>> origin/Development
+         accept.setOnAction(e -> {
             try {
                 var db = com.file_handlers.config.FirebaseConfig.getFirestore();
                 var docs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
@@ -1527,19 +1471,24 @@ public class CollaborationPage {
                         int memberCount = 1;
 
                         if (!membersText.isEmpty()) {
-                            for (String memberEmail : membersText.split(",")) {
+                            // Split by comma or semicolon to support multiple entries cleanly
+                            for (String memberEmail : membersText.split("[,;]")) {
                                 String emailTrimmed = memberEmail.trim();
-                                if (!emailTrimmed.isEmpty()) {
+                                if (!emailTrimmed.isEmpty() && emailTrimmed.contains("@")) {
                                     memberCount++;
+                                    String memberId = emailTrimmed.toLowerCase().replaceAll("[^a-z0-9]", "_");
+                                    
                                     Map<String, Object> memberData = new HashMap<>();
                                     memberData.put("email", emailTrimmed);
                                     memberData.put("name", emailTrimmed.split("@")[0]);
                                     memberData.put("status", "pending");
                                     memberData.put("role", "Viewer");
+                                    memberData.put("avatarBackground", "rgba(16, 185, 129, 0.2)");
+                                    memberData.put("avatarColor", "#34D399");
 
                                     db.collection("workspaces").document(docId)
                                       .collection("members")
-                                      .document(emailTrimmed.toLowerCase().replaceAll("[^a-z0-9]", "_"))
+                                      .document(memberId)
                                       .set(memberData);
                                 }
                             }
