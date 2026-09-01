@@ -6,8 +6,11 @@ import com.file_handlers.view.LandingPage;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
 
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -21,6 +24,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -218,6 +222,7 @@ public class AdminCollaboration {
         StackPane logoPane = new StackPane(logoView);
         logoPane.setPrefSize(42, 42);
         logoPane.setAlignment(Pos.CENTER);
+        applyHoverAnimation(logoPane, 1.08, 0);
 
         return logoPane;
     }
@@ -257,14 +262,20 @@ public class AdminCollaboration {
         } else {
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
-                icon.setStroke(Color.WHITE);
-                label.setTextFill(Color.WHITE);
+                button.setStyle("-fx-background-color: rgba(56, 189, 248, 0.12); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
+                icon.setStroke(Color.web("#38BDF8"));
+                label.setTextFill(Color.web("#38BDF8"));
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), button);
+                tt.setToX(4);
+                tt.play();
             });
             button.setOnMouseExited(e -> {
                 button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
                 label.setTextFill(Color.web(WHITE));
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), button);
+                tt.setToX(0);
+                tt.play();
             });
         }
         return button;
@@ -282,12 +293,14 @@ public class AdminCollaboration {
         notification.setGraphic(bell);
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
+        applyHoverAnimation(notification, 1.08, 0);
 
         Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        applyHoverAnimation(avatar, 1.15, 0);
 
         Label admin = new Label(activeUserName);
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
@@ -297,6 +310,7 @@ public class AdminCollaboration {
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+        applyHoverAnimation(profile, 1.03, 0);
 
         Popup profilePopup = createProfilePopup();
         profile.setOnMouseClicked(e -> {
@@ -371,6 +385,8 @@ public class AdminCollaboration {
         item.setAlignment(Pos.CENTER_LEFT);
         item.setPadding(new Insets(8, 10, 8, 10));
         item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+        item.setOnMouseEntered(e -> item.setStyle("-fx-background-color: rgba(255, 255, 255, 0.06); -fx-background-radius: 8; -fx-cursor: hand;"));
+        item.setOnMouseExited(e -> item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;"));
 
         item.setOnMouseClicked(e -> action.run());
         return item;
@@ -414,6 +430,7 @@ public class AdminCollaboration {
         summaryDetailText = createTextNode("Connecting " + totalCollaboratorsCount + " active internal collaborators across organizations.", 11, false, LIGHT_SECONDARY);
 
         card.getChildren().addAll(top, summaryNumberText, summaryDetailText);
+        applyCardHover(card);
         return card;
     }
 
@@ -433,9 +450,11 @@ public class AdminCollaboration {
 
         Label viewAllLink = link("View All Workspaces →");
         viewAllLink.setOnMouseClicked(e -> showAllWorkspacesModal(workspacesList));
+        applyHoverAnimation(viewAllLink, 1.04, 0);
 
         VBox.setVgrow(workspacesTablePane, Priority.ALWAYS);
         card.getChildren().addAll(header, workspacesTablePane, separator(), viewAllLink);
+        applyCardHover(card);
         return card;
     }
 
@@ -465,6 +484,8 @@ public class AdminCollaboration {
             Button manage = new Button("Manage");
             manage.setFont(Font.font(FONT, FontWeight.BOLD, 10));
             manage.setStyle("-fx-text-fill: " + PURPLE + " !important; -fx-background-color: " + PURPLE_LIGHT + "; -fx-border-color: rgba(0, 210, 255, 0.3); -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand;");
+            manage.setOnMouseEntered(e -> manage.setStyle("-fx-text-fill: white !important; -fx-background-color: #0284C7; -fx-border-color: #38BDF8; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.4), 8, 0, 0, 2);"));
+            manage.setOnMouseExited(e -> manage.setStyle("-fx-text-fill: " + PURPLE + " !important; -fx-background-color: " + PURPLE_LIGHT + "; -fx-border-color: rgba(0, 210, 255, 0.3); -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand;"));
             manage.setOnAction(e -> showManageWorkspaceDialog(w));
             workspacesTablePane.add(manage, 3, r);
             r++;
@@ -482,9 +503,11 @@ public class AdminCollaboration {
 
         Label viewAuditLink = link("View Full Audit Log →");
         viewAuditLink.setOnMouseClicked(e -> showFullAuditLogModal());
+        applyHoverAnimation(viewAuditLink, 1.04, 0);
 
         VBox.setVgrow(activityLogsPane, Priority.ALWAYS);
         card.getChildren().addAll(header, activityLogsPane, separator(), viewAuditLink);
+        applyCardHover(card);
         return card;
     }
 
@@ -588,7 +611,22 @@ public class AdminCollaboration {
 
         HBox row = new HBox(6, textFlow, spacer, timeText);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(6, 0, 6, 0));
+        row.setPadding(new Insets(6, 8, 6, 8));
+        String rowIdle = "-fx-background-color: transparent; -fx-background-radius: 8;";
+        String rowHover = "-fx-background-color: rgba(56, 189, 248, 0.08); -fx-background-radius: 8;";
+        row.setStyle(rowIdle);
+        row.setOnMouseEntered(e -> {
+            row.setStyle(rowHover);
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+            tt.setToX(4);
+            tt.play();
+        });
+        row.setOnMouseExited(e -> {
+            row.setStyle(rowIdle);
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+            tt.setToX(0);
+            tt.play();
+        });
         return row;
     }
 
@@ -599,6 +637,41 @@ public class AdminCollaboration {
         box.getStyleClass().add("dark-grid-card");
         box.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
         return box;
+    }
+
+    private void applyCardHover(VBox card) {
+        String idle = "-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);";
+        String hover = "-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.9), rgba(12, 22, 40, 0.95)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 20, 0, 0, 6);";
+        card.setOnMouseEntered(e -> card.setStyle(hover));
+        card.setOnMouseExited(e -> card.setStyle(idle));
+    }
+
+    private void applyHoverAnimation(Node node, double scaleTo, double translateY) {
+        node.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(scaleTo);
+            st.setToY(scaleTo);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(translateY);
+                tt.play();
+            }
+        });
+
+        node.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(0);
+                tt.play();
+            }
+        });
     }
 
     private HBox cardHeader(String iconType, String title, String right) {

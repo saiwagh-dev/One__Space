@@ -513,16 +513,25 @@ public class UserSpaces {
                 + "; -fx-border-color: rgba(255,255,255,0.12); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
     }
 
-    private void applyHoverAnimation(Node node, double scale, int yOffset) {
+    private void applyHoverAnimation(Node node, double scale, int direction) {
         node.setOnMouseEntered(e -> {
             ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(140), node);
             scaleTransition.setToX(scale);
             scaleTransition.setToY(scale);
             scaleTransition.play();
 
-            if (yOffset != 0) {
+            if (direction != 0) {
                 TranslateTransition translateTransition = new TranslateTransition(Duration.millis(140), node);
-                translateTransition.setToY(yOffset);
+                if (direction == 1) {
+                    translateTransition.setToX(4);
+                } else if (direction == -1) {
+                    translateTransition.setToY(-2);
+                } else if (direction == 2) {
+                    translateTransition.setToY(2);
+                } else {
+                    translateTransition.setToX(0);
+                    translateTransition.setToY(0);
+                }
                 translateTransition.play();
             }
         });
@@ -533,8 +542,9 @@ public class UserSpaces {
             scaleTransition.setToY(1.0);
             scaleTransition.play();
 
-            if (yOffset != 0) {
+            if (direction != 0) {
                 TranslateTransition translateTransition = new TranslateTransition(Duration.millis(140), node);
+                translateTransition.setToX(0);
                 translateTransition.setToY(0);
                 translateTransition.play();
             }

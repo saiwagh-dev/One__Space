@@ -845,6 +845,10 @@ public class CollaborationPage {
         }
     }
 
+    private HBox createWorkspaceCard(WorkspaceData w) {
+        return createWorkspaceCard(w, null, w.docId);
+    }
+
     private HBox createWorkspaceCard(WorkspaceData w, BorderPane root, String docId) {
         SVGPath icon = createIcon(w.iconType);
         icon.setStroke(Color.web(w.iconColor));
@@ -1186,8 +1190,9 @@ public class CollaborationPage {
                     String email = mDoc.getString("email");
                     String status = mDoc.getString("status");
 
-                    if (email != null && email.equalsIgnoreCase(myEmail) && "pending".equalsIgnoreCase(status)) {
-                        foundAny = true;
+                if (email != null && email.equalsIgnoreCase(myEmail) && ("pending".equalsIgnoreCase(status) || "declined".equalsIgnoreCase(status))) {
+                foundAny = true;
+
                         String name = mDoc.getString("name");
                         if (name == null)
                             name = "Unknown";
@@ -1266,16 +1271,7 @@ public class CollaborationPage {
         row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08);" +
                 "-fx-border-radius: 10; -fx-background-radius: 10;");
 
-        row.setOnMouseEntered(e -> {
-            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-radius: 10; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 8, 0, 0, 2);");
-            animateTranslate(row, 3, 0);
-        });
-        row.setOnMouseExited(e -> {
-            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10;");
-            animateTranslate(row, 0, 0);
-        });
-
-        accept.setOnAction(e -> {
+         accept.setOnAction(e -> {
             try {
                 var db = com.file_handlers.config.FirebaseConfig.getFirestore();
                 var docs = db.collection("workspaces").document(spaceDocId).collection("members").get().get()
@@ -1551,20 +1547,25 @@ public class CollaborationPage {
                         int memberCount = 1;
 
                         if (!membersText.isEmpty()) {
-                            for (String memberEmail : membersText.split(",")) {
+                            // Split by comma or semicolon to support multiple entries cleanly
+                            for (String memberEmail : membersText.split("[,;]")) {
                                 String emailTrimmed = memberEmail.trim();
-                                if (!emailTrimmed.isEmpty()) {
+                                if (!emailTrimmed.isEmpty() && emailTrimmed.contains("@")) {
                                     memberCount++;
+                                    String memberId = emailTrimmed.toLowerCase().replaceAll("[^a-z0-9]", "_");
+                                    
                                     Map<String, Object> memberData = new HashMap<>();
                                     memberData.put("email", emailTrimmed);
                                     memberData.put("name", emailTrimmed.split("@")[0]);
                                     memberData.put("status", "pending");
                                     memberData.put("role", "Viewer");
+                                    memberData.put("avatarBackground", "rgba(16, 185, 129, 0.2)");
+                                    memberData.put("avatarColor", "#34D399");
 
                                     db.collection("workspaces").document(docId)
-                                            .collection("members")
-                                            .document(emailTrimmed.toLowerCase().replaceAll("[^a-z0-9]", "_"))
-                                            .set(memberData);
+                                      .collection("members")
+                                      .document(memberId)
+                                      .set(memberData);
                                 }
                             }
                         }
