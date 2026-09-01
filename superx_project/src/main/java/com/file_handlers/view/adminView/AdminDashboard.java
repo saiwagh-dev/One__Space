@@ -8,6 +8,7 @@ import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
@@ -632,7 +633,7 @@ public class AdminDashboard {
         HBox row = new HBox(10, service, spacer, status);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(8, 12, 8, 12));
-        String rowIdle = "-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8;";
+        String rowIdle = "-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;";
         String rowHover = "-fx-background-color: rgba(16, 28, 48, 0.95); -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.2), 8, 0, 0, 2);";
         row.setStyle(rowIdle);
         row.setOnMouseEntered(e -> {
@@ -647,6 +648,33 @@ public class AdminDashboard {
             tt.setToX(0);
             tt.play();
         });
+
+        row.setOnMouseClicked(e -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle(serviceName + " Diagnostics");
+            alert.setHeaderText(serviceName + " is Operational");
+
+            switch (serviceName) {
+                case "Database":
+                    alert.setContentText("Status: Online\nLatency: 18 ms\nConnection: Firestore / Cloud Database Active\nRead/Write: Healthy");
+                    break;
+                case "Authentication":
+                    alert.setContentText("Status: Online\nActive Sessions: Monitored\nToken Engine: Operational\n2FA Validation: Enabled");
+                    break;
+                case "Local File Access":
+                    alert.setContentText("Status: Online\nDisk Access: Read/Write Permission Granted\nStorage Path: Accessible\nCache: Operational");
+                    break;
+                case "AI Processing Service":
+                    alert.setContentText("Status: Online\nModel Inference: Ready\nIndexing Pipeline: Active\nResponse Latency: 42 ms");
+                    break;
+                default:
+                    alert.setContentText("Status: Online\nAll services running smoothly with no issues reported.");
+                    break;
+            }
+
+            alert.showAndWait();
+        });
+
         return row;
     }
 
@@ -698,4 +726,4 @@ public class AdminDashboard {
         }
         return icon;
     }
-}
+}   

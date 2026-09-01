@@ -590,8 +590,8 @@ public class AdminUsers {
         });
 
         // 3. Inactive (Rose Red theme)
-        HBox inactiveOption = createStatusOptionItem("Inactive", "#EF4444", () -> {
-            selectedStatus = "Inactive";
+        HBox inactiveOption = createStatusOptionItem("Disabled", "#EF4444", () -> {
+            selectedStatus = "Disabled";
             statusBtnLabel.setText(selectedStatus);
             popup.hide();
             refreshUserTable();
