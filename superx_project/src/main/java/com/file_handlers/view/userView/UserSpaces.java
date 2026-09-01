@@ -499,6 +499,44 @@ public class UserSpaces {
                 + "; -fx-border-color: rgba(255,255,255,0.12); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
     }
 
+    private void applyHoverAnimation(Node node, double scale, int direction) {
+        node.setOnMouseEntered(e -> {
+            ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(140), node);
+            scaleTransition.setToX(scale);
+            scaleTransition.setToY(scale);
+            scaleTransition.play();
+
+            if (direction != 0) {
+                TranslateTransition translateTransition = new TranslateTransition(Duration.millis(140), node);
+                if (direction == 1) {
+                    translateTransition.setToX(4);
+                } else if (direction == -1) {
+                    translateTransition.setToY(-2);
+                } else if (direction == 2) {
+                    translateTransition.setToY(2);
+                } else {
+                    translateTransition.setToX(0);
+                    translateTransition.setToY(0);
+                }
+                translateTransition.play();
+            }
+        });
+
+        node.setOnMouseExited(e -> {
+            ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(140), node);
+            scaleTransition.setToX(1.0);
+            scaleTransition.setToY(1.0);
+            scaleTransition.play();
+
+            if (direction != 0) {
+                TranslateTransition translateTransition = new TranslateTransition(Duration.millis(140), node);
+                translateTransition.setToX(0);
+                translateTransition.setToY(0);
+                translateTransition.play();
+            }
+        });
+    }
+
     private VBox createSidebar() {
         Image image = new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
         ImageView view = new ImageView(image);
