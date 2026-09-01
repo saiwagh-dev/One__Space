@@ -201,4 +201,11 @@ public class UserSession {
             return null;
         }
     }
+
+
+
+    public void setEmail(String emailVal) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setEmail'");
+    }
 }

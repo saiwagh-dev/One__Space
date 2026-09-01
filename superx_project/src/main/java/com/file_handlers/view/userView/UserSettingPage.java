@@ -88,12 +88,12 @@ public class UserSettingPage {
         avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #8B5CF6, #A855F7); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(168,85,247,0.5), 10, 0, 0, 2); -fx-cursor: hand;");
+        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2); -fx-cursor: hand;");
         applyHoverAnimation(avatar, 1.15, 0);
 
         Label userName = new Label(getFirstName(displayName));
         userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
-        userName.setStyle("-fx-text-fill: " + PURPLE + ";");
+        userName.setStyle("-fx-text-fill: " + WHITE + ";");
 
         Label dropDown = new Label("⌄");
         dropDown.setFont(Font.font(FONT, FontWeight.NORMAL, 12));
@@ -259,12 +259,12 @@ public class UserSettingPage {
         userAvatarBig.setAlignment(Pos.CENTER);
         userAvatarBig.setFont(Font.font(FONT, FontWeight.BOLD, 16));
         userAvatarBig.setTextFill(Color.WHITE);
-        userAvatarBig.setStyle("-fx-background-color: linear-gradient(to bottom right, #8B5CF6, #A855F7); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(168,85,247,0.5), 10, 0, 0, 2); -fx-cursor: hand;");
+        userAvatarBig.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2); -fx-cursor: hand;");
         applyHoverAnimation(userAvatarBig, 1.15, 0);
 
         Label accountName = new Label(displayName);
         accountName.setFont(Font.font(FONT, FontWeight.BOLD, 15));
-        accountName.setStyle("-fx-text-fill: " + PURPLE + ";");
+        accountName.setStyle("-fx-text-fill: " + WHITE + ";");
 
         Label accountEmail = new Label(email);
         accountEmail.setFont(Font.font(FONT, 12));
