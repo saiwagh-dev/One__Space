@@ -4,12 +4,9 @@ import com.file_handlers.view.LandingPage;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 
-import javafx.animation.ScaleTransition;
-import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -20,10 +17,6 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextArea;
-import javafx.scene.effect.BlurType;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -39,7 +32,6 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Duration;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -85,37 +77,9 @@ public class AdminProfilePage {
     private Label topBarAdminName;
     private Label topBarAvatar;
 
-    private void applyHoverAnimation(Node node, double scale, double translateY) {
-        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.6), 12, 0, 0, 2);
-        ScaleTransition st = new ScaleTransition(Duration.millis(180), node);
-        TranslateTransition tt = new TranslateTransition(Duration.millis(180), node);
-
-        node.setOnMouseEntered(e -> {
-            node.setEffect(blueGlow);
-            st.stop();
-            tt.stop();
-            st.setToX(scale);
-            st.setToY(scale);
-            tt.setToY(translateY);
-            st.play();
-            tt.play();
-        });
-
-        node.setOnMouseExited(e -> {
-            node.setEffect(null);
-            st.stop();
-            tt.stop();
-            st.setToX(1.0);
-            st.setToY(1.0);
-            tt.setToY(0);
-            st.play();
-            tt.play();
-        });
-    }
-
     private void updateAdminSymbol(String fullName) {
         if (fullName == null || fullName.trim().isEmpty()) {
-            if (bigAvatar != null && bigAvatar.getGraphic() == null) bigAvatar.setText("A");
+            if (bigAvatar != null && bigAvatar.getGraphic() == null) bigAvatar.setText("AD");
             if (topBarAvatar != null) topBarAvatar.setText("A");
             return;
         }
@@ -139,7 +103,8 @@ public class AdminProfilePage {
         }
     }
 
-    public AdminProfilePage() { UserSession session = UserSession.getInstance();
+    public AdminProfilePage() { 
+        UserSession session = UserSession.getInstance();
 
         if (session != null && session.getDisplayName() != null) {
             String fullName = session.getDisplayName().trim();
@@ -148,7 +113,8 @@ public class AdminProfilePage {
                 this.activeUserName = parts[0];
                 this.initials = this.activeUserName.substring(0, 1).toUpperCase();
             }
-        }}
+        }
+    }
 
     public Scene getAdminProfileScene() {
         BorderPane root = new BorderPane();
@@ -225,8 +191,8 @@ public class AdminProfilePage {
     }
 
     private StackPane createLogo() {
-        Image logoImage = new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
-        ImageView logoView = new ImageView(logoImage);
+        javafx.scene.image.Image logoImage = new javafx.scene.image.Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
+        javafx.scene.image.ImageView logoView = new javafx.scene.image.ImageView(logoImage);
         logoView.setFitWidth(42);
         logoView.setFitHeight(42);
         logoView.setPreserveRatio(true);
@@ -234,7 +200,6 @@ public class AdminProfilePage {
         StackPane logoPane = new StackPane(logoView);
         logoPane.setPrefSize(42, 42);
         logoPane.setAlignment(Pos.CENTER);
-        applyHoverAnimation(logoPane, 1.08, 0);
         return logoPane;
     }
 
@@ -260,10 +225,6 @@ public class AdminProfilePage {
         button.setAlignment(Pos.CENTER_LEFT);
         button.setPadding(new Insets(0, 12, 0, 12));
 
-        ScaleTransition st = new ScaleTransition(Duration.millis(160), button);
-        TranslateTransition tt = new TranslateTransition(Duration.millis(160), button);
-        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(37, 99, 235, 0.75), 14, 0, 0, 2);
-
         if (active) {
             button.setStyle(
                 "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
@@ -274,39 +235,17 @@ public class AdminProfilePage {
                 "-fx-cursor: hand;" +
                 "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);"
             );
-            button.setOnMouseEntered(e -> {
-                st.stop(); tt.stop();
-                st.setToX(1.02); st.setToY(1.02);
-                tt.setToX(3);
-                st.play(); tt.play();
-            });
-            button.setOnMouseExited(e -> {
-                st.stop(); tt.stop();
-                st.setToX(1.0); st.setToY(1.0);
-                tt.setToX(0);
-                st.play(); tt.play();
-            });
         } else {
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: rgba(37, 99, 235, 0.15); -fx-border-color: rgba(56, 189, 248, 0.5); -fx-border-radius: 12; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 1;");
-                button.setEffect(blueGlow);
-                icon.setStroke(Color.web("#38BDF8"));
+                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+                icon.setStroke(Color.WHITE);
                 label.setTextFill(Color.WHITE);
-                st.stop(); tt.stop();
-                st.setToX(1.02); st.setToY(1.02);
-                tt.setToX(3);
-                st.play(); tt.play();
             });
             button.setOnMouseExited(e -> {
                 button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
-                button.setEffect(null);
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
                 label.setTextFill(Color.web(WHITE));
-                st.stop(); tt.stop();
-                st.setToX(1.0); st.setToY(1.0);
-                tt.setToX(0);
-                st.play(); tt.play();
             });
         }
         return button;
@@ -325,26 +264,6 @@ public class AdminProfilePage {
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.6), 14, 0, 0, 2);
-        ScaleTransition stNotif = new ScaleTransition(Duration.millis(180), notification);
-        TranslateTransition ttNotif = new TranslateTransition(Duration.millis(180), notification);
-        notification.setOnMouseEntered(e -> {
-            notification.setStyle("-fx-background-color: rgba(37, 99, 235, 0.2); -fx-border-color: #38BDF8; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
-            notification.setEffect(blueGlow);
-            stNotif.stop(); ttNotif.stop();
-            stNotif.setToX(1.05); stNotif.setToY(1.05);
-            ttNotif.setToY(-2);
-            stNotif.play(); ttNotif.play();
-        });
-        notification.setOnMouseExited(e -> {
-            notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
-            notification.setEffect(null);
-            stNotif.stop(); ttNotif.stop();
-            stNotif.setToX(1.0); stNotif.setToY(1.0);
-            ttNotif.setToY(0);
-            stNotif.play(); ttNotif.play();
-        });
-
         topBarAvatar = new Label(initials);
         topBarAvatar.setPrefSize(34, 34); topBarAvatar.setAlignment(Pos.CENTER);
         topBarAvatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
@@ -359,25 +278,6 @@ public class AdminProfilePage {
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
-
-        ScaleTransition stProf = new ScaleTransition(Duration.millis(180), profile);
-        TranslateTransition ttProf = new TranslateTransition(Duration.millis(180), profile);
-        profile.setOnMouseEntered(e -> {
-            profile.setStyle("-fx-background-color: rgba(37, 99, 235, 0.2); -fx-border-color: #38BDF8; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
-            profile.setEffect(blueGlow);
-            stProf.stop(); ttProf.stop();
-            stProf.setToX(1.03); stProf.setToY(1.03);
-            ttProf.setToY(-1);
-            stProf.play(); ttProf.play();
-        });
-        profile.setOnMouseExited(e -> {
-            profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
-            profile.setEffect(null);
-            stProf.stop(); ttProf.stop();
-            stProf.setToX(1.0); stProf.setToY(1.0);
-            ttProf.setToY(0);
-            stProf.play(); ttProf.play();
-        });
 
         ContextMenu profileMenu = createProfileMenu();
         profile.setOnMouseClicked(e -> {
@@ -479,24 +379,6 @@ public class AdminProfilePage {
         button.setPadding(new Insets(8, 12, 8, 12));
         button.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-border-width: 0; -fx-cursor: hand;");
 
-        ScaleTransition st = new ScaleTransition(Duration.millis(150), button);
-        TranslateTransition tt = new TranslateTransition(Duration.millis(150), button);
-
-        button.setOnMouseEntered(e -> {
-            button.setStyle("-fx-background-color: rgba(37, 99, 235, 0.2); -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
-            st.stop(); tt.stop();
-            st.setToX(1.03); st.setToY(1.03);
-            tt.setToX(3);
-            st.play(); tt.play();
-        });
-        button.setOnMouseExited(e -> {
-            button.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
-            st.stop(); tt.stop();
-            st.setToX(1.0); st.setToY(1.0);
-            tt.setToX(0);
-            st.play(); tt.play();
-        });
-
         button.setOnAction(e -> action.run());
         return button;
     }
@@ -530,7 +412,6 @@ public class AdminProfilePage {
 
         Button resetBtn = new Button("Reset Changes");
         resetBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 16;");
-        applyHoverAnimation(resetBtn, 1.04, -2);
         resetBtn.setOnAction(e -> {
             fullNameField.setText("Admin User");
             emailField.setText("admin@onespace.com");
@@ -541,14 +422,12 @@ public class AdminProfilePage {
             heroHandleLabel.setText("@admin");
             heroDescLabel.setText("System administrator with full access to OneSpace platform and all resources.");
             updateAdminSymbol("Admin User");
-
             savedStatus.setText("✓ Reset to defaults");
             savedStatus.setTextFill(Color.web(GREEN));
         });
         
         Button saveBtn = new Button("Save Changes");
         saveBtn.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #0284C7); -fx-background-radius: 8; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 16; -fx-effect: dropshadow(three-pass-box, rgba(2, 132, 199, 0.5), 14, 0, 0, 3);");
-        applyHoverAnimation(saveBtn, 1.04, -2);
         saveBtn.setOnAction(e -> {
             String nameVal = fullNameField.getText().trim();
             String emailVal = emailField.getText().trim();
@@ -605,7 +484,6 @@ public class AdminProfilePage {
         cameraIcon.setStrokeWidth(2);
         changePhotoBtn.setGraphic(cameraIcon);
         changePhotoBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-text-fill: " + WHITE + "; -fx-font-size: 11px; -fx-cursor: hand;");
-        applyHoverAnimation(changePhotoBtn, 1.04, -1);
         changePhotoBtn.setOnAction(e -> {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Select Profile Image");
@@ -613,7 +491,7 @@ public class AdminProfilePage {
             File file = fileChooser.showOpenDialog(null);
             if (file != null) {
                 try {
-                    ImageView imgView = new ImageView(new Image(new FileInputStream(file)));
+                    javafx.scene.image.ImageView imgView = new javafx.scene.image.ImageView(new javafx.scene.image.Image(new FileInputStream(file)));
                     imgView.setFitWidth(64);
                     imgView.setFitHeight(64);
                     imgView.setPreserveRatio(true);
@@ -666,12 +544,10 @@ public class AdminProfilePage {
 
         Button editProfileBtn = new Button("Edit Profile");
         editProfileBtn.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #0284C7); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
-        applyHoverAnimation(editProfileBtn, 1.04, -2);
         editProfileBtn.setOnAction(e -> openEditProfileModal());
 
         Button changePassBtn = new Button("Change Password");
         changePassBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: " + WHITE + "; -fx-font-weight: bold; -fx-cursor: hand;");
-        applyHoverAnimation(changePassBtn, 1.04, -2);
         changePassBtn.setOnAction(e -> openChangePasswordModal());
 
         VBox buttonsCol = new VBox(10, editProfileBtn, changePassBtn);
@@ -684,7 +560,6 @@ public class AdminProfilePage {
         card.setMaxWidth(Double.MAX_VALUE);
         card.setPadding(new Insets(24));
         card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
-        applyHoverAnimation(card, 1.01, -2);
         return card;
     }
 
@@ -741,11 +616,9 @@ public class AdminProfilePage {
 
         Button saveBtn = new Button("Save");
         saveBtn.setStyle("-fx-background-color: " + BLUE + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 16;");
-        applyHoverAnimation(saveBtn, 1.04, -1);
         
         Button cancelBtn = new Button("Cancel");
         cancelBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-text-fill: " + WHITE + "; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 16;");
-        applyHoverAnimation(cancelBtn, 1.04, -1);
         cancelBtn.setOnAction(e -> modalStage.close());
 
         saveBtn.setOnAction(e -> {
@@ -834,11 +707,9 @@ public class AdminProfilePage {
 
         Button saveBtn = new Button("Update Password");
         saveBtn.setStyle("-fx-background-color: " + BLUE + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 16;");
-        applyHoverAnimation(saveBtn, 1.04, -1);
         
         Button cancelBtn = new Button("Cancel");
         cancelBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-text-fill: " + WHITE + "; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 16;");
-        applyHoverAnimation(cancelBtn, 1.04, -1);
         cancelBtn.setOnAction(e -> modalStage.close());
 
         saveBtn.setOnAction(e -> {
@@ -948,7 +819,6 @@ public class AdminProfilePage {
         card.setMaxWidth(Double.MAX_VALUE);
         card.setPadding(new Insets(24));
         card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
-        applyHoverAnimation(card, 1.01, -2);
         return card;
     }
 
@@ -977,7 +847,6 @@ public class AdminProfilePage {
 
         Button deleteBtn = new Button("Delete Account");
         deleteBtn.setStyle("-fx-background-color: " + DANGER_BTN + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-        applyHoverAnimation(deleteBtn, 1.04, -2);
         deleteBtn.setOnAction(e -> {
             Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
             confirmAlert.setTitle("Confirm Deletion");
@@ -1005,7 +874,6 @@ public class AdminProfilePage {
         card.setMaxWidth(Double.MAX_VALUE);
         card.setPadding(new Insets(24));
         card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
-        applyHoverAnimation(card, 1.01, -2);
         return card;
     }
 

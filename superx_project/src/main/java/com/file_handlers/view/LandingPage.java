@@ -159,7 +159,8 @@ public class LandingPage extends Application {
 
     // ================= DYNAMIC SPACE =================
 
-   public static void showUnifiedSpace(String spaceId, String spaceName) {
+   
+public static void showUnifiedSpace(String spaceId, String spaceName) {
     System.out.println(
             "[NAVIGATION] Opening Space: "
                     + spaceName
