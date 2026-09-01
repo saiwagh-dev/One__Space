@@ -59,7 +59,7 @@ public class CollaborationPage {
         int members, files;
 
         WorkspaceData(String iconType, String iconColor, String name, int members, int files,
-                      String storage, String role, String badgeBg, String badgeText, String ownerEmail, String docId) {
+                String storage, String role, String badgeBg, String badgeText, String ownerEmail, String docId) {
             this.iconType = iconType;
             this.iconColor = iconColor;
             this.name = name;
@@ -102,8 +102,9 @@ public class CollaborationPage {
 
         try {
             com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
-            List<com.google.cloud.firestore.QueryDocumentSnapshot> workspacesDocs = db.collection("workspaces").get().get().getDocuments();
-            
+            List<com.google.cloud.firestore.QueryDocumentSnapshot> workspacesDocs = db.collection("workspaces").get()
+                    .get().getDocuments();
+
             for (com.google.cloud.firestore.DocumentSnapshot doc : workspacesDocs) {
                 String docId = doc.getId();
                 String spaceName = doc.getString("spaceName");
@@ -247,7 +248,8 @@ public class CollaborationPage {
         avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        avatar.setStyle(
+                "-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
         applyHoverAnimation(avatar, 1.15, 0);
 
         Label userName = new Label(activeUserName);
@@ -261,7 +263,8 @@ public class CollaborationPage {
         HBox profileOption = new HBox(8, avatar, userName, dropDown);
         profileOption.setAlignment(Pos.CENTER);
         profileOption.setPadding(new Insets(4, 12, 4, 6));
-        profileOption.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+        profileOption.setStyle(
+                "-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
         applyHoverAnimation(profileOption, 1.04, 0);
 
         // Custom Dropdown Menu
@@ -428,18 +431,22 @@ public class CollaborationPage {
                 "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8;" +
                 "-fx-cursor: hand; -fx-padding: 8 14;");
         pendingBtn.setOnMouseEntered(e -> {
-            pendingBtn.setStyle("-fx-background-color: rgba(56, 189, 248, 0.15); -fx-text-fill: #38BDF8; -fx-border-color: #38BDF8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 14;");
+            pendingBtn.setStyle(
+                    "-fx-background-color: rgba(56, 189, 248, 0.15); -fx-text-fill: #38BDF8; -fx-border-color: #38BDF8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 14;");
             animateScale(pendingBtn, 1.04);
         });
         pendingBtn.setOnMouseExited(e -> {
-            pendingBtn.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 14;");
+            pendingBtn.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE
+                    + "; -fx-border-color: " + INPUT_BORDER
+                    + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 14;");
             animateScale(pendingBtn, 1.0);
         });
         pendingBtn.setOnAction(e -> showPendingRequestsPopup());
 
         Button newSpaceButton = new Button("+   New Shared Space");
         newSpaceButton.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        newSpaceButton.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: #FFFFFF; -fx-background-radius: 10; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 10; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 18; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.45), 10, 0, 0, 2);");
+        newSpaceButton.setStyle(
+                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: #FFFFFF; -fx-background-radius: 10; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 10; -fx-border-width: 1; -fx-cursor: hand; -fx-padding: 8 18; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.45), 10, 0, 0, 2);");
         applyHoverAnimation(newSpaceButton, 1.05, 0);
 
         BorderPane root = new BorderPane();
@@ -480,11 +487,14 @@ public class CollaborationPage {
                 "-fx-cursor: hand; -fx-padding: 5 10;");
 
         toggleViewBtn.setOnMouseEntered(e -> {
-            toggleViewBtn.setStyle("-fx-background-color: rgba(56, 189, 248, 0.15); -fx-text-fill: #38BDF8; -fx-border-color: #38BDF8; -fx-border-radius: 6; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 10;");
+            toggleViewBtn.setStyle(
+                    "-fx-background-color: rgba(56, 189, 248, 0.15); -fx-text-fill: #38BDF8; -fx-border-color: #38BDF8; -fx-border-radius: 6; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 10;");
             animateScale(toggleViewBtn, 1.04);
         });
         toggleViewBtn.setOnMouseExited(e -> {
-            toggleViewBtn.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 10;");
+            toggleViewBtn.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE
+                    + "; -fx-border-color: " + INPUT_BORDER
+                    + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 10;");
             animateScale(toggleViewBtn, 1.0);
         });
 
@@ -555,7 +565,8 @@ public class CollaborationPage {
         HBox security = new HBox(12, shieldIcon, securityTextBox);
         security.setAlignment(Pos.CENTER_LEFT);
         security.setPadding(new Insets(16, 20, 16, 20));
-        security.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 14; -fx-background-radius: 14;");
+        security.setStyle("-fx-background-color: " + CARD_BG_INNER
+                + "; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 14; -fx-background-radius: 14;");
         applyHoverAnimation(security, 1.01, -1);
 
         VBox mainContent = new VBox(22, pageHeader, metrics, workspacesBox, activityCard, security);
@@ -693,7 +704,8 @@ public class CollaborationPage {
 
         VBox storageCard = new VBox(8, storageTitle, storageValueGroup, storageProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
-        storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+        storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER
+                + "; -fx-border-radius: 12; -fx-background-radius: 12;");
         applyHoverAnimation(storageCard, 1.01, -1);
 
         Region sidebarSpacer = new Region();
@@ -745,7 +757,8 @@ public class CollaborationPage {
             button.setStyle(
                     "-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: rgba(56, 189, 248, 0.12); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
+                button.setStyle(
+                        "-fx-background-color: rgba(56, 189, 248, 0.12); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
                 icon.setStroke(Color.web("#38BDF8"));
                 label.setTextFill(Color.web("#38BDF8"));
                 animateTranslate(button, 4, 0);
@@ -801,7 +814,7 @@ public class CollaborationPage {
             list.setFillWidth(true);
 
             for (WorkspaceData workspace : workspaces) {
-                HBox card = createWorkspaceCard(workspace);
+                HBox card = createWorkspaceCard(workspace, root, workspace.docId);
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
                 list.getChildren().add(card);
@@ -816,15 +829,7 @@ public class CollaborationPage {
             int col = 0, row = 0;
 
             for (WorkspaceData workspace : workspaces) {
-<<<<<<< HEAD
-                VBox card = createWorkspaceGridCard(workspace);
-=======
-<<<<<<< HEAD
                 VBox card = createWorkspaceGridCard(workspace, root, workspace.docId);
-=======
-                VBox card = createWorkspaceGridCard(workspace);
->>>>>>> origin/Development
->>>>>>> b30b8802b2ec6f51d47407cc2a2c4fcfec8832fc
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
 
@@ -879,10 +884,13 @@ public class CollaborationPage {
             trashIcon.setStroke(Color.web("#F87171"));
             trashIcon.setStrokeWidth(1.8);
             deleteBtn.setGraphic(trashIcon);
-            deleteBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.12); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;");
+            deleteBtn.setStyle(
+                    "-fx-background-color: rgba(239, 68, 68, 0.12); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;");
 
-            deleteBtn.setOnMouseEntered(e -> deleteBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.3); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;"));
-            deleteBtn.setOnMouseExited(e -> deleteBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.12); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;"));
+            deleteBtn.setOnMouseEntered(e -> deleteBtn.setStyle(
+                    "-fx-background-color: rgba(239, 68, 68, 0.3); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;"));
+            deleteBtn.setOnMouseExited(e -> deleteBtn.setStyle(
+                    "-fx-background-color: rgba(239, 68, 68, 0.12); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;"));
 
             deleteBtn.setOnAction(e -> {
                 e.consume(); // Prevent navigating into workspace
@@ -900,8 +908,6 @@ public class CollaborationPage {
 
         return card;
     }
-
-    
 
     private VBox createWorkspaceGridCard(WorkspaceData w, BorderPane root, String docId) {
         SVGPath icon = createIcon(w.iconType);
@@ -932,10 +938,13 @@ public class CollaborationPage {
             trashIcon.setStroke(Color.web("#F87171"));
             trashIcon.setStrokeWidth(1.8);
             deleteBtn.setGraphic(trashIcon);
-            deleteBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.12); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;");
+            deleteBtn.setStyle(
+                    "-fx-background-color: rgba(239, 68, 68, 0.12); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;");
 
-            deleteBtn.setOnMouseEntered(e -> deleteBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.3); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;"));
-            deleteBtn.setOnMouseExited(e -> deleteBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.12); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;"));
+            deleteBtn.setOnMouseEntered(e -> deleteBtn.setStyle(
+                    "-fx-background-color: rgba(239, 68, 68, 0.3); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;"));
+            deleteBtn.setOnMouseExited(e -> deleteBtn.setStyle(
+                    "-fx-background-color: rgba(239, 68, 68, 0.12); -fx-background-radius: 6; -fx-padding: 4 6; -fx-cursor: hand;"));
 
             deleteBtn.setOnAction(e -> {
                 e.consume(); // Prevent navigating into workspace
@@ -965,6 +974,7 @@ public class CollaborationPage {
 
         return card;
     }
+
     private VBox createWorkspaceGridCard(WorkspaceData w) {
         return createWorkspaceGridCard(w, null, w.docId);
     }
@@ -977,20 +987,6 @@ public class CollaborationPage {
 
         confirmDialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-<<<<<<< HEAD
-                try {
-                    com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
-
-                    // Optional: Clear out members and files subcollections first
-                    var members = db.collection("workspaces").document(docId).collection("members").get().get()
-                            .getDocuments();
-                    for (var m : members) {
-                        m.getReference().delete();
-                    }
-                    var files = db.collection("workspaces").document(docId).collection("files").get().get()
-                            .getDocuments();
-=======
-<<<<<<< HEAD
                 // Instantly remove from local list and refresh UI so it disappears immediately
                 workspaces.removeIf(w -> w.docId != null && w.docId.equals(docId));
                 updateMetrics();
@@ -1001,16 +997,19 @@ public class CollaborationPage {
 
                 new Thread(() -> {
                     try {
-                        com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
+                        com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig
+                                .getFirestore();
 
                         // 1. Delete members subcollection documents
-                        var members = db.collection("workspaces").document(docId).collection("members").get().get().getDocuments();
+                        var members = db.collection("workspaces").document(docId).collection("members").get().get()
+                                .getDocuments();
                         for (var m : members) {
                             m.getReference().delete();
                         }
 
                         // 2. Delete files subcollection documents
-                        var files = db.collection("workspaces").document(docId).collection("files").get().get().getDocuments();
+                        var files = db.collection("workspaces").document(docId).collection("files").get().get()
+                                .getDocuments();
                         for (var f : files) {
                             f.getReference().delete();
                         }
@@ -1021,42 +1020,6 @@ public class CollaborationPage {
                         ex.printStackTrace();
                     }
                 }).start();
-=======
-                try {
-                    com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
-                    
-                    var members = db.collection("workspaces").document(docId).collection("members").get().get().getDocuments();
-                    for (var m : members) {
-                        m.getReference().delete();
-                    }
-                    var files = db.collection("workspaces").document(docId).collection("files").get().get().getDocuments();
->>>>>>> b30b8802b2ec6f51d47407cc2a2c4fcfec8832fc
-                    for (var f : files) {
-                        f.getReference().delete();
-                    }
-
-<<<<<<< HEAD
-                    // Delete parent workspace document
-                    db.collection("workspaces").document(docId).delete().get();
-
-                    // Refresh UI
-=======
-                    db.collection("workspaces").document(docId).delete().get();
-
->>>>>>> b30b8802b2ec6f51d47407cc2a2c4fcfec8832fc
-                    initializeWorkspacesAndActivities();
-                    javafx.application.Platform.runLater(() -> {
-                        rebuildWorkspaceCards(root);
-                        updateMetrics();
-                        rebuildActivityList();
-                    });
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-<<<<<<< HEAD
-=======
->>>>>>> origin/Development
->>>>>>> b30b8802b2ec6f51d47407cc2a2c4fcfec8832fc
             }
         });
     }
@@ -1091,15 +1054,7 @@ public class CollaborationPage {
         list.setPadding(new Insets(10));
 
         for (WorkspaceData w : workspaces) {
-<<<<<<< HEAD
-            HBox card = createWorkspaceCard(w);
-=======
-<<<<<<< HEAD
             HBox card = createWorkspaceCard(w, root, w.docId);
-=======
-            HBox card = createWorkspaceCard(w);
->>>>>>> origin/Development
->>>>>>> b30b8802b2ec6f51d47407cc2a2c4fcfec8832fc
             card.setMaxWidth(Double.MAX_VALUE);
             card.setOnMouseClicked(e -> {
                 dialog.close();
@@ -1134,11 +1089,13 @@ public class CollaborationPage {
         scroll.setFitToWidth(true);
         scroll.setPrefViewportHeight(400);
         scroll.setPrefWidth(520);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+        scroll.setStyle(
+                "-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
 
         try {
             com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
-            var membersDocs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
+            var membersDocs = db.collection("workspaces").document(spaceDocId).collection("members").get().get()
+                    .getDocuments();
 
             for (var mDoc : membersDocs) {
                 String name = mDoc.getString("name");
@@ -1146,8 +1103,10 @@ public class CollaborationPage {
                 String role = mDoc.getString("role");
                 String status = mDoc.getString("status"); // "active", "pending", "declined"
 
-                if (name == null) name = "Unknown";
-                if (status == null) status = "active";
+                if (name == null)
+                    name = "Unknown";
+                if (status == null)
+                    status = "active";
 
                 Label nameLbl = new Label(name + " (" + email + ")");
                 nameLbl.setStyle("-fx-text-fill: #FFFFFF; -fx-font-weight: bold; -fx-font-size: 13px;");
@@ -1166,8 +1125,9 @@ public class CollaborationPage {
 
                 VBox memberCard = new VBox(4, nameLbl, statusLbl);
                 memberCard.setPadding(new Insets(10));
-                memberCard.setStyle("-fx-background-color: rgba(13, 22, 38, 0.9); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 8; -fx-background-radius: 8;");
-                
+                memberCard.setStyle(
+                        "-fx-background-color: rgba(13, 22, 38, 0.9); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 8; -fx-background-radius: 8;");
+
                 list.getChildren().add(memberCard);
             }
         } catch (Exception ex) {
@@ -1209,18 +1169,9 @@ public class CollaborationPage {
                 if (spaceName == null) {
                     spaceName = spaceDocId.replaceAll("_", " ");
                 }
-<<<<<<< HEAD
-
-                // Fetch members list to find pending requests and identify the workspace
-                // owner/sender
-                var membersDocs = db.collection("workspaces").document(spaceDocId).collection("members").get().get()
-                        .getDocuments();
-
-=======
                 
                 var membersDocs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
                 
->>>>>>> b30b8802b2ec6f51d47407cc2a2c4fcfec8832fc
                 String ownerName = "Workspace Owner";
                 for (var mDoc : membersDocs) {
                     if ("Owner".equalsIgnoreCase(mDoc.getString("role"))) {
@@ -1235,14 +1186,8 @@ public class CollaborationPage {
                     String email = mDoc.getString("email");
                     String status = mDoc.getString("status");
 
-<<<<<<< HEAD
-                if (email != null && email.equalsIgnoreCase(myEmail) && ("pending".equalsIgnoreCase(status) || "declined".equalsIgnoreCase(status))) {
-                foundAny = true;
-
-=======
                     if (email != null && email.equalsIgnoreCase(myEmail) && "pending".equalsIgnoreCase(status)) {
                         foundAny = true;
->>>>>>> origin/Development
                         String name = mDoc.getString("name");
                         if (name == null)
                             name = "Unknown";
@@ -1304,16 +1249,6 @@ public class CollaborationPage {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         Button accept = new Button("Accept");
-<<<<<<< HEAD
-        accept.setStyle(
-                "-fx-background-color: #10B981; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-
-        Button decline = new Button("Decline");
-        decline.setStyle(
-                "-fx-background-color: rgba(239, 68, 68, 0.15); -fx-text-fill: #F87171; -fx-border-color: rgba(239, 68, 68, 0.4);"
-                        +
-                        "-fx-border-radius: 6; -fx-background-radius: 6; -fx-font-weight: bold; -fx-cursor: hand;");
-=======
         accept.setStyle("-fx-background-color: #10B981; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
         applyHoverAnimation(accept, 1.06, 0);
 
@@ -1321,7 +1256,6 @@ public class CollaborationPage {
         decline.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-text-fill: #F87171; -fx-border-color: rgba(239, 68, 68, 0.4);" +
                 "-fx-border-radius: 6; -fx-background-radius: 6; -fx-font-weight: bold; -fx-cursor: hand;");
         applyHoverAnimation(decline, 1.06, 0);
->>>>>>> b30b8802b2ec6f51d47407cc2a2c4fcfec8832fc
 
         HBox buttons = new HBox(6, accept, decline);
         buttons.setAlignment(Pos.CENTER_RIGHT);
@@ -1332,9 +1266,6 @@ public class CollaborationPage {
         row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08);" +
                 "-fx-border-radius: 10; -fx-background-radius: 10;");
 
-<<<<<<< HEAD
-       accept.setOnAction(e -> {
-=======
         row.setOnMouseEntered(e -> {
             row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-radius: 10; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 8, 0, 0, 2);");
             animateTranslate(row, 3, 0);
@@ -1345,7 +1276,6 @@ public class CollaborationPage {
         });
 
         accept.setOnAction(e -> {
->>>>>>> origin/Development
             try {
                 var db = com.file_handlers.config.FirebaseConfig.getFirestore();
                 var docs = db.collection("workspaces").document(spaceDocId).collection("members").get().get()
@@ -1369,21 +1299,6 @@ public class CollaborationPage {
         });
 
         decline.setOnAction(e -> {
-<<<<<<< HEAD
-            try {
-                var db = com.file_handlers.config.FirebaseConfig.getFirestore();
-                var docs = db.collection("workspaces").document(spaceDocId).collection("members").get().get()
-                        .getDocuments();
-                for (var doc : docs) {
-                    if (email.equalsIgnoreCase(doc.getString("email"))) {
-                        doc.getReference().delete();
-                        break;
-                    }
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-=======
     try {
         var db = com.file_handlers.config.FirebaseConfig.getFirestore();
         // Update the member status in Firestore to "declined" instead of deleting it
@@ -1397,7 +1312,6 @@ public class CollaborationPage {
     } catch (Exception ex) { 
         ex.printStackTrace(); 
     }
->>>>>>> b30b8802b2ec6f51d47407cc2a2c4fcfec8832fc
 
     // Visually update UI: mark it declined, disable decline button, but KEEP accept button enabled!
     nameLbl.setText(name + " (Declined)");
@@ -1441,7 +1355,8 @@ public class CollaborationPage {
         HBox.setHgrow(card, Priority.ALWAYS);
 
         card.setOnMouseEntered(e -> {
-            card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 20, 0, 0, 6);");
+            card.setStyle("-fx-background-color: " + CARD_BG
+                    + "; -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 20, 0, 0, 6);");
             TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
             tt.setToY(-4);
             tt.play();
@@ -1547,13 +1462,8 @@ public class CollaborationPage {
 
         Button browse = new Button("Browse");
         browse.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE +
-<<<<<<< HEAD
-                "; -fx-border-color: " + INPUT_BORDER
-                + "; -fx-border-radius: 7; -fx-background-radius: 7; -fx-cursor: hand;");
-=======
                 "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 7; -fx-background-radius: 7; -fx-cursor: hand;");
         applyHoverAnimation(browse, 1.05, 0);
->>>>>>> b30b8802b2ec6f51d47407cc2a2c4fcfec8832fc
 
         Region uploadSpacer = new Region();
         HBox.setHgrow(uploadSpacer, Priority.ALWAYS);
@@ -1600,13 +1510,8 @@ public class CollaborationPage {
                 CARD_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
 
         Button createBtn = (Button) dialog.getDialogPane().lookupButton(create);
-<<<<<<< HEAD
-        createBtn.setStyle(
-                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 7; -fx-cursor: hand;");
-=======
         createBtn.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 7; -fx-cursor: hand;");
         applyHoverAnimation(createBtn, 1.04, 0);
->>>>>>> b30b8802b2ec6f51d47407cc2a2c4fcfec8832fc
 
         Button cancelBtn = (Button) dialog.getDialogPane().lookupButton(cancel);
         cancelBtn.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE +
@@ -1692,13 +1597,9 @@ public class CollaborationPage {
                                 "Owner",
                                 "#BFDBFE",
                                 "#1D4ED8",
-<<<<<<< HEAD
-                                ownerEmail));
-=======
                                 ownerEmail,
                                 docId
                         ));
->>>>>>> b30b8802b2ec6f51d47407cc2a2c4fcfec8832fc
 
                         javafx.application.Platform.runLater(() -> {
                             rebuildWorkspaceCards(root);
