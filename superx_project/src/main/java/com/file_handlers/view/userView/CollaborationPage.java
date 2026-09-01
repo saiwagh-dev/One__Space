@@ -781,11 +781,7 @@ public class CollaborationPage {
             list.setFillWidth(true);
 
             for (WorkspaceData workspace : workspaces) {
-<<<<<<< HEAD
-                HBox card = createWorkspaceCard(workspace, root, workspace.docId);
-=======
                 HBox card = createWorkspaceCard(workspace);
->>>>>>> origin/Development
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
                 list.getChildren().add(card);
@@ -800,11 +796,7 @@ public class CollaborationPage {
             int col = 0, row = 0;
 
             for (WorkspaceData workspace : workspaces) {
-<<<<<<< HEAD
-                VBox card = createWorkspaceGridCard(workspace, root, workspace.docId);
-=======
                 VBox card = createWorkspaceGridCard(workspace);
->>>>>>> origin/Development
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
 
@@ -818,6 +810,10 @@ public class CollaborationPage {
 
             workspaceListPane.getChildren().add(grid);
         }
+    }
+
+    private HBox createWorkspaceCard(WorkspaceData w) {
+        return createWorkspaceCard(w, null, w.docId);
     }
 
     private HBox createWorkspaceCard(WorkspaceData w, BorderPane root, String docId) {
@@ -951,38 +947,6 @@ public class CollaborationPage {
 
         confirmDialog.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-<<<<<<< HEAD
-                // Instantly remove from local list and refresh UI so it disappears immediately
-                workspaces.removeIf(w -> w.docId != null && w.docId.equals(docId));
-                updateMetrics();
-                rebuildActivityList();
-                if (root != null) {
-                    rebuildWorkspaceCards(root);
-                }
-
-                new Thread(() -> {
-                    try {
-                        com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
-
-                        // 1. Delete members subcollection documents
-                        var members = db.collection("workspaces").document(docId).collection("members").get().get().getDocuments();
-                        for (var m : members) {
-                            m.getReference().delete();
-                        }
-
-                        // 2. Delete files subcollection documents
-                        var files = db.collection("workspaces").document(docId).collection("files").get().get().getDocuments();
-                        for (var f : files) {
-                            f.getReference().delete();
-                        }
-
-                        // 3. Delete parent workspace document
-                        db.collection("workspaces").document(docId).delete().get();
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }).start();
-=======
                 try {
                     com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
                     
@@ -1006,7 +970,6 @@ public class CollaborationPage {
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
->>>>>>> origin/Development
             }
         });
     }
@@ -1041,11 +1004,7 @@ public class CollaborationPage {
         list.setPadding(new Insets(10));
 
         for (WorkspaceData w : workspaces) {
-<<<<<<< HEAD
-            HBox card = createWorkspaceCard(w, root, w.docId);
-=======
             HBox card = createWorkspaceCard(w);
->>>>>>> origin/Development
             card.setMaxWidth(Double.MAX_VALUE);
             card.setOnMouseClicked(e -> {
                 dialog.close();
@@ -1169,14 +1128,8 @@ public class CollaborationPage {
                     String email = mDoc.getString("email");
                     String status = mDoc.getString("status");
 
-<<<<<<< HEAD
-                if (email != null && email.equalsIgnoreCase(myEmail) && ("pending".equalsIgnoreCase(status) || "declined".equalsIgnoreCase(status))) {
-                foundAny = true;
-
-=======
                     if (email != null && email.equalsIgnoreCase(myEmail) && "pending".equalsIgnoreCase(status)) {
                         foundAny = true;
->>>>>>> origin/Development
                         String name = mDoc.getString("name");
                         if (name == null) name = "Unknown";
 
@@ -1252,9 +1205,6 @@ public class CollaborationPage {
         row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08);" +
                 "-fx-border-radius: 10; -fx-background-radius: 10;");
 
-<<<<<<< HEAD
-       accept.setOnAction(e -> {
-=======
         row.setOnMouseEntered(e -> {
             row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-radius: 10; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 8, 0, 0, 2);");
             animateTranslate(row, 3, 0);
@@ -1265,7 +1215,6 @@ public class CollaborationPage {
         });
 
         accept.setOnAction(e -> {
->>>>>>> origin/Development
             try {
                 var db = com.file_handlers.config.FirebaseConfig.getFirestore();
                 var docs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
