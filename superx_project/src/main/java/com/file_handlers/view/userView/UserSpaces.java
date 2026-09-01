@@ -1,15 +1,20 @@
 package com.file_handlers.view.userView;
 
 import com.file_handlers.dao.FileDAO;
+import com.file_handlers.dao.SpaceDAO;
 import com.file_handlers.model.FileData;
+import com.file_handlers.model.SpaceData;
 import com.file_handlers.model.UserSession;
-import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
+import com.file_handlers.view.LandingPage;
 import com.google.cloud.Timestamp;
 
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -20,12 +25,15 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
+import javafx.util.Duration;
 
-import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 public class UserSpaces {
 
@@ -52,15 +60,37 @@ public class UserSpaces {
     private static final String BLUE = "#2563EB";
 
     private final FileDAO fileDAO = new FileDAO();
+    private final SpaceDAO spaceDAO = new SpaceDAO();
+
+    // Cycled through for custom (user-created) Spaces, which have no fixed
+    // icon/color.
+    private static final String[] CUSTOM_ICONS = { "🗂", "📌", "🧩", "🚀", "🌿", "🎯", "📚", "🎨" };
+    private static final String[] CUSTOM_BG = { "rgba(99, 102, 241, 0.2)", "rgba(20, 184, 166, 0.2)",
+            "rgba(234, 88, 12, 0.2)", "rgba(190, 24, 93, 0.2)" };
+    private static final String[] CUSTOM_FG = { "#818CF8", "#2DD4BF", "#FB923C", "#F472B6" };
+    private static final String INPUT_BG = "rgba(13, 22, 38, 0.85)";
+
+    // Populated once custom Spaces are fetched/created, so the grid can be rebuilt
+    // on demand.
+    private final List<SpaceInfo> customSpaceInfos = new ArrayList<>();
+    private GridPane spacesGrid;
+    private Map<String, SpaceCardView> spaceCards;
+    private Label spacesFooter;
 
     private final List<SpaceInfo> spaces = List.of(
-        new SpaceInfo("Personal", "personal", "IDs, certificates, personal photos and everyday documents.", "👤", "rgba(124, 58, 237, 0.2)", "#A78BFA"),
-        new SpaceInfo("College", "college", "Notes, assignments, lab records, presentations and projects.", "🎓", "rgba(2, 132, 199, 0.2)", "#38BDF8"),
-        new SpaceInfo("Office", "office", "Contracts, reports, decks and client deliverables.", "💼", "rgba(5, 150, 105, 0.2)", "#34D399"),
-        new SpaceInfo("Finance", "finance", "Invoices, tax filings, statements and receipts.", "💳", "rgba(217, 119, 6, 0.2)", "#FBBF24"),
-        new SpaceInfo("Entertainment", "entertainment", "Photos, videos, movies, music and other entertainment files.", "💖", "rgba(219, 39, 119, 0.2)", "#F472B6"),
-        new SpaceInfo("Others", "other", "Files that do not clearly belong to another space.", "📁", "rgba(37, 99, 235, 0.2)", "#60A5FA")
-    );
+            new SpaceInfo("Personal", "personal", "IDs, certificates, personal photos and everyday documents.", "👤",
+                    "rgba(124, 58, 237, 0.2)", "#A78BFA"),
+            new SpaceInfo("College", "college", "Notes, assignments, lab records, presentations and projects.", "🎓",
+                    "rgba(2, 132, 199, 0.2)", "#38BDF8"),
+            new SpaceInfo("Office", "office", "Contracts, reports, decks and client deliverables.", "💼",
+                    "rgba(5, 150, 105, 0.2)", "#34D399"),
+            new SpaceInfo("Finance", "finance", "Invoices, tax filings, statements and receipts.", "💳",
+                    "rgba(217, 119, 6, 0.2)", "#FBBF24"),
+            new SpaceInfo("Entertainment", "entertainment",
+                    "Photos, videos, movies, music and other entertainment files.", "💖", "rgba(219, 39, 119, 0.2)",
+                    "#F472B6"),
+            new SpaceInfo("Others", "other", "Files that do not clearly belong to another space.", "📁",
+                    "rgba(37, 99, 235, 0.2)", "#60A5FA"));
 
     public Scene getUserSpacesScene() {
         UserSession session = UserSession.getInstance();
@@ -83,6 +113,7 @@ public class UserSpaces {
         notification.setGraphic(bellIcon);
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notification.setOnAction(e -> LandingPage.showNotificationPage());
+        applyHoverAnimation(notification, 1.08, 0);
 
         Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setMinSize(34, 34); avatar.setMaxSize(34, 34);
@@ -90,6 +121,7 @@ public class UserSpaces {
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        applyHoverAnimation(avatar, 1.15, 0);
 
         Label userLabel = label(user, 13, FontWeight.SEMI_BOLD, WHITE);
         Label dropDown = label("⌄", 12, FontWeight.NORMAL, LIGHT_SECONDARY);
@@ -98,6 +130,7 @@ public class UserSpaces {
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+        applyHoverAnimation(profile, 1.04, 0);
 
         // Custom Dropdown Menu
         Popup userDropdownPopup = new Popup();
@@ -243,28 +276,42 @@ public class UserSpaces {
         Label description = label("Virtual groupings built by AI. Files remain in their original folders.", 13, FontWeight.MEDIUM, LIGHT_SECONDARY);
         VBox titleBox = new VBox(4, title, description);
 
-        GridPane grid = new GridPane();
-        grid.setHgap(16);
-        grid.setVgap(16);
+        Button newSpaceBtn = new Button("+  New Space");
+        newSpaceBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
+        String newSpaceIdle = "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 10 18; -fx-cursor: hand; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 10;";
+        String newSpaceHover = "-fx-background-color: linear-gradient(to right, #2563EB, #3B82F6); -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 10 18; -fx-cursor: hand; -fx-border-color: rgba(96, 165, 250, 0.85); -fx-border-radius: 10;";
+        newSpaceBtn.setStyle(newSpaceIdle);
+        newSpaceBtn.setOnMouseEntered(e -> newSpaceBtn.setStyle(newSpaceHover));
+        newSpaceBtn.setOnMouseExited(e -> newSpaceBtn.setStyle(newSpaceIdle));
+        newSpaceBtn.setOnAction(e -> showCreateSpaceDialog());
+
+        Region titleGap = new Region();
+        HBox.setHgrow(titleGap, Priority.ALWAYS);
+        HBox spacesHeader = new HBox(titleBox, titleGap, newSpaceBtn);
+        spacesHeader.setAlignment(Pos.CENTER_LEFT);
+
+        spacesGrid = new GridPane();
+        spacesGrid.setHgap(16);
+        spacesGrid.setVgap(16);
 
         for (int i = 0; i < 3; i++) {
             ColumnConstraints c = new ColumnConstraints();
             c.setPercentWidth(33.33);
-            grid.getColumnConstraints().add(c);
+            spacesGrid.getColumnConstraints().add(c);
         }
 
-        Map<String, SpaceCardView> cards = new HashMap<>();
+        spaceCards = new HashMap<>();
 
         for (int i = 0; i < spaces.size(); i++) {
             SpaceInfo info = spaces.get(i);
             SpaceCardView card = createSpaceCard(info);
-            cards.put(info.spaceId, card);
-            grid.add(card.card, i % 3, i / 3);
+            spaceCards.put(info.spaceId, card);
+            spacesGrid.add(card.card, i % 3, i / 3);
         }
 
-        Label footer = label("ⓘ Loading spaces...", 12, FontWeight.NORMAL, LIGHT_SECONDARY);
+        spacesFooter = label("ⓘ Loading spaces...", 12, FontWeight.NORMAL, LIGHT_SECONDARY);
 
-        VBox content = new VBox(22, titleBox, grid, footer);
+        VBox content = new VBox(22, spacesHeader, spacesGrid, spacesFooter);
         content.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 28, ResponsiveUtil.PAGE_PADDING));
         content.setStyle("-fx-background-color: transparent;");
 
@@ -284,9 +331,214 @@ public class UserSpaces {
         root.setCenter(center);
         root.setStyle("-fx-background-color: " + SIDEBAR_BG + ";");
 
-        loadSpaceStatistics(cards, footer);
+        loadSpaceStatistics(spaceCards, spacesFooter);
+        loadCustomSpacesIntoGrid(session);
 
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
+    }
+
+    private void loadCustomSpacesIntoGrid(UserSession session) {
+        if (session == null || !UserSession.isLoggedIn()
+                || session.getUid() == null || session.getUid().isBlank()) {
+            return;
+        }
+
+        Thread thread = new Thread(() -> {
+            try {
+                List<SpaceData> customSpaces = spaceDAO.getUserSpaces(session.getUid());
+
+                Platform.runLater(() -> {
+                    for (SpaceData space : customSpaces) {
+                        addSpaceCardToGrid(toSpaceInfo(space));
+                    }
+                    loadSpaceStatistics(spaceCards, spacesFooter);
+                });
+            } catch (Exception e) {
+                System.out.println("[SPACES] Unable to load custom spaces: " + e.getMessage());
+            }
+        });
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private SpaceInfo toSpaceInfo(SpaceData space) {
+        int index = customSpaceInfos.size();
+        String description = space.getDescription() == null || space.getDescription().isBlank()
+                ? "Custom space."
+                : space.getDescription();
+
+        return new SpaceInfo(
+                space.getName(),
+                space.getSpaceId(),
+                description,
+                CUSTOM_ICONS[index % CUSTOM_ICONS.length],
+                CUSTOM_BG[index % CUSTOM_BG.length],
+                CUSTOM_FG[index % CUSTOM_FG.length]);
+    }
+
+    private void addSpaceCardToGrid(SpaceInfo info) {
+        customSpaceInfos.add(info);
+
+        SpaceCardView card = createSpaceCard(info);
+        spaceCards.put(info.spaceId, card);
+
+        int totalIndex = spaces.size() + customSpaceInfos.size() - 1;
+        spacesGrid.add(card.card, totalIndex % 3, totalIndex / 3);
+    }
+
+    private void showCreateSpaceDialog() {
+        UserSession session = UserSession.getInstance();
+
+        if (session == null || !UserSession.isLoggedIn()
+                || session.getUid() == null || session.getUid().isBlank()) {
+            showAlert("You need to be signed in to create a Space.");
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Create New Space");
+        dialog.getDialogPane().setStyle("-fx-background-color: #0A121E; -fx-border-color: " + CARD_BORDER
+                + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+
+        ButtonType createButtonType = new ButtonType("Create Space", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
+
+        Label nameLabel = label("Space Name", 11, FontWeight.BOLD, LIGHT_SECONDARY);
+        TextField nameField = new TextField();
+        nameField.setPromptText("e.g. Travel, Wedding, Startup Docs");
+        styleField(nameField);
+
+        Label descLabel = label("Description", 11, FontWeight.BOLD, LIGHT_SECONDARY);
+        TextArea descField = new TextArea();
+
+        descField.setPromptText(
+                "What kind of files belong here? This is what the AI reads to sort files into this Space automatically.");
+
+        descField.setWrapText(true);
+        descField.setPrefRowCount(3);
+
+        descField.setStyle(
+                "-fx-control-inner-background: " + INPUT_BG + ";" +
+                        "-fx-background-color: " + INPUT_BG + ";" +
+                        "-fx-text-fill: white;" +
+                        "-fx-prompt-text-fill: " + LIGHT_SECONDARY + ";" +
+                        "-fx-border-color: rgba(255,255,255,0.12);" +
+                        "-fx-border-radius: 8;" +
+                        "-fx-background-radius: 8;" +
+                        "-fx-padding: 8;");
+
+        Label tagsLabel = label("Smart Tags (optional)", 11, FontWeight.BOLD, LIGHT_SECONDARY);
+        TextField tagsField = new TextField();
+        tagsField.setPromptText("one word each, comma separated — e.g. flights, hotel, passport");
+        styleField(tagsField);
+
+        Label hint = label(
+                "The AI checks this description and these tags, alongside the fixed categories, when deciding where a new file belongs.",
+                10, FontWeight.NORMAL, LIGHT_SECONDARY);
+        hint.setWrapText(true);
+        hint.setMaxWidth(380);
+
+        VBox content = new VBox(6, nameLabel, nameField, descLabel, descField, tagsLabel, tagsField, hint);
+        content.setPadding(new Insets(16));
+        content.setPrefWidth(420);
+        content.setStyle("-fx-background-color: #0A121E;");
+
+        dialog.getDialogPane().setContent(content);
+
+        Node createButton = dialog.getDialogPane().lookupButton(createButtonType);
+        createButton.setDisable(true);
+        nameField.textProperty()
+                .addListener((obs, oldV, newV) -> createButton.setDisable(newV == null || newV.isBlank()));
+
+        Optional<ButtonType> result = dialog.showAndWait();
+
+        if (result.isEmpty() || result.get() != createButtonType) {
+            return;
+        }
+
+        String name = nameField.getText() == null ? "" : nameField.getText().trim();
+        String desc = descField.getText() == null ? "" : descField.getText().trim();
+        List<String> tags = parseSmartTags(tagsField.getText());
+
+        if (name.isBlank()) {
+            return;
+        }
+
+        Thread thread = new Thread(() -> {
+            try {
+                SpaceData created = spaceDAO.createSpace(session.getUid(), name, desc, tags);
+
+                Platform.runLater(() -> {
+                    addSpaceCardToGrid(toSpaceInfo(created));
+                    loadSpaceStatistics(spaceCards, spacesFooter);
+                });
+            } catch (Exception e) {
+                Platform.runLater(
+                        () -> showAlert(e.getMessage() == null ? "Unable to create the Space." : e.getMessage()));
+            }
+        });
+
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private List<String> parseSmartTags(String raw) {
+        List<String> tags = new ArrayList<>();
+        if (raw == null || raw.isBlank()) {
+            return tags;
+        }
+
+        for (String piece : raw.split("[,\\n]")) {
+            String token = piece.trim().toLowerCase(Locale.ROOT);
+            if (token.isEmpty())
+                continue;
+
+            // Keep tags to a single word each; if the user typed a phrase, take the first
+            // word.
+            token = token.split("\\s+")[0];
+
+            if (!tags.contains(token))
+                tags.add(token);
+            if (tags.size() == 8)
+                break;
+        }
+
+        return tags;
+    }
+
+    private void styleField(TextInputControl field) {
+        field.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: white; -fx-prompt-text-fill: "
+                + LIGHT_SECONDARY
+                + "; -fx-border-color: rgba(255,255,255,0.12); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
+    }
+
+    private void applyHoverAnimation(Node node, double scale, int yOffset) {
+        node.setOnMouseEntered(e -> {
+            ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(140), node);
+            scaleTransition.setToX(scale);
+            scaleTransition.setToY(scale);
+            scaleTransition.play();
+
+            if (yOffset != 0) {
+                TranslateTransition translateTransition = new TranslateTransition(Duration.millis(140), node);
+                translateTransition.setToY(yOffset);
+                translateTransition.play();
+            }
+        });
+
+        node.setOnMouseExited(e -> {
+            ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(140), node);
+            scaleTransition.setToX(1.0);
+            scaleTransition.setToY(1.0);
+            scaleTransition.play();
+
+            if (yOffset != 0) {
+                TranslateTransition translateTransition = new TranslateTransition(Duration.millis(140), node);
+                translateTransition.setToY(0);
+                translateTransition.play();
+            }
+        });
     }
 
     private VBox createSidebar() {
@@ -299,6 +551,7 @@ public class UserSpaces {
         StackPane logoIcon = new StackPane(view);
         logoIcon.setPrefSize(42, 42);
         logoIcon.setAlignment(Pos.CENTER);
+        applyHoverAnimation(logoIcon, 1.1, 0);
 
         Label logoText = label("OneSpace", 19, FontWeight.BOLD, WHITE);
         HBox logoHeader = new HBox(10, logoIcon, logoText);
@@ -336,12 +589,15 @@ public class UserSpaces {
 
         Button manageStorageBtn = new Button("Storage Index ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
+        manageStorageBtn.setStyle(
+                "-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
         manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexPage());
 
         VBox storageCard = new VBox(8, storageTitle, storageValGroup, storageBar, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
-        storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+        storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER
+                + "; -fx-border-radius: 12; -fx-background-radius: 12;");
+        applyHoverAnimation(storageCard, 1.01, -1);
 
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
@@ -350,12 +606,14 @@ public class UserSpaces {
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
-        sidebar.setStyle("-fx-background-color: " + SIDEBAR_BG + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 1 0 0;");
+        sidebar.setStyle("-fx-background-color: " + SIDEBAR_BG + "; -fx-border-color: " + SIDEBAR_BORDER
+                + "; -fx-border-width: 0 1 0 0;");
 
         return sidebar;
     }
 
-    private Button side(String iconType, String text, boolean active, javafx.event.EventHandler<javafx.event.ActionEvent> action) {
+    private Button side(String iconType, String text, boolean active,
+            javafx.event.EventHandler<javafx.event.ActionEvent> action) {
         SVGPath icon = createIcon(iconType);
         icon.setStroke(Color.web(active ? WHITE : LIGHT_SECONDARY));
         icon.setStrokeWidth(2);
@@ -377,25 +635,33 @@ public class UserSpaces {
 
         if (active) {
             button.setStyle(
-                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
-                "-fx-background-radius: 12;" +
-                "-fx-border-color: rgba(96, 165, 250, 0.6);" +
-                "-fx-border-radius: 12;" +
-                "-fx-border-width: 1;" +
-                "-fx-cursor: hand;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);"
-            );
+                    "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+                            "-fx-background-radius: 12;" +
+                            "-fx-border-color: rgba(96, 165, 250, 0.6);" +
+                            "-fx-border-radius: 12;" +
+                            "-fx-border-width: 1;" +
+                            "-fx-cursor: hand;" +
+                            "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);");
         } else {
-            button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+            button.setStyle(
+                    "-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
-                icon.setStroke(Color.WHITE);
-                label.setTextFill(Color.WHITE);
+                button.setStyle(
+                        "-fx-background-color: rgba(56, 189, 248, 0.12); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
+                icon.setStroke(Color.web("#38BDF8"));
+                label.setTextFill(Color.web("#38BDF8"));
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), button);
+                tt.setToX(4);
+                tt.play();
             });
             button.setOnMouseExited(e -> {
-                button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+                button.setStyle(
+                        "-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
                 label.setTextFill(Color.web(WHITE));
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), button);
+                tt.setToX(0);
+                tt.play();
             });
         }
 
@@ -407,7 +673,8 @@ public class UserSpaces {
         Label icon = label(info.icon, 16, FontWeight.NORMAL, info.iconTextColor);
         icon.setPrefSize(38, 38);
         icon.setAlignment(Pos.CENTER);
-        icon.setStyle("-fx-background-color: " + info.iconBackground + "; -fx-background-radius: 50%; -fx-text-fill: " + info.iconTextColor + ";");
+        icon.setStyle("-fx-background-color: " + info.iconBackground + "; -fx-background-radius: 50%; -fx-text-fill: "
+                + info.iconTextColor + ";");
 
         Label title = label(info.name, 16, FontWeight.BOLD, CARD_TITLE);
 
@@ -433,12 +700,33 @@ public class UserSpaces {
         card.setFocusTraversable(false);
         card.setCache(true);
 
-        String styleIdle = "-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);";
-        String styleHover = "-fx-background-color: " + CARD_BG_HOVER + "; -fx-border-color: " + info.iconTextColor + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, " + info.iconTextColor + "66, 20, 0, 0, 6);";
+        String styleIdle = "-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER
+                + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);";
+        String styleHover = "-fx-background-color: " + CARD_BG_HOVER + "; -fx-border-color: " + info.iconTextColor
+                + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, "
+                + info.iconTextColor + "66, 20, 0, 0, 6);";
 
         card.setStyle(styleIdle);
-        card.setOnMouseEntered(e -> card.setStyle(styleHover));
-        card.setOnMouseExited(e -> card.setStyle(styleIdle));
+        card.setOnMouseEntered(e -> {
+            card.setStyle(styleHover);
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), card);
+            st.setToX(1.02);
+            st.setToY(1.02);
+            st.play();
+            TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
+            tt.setToY(-2);
+            tt.play();
+        });
+        card.setOnMouseExited(e -> {
+            card.setStyle(styleIdle);
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), card);
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+            TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
+            tt.setToY(0);
+            tt.play();
+        });
         card.setOnMouseClicked(e -> LandingPage.showUnifiedSpace(info.spaceId, info.name));
 
         return new SpaceCardView(card, files, size, updated);
@@ -460,13 +748,10 @@ public class UserSpaces {
 
         Thread thread = new Thread(() -> {
             try {
-                List<FileData> files =
-                        fileDAO.getFileSummaries(
-                                session.getUid()
-                        );
+                List<FileData> files = fileDAO.getFileSummaries(
+                        session.getUid());
 
-                Map<String, SpaceStats> stats =
-                        new HashMap<>();
+                Map<String, SpaceStats> stats = new HashMap<>();
 
                 long totalSize = 0;
 
@@ -477,28 +762,23 @@ public class UserSpaces {
                     if (spaceId == null || spaceId.isBlank())
                         continue;
 
-                    SpaceStats stat =
-                            stats.computeIfAbsent(
-                                    spaceId,
-                                    key -> new SpaceStats()
-                            );
+                    SpaceStats stat = stats.computeIfAbsent(
+                            spaceId,
+                            key -> new SpaceStats());
 
                     stat.fileCount++;
                     stat.totalSize += file.getFileSize();
                     totalSize += file.getFileSize();
 
-                    Timestamp uploadedAt =
-                            file.getUploadedAt();
+                    Timestamp uploadedAt = file.getUploadedAt();
 
-                    Instant time =
-                            uploadedAt == null
-                                    ? null
-                                    : uploadedAt
-                                            .toDate()
-                                            .toInstant();
+                    Instant time = uploadedAt == null
+                            ? null
+                            : uploadedAt
+                                    .toDate()
+                                    .toInstant();
 
-                    if (time != null && (
-                            stat.latestUpdate == null ||
+                    if (time != null && (stat.latestUpdate == null ||
                             time.isAfter(stat.latestUpdate))) {
 
                         stat.latestUpdate = time;
@@ -509,46 +789,33 @@ public class UserSpaces {
 
                 Platform.runLater(() -> {
 
-                    for (SpaceInfo info : spaces) {
+                    for (Map.Entry<String, SpaceCardView> entry : cards.entrySet()) {
 
-                        SpaceStats stat =
-                                stats.getOrDefault(
-                                        info.spaceId,
-                                        new SpaceStats()
-                                );
+                        SpaceStats stat = stats.getOrDefault(
+                                entry.getKey(),
+                                new SpaceStats());
 
-                        SpaceCardView card =
-                                cards.get(info.spaceId);
-
-                        if (card != null) {
-
-                            card.setStats(
-                                    stat.fileCount,
-                                    formatUpdated(
-                                            stat.latestUpdate
-                                    ),
-                                    formatSize(
-                                            stat.totalSize
-                                    )
-                            );
-                        }
+                        entry.getValue().setStats(
+                                stat.fileCount,
+                                formatUpdated(
+                                        stat.latestUpdate),
+                                formatSize(
+                                        stat.totalSize));
                     }
 
                     footer.setText(
                             "ⓘ " +
-                            files.size() +
-                            " files  ·  " +
-                            formatSize(finalTotalSize) +
-                            " used"
-                    );
+                                    files.size() +
+                                    " files  ·  " +
+                                    formatSize(finalTotalSize) +
+                                    " used");
                 });
 
             } catch (Exception e) {
 
                 Platform.runLater(() -> {
                     footer.setText(
-                            "ⓘ Unable to load space statistics"
-                    );
+                            "ⓘ Unable to load space statistics");
                 });
             }
         });
@@ -563,11 +830,9 @@ public class UserSpaces {
 
         long minutes = Math.max(
                 0,
-                Duration.between(
+                java.time.Duration.between(
                         time,
-                        Instant.now()
-                ).toMinutes()
-        );
+                        Instant.now()).toMinutes());
 
         if (minutes < 1)
             return "Updated just now";
@@ -596,17 +861,22 @@ public class UserSpaces {
         if (bytes < 1048576)
             return String.format(
                     "%.1f KB",
-                    bytes / 1024.0
-            );
+                    bytes / 1024.0);
         if (bytes < 1073741824L)
             return String.format(
                     "%.1f MB",
-                    bytes / 1048576.0
-            );
+                    bytes / 1048576.0);
         return String.format(
                 "%.1f GB",
-                bytes / 1073741824.0
-        );
+                bytes / 1073741824.0);
+    }
+
+    private void showAlert(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("OneSpace");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     private Label label(
@@ -620,12 +890,9 @@ public class UserSpaces {
                 Font.font(
                         FONT,
                         weight,
-                        size
-                )
-        );
+                        size));
         label.setStyle(
-                "-fx-text-fill:" + color + ";"
-        );
+                "-fx-text-fill:" + color + ";");
         return label;
     }
 
@@ -634,17 +901,43 @@ public class UserSpaces {
         icon.setFill(Color.TRANSPARENT);
         icon.setStrokeWidth(2);
         switch (type) {
-            case "dashboard": icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z"); break;
-            case "files": icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13"); break;
-            case "search": icon.setContent("M10 3 A7 7 0 1 0 10 17 A7 7 0 0 0 10 3 Z M15 15 L21 21"); break;
-            case "calendar": icon.setContent("M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z M16 2V6 M8 2V6 M3 10H21"); break;
-            case "ai": icon.setContent("M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z"); break;
-            case "collaboration": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
-            case "recent": icon.setContent("M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"); break;
-            case "trash": icon.setContent("M3 6h18 M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"); break;
-            case "settings": icon.setContent("M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21 M5.6 5.6 L7.7 7.7 M16.3 16.3 L18.4 18.4 M18.4 5.6 L16.3 7.7 M7.7 16.3 L5.6 18.4 M12 8 A4 4 0 1 0 12 16 A4 4 0 0 0 12 8"); break;
-            case "bell": icon.setContent("M6 17 H18 M8 17 V10 A4 4 0 0 1 16 10 V17 M10 20 H14"); break;
-            default: icon.setContent("M4 4 H20 V20 H4 Z"); break;
+            case "dashboard":
+                icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z");
+                break;
+            case "files":
+                icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13");
+                break;
+            case "search":
+                icon.setContent("M10 3 A7 7 0 1 0 10 17 A7 7 0 0 0 10 3 Z M15 15 L21 21");
+                break;
+            case "calendar":
+                icon.setContent(
+                        "M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z M16 2V6 M8 2V6 M3 10H21");
+                break;
+            case "ai":
+                icon.setContent(
+                        "M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z");
+                break;
+            case "collaboration":
+                icon.setContent(
+                        "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75");
+                break;
+            case "recent":
+                icon.setContent("M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z");
+                break;
+            case "trash":
+                icon.setContent("M3 6h18 M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2");
+                break;
+            case "settings":
+                icon.setContent(
+                        "M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21 M5.6 5.6 L7.7 7.7 M16.3 16.3 L18.4 18.4 M18.4 5.6 L16.3 7.7 M7.7 16.3 L5.6 18.4 M12 8 A4 4 0 1 0 12 16 A4 4 0 0 0 12 8");
+                break;
+            case "bell":
+                icon.setContent("M6 17 H18 M8 17 V10 A4 4 0 0 1 16 10 V17 M10 20 H14");
+                break;
+            default:
+                icon.setContent("M4 4 H20 V20 H4 Z");
+                break;
         }
         return icon;
     }
@@ -697,8 +990,7 @@ public class UserSpaces {
                 String size) {
 
             filesLabel.setText(
-                    count + " files"
-            );
+                    count + " files");
 
             sizeLabel.setText(size);
             updatedLabel.setText(updated);

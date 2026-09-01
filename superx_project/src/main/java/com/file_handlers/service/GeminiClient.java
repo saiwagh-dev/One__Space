@@ -7,8 +7,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import com.file_handlers.model.SpaceData;
 
 public class GeminiClient{
     private static final String MODEL="gemini-3.6-flash";
@@ -25,18 +29,47 @@ public class GeminiClient{
                 .build();
     }
 
-    public String classify(String fileName,String extractedText)throws IOException,InterruptedException{
+    public String classify(String fileName,String extractedText,List<SpaceData> customSpaces)throws IOException,InterruptedException{
         String prompt="Analyze this file for OneSpace.\n"
                 +"File name: "+fileName+"\n"
                 +"Content:\n"+extractedText+"\n\n"
                 +"Return ONLY valid JSON.\n"
-                +"Use exactly one category from: Personal, College, Office, Finance, Entertainment, Other.\n"
+                +"By default, use exactly one category from: Personal, College, Office, Finance, Entertainment, Other.\n"
+                +buildCustomSpacesBlock(customSpaces)
                 +"confidence must be between 0 and 1.\n"
                 +"description must be a short meaningful description of the file in 2-4 sentences.\n"
                 +"smartTags must contain exactly 5 or 6 useful short tags.\n"
                 +"Format:\n"
                 +"{\"category\":\"Office\",\"confidence\":0.95,\"description\":\"Short description.\",\"smartTags\":[\"tag1\",\"tag2\",\"tag3\",\"tag4\",\"tag5\"]}";
         return extractJson(sendRequest(prompt));
+    }
+
+    private String buildCustomSpacesBlock(List<SpaceData> customSpaces){
+        if(customSpaces==null||customSpaces.isEmpty())
+            return "";
+
+        StringBuilder block=new StringBuilder();
+        block.append("\nThe user has also created these custom Spaces. If the file's content, purpose or ")
+             .append("subject matter fits one of these custom Spaces better than the fixed categories above, ")
+             .append("return that Space's name EXACTLY as written (same spelling and capitalization) as the ")
+             .append("category instead of a fixed category:\n");
+
+        for(SpaceData space:customSpaces){
+            if(space==null||space.getName()==null||space.getName().isBlank())
+                continue;
+
+            String description=space.getDescription();
+            block.append("- \"").append(space.getName()).append("\": ")
+                 .append(description==null||description.isBlank()?"No description provided.":description);
+
+            List<String> tags=space.getTags();
+            if(tags!=null&&!tags.isEmpty())
+                block.append(" (keywords: ").append(String.join(", ",tags)).append(")");
+
+            block.append("\n");
+        }
+
+        return block.toString();
     }
 
     public String chat(String userMessage,String conversationContext,String fileContext)throws IOException,InterruptedException{

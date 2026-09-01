@@ -30,9 +30,9 @@ import javafx.scene.text.FontWeight;
 import javafx.concurrent.Task;
 import java.io.InputStream;
 
-import com.file_handlers.view.LandingPage;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
+import com.file_handlers.view.LandingPage;
 import com.file_handlers.dao.AdminStatsDAO;
 
 import java.time.LocalTime;
@@ -73,6 +73,7 @@ public class AdminDashboard {
 
     private String activeUserName = "Admin";
     private String initials = "A";
+
     public AdminDashboard() {
         UserSession session = UserSession.getInstance();
 

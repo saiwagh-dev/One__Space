@@ -1,10 +1,14 @@
 package com.file_handlers.service;
 
+import java.util.List;
+import java.util.Locale;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.file_handlers.model.AIResult;
 import com.file_handlers.model.FileData;
+import com.file_handlers.model.SpaceData;
 
 public class AIClassificationService {
 
@@ -14,25 +18,38 @@ public class AIClassificationService {
         geminiClient = new GeminiClient();
     }
 
-    public AIResult classify(FileData file) {
+    /**
+     * @param file          the file being classified
+     * @param customSpaces  the current user's custom Spaces, so the AI can be
+     *                      offered them as extra classification targets. Pass
+     *                      an empty list (never null) if the user has none.
+     */
+    public AIResult classify(FileData file, List<SpaceData> customSpaces) {
 
         try {
             String response =
                     geminiClient.classify(
                             file.getFileName(),
-                            file.getExtractedSnippet()
+                            file.getExtractedSnippet(),
+                            customSpaces
                     );
 
             JSONObject json =
                     new JSONObject(response);
 
-            String category =
-                    normalizeCategory(
-                            json.optString(
-                                    "category",
-                                    "Other"
-                            )
+            String rawCategory =
+                    json.optString(
+                            "category",
+                            "Other"
                     );
+
+            SpaceData matchedCustomSpace =
+                    findCustomSpace(rawCategory, customSpaces);
+
+            String category =
+                    matchedCustomSpace != null
+                            ? matchedCustomSpace.getName()
+                            : normalizeCategory(rawCategory);
 
             double confidence =
                     json.optDouble(
@@ -59,12 +76,18 @@ public class AIClassificationService {
                         "No AI description was generated.";
             }
 
-            return new AIResult(
+            AIResult result = new AIResult(
                     category,
                     confidence,
                     description,
                     smartTags
             );
+
+            if (matchedCustomSpace != null) {
+                result.setCustomSpaceId(matchedCustomSpace.getSpaceId());
+            }
+
+            return result;
 
         } catch (Exception e) {
 
@@ -80,6 +103,27 @@ public class AIClassificationService {
                     new String[0]
             );
         }
+    }
+
+    /**
+     * Checks whether the category text the AI returned is an exact
+     * (case-insensitive) match for one of the user's custom Space names.
+     */
+    private SpaceData findCustomSpace(String category, List<SpaceData> customSpaces) {
+        if (category == null || category.isBlank() || customSpaces == null) {
+            return null;
+        }
+
+        String normalized = category.trim().toLowerCase(Locale.ROOT);
+
+        for (SpaceData space : customSpaces) {
+            if (space.getName() != null
+                    && space.getName().trim().toLowerCase(Locale.ROOT).equals(normalized)) {
+                return space;
+            }
+        }
+
+        return null;
     }
 
     private String normalizeCategory(String category) {

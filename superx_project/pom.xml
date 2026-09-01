@@ -65,22 +65,17 @@
             <artifactId>javafx-fxml</artifactId>
             <version>21.0.12</version>
         </dependency>
-        <build>
+       
+
+    </dependencies>
+
+     <build>
         <plugins>
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
-                <configuration>
-                    <mainClass>com.file_handlers.view.LandingPage</mainClass>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
-    </dependencies>
-
-    <configuration>
+                 <configuration>
     <mainClass>com.file_handlers.Main</mainClass>
     <options>
         <option>--add-exports</option>
@@ -91,7 +86,7 @@
         <option>javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED</option>
         <option>--add-opens</option>
         <option>javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED</option>
-        <option>--add-exports</option>
+        <option>--add-exports</option> 
         <option>javafx.graphics/com.sun.javafx.util=ALL-UNNAMED</option>
         <option>--add-opens</option>
         <option>javafx.graphics/com.sun.javafx.util=ALL-UNNAMED</option>
@@ -101,5 +96,13 @@
         <option>javafx.base/com.sun.javafx.reflect=ALL-UNNAMED</option>
     </options>
 </configuration>
+                
+            </plugin>
+        </plugins>
+    </build>
+
+    
+
+   
 
 </project>

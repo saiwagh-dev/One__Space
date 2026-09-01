@@ -10,6 +10,11 @@ public class AIResult {
     private String description;
     private List<String> smartTags;
 
+    // Set only when the AI matched one of the user's custom Spaces (by exact
+    // name) instead of one of the 6 fixed built-in categories. When present,
+    // SpaceResolver uses it directly and skips the fixed-category switch.
+    private String customSpaceId;
+
     public AIResult() {
     }
 
@@ -67,5 +72,13 @@ public class AIResult {
 
     public void setSmartTags(List<String> smartTags) {
         this.smartTags = smartTags;
+    }
+
+    public String getCustomSpaceId() {
+        return customSpaceId;
+    }
+
+    public void setCustomSpaceId(String customSpaceId) {
+        this.customSpaceId = customSpaceId;
     }
 }

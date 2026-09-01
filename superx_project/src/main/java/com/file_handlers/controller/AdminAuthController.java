@@ -94,7 +94,6 @@ public class AdminAuthController {
                     default -> "Admin";
                 };
 
-                
                 UserSession.setInstance(idToken, trimmedEmail, displayName, true);
                 return true;
             } else {

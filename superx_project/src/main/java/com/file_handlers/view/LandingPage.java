@@ -161,13 +161,15 @@ public class LandingPage extends Application {
 
    public static void showUnifiedSpace(String spaceId, String spaceName) {
         try {
-            UnifiedSpaceView view = new UnifiedSpaceView(spaceId, spaceName);  // pass the args, not the no-arg constructor
+            UnifiedSpaceView view =
+                    new UnifiedSpaceView(spaceId, spaceName);
+
             setScene(view.getUnifiedSpaceScene());
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
     public static void showUnifiedSpaceView() {
         showUnifiedSpace("all", "All Spaces");
     }

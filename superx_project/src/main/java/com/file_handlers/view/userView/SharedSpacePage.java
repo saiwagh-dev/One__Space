@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.file_handlers.config.FirebaseConfig;
-import com.file_handlers.controller.CollaborationController;
 import com.file_handlers.model.CollaborationFileData;
 import com.file_handlers.model.CollaborationMemberData;
 import com.file_handlers.model.UserSession;
@@ -24,20 +23,38 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.web.WebView;
+import javafx.stage.FileChooser;
 
 public class SharedSpacePage {
 
+    // Typography
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    private static final String BG_SIDEBAR = "#1E2A3A", BG_SIDEBAR_CARD = "#141D29", SIDEBAR_BORDER = "#2D3D52";
-    private static final String BG_APP = "#31435B", BG_CARD = "#DDE8F5", BG_CARD_INNER = "#D1E1F1", BG_INPUT = "#EDF3FA";
-    private static final String BORDER_COLOR = "#C9DAEE", PRIMARY_BLUE = "#2563EB", PRIMARY_LIGHT_BLUE = "#93C5FD";
-    private static final String TEXT_DARK = "#000000", TEXT_MUTED_DARK = "#1E293B", TEXT_LIGHT = "#FFFFFF", TEXT_MUTED_LIGHT = "#9EB0C6";
-    private static final String SUCCESS = "#15803D", SUCCESS_LIGHT = "#86EFAC", ORANGE = "#C2410C", ORANGE_LIGHT = "#FFEDD5";
-    private static final String RED = "#DC2626";
-    public static final String RED_LIGHT = "#FEE2E2";
+
+    // 1. Sidebar & Top Bar Tones (Matching CollaborationPage)
+    private static final String SIDEBAR_BG = "#070C16";
+    private static final String SIDEBAR_BORDER = "rgba(255, 255, 255, 0.07)";
+
+    // 2. Center Workspace Canvas: Atmospheric Dark Radial Glow
+    private static final String MAIN_BG = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
+
+    // 3. Main Glassmorphic Cards & Container Colors
+    private static final String CARD_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
+    private static final String CARD_BG_INNER = "linear-gradient(to bottom right, rgba(13, 22, 38, 0.9), rgba(8, 14, 26, 0.95))";
+    private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
+    private static final String INPUT_BG = "rgba(13, 22, 38, 0.85)";
+    private static final String INPUT_BORDER = "rgba(255, 255, 255, 0.1)";
+
+    // 4. Vibrant Typography & Accent Highlights
+    private static final String WHITE = "#FFFFFF";
+    private static final String LIGHT_SECONDARY = "#94A3B8";
+    private static final String BLUE = "#2563EB";
+    private static final String SUCCESS = "#34D399";
+    private static final String ORANGE = "#FBBF24";
+    private static final String RED = "#F87171";
 
     private String spaceName;
     private final List<CollaborationMemberData> membersList = new ArrayList<>();
@@ -84,6 +101,10 @@ public class SharedSpacePage {
             return currentUserRole != null ? currentUserRole : "Viewer";
         }
 
+        if (workspaceOwnerEmail != null && workspaceOwnerEmail.equalsIgnoreCase(myEmail)) {
+            return "Owner";
+        }
+
         for (CollaborationMemberData m : membersList) {
             if (m.email != null && m.email.equalsIgnoreCase(myEmail)) {
                 if (m.role != null && !m.role.isEmpty()) {
@@ -95,6 +116,10 @@ public class SharedSpacePage {
     }
 
     private boolean isCurrentLoggedInUserOwner() {
+        String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
+        if (workspaceOwnerEmail != null && workspaceOwnerEmail.equalsIgnoreCase(myEmail)) {
+            return true;
+        }
         String role = getLoggedInUserRole();
         return "Owner".equalsIgnoreCase(role);
     }
@@ -187,6 +212,7 @@ public class SharedSpacePage {
                                     for (CollaborationMemberData m : membersList) {
                                         if (m.email != null && m.email.equalsIgnoreCase(cloudMember.email)) {
                                             m.role = cloudMember.role;
+                                            m.status = cloudMember.status;
                                             m.avatarBackground = cloudMember.avatarBackground;
                                             m.avatarColor = cloudMember.avatarColor;
                                             break;
@@ -215,19 +241,9 @@ public class SharedSpacePage {
         membersList.clear();
         filesList.clear();
 
-        String currentUserName = (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) 
-                ? UserSession.getInstance().getDisplayName() : "Workspace Owner";
-        String currentUserEmail = (UserSession.getInstance() != null && UserSession.getInstance().getEmail() != null) 
-                ? UserSession.getInstance().getEmail() : "owner@email.com";
-        
-        workspaceOwnerName = currentUserName;
-        workspaceOwnerEmail = currentUserEmail;
-
-        String initials = getInitials(workspaceOwnerName);
-
         membersList.add(new CollaborationMemberData(
                 "AV", workspaceOwnerName, workspaceOwnerEmail,
-                "Owner", PRIMARY_LIGHT_BLUE, PRIMARY_BLUE, "active"));
+                "Owner", "#38BDF822", "#38BDF8", "active"));
     }
 
     private boolean hasPermission(String role, String permission) {
@@ -235,13 +251,7 @@ public class SharedSpacePage {
 
         switch (role) {
             case "Owner":
-                return true;
             case "Editor":
-                return permission.equals("VIEW")
-                        || permission.equals("SEARCH")
-                        || permission.equals("DOWNLOAD")
-                        || permission.equals("UPLOAD")
-                        || permission.equals("EDIT_FILE");
             case "Moderator":
                 return permission.equals("VIEW")
                         || permission.equals("SEARCH")
@@ -263,20 +273,20 @@ public class SharedSpacePage {
 
     public VBox getSharedSpaceContent() {
         VBox content = new VBox(20);
-        content.setPadding(new Insets(28));
-        content.setStyle("-fx-background-color:" + BG_APP + ";");
+        content.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 28, ResponsiveUtil.PAGE_PADDING));
+        content.setStyle("-fx-background-color: transparent;");
 
         Button back = createBackButton();
 
         Label title = new Label(spaceName);
-        title.setFont(Font.font(FONT, FontWeight.BOLD, 27));
-        title.setTextFill(Color.web(TEXT_LIGHT));
+        title.setFont(Font.font(FONT, FontWeight.BOLD, 26));
+        title.setStyle("-fx-text-fill:" + WHITE + ";");
 
         Label subtitle = new Label("Shared workspace");
-        subtitle.setFont(Font.font(FONT, 13));
-        subtitle.setTextFill(Color.web(TEXT_MUTED_LIGHT));
+        subtitle.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
+        subtitle.setStyle("-fx-text-fill:" + LIGHT_SECONDARY + ";");
 
-        VBox titleBox = new VBox(3, title, subtitle);
+        VBox titleBox = new VBox(4, title, subtitle);
 
         HBox header = new HBox(12, back, titleBox);
         header.setAlignment(Pos.CENTER_LEFT);
@@ -304,28 +314,31 @@ public class SharedSpacePage {
 
     private Button createBackButton() {
         Button button = new Button("←");
-        button.setFont(Font.font(FONT, FontWeight.BOLD, 28));
-        button.setTextFill(Color.web(TEXT_LIGHT));
-        button.setPrefSize(42, 42);
-        button.setMinSize(42, 42);
+        button.setFont(Font.font(FONT, FontWeight.BOLD, 22));
+        button.setTextFill(Color.web(WHITE));
+        button.setPrefSize(38, 38);
+        button.setMinSize(38, 38);
         button.setPadding(Insets.EMPTY);
         button.setStyle(
-                "-fx-background-color:rgba(255,255,255,0.08);" +
-                "-fx-border-color:transparent;" +
-                "-fx-background-radius:10;" +
-                "-fx-cursor:hand;");
+                "-fx-background-color: " + INPUT_BG + ";" +
+                "-fx-border-color: " + INPUT_BORDER + ";" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;" +
+                "-fx-cursor: hand;");
 
         button.setOnMouseEntered(e -> button.setStyle(
-                "-fx-background-color:" + PRIMARY_BLUE + ";" +
-                "-fx-border-color:transparent;" +
-                "-fx-background-radius:10;" +
-                "-fx-cursor:hand;"));
+                "-fx-background-color: rgba(255, 255, 255, 0.1);" +
+                "-fx-border-color: rgba(255, 255, 255, 0.2);" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;" +
+                "-fx-cursor: hand;"));
 
         button.setOnMouseExited(e -> button.setStyle(
-                "-fx-background-color:rgba(255,255,255,0.08);" +
-                "-fx-border-color:transparent;" +
-                "-fx-background-radius:10;" +
-                "-fx-cursor:hand;"));
+                "-fx-background-color: " + INPUT_BG + ";" +
+                "-fx-border-color: " + INPUT_BORDER + ";" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;" +
+                "-fx-cursor: hand;"));
 
         button.setOnAction(e -> LandingPage.showCollaborationPage());
 
@@ -334,90 +347,86 @@ public class SharedSpacePage {
 
     private HBox createSummaryCard() {
         HBox card = new HBox(14);
-        card.setPrefHeight(150);
+        card.setPrefHeight(130);
         card.setAlignment(Pos.CENTER);
-        card.setPadding(new Insets(15));
-        card.setStyle(
-                "-fx-background-color:" + BG_CARD + ";" +
-                "-fx-border-color:" + BORDER_COLOR + ";" +
-                "-fx-border-radius:14;" +
-                "-fx-background-radius:14;");
+        card.setPadding(new Insets(16));
+        card.setStyle(cardContainerStyle());
 
         CollaborationMemberData currentOwner = membersList.stream()
                 .filter(m -> m.role != null && m.role.equalsIgnoreCase("Owner"))
                 .findFirst()
-                .orElse(new CollaborationMemberData("AV", workspaceOwnerName, workspaceOwnerEmail, "Owner", PRIMARY_LIGHT_BLUE, PRIMARY_BLUE, "active"));
+                .orElse(new CollaborationMemberData("AV", workspaceOwnerName, workspaceOwnerEmail, "Owner", "#38BDF822", "#38BDF8", "active"));
 
         VBox owner = createSummaryItem(
-                "♙", "Owner", workspaceOwnerName,
-                PRIMARY_LIGHT_BLUE, PRIMARY_BLUE);
+                "security", "Owner", currentOwner.name != null ? currentOwner.name : workspaceOwnerName,
+                "#38BDF8", "rgba(56, 189, 248, 0.15)");
         ownerNameLabel = (Label) owner.getProperties().get("valueLabel");
 
         owner.setCursor(Cursor.HAND);
-        owner.setOnMouseClicked(e -> showOwnerDetailsPopup(currentOwner));
+        owner.setOnMouseClicked(e -> {
+            CollaborationMemberData realOwner = membersList.stream()
+                    .filter(m -> m.role != null && m.role.equalsIgnoreCase("Owner"))
+                    .findFirst()
+                    .orElse(currentOwner);
+            showOwnerDetailsPopup(realOwner);
+        });
 
         VBox members = createSummaryItem(
-                "♧", "Members",
+                "users", "Members",
                 membersList.size() + " Members",
-                PRIMARY_LIGHT_BLUE, PRIMARY_BLUE);
+                "#A78BFA", "rgba(167, 139, 250, 0.15)");
 
         memberCountLabel = (Label) members.getProperties().get("valueLabel");
 
         VBox files = createSummaryItem(
-                "▱", "Files",
+                "files", "Files",
                 filesList.size() + " Files",
-                SUCCESS_LIGHT, SUCCESS);
+                "#34D399", "rgba(52, 211, 153, 0.15)");
 
         fileCountLabel = (Label) files.getProperties().get("valueLabel");
 
         VBox created = createSummaryItem(
-                "▣", "Created On", createdDate,
-                ORANGE_LIGHT, ORANGE);
+                "calendar", "Created On", createdDate,
+                "#FBBF24", "rgba(245, 158, 11, 0.15)");
         createdDateLabel = (Label) created.getProperties().get("valueLabel");
 
         card.getChildren().addAll(owner, members, files, created);
         return card;
     }
-
+    
     private VBox createSummaryItem(
-            String icon,
+            String iconType,
             String heading,
             String value,
-            String iconBackground,
-            String iconColor) {
+            String iconColor,
+            String iconBackground) {
 
-        VBox box = new VBox(7);
-        box.setAlignment(Pos.CENTER);
-        box.setPrefHeight(115);
-        box.setMinHeight(110);
-        box.setMaxHeight(125);
-        box.setStyle(
-                "-fx-background-color:" + BG_CARD_INNER + ";" +
-                "-fx-border-color:" + BORDER_COLOR + ";" +
-                "-fx-border-radius:10;" +
-                "-fx-background-radius:10;");
+        VBox box = new VBox(6);
+        box.setAlignment(Pos.CENTER_LEFT);
+        box.setPrefHeight(100);
+        box.setPadding(new Insets(14));
+        box.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 12; -fx-background-radius: 12;");
 
         HBox.setHgrow(box, Priority.ALWAYS);
 
-        Label iconLabel = new Label(icon);
-        iconLabel.setFont(Font.font(FONT, FontWeight.BOLD, 21));
-        iconLabel.setTextFill(Color.web(iconColor));
-        iconLabel.setAlignment(Pos.CENTER);
-        iconLabel.setPrefSize(46, 42);
-        iconLabel.setStyle(
-                "-fx-background-color:" + iconBackground + ";" +
-                "-fx-background-radius:50%;");
+        SVGPath icon = createIcon(iconType);
+        icon.setStroke(Color.web(iconColor));
+        icon.setStrokeWidth(2);
+
+        StackPane iconPane = new StackPane(icon);
+        iconPane.setPrefSize(32, 32); iconPane.setMinSize(32, 32);
+        iconPane.setStyle("-fx-background-color: " + iconBackground + "; -fx-background-radius: 8; -fx-border-color: " + iconColor + "44; -fx-border-radius: 8;");
 
         Label headingLabel = new Label(heading);
-        headingLabel.setFont(Font.font(FONT, 12));
-        headingLabel.setTextFill(Color.web(TEXT_MUTED_DARK));
+        headingLabel.setFont(Font.font(FONT, 11));
+        headingLabel.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + "; -fx-font-weight: 600;");
 
         Label valueLabel = new Label(value);
-        valueLabel.setFont(Font.font(FONT, FontWeight.BOLD, 14));
-        valueLabel.setTextFill(Color.web(TEXT_DARK));
+        valueLabel.setFont(Font.font(FONT, FontWeight.BOLD, 15));
+        valueLabel.setStyle("-fx-text-fill: " + WHITE + ";");
 
         box.getProperties().put("valueLabel", valueLabel);
-        box.getChildren().addAll(iconLabel, headingLabel, valueLabel);
+        box.getChildren().addAll(iconPane, headingLabel, valueLabel);
 
         return box;
     }
@@ -426,7 +435,7 @@ public class SharedSpacePage {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Owner Details");
         dialog.setHeaderText("Owner Details");
-        dialog.getDialogPane().setPrefWidth(420);
+        styleDialog(dialog, 420, 260);
 
         Label nameHeading = createPopupHeading("Name");
         Label nameValue = createPopupValue(ownerMember.name);
@@ -437,15 +446,13 @@ public class SharedSpacePage {
         Label roleHeading = createPopupHeading("Role");
 
         Label roleValue = new Label(ownerMember.role);
-        roleValue.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        roleValue.setTextFill(Color.web(PRIMARY_BLUE));
-        roleValue.setPadding(new Insets(6, 10, 6, 10));
-        roleValue.setStyle(
-                "-fx-background-color:" + PRIMARY_LIGHT_BLUE + ";" +
-                "-fx-background-radius:6;");
+        roleValue.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        roleValue.setTextFill(Color.web("#60A5FA"));
+        roleValue.setPadding(new Insets(6, 12, 6, 12));
+        roleValue.setStyle("-fx-background-color: rgba(37, 99, 235, 0.2); -fx-background-radius: 6;");
 
         VBox box = new VBox(
-                12,
+                10,
                 nameHeading, nameValue,
                 emailHeading, emailValue,
                 roleHeading, roleValue);
@@ -521,7 +528,7 @@ public class SharedSpacePage {
                     if (fetchedMembers.isEmpty()) {
                         fetchedMembers.add(new CollaborationMemberData(
                                 "AV", workspaceOwnerName, myEmail.isEmpty() ? workspaceOwnerEmail : myEmail,
-                                "Owner", PRIMARY_LIGHT_BLUE, PRIMARY_BLUE, "active"));
+                                "Owner", "#38BDF822", "#38BDF8", "active"));
                         isAuthorized = true;
                         currentUserRole = "Owner";
                     }
@@ -596,53 +603,51 @@ public class SharedSpacePage {
     private Label createPopupHeading(String text) {
         Label label = new Label(text);
         label.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        label.setStyle("-fx-text-fill: #000000;");
+        label.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
         return label;
     }
 
     private Label createPopupValue(String text) {
         Label label = new Label(text);
         label.setFont(Font.font(FONT, FontWeight.BOLD, 14));
-        label.setStyle("-fx-text-fill: #000000;");
+        label.setStyle("-fx-text-fill: " + WHITE + ";");
         return label;
     }
 
     private void addCloseButton(Dialog<ButtonType> dialog) {
         dialog.getDialogPane().getButtonTypes().add(
                 new ButtonType("Close", ButtonData.CANCEL_CLOSE));
+        Button closeBtn = (Button) dialog.getDialogPane().lookupButton(dialog.getDialogPane().getButtonTypes().get(dialog.getDialogPane().getButtonTypes().size() - 1));
+        closeBtn.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 7; -fx-background-radius: 7; -fx-cursor: hand;");
     }
 
     private VBox createFilesCard() {
-        VBox card = new VBox(12);
-        card.setPadding(new Insets(18));
-        card.setStyle(
-                "-fx-background-color:" + BG_CARD + ";" +
-                "-fx-border-color:" + BORDER_COLOR + ";" +
-                "-fx-border-radius:14;" +
-                "-fx-background-radius:14;");
+        VBox card = new VBox(14);
+        card.setPadding(new Insets(20));
+        card.setStyle(cardContainerStyle());
 
         Label title = new Label("Files");
         title.setFont(Font.font(FONT, FontWeight.BOLD, 17));
-        title.setStyle("-fx-text-fill: #000000;");
+        title.setStyle("-fx-text-fill: " + WHITE + ";");
 
         Label subtitle = new Label("Files uploaded to this shared space");
         subtitle.setFont(Font.font(FONT, 11));
-        subtitle.setStyle("-fx-text-fill: #000000;");
+        subtitle.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
         VBox titleBox = new VBox(3, title, subtitle);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button upload = new Button("☁  Upload File");
+        Button upload = new Button("+ Upload File");
         upload.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         upload.setTextFill(Color.WHITE);
-        upload.setPrefHeight(38);
+        upload.setPrefHeight(36);
         upload.setPadding(new Insets(0, 16, 0, 16));
         upload.setStyle(
-                "-fx-background-color:" + PRIMARY_BLUE + ";" +
-                "-fx-background-radius:8;" +
-                "-fx-cursor:hand;");
+                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+                "-fx-background-radius: 8;" +
+                "-fx-cursor: hand;");
         
         updateUploadPermission(upload);
         
@@ -652,80 +657,66 @@ public class SharedSpacePage {
                 return;
             }
 
-            CollaborationController collabController = new CollaborationController();
-            final String currentUserName = (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) 
-                    ? UserSession.getInstance().getDisplayName() : "User";
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Upload File to Shared Space");
+            File selectedFile = chooser.showOpenDialog(upload.getScene().getWindow());
 
-            collabController.uploadFileForCollaboration(
-                upload.getScene().getWindow(),
-                result -> {
-                    String secureUrl = (String) result.get("secure_url");
-                    String fileName = (String) result.get("original_filename");
-                    if (fileName == null || fileName.isEmpty()) {
-                        fileName = "Uploaded_File";
-                    }
+            if (selectedFile != null && selectedFile.exists()) {
+                final String currentUserName = (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) 
+                        ? UserSession.getInstance().getDisplayName() : "User";
 
-                    String actualSize = "1.2 KB";
-                    Object fileObj = result.get("file_obj"); 
-                    if (fileObj instanceof File) {
-                        File f = (File) fileObj;
-                        if (f.exists()) {
-                            long bytes = f.length();
-                            if (bytes < 1024) {
-                                actualSize = bytes + " B";
-                            } else if (bytes < 1024 * 1024) {
-                                actualSize = (bytes / 1024) + " KB";
-                            } else {
-                                actualSize = String.format("%.1f MB", (double) bytes / (1024 * 1024));
-                            }
-                        }
-                    }
-
-                    String actualDate = java.time.LocalDate.now().format(
-                        java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy")
-                    );
-
-                    final String finalFileName = fileName;
-                    final String fileId = "file_" + System.currentTimeMillis();
-
-                    CollaborationFileData newFile = new CollaborationFileData("FILE", finalFileName, actualSize, actualDate, PRIMARY_BLUE, secureUrl, currentUserName);
-
-                    try {
-                        java.util.Map<String, Object> fileMap = new java.util.HashMap<>();
-                        fileMap.put("icon", newFile.icon);
-                        fileMap.put("fileName", newFile.fileName);
-                        fileMap.put("size", newFile.size);
-                        fileMap.put("uploadedOn", newFile.uploadedOn);
-                        fileMap.put("iconColor", newFile.iconColor);
-                        fileMap.put("secureUrl", newFile.secureUrl);
-                        fileMap.put("uploaderName", newFile.uploaderName);
-
-                        FirebaseConfig.getFirestore()
-                            .collection("workspaces")
-                            .document(spaceName.replaceAll("\\s+", "_"))
-                            .collection("files")
-                            .document(fileId)
-                            .set(fileMap);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-
-                    javafx.application.Platform.runLater(() -> {
-                        filesList.add(newFile);
-                        refreshFileList();
-                        updateFileCount();
-                    });
-                },
-                error -> {
-                    error.printStackTrace();
+                String fileName = selectedFile.getName();
+                long bytes = selectedFile.length();
+                String actualSize = "1.2 KB";
+                if (bytes < 1024) {
+                    actualSize = bytes + " B";
+                } else if (bytes < 1024 * 1024) {
+                    actualSize = (bytes / 1024) + " KB";
+                } else {
+                    actualSize = String.format("%.1f MB", (double) bytes / (1024 * 1024));
                 }
-            );
+
+                String actualDate = java.time.LocalDate.now().format(
+                    java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy")
+                );
+
+                final String fileId = "file_" + System.currentTimeMillis();
+                String secureUrl = selectedFile.toURI().toString();
+
+                CollaborationFileData newFile = new CollaborationFileData("FILE", fileName, actualSize, actualDate, "#38BDF8", secureUrl, currentUserName);
+
+                try {
+                    java.util.Map<String, Object> fileMap = new java.util.HashMap<>();
+                    fileMap.put("icon", newFile.icon);
+                    fileMap.put("fileName", newFile.fileName);
+                    fileMap.put("size", newFile.size);
+                    fileMap.put("uploadedOn", newFile.uploadedOn);
+                    fileMap.put("iconColor", newFile.iconColor);
+                    fileMap.put("secureUrl", newFile.secureUrl);
+                    fileMap.put("uploaderName", newFile.uploaderName);
+
+                    FirebaseConfig.getFirestore()
+                        .collection("workspaces")
+                        .document(spaceName.replaceAll("\\s+", "_"))
+                        .collection("files")
+                        .document(fileId)
+                        .set(fileMap);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+
+                javafx.application.Platform.runLater(() -> {
+                    filesList.add(newFile);
+                    refreshFileList();
+                    updateFileCount();
+                });
+            }
         });
 
         HBox titleRow = new HBox(10, titleBox, spacer, upload);
         titleRow.setAlignment(Pos.CENTER_LEFT);
 
-        fileSearchField = createSearchField("⌕  Search files...");
+        fileSearchField = createSearchField("Search files...");
         fileSearchField.textProperty().addListener((obs, oldValue, newValue) -> refreshFileList());
                 
         HBox tableHeader = new HBox();
@@ -758,7 +749,7 @@ public class SharedSpacePage {
 
         refreshFileList();
 
-        Button viewAll = createViewAllButton("View All Files");
+        Button viewAll = createViewAllButton("View all files ›");
         viewAll.setOnAction(e -> showAllFilesPopup());
 
         card.getChildren().addAll(
@@ -779,10 +770,10 @@ public class SharedSpacePage {
         field.setPrefHeight(38);
         field.setMaxWidth(Double.MAX_VALUE);
         field.setStyle(
-                "-fx-background-color:" + BG_INPUT + ";" +
-                "-fx-text-fill:" + TEXT_DARK + ";" +
-                "-fx-prompt-text-fill:" + TEXT_MUTED_DARK + ";" +
-                "-fx-border-color:" + BORDER_COLOR + ";" +
+                "-fx-background-color:" + INPUT_BG + ";" +
+                "-fx-text-fill:" + WHITE + ";" +
+                "-fx-prompt-text-fill:" + LIGHT_SECONDARY + ";" +
+                "-fx-border-color:" + INPUT_BORDER + ";" +
                 "-fx-border-radius:8;" +
                 "-fx-background-radius:8;" +
                 "-fx-padding:0 12 0 12;");
@@ -796,30 +787,26 @@ public class SharedSpacePage {
     }
 
     private VBox createMembersCard() {
-        VBox card = new VBox(12);
-        card.setPadding(new Insets(18));
-        card.setStyle(
-                "-fx-background-color:" + BG_CARD + ";" +
-                "-fx-border-color:" + BORDER_COLOR + ";" +
-                "-fx-border-radius:14;" +
-                "-fx-background-radius:14;");
+        VBox card = new VBox(14);
+        card.setPadding(new Insets(20));
+        card.setStyle(cardContainerStyle());
 
         Label title = new Label("Members");
         title.setFont(Font.font(FONT, FontWeight.BOLD, 17));
-        title.setStyle("-fx-text-fill: #000000;");
+        title.setStyle("-fx-text-fill: " + WHITE + ";");
 
-        manageAccessButton = new Button("♜  Manage Access");
-        manageAccessButton.setPrefHeight(36);
-        manageAccessButton.setPrefWidth(140);
+        manageAccessButton = new Button("Manage Access");
+        manageAccessButton.setPrefHeight(34);
+        manageAccessButton.setPrefWidth(130);
         manageAccessButton.setAlignment(Pos.CENTER);
         manageAccessButton.setFont(Font.font(FONT, FontWeight.BOLD, 11));
         manageAccessButton.setTextFill(Color.WHITE);
         manageAccessButton.setStyle(
-                "-fx-background-color:" + PRIMARY_BLUE + ";" +
-                "-fx-background-radius:7;" +
-                "-fx-border-color:" + PRIMARY_BLUE + ";" +
-                "-fx-border-radius:7;" +
-                "-fx-cursor:hand;");
+                "-fx-background-color: " + INPUT_BG + ";" +
+                "-fx-background-radius: 7;" +
+                "-fx-border-color: " + INPUT_BORDER + ";" +
+                "-fx-border-radius: 7;" +
+                "-fx-cursor: hand;");
 
         updateManageAccessPermission(manageAccessButton);
 
@@ -837,7 +824,7 @@ public class SharedSpacePage {
         HBox titleRow = new HBox(10, title, spacer, manageAccessButton);
         titleRow.setAlignment(Pos.CENTER_LEFT);
 
-        memberSearchField = createSearchField("⌕  Search members...");
+        memberSearchField = createSearchField("Search members...");
         memberSearchField.textProperty().addListener((obs, oldValue, newValue) -> refreshMemberList());
 
         memberListBox = new VBox(0);
@@ -850,18 +837,18 @@ public class SharedSpacePage {
 
         refreshMemberList();
 
-        Button viewAll = createViewAllButton("View All Members");
+        Button viewAll = createViewAllButton("View all members ›");
         viewAll.setOnAction(e -> showAllMembersPopup());
 
-        Button addMember = new Button("♙  Add Member     ▼");
+        Button addMember = new Button("+ Add Member");
         addMember.setMaxWidth(Double.MAX_VALUE);
-        addMember.setPrefHeight(40);
+        addMember.setPrefHeight(38);
         addMember.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         addMember.setTextFill(Color.WHITE);
         addMember.setStyle(
-                "-fx-background-color:" + PRIMARY_BLUE + ";" +
-                "-fx-background-radius:8;" +
-                "-fx-cursor:hand;");
+                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+                "-fx-background-radius: 8;" +
+                "-fx-cursor: hand;");
 
         updateAddMemberPermission(addMember);
 
@@ -901,15 +888,15 @@ public class SharedSpacePage {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Access Denied");
         dialog.setHeaderText("Permission Required");
+        styleDialog(dialog, 400, 200);
 
         Label label = new Label(message);
         label.setFont(Font.font(FONT, 13));
-        label.setStyle("-fx-text-fill: #000000;");
+        label.setStyle("-fx-text-fill: " + WHITE + ";");
         label.setWrapText(true);
 
         VBox box = new VBox(label);
         box.setPadding(new Insets(20));
-        box.setPrefWidth(360);
 
         dialog.getDialogPane().setContent(box);
         addCloseButton(dialog);
@@ -944,7 +931,7 @@ public class SharedSpacePage {
                             : "No matching files found.");
 
             empty.setFont(Font.font(FONT, 12));
-            empty.setStyle("-fx-text-fill: #000000;");
+            empty.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
             empty.setPadding(new Insets(15));
 
             fileListBox.getChildren().add(empty);
@@ -956,24 +943,23 @@ public class SharedSpacePage {
     private HBox createFileRow(CollaborationFileData file) {
         HBox row = new HBox();
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setMinHeight(58);
+        row.setMinHeight(52);
         row.setPadding(new Insets(7, 10, 7, 10));
         row.setStyle(
-                "-fx-border-color:transparent transparent " +
-                BORDER_COLOR + " transparent;");
+                "-fx-border-color: transparent transparent rgba(255, 255, 255, 0.05) transparent;");
 
         Label icon = new Label(file.icon != null ? file.icon : "FILE");
         icon.setFont(Font.font(FONT, FontWeight.BOLD, 8));
         icon.setTextFill(Color.WHITE);
         icon.setAlignment(Pos.CENTER);
-        icon.setPrefSize(30, 34);
+        icon.setPrefSize(30, 30);
         icon.setStyle(
-                "-fx-background-color:" + (file.iconColor != null ? file.iconColor : PRIMARY_BLUE) + ";" +
-                "-fx-background-radius:4;");
+                "-fx-background-color: rgba(56, 189, 248, 0.2);" +
+                "-fx-background-radius: 6;");
 
         Label name = new Label(file.fileName != null ? file.fileName : "Unnamed File");
         name.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        name.setStyle("-fx-text-fill: #000000;");
+        name.setStyle("-fx-text-fill: " + WHITE + ";");
 
         HBox nameBox = new HBox(12, icon, name);
         nameBox.setAlignment(Pos.CENTER_LEFT);
@@ -983,21 +969,22 @@ public class SharedSpacePage {
         String displaySize = (file.size == null || file.size.equalsIgnoreCase("Cloud File") || file.size.equalsIgnoreCase("Local File") || file.size.isEmpty()) ? "1.2 MB" : file.size;
         Label size = new Label(displaySize);
         size.setFont(Font.font(FONT, 12));
-        size.setStyle("-fx-text-fill: #000000;");
+        size.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
         size.setPrefWidth(110);
 
         String displayDate = (file.uploadedOn == null || file.uploadedOn.equalsIgnoreCase("Just now") || file.uploadedOn.isEmpty()) ? "26 Aug 2026" : file.uploadedOn;
         Label date = new Label(displayDate);
         date.setFont(Font.font(FONT, 12));
-        date.setStyle("-fx-text-fill: #000000;");
+        date.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
         date.setPrefWidth(180);
 
         Button more = new Button("⋮");
-        more.setFont(Font.font(FONT, FontWeight.BOLD, 18));
-        more.setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-cursor: hand;");
+        more.setFont(Font.font(FONT, FontWeight.BOLD, 16));
+        more.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + "; -fx-background-color: transparent; -fx-cursor: hand;");
         more.setPrefWidth(30);
 
         ContextMenu menu = new ContextMenu();
+        menu.setStyle("-fx-background-color: #0A121E; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8;");
         
         MenuItem viewFile = new MenuItem("View File");
         viewFile.setOnAction(e -> {
@@ -1051,10 +1038,6 @@ public class SharedSpacePage {
                 filesList.remove(file);
                 refreshFileList();
                 updateFileCount();
-            } else if ("Editor".equalsIgnoreCase(activeRole)) {
-                showAccessDeniedPopup("Editors cannot delete files.");
-            } else if ("Viewer".equalsIgnoreCase(activeRole)) {
-                showAccessDeniedPopup("Viewers cannot delete files.");
             } else {
                 showAccessDeniedPopup("You do not have permission to delete files.");
             }
@@ -1071,8 +1054,7 @@ public class SharedSpacePage {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Viewing File: " + (file.fileName != null ? file.fileName : "Document"));
         dialog.setHeaderText("In-App Media & Document Viewer: " + (file.fileName != null ? file.fileName : ""));
-        dialog.getDialogPane().setPrefWidth(1000);
-        dialog.getDialogPane().setPrefHeight(700);
+        styleDialog(dialog, 1000, 700);
 
         WebView webView = new WebView();
         webView.setPrefSize(980, 620);
@@ -1086,8 +1068,8 @@ public class SharedSpacePage {
             } else if (lowerName.endsWith(".pdf")) {
                 targetUrl = file.secureUrl;
             } else if (lowerName.endsWith(".png") || lowerName.endsWith(".jpg") || lowerName.endsWith(".jpeg") || lowerName.endsWith(".gif") || lowerName.endsWith(".webp")) {
-                String htmlContent = "<html><body style='background:#f1f5f9; display:flex; justify-content:center; align-items:center; height:100vh; margin:0;'>"
-                        + "<img src='" + file.secureUrl + "' style='max-width:100%; max-height:100%; object-fit:contain; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius:8px;'/>"
+                String htmlContent = "<html><body style='background:#060B14; display:flex; justify-content:center; align-items:center; height:100vh; margin:0;'>"
+                        + "<img src='" + file.secureUrl + "' style='max-width:100%; max-height:100%; object-fit:contain; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-radius:8px;'/>"
                         + "</body></html>";
                 webView.getEngine().loadContent(htmlContent);
                 targetUrl = null;
@@ -1097,12 +1079,12 @@ public class SharedSpacePage {
                 webView.getEngine().load(targetUrl);
             }
         } else {
-            webView.getEngine().loadContent("<h3 style='font-family:sans-serif; text-align:center; margin-top:50px;'>File preview unavailable.</h3>");
+            webView.getEngine().loadContent("<h3 style='font-family:sans-serif; color:white; text-align:center; margin-top:50px;'>File preview unavailable.</h3>");
         }
 
         VBox container = new VBox(10, webView);
         container.setPadding(new Insets(15));
-        container.setStyle("-fx-background-color: " + BG_CARD + ";");
+        container.setStyle("-fx-background-color: transparent;");
         VBox.setVgrow(webView, Priority.ALWAYS);
 
         dialog.getDialogPane().setContent(container);
@@ -1118,15 +1100,15 @@ public class SharedSpacePage {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle(title);
         dialog.setHeaderText(heading);
+        styleDialog(dialog, 400, 220);
 
         Label label = new Label(message);
         label.setFont(Font.font(FONT, 13));
-        label.setStyle("-fx-text-fill: #000000;");
+        label.setStyle("-fx-text-fill: " + WHITE + ";");
         label.setWrapText(true);
 
         VBox box = new VBox(label);
         box.setPadding(new Insets(20));
-        box.setPrefWidth(380);
 
         dialog.getDialogPane().setContent(box);
         addCloseButton(dialog);
@@ -1145,6 +1127,13 @@ public class SharedSpacePage {
         int count = 0;
 
         for (CollaborationMemberData member : membersList) {
+            String status = member.status != null ? member.status : "active";
+            boolean isActiveOrOwner = "active".equalsIgnoreCase(status) || "Owner".equalsIgnoreCase(member.role);
+            
+            if (!isActiveOrOwner) {
+                continue;
+            }
+
             boolean matches = searchText.isEmpty()
                     || (member.name != null && member.name.toLowerCase().contains(searchText))
                     || (member.email != null && member.email.toLowerCase().contains(searchText));
@@ -1158,11 +1147,11 @@ public class SharedSpacePage {
         if (count == 0) {
             Label empty = new Label(
                     searchText.isEmpty()
-                            ? "No members added yet."
+                            ? "No active members yet."
                             : "No matching members found.");
 
             empty.setFont(Font.font(FONT, 11));
-            empty.setStyle("-fx-text-fill: #000000;");
+            empty.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
             empty.setPadding(new Insets(12, 0, 12, 0));
 
             memberListBox.getChildren().add(empty);
@@ -1172,51 +1161,60 @@ public class SharedSpacePage {
     }
 
     private HBox createMemberRow(CollaborationMemberData member) {
-        HBox row = new HBox(9);
+        HBox row = new HBox(10);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(9, 0, 9, 0));
+        row.setPadding(new Insets(8, 4, 8, 4));
         row.setStyle(
-                "-fx-border-color:transparent transparent " +
-                BORDER_COLOR + " transparent;");
+                "-fx-border-color: transparent transparent rgba(255, 255, 255, 0.05) transparent;");
 
         Label avatar = new Label(member.initials != null ? member.initials : "M");
-        avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        avatar.setTextFill(Color.WHITE);
+        avatar.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+        avatar.setTextFill(Color.web("#60A5FA"));
         avatar.setAlignment(Pos.CENTER);
-        avatar.setPrefSize(36, 36);
+        avatar.setPrefSize(34, 34);
         avatar.setStyle(
-                "-fx-background-color: #334155;" +
-                "-fx-background-radius: 50%;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 3, 0, 0, 1);");
+                "-fx-background-color: rgba(37, 99, 235, 0.2);" +
+                "-fx-background-radius: 50%;");
 
         Label name = new Label(member.name != null ? member.name : "Member");
         name.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        name.setStyle("-fx-text-fill: #000000;");
+        name.setStyle("-fx-text-fill: " + WHITE + ";");
 
         Label email = new Label(member.email != null ? member.email : "");
-        email.setFont(Font.font(FONT, 9));
-        email.setStyle("-fx-text-fill: #000000;");
+        email.setFont(Font.font(FONT, 10));
+        email.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
         VBox info = new VBox(2, name, email);
         HBox.setHgrow(info, Priority.ALWAYS);
 
-        String roleBadgeBg = "Owner".equalsIgnoreCase(member.role) ? "#BFDBFE" : "#E2E8F0";
-        String roleBadgeText = "Owner".equalsIgnoreCase(member.role) ? "#1E40AF" : "#000000";
+        String roleBg = "rgba(255, 255, 255, 0.08)";
+        String roleText = LIGHT_SECONDARY;
+
+        if ("Owner".equalsIgnoreCase(member.role)) {
+            roleBg = "rgba(37, 99, 235, 0.2)";
+            roleText = "#60A5FA";
+        } else if ("Moderator".equalsIgnoreCase(member.role)) {
+            roleBg = "rgba(245, 158, 11, 0.2)";
+            roleText = "#FBBF24";
+        } else if ("Editor".equalsIgnoreCase(member.role)) {
+            roleBg = "rgba(56, 189, 248, 0.2)";
+            roleText = "#38BDF8";
+        } else if ("Viewer".equalsIgnoreCase(member.role)) {
+            roleBg = "rgba(16, 185, 129, 0.2)";
+            roleText = "#34D399";
+        }
 
         Label role = new Label(member.role != null ? member.role : "Viewer");
         role.setFont(Font.font(FONT, FontWeight.BOLD, 10));
         role.setStyle(
-                "-fx-text-fill: " + roleBadgeText + ";" +
-                "-fx-background-color: " + roleBadgeBg + ";" +
+                "-fx-text-fill: " + roleText + ";" +
+                "-fx-background-color: " + roleBg + ";" +
                 "-fx-background-radius: 6;" +
-                "-fx-border-color: #64748B;" +
-                "-fx-border-radius: 6;" +
-                "-fx-border-width: 0.8;" +
                 "-fx-padding: 3 8;");
 
         Button more = new Button("⋮");
-        more.setFont(Font.font(FONT, FontWeight.BOLD, 17));
-        more.setStyle("-fx-text-fill: #000000; -fx-background-color: transparent; -fx-cursor: hand;");
+        more.setFont(Font.font(FONT, FontWeight.BOLD, 16));
+        more.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + "; -fx-background-color: transparent; -fx-cursor: hand;");
         more.setPrefWidth(25);
 
         boolean isOwner = isCurrentLoggedInUserOwner();
@@ -1224,6 +1222,8 @@ public class SharedSpacePage {
         more.setManaged(isOwner);
 
         ContextMenu menu = new ContextMenu();
+        menu.setStyle("-fx-background-color: #0A121E; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8;");
+        
         if (isOwner) {
             MenuItem remove = new MenuItem("Remove Member");
 
@@ -1285,26 +1285,19 @@ public class SharedSpacePage {
         Button button = new Button(text);
         button.setMaxWidth(Double.MAX_VALUE);
         button.setPrefHeight(34);
-        button.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        button.setTextFill(Color.web(PRIMARY_BLUE));
-        button.setStyle(
-                "-fx-background-color:" + PRIMARY_LIGHT_BLUE + ";" +
-                "-fx-border-color:" + BORDER_COLOR + ";" +
-                "-fx-border-radius:7;" +
-                "-fx-background-radius:7;" +
-                "-fx-cursor:hand;");
+        button.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+        button.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-cursor: hand; -fx-padding: 0;");
         return button;
     }
 
     private void showAllFilesPopup() {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("All Files");
-        dialog.setHeaderText(
-                spaceName + " - All Uploaded Files");
+        dialog.setHeaderText(spaceName + " - All Uploaded Files");
+        styleDialog(dialog, 700, 500);
 
         VBox box = new VBox(0);
-        box.setPrefWidth(700);
-        box.setStyle("-fx-background-color: " + BG_CARD + ";");
+        box.setPrefWidth(660);
 
         for (CollaborationFileData file : filesList) {
             box.getChildren().add(createFileRow(file));
@@ -1312,12 +1305,9 @@ public class SharedSpacePage {
 
         ScrollPane scroll = new ScrollPane(box);
         scroll.setFitToWidth(true);
-        scroll.setPrefWidth(720);
-        scroll.setPrefHeight(420);
+        scroll.setPrefViewportHeight(400);
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.setStyle(
-                "-fx-background-color:" + BG_CARD + ";" +
-                "-fx-border-color:transparent;");
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         dialog.getDialogPane().setContent(scroll);
         addCloseButton(dialog);
@@ -1327,11 +1317,11 @@ public class SharedSpacePage {
     private void showAllMembersPopup() {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("All Members");
-        dialog.setHeaderText(
-                spaceName + " - All Members");
+        dialog.setHeaderText(spaceName + " - All Members");
+        styleDialog(dialog, 540, 500);
 
         VBox box = new VBox(0);
-        box.setPrefWidth(520);
+        box.setPrefWidth(500);
 
         for (CollaborationMemberData member : membersList) {
             box.getChildren().add(createMemberRow(member));
@@ -1339,12 +1329,9 @@ public class SharedSpacePage {
 
         ScrollPane scroll = new ScrollPane(box);
         scroll.setFitToWidth(true);
-        scroll.setPrefWidth(550);
-        scroll.setPrefHeight(420);
+        scroll.setPrefViewportHeight(400);
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.setStyle(
-                "-fx-background-color:" + BG_CARD + ";" +
-                "-fx-border-color:transparent;");
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         dialog.getDialogPane().setContent(scroll);
         addCloseButton(dialog);
@@ -1360,14 +1347,16 @@ public class SharedSpacePage {
 
     private void updateMemberCount() {
         if (memberCountLabel != null) {
-            memberCountLabel.setText(
-                    membersList.size() + " Members");
+            long activeCount = membersList.stream()
+                .filter(m -> "active".equalsIgnoreCase(m.status) || "Owner".equalsIgnoreCase(m.role))
+                .count();
+            memberCountLabel.setText(activeCount + " Members");
         }
     }
 
     private void styleTableHeader(Label label) {
         label.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        label.setStyle("-fx-text-fill: #000000;");
+        label.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
     }
 
     private void showManageAccessPopup() {
@@ -1377,37 +1366,30 @@ public class SharedSpacePage {
         }
 
         Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Manage Access");
-        dialog.setHeaderText(
-                spaceName + " - Manage Access");
+        dialog.setTitle("Manage Access & Invites");
+        dialog.setHeaderText(spaceName + " - Member Access & Invites");
+        styleDialog(dialog, 650, 520);
 
-        dialog.getDialogPane().setPrefWidth(600);
-        dialog.getDialogPane().setPrefHeight(470);
-
-        Label description = new Label(
-                "Manage members and their access roles.");
+        Label description = new Label("View active roles, pending invitations, and declined requests.");
         description.setFont(Font.font(FONT, 12));
-        description.setStyle("-fx-text-fill: #000000;");
+        description.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
-        Label currentRole = new Label(
-                "Current User Role: " + getLoggedInUserRole());
+        Label currentRole = new Label("Current User Role: " + getLoggedInUserRole());
         currentRole.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        currentRole.setTextFill(Color.web(PRIMARY_BLUE));
+        currentRole.setTextFill(Color.web("#60A5FA"));
 
-        VBox memberRows = new VBox(0);
+        VBox memberRows = new VBox(8);
+        memberRows.setPadding(new Insets(5));
 
         for (CollaborationMemberData member : membersList) {
-            memberRows.getChildren().add(
-                    createManageAccessRow(member));
+            memberRows.getChildren().add(createManageAccessRow(member));
         }
 
         ScrollPane scroll = new ScrollPane(memberRows);
         scroll.setFitToWidth(true);
-        scroll.setPrefHeight(340);
+        scroll.setPrefViewportHeight(360);
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.setStyle(
-                "-fx-background-color:" + BG_CARD + ";" +
-                "-fx-border-color:" + BORDER_COLOR + ";");
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         VBox root = new VBox(
                 12,
@@ -1427,44 +1409,61 @@ public class SharedSpacePage {
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(10, 8, 10, 8));
         row.setStyle(
-                "-fx-border-color:transparent transparent " +
-                BORDER_COLOR + " transparent;");
+                "-fx-border-color: transparent transparent rgba(255, 255, 255, 0.05) transparent;");
 
         Label avatar = new Label(member.initials != null ? member.initials : "M");
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        avatar.setTextFill(Color.WHITE);
+        avatar.setTextFill(Color.web("#60A5FA"));
         avatar.setAlignment(Pos.CENTER);
         avatar.setPrefSize(38, 38);
         avatar.setStyle(
-                "-fx-background-color: #334155;" +
+                "-fx-background-color: rgba(37, 99, 235, 0.2);" +
                 "-fx-background-radius: 50%;");
 
         Label name = new Label(member.name != null ? member.name : "Member");
         name.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        name.setStyle("-fx-text-fill: #000000;");
+        name.setStyle("-fx-text-fill: " + WHITE + ";");
 
         Label email = new Label(member.email != null ? member.email : "");
-        email.setFont(Font.font(FONT, 9));
-        email.setStyle("-fx-text-fill: #000000;");
+        email.setFont(Font.font(FONT, 10));
+        email.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
         VBox info = new VBox(2, name, email);
         HBox.setHgrow(info, Priority.ALWAYS);
 
+        String status = member.status != null ? member.status : "active";
+
         if (member.role != null && member.role.equalsIgnoreCase("Owner")) {
             Label owner = new Label("Owner");
-            owner.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-            owner.setTextFill(Color.web(PRIMARY_BLUE));
+            owner.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+            owner.setTextFill(Color.web("#60A5FA"));
             owner.setPadding(new Insets(6, 12, 6, 12));
             owner.setStyle(
-                    "-fx-background-color:" +
-                    PRIMARY_LIGHT_BLUE + ";" +
-                    "-fx-background-radius:6;");
+                    "-fx-background-color: rgba(37, 99, 235, 0.2);" +
+                    "-fx-background-radius: 6;");
 
-            row.getChildren().addAll(
-                    avatar,
-                    info,
-                    owner);
+            row.getChildren().addAll(avatar, info, owner);
+            return row;
+        }
 
+        if ("pending".equalsIgnoreCase(status)) {
+            Label pendingBadge = new Label("⏳ Pending Acceptance");
+            pendingBadge.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+            pendingBadge.setTextFill(Color.web("#FBBF24"));
+            pendingBadge.setPadding(new Insets(6, 12, 6, 12));
+            pendingBadge.setStyle("-fx-background-color: rgba(245, 158, 11, 0.2); -fx-background-radius: 6;"); 
+            
+            row.getChildren().addAll(avatar, info, pendingBadge);
+            return row;
+        } 
+        else if ("declined".equalsIgnoreCase(status)) {
+            Label declinedBadge = new Label("✕ Declined Request");
+            declinedBadge.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+            declinedBadge.setTextFill(Color.web("#F87171"));
+            declinedBadge.setPadding(new Insets(6, 12, 6, 12));
+            declinedBadge.setStyle("-fx-background-color: rgba(239, 68, 68, 0.2); -fx-background-radius: 6;"); 
+
+            row.getChildren().addAll(avatar, info, declinedBadge);
             return row;
         }
 
@@ -1474,8 +1473,9 @@ public class SharedSpacePage {
         roleCombo.setPrefWidth(110);
         roleCombo.setPrefHeight(34);
         roleCombo.setStyle(
-                "-fx-background-color:" + BG_INPUT + ";" +
-                "-fx-border-color:" + BORDER_COLOR + ";" +
+                "-fx-background-color:" + INPUT_BG + ";" +
+                "-fx-text-fill: white;" +
+                "-fx-border-color:" + INPUT_BORDER + ";" +
                 "-fx-border-radius:7;" +
                 "-fx-background-radius:7;");
 
@@ -1538,14 +1538,14 @@ public class SharedSpacePage {
 
     private void updateMemberAppearance(CollaborationMemberData member) {
         if ("Editor".equalsIgnoreCase(member.role)) {
-            member.avatarBackground = PRIMARY_LIGHT_BLUE;
-            member.avatarColor = PRIMARY_BLUE;
+            member.avatarBackground = "rgba(56, 189, 248, 0.2)";
+            member.avatarColor = "#38BDF8";
         } else if ("Moderator".equalsIgnoreCase(member.role)) {
-            member.avatarBackground = ORANGE_LIGHT;
-            member.avatarColor = ORANGE;
+            member.avatarBackground = "rgba(245, 158, 11, 0.2)";
+            member.avatarColor = "#FBBF24";
         } else if ("Viewer".equalsIgnoreCase(member.role)) {
-            member.avatarBackground = SUCCESS_LIGHT;
-            member.avatarColor = SUCCESS;
+            member.avatarBackground = "rgba(16, 185, 129, 0.2)";
+            member.avatarColor = "#34D399";
         }
     }
 
@@ -1558,23 +1558,23 @@ public class SharedSpacePage {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Add Member");
         dialog.setHeaderText("Send invitation to a new member");
-
-        dialog.getDialogPane().setPrefWidth(500);
-        dialog.getDialogPane().setPrefHeight(430);
+        styleDialog(dialog, 460, 400);
 
         Label nameLabel = new Label("Name");
         styleFormLabel(nameLabel);
 
         TextField nameField = new TextField();
         nameField.setPromptText("Enter member name");
-        nameField.setPrefHeight(42);
+        nameField.setPrefHeight(38);
+        nameField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: white; -fx-prompt-text-fill: " + LIGHT_SECONDARY + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8;");
 
         Label emailLabel = new Label("Email");
         styleFormLabel(emailLabel);
 
         TextField emailField = new TextField();
         emailField.setPromptText("Enter member email");
-        emailField.setPrefHeight(42);
+        emailField.setPrefHeight(38);
+        emailField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: white; -fx-prompt-text-fill: " + LIGHT_SECONDARY + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8;");
 
         Label roleLabel = new Label("Role");
         styleFormLabel(roleLabel);
@@ -1583,10 +1583,11 @@ public class SharedSpacePage {
         roleCombo.getItems().addAll("Viewer", "Moderator", "Editor");
         roleCombo.setValue("Viewer");
         roleCombo.setMaxWidth(Double.MAX_VALUE);
-        roleCombo.setPrefHeight(42);
+        roleCombo.setPrefHeight(38);
         roleCombo.setStyle(
-                "-fx-background-color:" + BG_INPUT + ";" +
-                "-fx-border-color:" + BORDER_COLOR + ";" +
+                "-fx-background-color:" + INPUT_BG + ";" +
+                "-fx-text-fill: white;" +
+                "-fx-border-color:" + INPUT_BORDER + ";" +
                 "-fx-border-radius:7;" +
                 "-fx-background-radius:7;");
 
@@ -1616,28 +1617,10 @@ public class SharedSpacePage {
         dialog.getDialogPane().setContent(box);
 
         Button sendNode = (Button) dialog.getDialogPane().lookupButton(sendButton);
-
-        sendNode.setPrefHeight(38);
-        sendNode.setPrefWidth(120);
-        sendNode.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        sendNode.setTextFill(Color.WHITE);
-        sendNode.setStyle(
-                "-fx-background-color:" + PRIMARY_BLUE + ";" +
-                "-fx-background-radius:7;" +
-                "-fx-cursor:hand;");
+        sendNode.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 7; -fx-cursor: hand;");
 
         Button cancelNode = (Button) dialog.getDialogPane().lookupButton(cancelButton);
-
-        cancelNode.setPrefHeight(38);
-        cancelNode.setPrefWidth(90);
-        cancelNode.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        cancelNode.setStyle("-fx-text-fill: #000000;");
-        cancelNode.setStyle(
-                "-fx-background-color:" + BG_INPUT + ";" +
-                "-fx-border-color:" + BORDER_COLOR + ";" +
-                "-fx-border-radius:7;" +
-                "-fx-background-radius:7;" +
-                "-fx-cursor:hand;");
+        cancelNode.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 7; -fx-background-radius: 7; -fx-cursor: hand;");
 
         dialog.showAndWait().ifPresent(result -> {
             if (result != sendButton) return;
@@ -1655,14 +1638,14 @@ public class SharedSpacePage {
             String avatarColor;
 
             if (role.equalsIgnoreCase("Editor")) {
-                background = PRIMARY_LIGHT_BLUE;
-                avatarColor = PRIMARY_BLUE;
+                background = "rgba(56, 189, 248, 0.2)";
+                avatarColor = "#38BDF8";
             } else if (role.equalsIgnoreCase("Moderator")) {
-                background = ORANGE_LIGHT;
-                avatarColor = ORANGE;
+                background = "rgba(245, 158, 11, 0.2)";
+                avatarColor = "#FBBF24";
             } else {
-                background = SUCCESS_LIGHT;
-                avatarColor = SUCCESS;
+                background = "rgba(16, 185, 129, 0.2)";
+                avatarColor = "#34D399";
             }
 
             CollaborationMemberData newMember = new CollaborationMemberData(
@@ -1700,8 +1683,8 @@ public class SharedSpacePage {
     }
 
     private void styleFormLabel(Label label) {
-        label.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-        label.setStyle("-fx-text-fill: #000000;");
+        label.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        label.setStyle("-fx-text-fill: " + WHITE + ";");
     }
 
     private String getInitials(String name) {
@@ -1721,24 +1704,25 @@ public class SharedSpacePage {
 
     public Scene getSharedSpacePageScene() {
         BorderPane root = new BorderPane();
-
-        root.setStyle("-fx-background-color:" + BG_APP + ";");
-
+        root.setStyle("-fx-background-color: " + SIDEBAR_BG + ";");
         root.setLeft(createSidebar());
 
-        ScrollPane scroll = new ScrollPane(getSharedSpaceContent());
+        VBox mainContent = getSharedSpaceContent();
+        
+        ScrollPane scrollPane = new ScrollPane(mainContent);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
-        scroll.setFitToWidth(true);
-        scroll.setFitToHeight(true);
-        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scroll.setStyle(
-                "-fx-background-color:" + BG_APP + ";" +
-                "-fx-border-color:transparent;");
+        VBox mainArea = new VBox(scrollPane);
+        mainArea.setStyle("-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";");
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
-        root.setCenter(scroll);
+        root.setCenter(mainArea);
 
-        return new Scene(root, 1280, 800);
+        return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
     private VBox createSidebar() {
@@ -1754,7 +1738,7 @@ public class SharedSpacePage {
 
         Label logoText = new Label("OneSpace");
         logoText.setFont(Font.font(FONT, FontWeight.BOLD, 19));
-        logoText.setStyle("-fx-text-fill:" + TEXT_LIGHT + ";");
+        logoText.setStyle("-fx-text-fill:" + WHITE + ";");
 
         HBox logoHeader = new HBox(10, logoIcon, logoText);
         logoHeader.setAlignment(Pos.CENTER_LEFT);
@@ -1762,29 +1746,29 @@ public class SharedSpacePage {
         VBox logoBox = new VBox(4, logoHeader);
         logoBox.setPadding(new Insets(0, 0, 18, 6));
 
-        Button dashboardBtn = createSidebarButton("⌂", "Dashboard", false, e -> LandingPage.showUserDashboard());
-        Button spacesBtn = createSidebarButton("📁", "Spaces", false, e -> LandingPage.showUserSpace());
-        Button searchBtn = createSidebarButton("⌕", "Search", false, e -> LandingPage.showUserSearch());
-        Button calendarBtn = createSidebarButton("📅", "Calendar", false, e -> LandingPage.showCalendarPage());
-        Button aiBtn = createSidebarButton("✧", "AI Assistant", false, e -> LandingPage.showAiAssistantPage());
-        Button collabBtn = createSidebarButton("👥", "Collaboration", true, e -> LandingPage.showCollaborationPage());
-        Button recentBtn = createSidebarButton("🕒", "Recent", false, e -> LandingPage.showRecentPage());
-        Button trashBtn = createSidebarButton("🗑", "Trash", false, e -> LandingPage.showTrashPage());
-        Button settingsBtn = createSidebarButton("⚙", "Settings", false, e -> LandingPage.showSettingPage());
+        Button dashboardBtn = createSidebarButton("dashboard", "Dashboard", false, e -> LandingPage.showUserDashboard());
+        Button spacesBtn = createSidebarButton("files", "Spaces", false, e -> LandingPage.showUserSpace());
+        Button searchBtn = createSidebarButton("search", "Search", false, e -> LandingPage.showUserSearch());
+        Button calendarBtn = createSidebarButton("calendar", "Calendar", false, e -> LandingPage.showCalendarPage());
+        Button aiBtn = createSidebarButton("ai", "AI Assistant", false, e -> LandingPage.showAiAssistantPage());
+        Button collabBtn = createSidebarButton("collaboration", "Collaboration", true, e -> LandingPage.showCollaborationPage());
+        Button recentBtn = createSidebarButton("recent", "Recent", false, e -> LandingPage.showRecentPage());
+        Button trashBtn = createSidebarButton("trash", "Trash", false, e -> LandingPage.showTrashPage());
+        Button settingsBtn = createSidebarButton("settings", "Settings", false, e -> LandingPage.showSettingPage());
 
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
 
         Label storageTitle = new Label("Storage Used");
-        storageTitle.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-        storageTitle.setStyle("-fx-text-fill:" + TEXT_LIGHT + ";");
+        storageTitle.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        storageTitle.setStyle("-fx-text-fill:" + WHITE + ";");
 
         Label storageVal = new Label("64.2 GB of 100 GB");
         storageVal.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        storageVal.setStyle("-fx-text-fill:" + TEXT_LIGHT + ";");
+        storageVal.setStyle("-fx-text-fill:" + WHITE + ";");
 
         Label storagePercent = new Label("64%");
         storagePercent.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        storagePercent.setStyle("-fx-text-fill:" + TEXT_MUTED_LIGHT + ";");
+        storagePercent.setStyle("-fx-text-fill:" + LIGHT_SECONDARY + ";");
 
         Region storageSpacer = new Region();
         HBox.setHgrow(storageSpacer, Priority.ALWAYS);
@@ -1795,17 +1779,16 @@ public class SharedSpacePage {
         ProgressBar storageProgress = new ProgressBar(.64);
         storageProgress.setMaxWidth(Double.MAX_VALUE);
         storageProgress.setPrefHeight(6);
-        storageProgress.setStyle("-fx-accent:" + PRIMARY_BLUE + ";-fx-control-inner-background:#0E1520;");
+        storageProgress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
 
         Button manageStorageBtn = new Button("Manage Storage ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
-        manageStorageBtn.setStyle("-fx-background-color:transparent;-fx-text-fill:#60A5FA;-fx-padding:2 0 0 0;-fx-cursor:hand;");
+        manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
         manageStorageBtn.setOnAction(e -> LandingPage.showLandingPage());
 
         VBox storageCard = new VBox(8, storageTitle, storageValueGroup, storageProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
-        storageCard.setStyle("-fx-background-color:" + BG_SIDEBAR_CARD + ";-fx-border-color:" + SIDEBAR_BORDER +
-                ";-fx-border-radius:12;-fx-background-radius:12;");
+        storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
 
         Region sidebarSpacer = new Region();
         VBox.setVgrow(sidebarSpacer, Priority.ALWAYS);
@@ -1814,44 +1797,95 @@ public class SharedSpacePage {
         sidebar.setPadding(new Insets(20, 14, 20, 14));
         sidebar.setPrefWidth(ResponsiveUtil.SIDEBAR_WIDTH);
         sidebar.setMinWidth(ResponsiveUtil.SIDEBAR_WIDTH);
-        sidebar.setStyle("-fx-background-color:" + BG_SIDEBAR + ";-fx-border-color:" + SIDEBAR_BORDER +
-                ";-fx-border-width:0 1 0 0;");
+        sidebar.setStyle("-fx-background-color: " + SIDEBAR_BG + "; -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-width: 0 1 0 0;");
 
         return sidebar;
     }
 
-    private Button createSidebarButton(String icon, String text, boolean active, javafx.event.EventHandler<javafx.event.ActionEvent> action) {
-        Label iconLbl = new Label(icon);
-        iconLbl.setFont(Font.font(FONT, 14));
+    private Button createSidebarButton(String iconType, String text, boolean active, javafx.event.EventHandler<javafx.event.ActionEvent> action) {
+        SVGPath icon = createIcon(iconType);
+        icon.setStroke(Color.web(active ? WHITE : LIGHT_SECONDARY));
+        icon.setStrokeWidth(2);
 
-        Label textLbl = new Label(text);
-        textLbl.setFont(Font.font(FONT, active ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
+        StackPane iconBox = new StackPane(icon);
+        iconBox.setPrefSize(24, 24);
 
-        HBox content = new HBox(12, iconLbl, textLbl);
+        Label label = new Label(text);
+        label.setFont(Font.font(FONT, active ? FontWeight.BOLD : FontWeight.MEDIUM, 13));
+        label.setTextFill(Color.web(WHITE));
+
+        HBox content = new HBox(12, iconBox, label);
         content.setAlignment(Pos.CENTER_LEFT);
 
-        Button btn = new Button("", content);
-        btn.setMaxWidth(Double.MAX_VALUE);
-        btn.setPrefHeight(38);
-        btn.setAlignment(Pos.CENTER_LEFT);
-        btn.setPadding(new Insets(0, 12, 0, 12));
-        btn.setOnAction(action);
+        Button button = new Button("", content);
+        button.setMaxWidth(Double.MAX_VALUE);
+        button.setPrefHeight(38);
+        button.setAlignment(Pos.CENTER_LEFT);
+        button.setPadding(new Insets(0, 12, 0, 12));
+        button.setOnAction(action);
 
         if (active) {
-            btn.setStyle("-fx-background-color:" + PRIMARY_BLUE + ";-fx-background-radius:8;-fx-cursor:hand;");
-            iconLbl.setStyle("-fx-text-fill:" + TEXT_LIGHT + ";");
-            textLbl.setStyle("-fx-text-fill:" + TEXT_LIGHT + ";");
+            button.setStyle(
+                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+                "-fx-background-radius: 12;" +
+                "-fx-border-color: rgba(96, 165, 250, 0.6);" +
+                "-fx-border-radius: 12;" +
+                "-fx-border-width: 1;" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);"
+            );
         } else {
-            btn.setStyle("-fx-background-color:transparent;-fx-background-radius:8;-fx-cursor:hand;");
-            iconLbl.setStyle("-fx-text-fill:" + TEXT_MUTED_LIGHT + ";");
-            textLbl.setStyle("-fx-text-fill:" + TEXT_LIGHT + ";");
-
-            btn.setOnMouseEntered(e -> btn.setStyle(
-                    "-fx-background-color:#26354A;-fx-background-radius:8;-fx-cursor:hand;"));
-            btn.setOnMouseExited(e -> btn.setStyle(
-                    "-fx-background-color:transparent;-fx-background-radius:8;-fx-cursor:hand;"));
+            button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+            button.setOnMouseEntered(e -> {
+                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+                icon.setStroke(Color.WHITE);
+                label.setTextFill(Color.WHITE);
+            });
+            button.setOnMouseExited(e -> {
+                button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+                icon.setStroke(Color.web(LIGHT_SECONDARY));
+                label.setTextFill(Color.web(WHITE));
+            });
         }
 
-        return btn;
+        return button;
+    }
+
+    private void styleDialog(Dialog<?> dialog, double width, double height) {
+        dialog.getDialogPane().setPrefWidth(width);
+        dialog.getDialogPane().setPrefHeight(height);
+        dialog.getDialogPane().setStyle(
+                "-fx-background-color: #0A121E;" +
+                "-fx-border-color: " + CARD_BORDER +
+                ";-fx-border-radius:12;-fx-background-radius:12;");
+    }
+
+    private String cardContainerStyle() {
+        return "-fx-background-color: " + CARD_BG +
+                ";-fx-border-color: " + CARD_BORDER +
+                ";-fx-border-width: 1.2;-fx-border-radius:20;-fx-background-radius:20;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);";
+    }
+
+    private SVGPath createIcon(String type) {
+        SVGPath icon = new SVGPath();
+        icon.setFill(Color.TRANSPARENT);
+        icon.setStrokeWidth(2);
+        switch (type) {
+            case "dashboard": icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z"); break;
+            case "files": icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13"); break;
+            case "search": icon.setContent("M10 3 A7 7 0 1 0 10 17 A7 7 0 0 0 10 3 Z M15 15 L21 21"); break;
+            case "calendar": icon.setContent("M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z M16 2V6 M8 2V6 M3 10H21"); break;
+            case "ai": icon.setContent("M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z"); break;
+            case "collaboration": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
+            case "recent": icon.setContent("M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"); break;
+            case "trash": icon.setContent("M3 6h18 M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"); break;
+            case "settings": icon.setContent("M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21 M5.6 5.6 L7.7 7.7 M16.3 16.3 L18.4 18.4 M18.4 5.6 L16.3 7.7 M7.7 16.3 L5.6 18.4 M12 8 A4 4 0 1 0 12 16 A4 4 0 0 0 12 8"); break;
+            case "bell": icon.setContent("M6 17 H18 M8 17 V10 A4 4 0 0 1 16 10 V17 M10 20 H14"); break;
+            case "users": icon.setContent("M8 11 A3 3 0 1 0 8 5 A3 3 0 0 0 8 11 Z M16 11 A3 3 0 1 0 16 5 A3 3 0 0 0 16 11 Z M2 20 C2 16 5 14 8 14 C11 14 14 16 14 20 M12 15 C14 14 17 14 19 15 C21 16 22 18 22 20"); break;
+            case "security": icon.setContent("M12 2 L20 5 V11 C20 16 17 20 12 22 C7 20 4 16 4 11 V5 Z M9 12 L11 14 L15 9"); break;
+            default: icon.setContent("M4 4 H20 V20 H4 Z"); break;
+        }
+        return icon;
     }
 }
