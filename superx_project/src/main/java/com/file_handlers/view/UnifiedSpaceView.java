@@ -1,10 +1,11 @@
+/**
 package com.file_handlers.view;
 
 import javafx.scene.Scene;
 
-/**
+
  * UnifiedSpaceView
- */
+ 
 public class UnifiedSpaceView {
 
     public Scene getUnifiedSpaceScene() {
@@ -13,3 +14,4 @@ public class UnifiedSpaceView {
     }
 
 }
+*/
