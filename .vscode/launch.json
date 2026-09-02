@@ -17,7 +17,7 @@
             "request": "launch",
             "mainClass": "com.file_handlers.Main",
             "projectName": "superx_project",
-            "vmArgs": "--module-path \"D://java2k26//javafx-sdk-21.0.12//lib\" --add-modules javafx.controls,javafx.fxml"
+            "vmArgs": "--module-path \"D://java2k26//javafx-sdk-21.0.12//lib\" --add-modules javafx.controls,javafx.fxml,javafx.web"
         }
     ]
 }
