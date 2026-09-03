@@ -14,6 +14,7 @@ import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -310,7 +311,7 @@ public class UserSpaces {
         scroll.setFitToWidth(true);
         scroll.setFitToHeight(true);
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-background-insets: 0; -fx-padding: 0;");
 
         VBox center = new VBox(topBar, scroll);
@@ -410,14 +411,14 @@ public class UserSpaces {
         descField.setPrefRowCount(3);
 
         descField.setStyle(
-                "-fx-control-inner-background: " + INPUT_BG + ";" +
-                "-fx-background-color: " + INPUT_BG + ";" +
-                "-fx-text-fill: white;" +
-                "-fx-prompt-text-fill: " + LIGHT_SECONDARY + ";" +
-                "-fx-border-color: rgba(255,255,255,0.12);" +
-                "-fx-border-radius: 8;" +
-                "-fx-background-radius: 8;" +
-                "-fx-padding: 8;"
+            "-fx-control-inner-background: " + INPUT_BG + ";" +
+            "-fx-background-color: " + INPUT_BG + ";" +
+            "-fx-text-fill: white;" +
+            "-fx-prompt-text-fill: " + LIGHT_SECONDARY + ";" +
+            "-fx-border-color: rgba(255,255,255,0.12);" +
+            "-fx-border-radius: 8;" +
+            "-fx-background-radius: 8;" +
+            "-fx-padding: 8;"
         );
 
         Label tagsLabel = label("Smart Tags (optional)", 11, FontWeight.BOLD, LIGHT_SECONDARY);
@@ -664,32 +665,45 @@ public class UserSpaces {
         icon.setStyle("-fx-background-color: " + info.iconBackground + "; -fx-background-radius: 50%; -fx-text-fill: " + info.iconTextColor + ";");
 
         Label title = label(info.name, 16, FontWeight.BOLD, CARD_TITLE);
-
         Label description = label(info.description, 12, FontWeight.NORMAL, CARD_SECONDARY);
         description.setWrapText(true);
         description.setMinHeight(36);
 
+        Region titleSpacer = new Region();
+        HBox.setHgrow(titleSpacer, Priority.ALWAYS);
+        HBox titleRow = new HBox(title, titleSpacer);
+        titleRow.setAlignment(Pos.CENTER_LEFT);
+
+        if (isCustomSpace(info.spaceId)) {
+            Button menuButton = new Button("⋮");
+            menuButton.setFocusTraversable(false);
+            menuButton.setStyle("-fx-background-color: transparent; -fx-text-fill: " + LIGHT_SECONDARY + "; -fx-font-size: 20px; -fx-padding: 0 4 4 4; -fx-cursor: hand;");
+            menuButton.setOnMouseEntered(e -> menuButton.setStyle("-fx-background-color: rgba(56,189,248,0.12); -fx-text-fill: #38BDF8; -fx-font-size: 20px; -fx-padding: 0 4 4 4; -fx-cursor: hand; -fx-background-radius: 6;"));
+            menuButton.setOnMouseExited(e -> menuButton.setStyle("-fx-background-color: transparent; -fx-text-fill: " + LIGHT_SECONDARY + "; -fx-font-size: 20px; -fx-padding: 0 4 4 4; -fx-cursor: hand;"));
+            menuButton.setOnMouseClicked(e -> {
+                e.consume();
+                showSpaceMenu(menuButton, info);
+            });
+            titleRow.getChildren().add(menuButton);
+        }
+
         Label files = label("0 files", 12, FontWeight.BOLD, CARD_TITLE);
         Label size = label("—", 12, FontWeight.BOLD, CARD_TITLE);
         Label updated = label("No files yet", 11, FontWeight.NORMAL, CARD_SECONDARY);
-
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-
         HBox statsRow = new HBox(files, spacer, size);
-
         VBox stats = new VBox(2, statsRow, updated);
         stats.setPadding(new Insets(10, 0, 0, 0));
         stats.setStyle("-fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-width: 1 0 0 0;");
 
-        VBox card = new VBox(10, icon, title, description, stats);
+        VBox card = new VBox(10, icon, titleRow, description, stats);
         card.setPadding(new Insets(18));
         card.setFocusTraversable(false);
         card.setCache(true);
 
         String styleIdle = "-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);";
         String styleHover = "-fx-background-color: " + CARD_BG_HOVER + "; -fx-border-color: " + info.iconTextColor + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, " + info.iconTextColor + "66, 20, 0, 0, 6);";
-
         card.setStyle(styleIdle);
         card.setOnMouseEntered(e -> {
             card.setStyle(styleHover);
@@ -705,9 +719,275 @@ public class UserSpaces {
             TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
             tt.setToY(0); tt.play();
         });
-        card.setOnMouseClicked(e -> LandingPage.showUnifiedSpace(info.spaceId, info.name));
-
+        card.setOnMouseClicked(e -> {
+            if (!e.isConsumed()) LandingPage.showUnifiedSpace(info.spaceId, info.name);
+        });
         return new SpaceCardView(card, files, size, updated);
+    }
+
+    private boolean isCustomSpace(String spaceId) {
+        return spaceId != null && customSpaceInfos.stream().anyMatch(s -> spaceId.equals(s.spaceId));
+    }
+
+    private void showSpaceMenu(Button anchor, SpaceInfo info) {
+        ContextMenu menu = new ContextMenu();
+        menu.setStyle(
+            "-fx-background-color: #0F172A; " +
+            "-fx-border-color: rgba(56, 189, 248, 0.25); " +
+            "-fx-border-width: 1px; " +
+            "-fx-border-radius: 8px; " +
+            "-fx-background-radius: 8px; " +
+            "-fx-padding: 4px; " +
+            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 12, 0, 0, 6);"
+        );
+
+        // Edit Item
+        CustomMenuItem editItem = createCustomMenuItem("✎   Edit Space", "#38BDF8");
+        editItem.setOnAction(e -> showEditSpaceDialog(info));
+
+        // Delete Item
+        CustomMenuItem deleteItem = createCustomMenuItem("🗑   Delete Space", "#F87171");
+        deleteItem.setOnAction(e -> confirmDeleteSpace(info));
+
+        menu.getItems().addAll(editItem, deleteItem);
+        
+        // Position menu neatly below the 3-dots button
+        menu.show(anchor, Side.BOTTOM, -50, 2);
+    }
+
+private CustomMenuItem createCustomMenuItem(String text, String textColor) {
+    Label label = new Label(text);
+    label.setStyle(
+        "-fx-text-fill: " + textColor + "; " +
+        "-fx-font-family: " + FONT + "; " +
+        "-fx-font-size: 11px; " +
+        "-fx-font-weight: bold;"
+    );
+
+    HBox container = new HBox(label);
+    container.setAlignment(Pos.CENTER_LEFT);
+    container.setPadding(new Insets(4, 8, 4, 8));
+    container.setStyle("-fx-background-color: transparent; -fx-background-radius: 6px; -fx-cursor: hand;");
+
+    // Dark sleek background hover state for high contrast and readability
+    container.setOnMouseEntered(e -> container.setStyle(
+        "-fx-background-color: #1E293B; " +
+        "-fx-background-radius: 6px; " +
+        "-fx-cursor: hand;"
+    ));
+    container.setOnMouseExited(e -> container.setStyle(
+        "-fx-background-color: transparent; " +
+        "-fx-background-radius: 6px; " +
+        "-fx-cursor: hand;"
+    ));
+
+    CustomMenuItem menuItem = new CustomMenuItem(container);
+    menuItem.setHideOnClick(true);
+    return menuItem;
+}
+
+    private void showEditSpaceDialog(SpaceInfo info) {
+        UserSession session = UserSession.getInstance();
+        if (session == null || !UserSession.isLoggedIn() || session.getUid() == null || session.getUid().isBlank()) {
+            showAlert("You need to be signed in to edit a Space.");
+            return;
+        }
+
+        SpaceData current = null;
+        try {
+            for (SpaceData space : spaceDAO.getUserSpaces(session.getUid())) {
+                if (info.spaceId.equals(space.getSpaceId())) {
+                    current = space;
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            showAlert("Unable to load the Space.");
+            return;
+        }
+        if (current == null) {
+            showAlert("Space not found.");
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Edit Space");
+        
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.setStyle("-fx-background-color: #0A121E; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.7), 24, 0, 0, 10);");
+
+        ButtonType saveButtonType = new ButtonType("Save Changes", ButtonBar.ButtonData.OK_DONE);
+        dialogPane.getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+
+        // Header Styling
+        Label dialogTitle = label("Edit " + info.name, 18, FontWeight.BOLD, WHITE);
+        Label dialogSub = label("Update space metadata and AI routing tags.", 12, FontWeight.NORMAL, LIGHT_SECONDARY);
+        VBox dialogHeader = new VBox(4, dialogTitle, dialogSub);
+        dialogHeader.setPadding(new Insets(0, 0, 10, 0));
+
+        Label nameLabel = label("Space Name", 11, FontWeight.BOLD, LIGHT_SECONDARY);
+        TextField nameField = new TextField(current.getName());
+        nameField.setPromptText("e.g. Travel, Wedding, Startup Docs");
+        styleField(nameField);
+
+        Label descLabel = label("Description", 11, FontWeight.BOLD, LIGHT_SECONDARY);
+        TextArea descField = new TextArea(current.getDescription() == null ? "" : current.getDescription());
+        descField.setPromptText("What kind of files belong here? This is what the AI reads to sort files into this Space automatically.");
+        descField.setWrapText(true);
+        descField.setPrefRowCount(3);
+        descField.setStyle("-fx-control-inner-background: " + INPUT_BG + "; -fx-background-color: " + INPUT_BG + "; -fx-text-fill: white; -fx-prompt-text-fill: " + LIGHT_SECONDARY + "; -fx-border-color: rgba(255,255,255,0.12); -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8;");
+
+        Label tagsLabel = label("Smart Tags (optional)", 11, FontWeight.BOLD, LIGHT_SECONDARY);
+        String existingTags = current.getTags() == null ? "" : String.join(", ", current.getTags());
+        TextField tagsField = new TextField(existingTags);
+        tagsField.setPromptText("one word each, comma separated — e.g. flights, hotel, passport");
+        styleField(tagsField);
+
+        Label hint = label("The AI uses this description and these tags when deciding where new files belong.", 10, FontWeight.NORMAL, LIGHT_SECONDARY);
+        hint.setWrapText(true);
+        hint.setMaxWidth(380);
+
+        VBox content = new VBox(10, dialogHeader, nameLabel, nameField, descLabel, descField, tagsLabel, tagsField, hint);
+        content.setPadding(new Insets(20));
+        content.setPrefWidth(420);
+        content.setStyle("-fx-background-color: #0A121E;");
+        dialogPane.setContent(content);
+
+        // Style Action Buttons
+        Button saveButton = (Button) dialogPane.lookupButton(saveButtonType);
+        saveButton.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: white; -fx-background-radius: 8; -fx-font-family: " + FONT + "; -fx-font-weight: bold; -fx-cursor: hand;");
+        
+        Button cancelButton = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
+        cancelButton.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-text-fill: " + LIGHT_SECONDARY + "; -fx-background-radius: 8; -fx-font-family: " + FONT + "; -fx-cursor: hand;");
+
+        saveButton.setDisable(nameField.getText() == null || nameField.getText().isBlank());
+        nameField.textProperty().addListener((obs, oldV, newV) -> saveButton.setDisable(newV == null || newV.isBlank()));
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isEmpty() || result.get() != saveButtonType) return;
+
+        String name = nameField.getText() == null ? "" : nameField.getText().trim();
+        String desc = descField.getText() == null ? "" : descField.getText().trim();
+        List<String> tags = parseSmartTags(tagsField.getText());
+        if (name.isBlank()) return;
+
+        final SpaceData editedSpace = current;
+        Thread thread = new Thread(() -> {
+            try {
+                SpaceData updatedSpace = spaceDAO.updateSpace(session.getUid(), editedSpace.getSpaceId(), name, desc, tags);
+                Platform.runLater(() -> {
+                    replaceCustomSpaceCard(editedSpace.getSpaceId(), updatedSpace);
+                    showAlert("Space updated successfully.");
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> showAlert(e.getMessage() == null ? "Unable to update the Space." : e.getMessage()));
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void replaceCustomSpaceCard(String spaceId, SpaceData updated) {
+        for (int i = 0; i < customSpaceInfos.size(); i++) {
+            if (spaceId.equals(customSpaceInfos.get(i).spaceId)) {
+                SpaceInfo old = customSpaceInfos.get(i);
+                SpaceInfo info = new SpaceInfo(updated.getName(), updated.getSpaceId(), updated.getDescription() == null || updated.getDescription().isBlank() ? "Custom space." : updated.getDescription(), old.icon, old.iconBackground, old.iconTextColor);
+                customSpaceInfos.set(i, info);
+                SpaceCardView oldCard = spaceCards.get(spaceId);
+                int index = spaces.indexOf(old) >= 0 ? spaces.indexOf(old) : -1;
+                if (oldCard != null) {
+                    int gridIndex = spaces.size() + i;
+                    spacesGrid.getChildren().remove(oldCard.card);
+                    SpaceCardView newCard = createSpaceCard(info);
+                    spaceCards.remove(spaceId);
+                    spaceCards.put(info.spaceId, newCard);
+                    spacesGrid.add(newCard.card, gridIndex % 3, gridIndex / 3);
+                }
+                return;
+            }
+        }
+    }
+
+    private void confirmDeleteSpace(SpaceInfo info) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Delete Space");
+
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.setStyle("-fx-background-color: #0A121E; -fx-border-color: rgba(248, 113, 113, 0.4); -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 24, 0, 0, 10);");
+
+        ButtonType deleteButtonType = new ButtonType("Delete Space", ButtonBar.ButtonData.OK_DONE);
+        dialogPane.getButtonTypes().addAll(deleteButtonType, ButtonType.CANCEL);
+
+        Label warningIcon = label("⚠️", 24, FontWeight.BOLD, "#F87171");
+        Label titleLabel = label("Delete \"" + info.name + "\"?", 16, FontWeight.BOLD, WHITE);
+        HBox header = new HBox(10, warningIcon, titleLabel);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        Label body = label(
+            "This Space will be permanently removed. Any contained files will be moved to 'Others'. Local files on your machine will remain safe.",
+            12, FontWeight.NORMAL, LIGHT_SECONDARY
+        );
+        body.setWrapText(true);
+        body.setMaxWidth(360);
+
+        VBox content = new VBox(12, header, body);
+        content.setPadding(new Insets(20));
+        content.setPrefWidth(400);
+        content.setStyle("-fx-background-color: #0A121E;");
+        dialogPane.setContent(content);
+
+        Button deleteButton = (Button) dialogPane.lookupButton(deleteButtonType);
+        deleteButton.setStyle("-fx-background-color: linear-gradient(to right, #DC2626, #EF4444); -fx-text-fill: white; -fx-background-radius: 8; -fx-font-family: " + FONT + "; -fx-font-weight: bold; -fx-cursor: hand;");
+
+        Button cancelButton = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
+        cancelButton.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-text-fill: " + LIGHT_SECONDARY + "; -fx-background-radius: 8; -fx-font-family: " + FONT + "; -fx-cursor: hand;");
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isEmpty() || result.get() != deleteButtonType) return;
+
+        UserSession session = UserSession.getInstance();
+        if (session == null || !UserSession.isLoggedIn() || session.getUid() == null || session.getUid().isBlank()) {
+            showAlert("You need to be signed in to delete a Space.");
+            return;
+        }
+
+        Thread thread = new Thread(() -> {
+            try {
+                spaceDAO.deleteSpaceAndMoveFiles(session.getUid(), info.spaceId, "other");
+                Platform.runLater(() -> {
+                    removeCustomSpaceCard(info.spaceId);
+                    loadSpaceStatistics(spaceCards, spacesFooter);
+                    showAlert("Space deleted successfully. Its files were moved to Others.");
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> showAlert(e.getMessage() == null ? "Unable to delete the Space." : e.getMessage()));
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void removeCustomSpaceCard(String spaceId) {
+        SpaceCardView card = spaceCards.remove(spaceId);
+        if (card != null) spacesGrid.getChildren().remove(card.card);
+        customSpaceInfos.removeIf(s -> spaceId.equals(s.spaceId));
+        rebuildCustomSpaceGrid();
+    }
+
+    private void rebuildCustomSpaceGrid() {
+        List<Node> customNodes = new ArrayList<>();
+        for (SpaceInfo info : customSpaceInfos) {
+            SpaceCardView card = spaceCards.get(info.spaceId);
+            if (card != null) customNodes.add(card.card);
+        }
+        spacesGrid.getChildren().removeAll(customNodes);
+        for (int i = 0; i < customSpaceInfos.size(); i++) {
+            SpaceInfo info = customSpaceInfos.get(i);
+            SpaceCardView card = createSpaceCard(info);
+            spaceCards.put(info.spaceId, card);
+            int totalIndex = spaces.size() + i;
+            spacesGrid.add(card.card, totalIndex % 3, totalIndex / 3);
+        }
     }
 
     private void loadSpaceStatistics(
