@@ -159,14 +159,19 @@ public class LandingPage extends Application {
 
     // ================= DYNAMIC SPACE =================
 
-    public static void showUnifiedSpace(String spaceId, String spaceName) {
-        try {
-            UnifiedSpaceView view = new UnifiedSpaceView(spaceId, spaceName);  // pass the args, not the no-arg constructor
-            setScene(view.getUnifiedSpaceScene());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+   public static void showUnifiedSpace(String spaceId, String spaceName) {
+    System.out.println(
+            "[NAVIGATION] Opening Space: "
+                    + spaceName
+                    + " | ID: "
+                    + spaceId
+    );
+
+    UnifiedSpaceView view =
+            new UnifiedSpaceView(spaceId, spaceName);
+
+    setScene(view.getUnifiedSpaceScene());
+}
     public static void showUnifiedSpaceView() {
         showUnifiedSpace("all", "All Spaces");
     }
