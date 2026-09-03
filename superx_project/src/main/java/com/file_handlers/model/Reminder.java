@@ -16,6 +16,7 @@ public class Reminder{
     private String linkedFileId;
     private String linkedFileName;
     private Timestamp createdAt;
+    private String source;
 
     public Reminder(){}
 
@@ -52,8 +53,16 @@ public class Reminder{
     public Timestamp getCreatedAt(){return createdAt;}
     public void setCreatedAt(Timestamp createdAt){this.createdAt=createdAt;}
 
+    public String getSource(){return source;}
+    public void setSource(String source){this.source=source;}
+
+    public boolean isAiExtracted(){
+        return "ai_extracted".equalsIgnoreCase(source);
+    }
+
     public Map<String,Object> toMap(){
         Map<String,Object> data=new HashMap<>();
+
         data.put("title",title);
         data.put("description",description);
         data.put("type",type);
@@ -64,6 +73,8 @@ public class Reminder{
         data.put("linkedFileId",linkedFileId);
         data.put("linkedFileName",linkedFileName);
         data.put("createdAt",createdAt);
+        data.put("source",source);
+
         return data;
     }
 }

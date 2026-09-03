@@ -15,56 +15,199 @@ import org.json.JSONObject;
 import com.file_handlers.model.SpaceData;
 
 public class GeminiClient{
+
     private static final String MODEL="gemini-3.6-flash";
-    private static final String API_URL="https://generativelanguage.googleapis.com/v1beta/models/"+MODEL+":generateContent";
+
+    private static final String API_URL=
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+                    +MODEL
+                    +":generateContent";
+
     private final String apiKey;
     private final HttpClient client;
 
     public GeminiClient(){
-        apiKey=System.getenv("GEMINI_API_KEY");
+
+        apiKey=System.getenv(
+                "GEMINI_API_KEY"
+        );
+
         if(apiKey==null||apiKey.isBlank())
-            throw new IllegalStateException("GEMINI_API_KEY environment variable is not set.");
-        client=HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(15))
-                .build();
+            throw new IllegalStateException(
+                    "GEMINI_API_KEY environment variable is not set."
+            );
+
+        client=
+                HttpClient.newBuilder()
+                        .connectTimeout(
+                                Duration.ofSeconds(15)
+                        )
+                        .build();
     }
 
-    public String classify(String fileName,String extractedText,List<SpaceData> customSpaces)throws IOException,InterruptedException{
-        String prompt="Analyze this file for OneSpace.\n"
-                +"File name: "+fileName+"\n"
-                +"Content:\n"+extractedText+"\n\n"
-                +"Return ONLY valid JSON.\n"
-                +"By default, use exactly one category from: Personal, College, Office, Finance, Entertainment, Other.\n"
-                +buildCustomSpacesBlock(customSpaces)
+    public String classify(
+            String fileName,
+            String extractedText,
+            List<SpaceData> customSpaces
+    )throws IOException,InterruptedException{
+
+        String prompt=
+                "Analyze this file for OneSpace.\n"
+                +"File name: "
+                +fileName
+                +"\n"
+                +"Content:\n"
+                +(extractedText==null
+                        ?""
+                        :extractedText)
+                +"\n\n"
+
+                +"Return ONLY valid JSON. "
+                +"Do not return markdown or explanations.\n\n"
+
+                +"CLASSIFICATION:\n"
+                +"By default, use exactly one category from: "
+                +"Personal, College, Office, Finance, Entertainment, Other.\n"
+
+                +buildCustomSpacesBlock(
+                        customSpaces
+                )
+
                 +"confidence must be between 0 and 1.\n"
-                +"description must be a short meaningful description of the file in 2-4 sentences.\n"
-                +"smartTags must contain exactly 5 or 6 useful short tags.\n"
-                +"Format:\n"
-                +"{\"category\":\"Office\",\"confidence\":0.95,\"description\":\"Short description.\",\"smartTags\":[\"tag1\",\"tag2\",\"tag3\",\"tag4\",\"tag5\"]}";
-        return extractJson(sendRequest(prompt));
+
+                +"description must be a short meaningful description "
+                +"of the file in 2-4 sentences.\n"
+
+                +"smartTags must contain exactly 5 or 6 useful short tags.\n\n"
+
+                +"IMPORTANT EVENT EXTRACTION:\n"
+                +"Look for important dates and markable events explicitly "
+                +"stated or clearly supported by the file.\n"
+
+                +"Examples include:\n"
+                +"- assignment deadlines\n"
+                +"- submission deadlines\n"
+                +"- examination dates\n"
+                +"- project presentations\n"
+                +"- meetings\n"
+                +"- appointments\n"
+                +"- payment due dates\n"
+                +"- bill due dates\n"
+                +"- policy expiry dates\n"
+                +"- renewal dates\n"
+                +"- subscription expiry dates\n"
+                +"- application deadlines\n"
+                +"- interview dates\n"
+                +"- scheduled tasks\n"
+                +"- important event dates\n"
+
+                +"Do NOT invent dates.\n"
+                +"Only extract dates that are explicitly present "
+                +"or clearly supported by the supplied content.\n"
+
+                +"If the file contains no important dates or events, "
+                +"return an empty extractedEvents array.\n"
+
+                +"Return at most 5 important events.\n\n"
+
+                +"Each extracted event must contain:\n"
+                +"- title\n"
+                +"- date in YYYY-MM-DD format\n"
+                +"- type: deadline, task, or event\n"
+                +"- description\n\n"
+
+                +"Required JSON format:\n"
+
+                +"{"
+                +"\"category\":\"Office\","
+                +"\"confidence\":0.95,"
+                +"\"description\":\"Short description.\","
+                +"\"smartTags\":["
+                +"\"tag1\","
+                +"\"tag2\","
+                +"\"tag3\","
+                +"\"tag4\","
+                +"\"tag5\""
+                +"],"
+                +"\"extractedEvents\":["
+                +"{"
+                +"\"title\":\"Project Deadline\","
+                +"\"date\":\"2026-09-15\","
+                +"\"type\":\"deadline\","
+                +"\"description\":\"Submit the project.\""
+                +"}"
+                +"]"
+                +"}";
+
+        return extractJson(
+                sendRequest(prompt)
+        );
     }
 
-    private String buildCustomSpacesBlock(List<SpaceData> customSpaces){
-        if(customSpaces==null||customSpaces.isEmpty())
-            return "";
+    private String buildCustomSpacesBlock(
+            List<SpaceData> customSpaces
+    ){
 
-        StringBuilder block=new StringBuilder();
-        block.append("\nThe user has also created these custom Spaces. If the file's content, purpose or ")
-             .append("subject matter fits one of these custom Spaces better than the fixed categories above, ")
-             .append("return that Space's name EXACTLY as written (same spelling and capitalization) as the ")
-             .append("category instead of a fixed category:\n");
+        if(customSpaces==null||
+                customSpaces.isEmpty()){
+
+            return "";
+        }
+
+        StringBuilder block=
+                new StringBuilder();
+
+        block.append(
+                "\nThe user has also created these custom Spaces. "
+        );
+
+        block.append(
+                "If the file's content, purpose or subject matter "
+                +"fits one of these custom Spaces better than the "
+                +"fixed categories above, return that Space's name "
+                +"EXACTLY as written as the category instead of a "
+                +"fixed category:\n"
+        );
 
         for(SpaceData space:customSpaces){
-            if(space==null||space.getName()==null||space.getName().isBlank())
+
+            if(space==null||
+                    space.getName()==null||
+                    space.getName().isBlank()){
+
                 continue;
+            }
 
-            String description=space.getDescription();
-            block.append("- \"").append(space.getName()).append("\": ")
-                 .append(description==null||description.isBlank()?"No description provided.":description);
+            String description=
+                    space.getDescription();
 
-            List<String> tags=space.getTags();
-            if(tags!=null&&!tags.isEmpty())
-                block.append(" (keywords: ").append(String.join(", ",tags)).append(")");
+            block.append(
+                    "- \""
+                            +space.getName()
+                            +"\": "
+            );
+
+            block.append(
+                    description==null||
+                            description.isBlank()
+                            ?"No description provided."
+                            :description
+            );
+
+            List<String> tags=
+                    space.getTags();
+
+            if(tags!=null&&!tags.isEmpty()){
+
+                block.append(
+                        " (keywords: "
+                                +String.join(
+                                        ", ",
+                                        tags
+                                )
+                                +")"
+                );
+            }
 
             block.append("\n");
         }
@@ -72,87 +215,178 @@ public class GeminiClient{
         return block.toString();
     }
 
-    public String chat(String userMessage,String conversationContext,String fileContext)throws IOException,InterruptedException{
-        String prompt="You are OneSpace AI, an AI assistant inside the OneSpace application.\n\n"
+    public String chat(
+            String userMessage,
+            String conversationContext,
+            String fileContext
+    )throws IOException,InterruptedException{
+
+        String prompt=
+                "You are OneSpace AI, a helpful assistant inside "
+                +"the user's OneSpace application.\n\n"
+
                 +"You are NOT a general-purpose chatbot.\n"
-                +"Your purpose is to help the user with their OneSpace application, their OneSpace files, their Spaces, and information contained in those files.\n\n"
-                +"ALLOWED QUESTIONS:\n"
-                +"- Questions about the user's uploaded files.\n"
-                +"- Questions about file contents, summaries, descriptions or metadata.\n"
-                +"- Questions about the user's Spaces and file organization.\n"
-                +"- Questions about OneSpace features and functionality.\n"
-                +"- Questions that require information from the supplied OneSpace file context.\n\n"
-                +"NOT ALLOWED:\n"
-                +"- General knowledge questions unrelated to OneSpace.\n"
-                +"- General conversation unrelated to OneSpace.\n"
-                +"- Jokes, entertainment or casual questions unrelated to OneSpace.\n"
-                +"- General programming, mathematics, science, history or geography questions unless they are directly related to the user's OneSpace files or application.\n"
-                +"- Questions about people, places, news or other topics unrelated to OneSpace.\n\n"
-                +"If the question is unrelated to OneSpace, do not answer it.\n"
-                +"Instead respond exactly with:\n"
-                +"I'm OneSpace AI, so I can only help with your OneSpace files, Spaces, and application.\n\n"
+                +"You may only answer questions related to OneSpace, "
+                +"the user's OneSpace files, Spaces, Calendar, "
+                +"Search, reminders, storage, or other OneSpace "
+                +"application functionality.\n\n"
+
+                +"If the user's question is unrelated to OneSpace, "
+                +"respond exactly with:\n"
+                +"I'm OneSpace AI, so I can only help with your "
+                +"OneSpace files, Spaces, and application.\n\n"
+
+                +"For OneSpace questions, answer naturally, clearly "
+                +"and concisely.\n"
+
+                +"You may use the conversation context for continuity.\n\n"
+
                 +"IMPORTANT RULES FOR ONESPACE FILES:\n"
-                +"1. The section called Relevant OneSpace Files contains information extracted from the user's files.\n"
-                +"2. If the user's question is about their personal files, use the supplied file information as the primary source.\n"
-                +"3. Do not invent, guess or assume information that is not present in the supplied file information.\n"
-                +"4. If the requested information is not available in the supplied files, clearly say that you could not find it in the available OneSpace files.\n"
-                +"5. When answering a file-related question, mention the relevant file name when useful.\n"
-                +"6. For sensitive values such as identification numbers, policy numbers, account numbers or dates, only provide them when they are explicitly present in the supplied file content.\n"
-                +"7. Do not claim that you accessed a file directly. You only have access to the extracted information provided below.\n\n"
+                +"1. The section called Relevant OneSpace Files "
+                +"contains information extracted from the user's files.\n"
+
+                +"2. If the user's question is about their personal "
+                +"files, use the supplied file information as the "
+                +"primary source.\n"
+
+                +"3. Do not invent, guess or assume information that "
+                +"is not present in the supplied file information.\n"
+
+                +"4. If the requested information is not available "
+                +"in the supplied files, clearly say that you could "
+                +"not find it in the available OneSpace files.\n"
+
+                +"5. When answering a file-related question, mention "
+                +"the relevant file name when useful.\n"
+
+                +"6. For sensitive values such as identification "
+                +"numbers, policy numbers, account numbers or dates, "
+                +"only provide them when explicitly present in the "
+                +"supplied file content.\n"
+
+                +"7. Do not claim that you accessed a file directly. "
+                +"You only have access to the extracted information "
+                +"provided below.\n\n"
+
                 +"Relevant OneSpace Files:\n"
-                +(fileContext==null||fileContext.isBlank()?"No relevant files were found.":fileContext)
+                +(fileContext==null||
+                        fileContext.isBlank()
+                        ?"No relevant files were found."
+                        :fileContext)
+
                 +"\nConversation Context:\n"
-                +(conversationContext==null||conversationContext.isBlank()?"No previous conversation.":conversationContext)
-                +"\n\nUser Question:\n"+userMessage
+                +(conversationContext==null||
+                        conversationContext.isBlank()
+                        ?"No previous conversation."
+                        :conversationContext)
+
+                +"\n\nUser Question:\n"
+                +userMessage
+
                 +"\n\nAssistant:";
 
         return sendRequest(prompt);
     }
-    private String extractJson(String text){
-        if(text==null||text.isBlank())return text;
-        int start=text.indexOf('{');
-        int end=text.lastIndexOf('}');
-        if(start==-1||end==-1||end<start)return text.trim();
-        return text.substring(start,end+1).trim();
-    }
 
-    private String sendRequest(String prompt)throws IOException,InterruptedException{
-        JSONObject body=new JSONObject()
-                .put("contents",new JSONArray()
-                .put(new JSONObject()
-                .put("parts",new JSONArray()
-                .put(new JSONObject().put("text",prompt)))));
+    private String sendRequest(
+            String prompt
+    )throws IOException,InterruptedException{
 
-        HttpRequest request=HttpRequest.newBuilder()
-                .uri(URI.create(API_URL+"?key="+apiKey))
-                .timeout(Duration.ofSeconds(60))
-                .header("Content-Type","application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(body.toString(),StandardCharsets.UTF_8))
-                .build();
+        JSONObject textPart=
+                new JSONObject();
 
-        HttpResponse<String> response=client.send(request,HttpResponse.BodyHandlers.ofString());
+        textPart.put(
+                "text",
+                prompt
+        );
 
-        if(response.statusCode()!=200)
-            throw new IOException("Gemini API "+response.statusCode()+": "+response.body());
+        JSONObject content=
+                new JSONObject();
 
-        JSONObject root=new JSONObject(response.body());
+        content.put(
+                "parts",
+                new JSONArray().put(textPart)
+        );
 
-        if(!root.has("candidates")||root.getJSONArray("candidates").isEmpty())
-            throw new IOException("Gemini returned no response: "+response.body());
+        JSONObject body=
+                new JSONObject();
 
-        JSONObject candidate=root.getJSONArray("candidates").getJSONObject(0);
+        body.put(
+                "contents",
+                new JSONArray().put(content)
+        );
 
-        if(!candidate.has("content"))
-            throw new IOException("Gemini returned no text: "+response.body());
+        HttpRequest request=
+                HttpRequest.newBuilder()
+                        .uri(
+                                URI.create(
+                                        API_URL
+                                                +"?key="
+                                                +apiKey
+                                )
+                        )
+                        .header(
+                                "Content-Type",
+                                "application/json"
+                        )
+                        .timeout(
+                                Duration.ofSeconds(60)
+                        )
+                        .POST(
+                                HttpRequest.BodyPublishers.ofString(
+                                        body.toString(),
+                                        StandardCharsets.UTF_8
+                                )
+                        )
+                        .build();
 
-        JSONArray parts=candidate.getJSONObject("content").getJSONArray("parts");
+        HttpResponse<String> response=
+                client.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString()
+                );
 
-        for(int i=0;i<parts.length();i++){
-            JSONObject part=parts.getJSONObject(i);
-            if(part.has("text"))
-                return part.getString("text").trim();
+        if(response.statusCode()!=200){
+
+            throw new IOException(
+                    "Gemini request failed: "
+                            +response.statusCode()
+                            +" "
+                            +response.body()
+            );
         }
 
-        throw new IOException("Gemini response contained no text.");
+        JSONObject root=
+                new JSONObject(
+                        response.body()
+                );
+
+        String result=
+                root.getJSONArray("candidates")
+                        .getJSONObject(0)
+                        .getJSONObject("content")
+                        .getJSONArray("parts")
+                        .getJSONObject(0)
+                        .getString("text")
+                        .trim();
+
+        return result;
+    }
+
+    private String extractJson(String text){
+
+        if(text==null||text.isBlank())
+            return "{}";
+
+        int start=text.indexOf('{');
+        int end=text.lastIndexOf('}');
+
+        if(start>=0&&end>start)
+            return text.substring(
+                    start,
+                    end+1
+            ).trim();
+
+        return text.trim();
     }
 }
