@@ -7,6 +7,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -22,6 +23,11 @@ public class GeminiClient{
             "https://generativelanguage.googleapis.com/v1beta/models/"
                     +MODEL
                     +":generateContent";
+
+    private static final String EMBEDDING_MODEL="gemini-embedding-001";
+    private static final String EMBEDDING_URL=
+                "https://generativelanguage.googleapis.com/v1beta/models/"
+                +EMBEDDING_MODEL+":embedContent";
 
     private final String apiKey;
     private final HttpClient client;
@@ -389,4 +395,57 @@ public class GeminiClient{
 
         return text.trim();
     }
+    
+    public List<Double> embedDocument(String text)throws IOException,InterruptedException{
+        return embed(text,"RETRIEVAL_DOCUMENT");
+        }
+
+        public List<Double> embedQuery(String text)throws IOException,InterruptedException{
+        return embed(text,"RETRIEVAL_QUERY");
+        }
+
+        private List<Double> embed(String text,String taskType)throws IOException,InterruptedException{
+        if(text==null||text.isBlank())
+                return new ArrayList<>();
+
+        JSONObject content=new JSONObject()
+                .put("parts",new JSONArray()
+                        .put(new JSONObject().put("text",text)));
+
+        JSONObject body=new JSONObject()
+                .put("model","models/"+EMBEDDING_MODEL)
+                .put("content",content)
+                .put("taskType",taskType)
+                .put("outputDimensionality",768);
+
+        HttpRequest request=HttpRequest.newBuilder()
+                .uri(URI.create(EMBEDDING_URL+"?key="+apiKey))
+                .timeout(Duration.ofSeconds(30))
+                .header("Content-Type","application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(
+                        body.toString(),
+                        StandardCharsets.UTF_8))
+                .build();
+
+        HttpResponse<String> response=
+                client.send(request,HttpResponse.BodyHandlers.ofString());
+
+        if(response.statusCode()!=200)
+                throw new IOException(
+                        "Gemini embedding request failed: "
+                        +response.statusCode()+" "+response.body());
+
+        JSONObject root=new JSONObject(response.body());
+
+        JSONArray values=
+                root.getJSONObject("embedding")
+                        .getJSONArray("values");
+
+        List<Double> result=new ArrayList<>();
+
+        for(int i=0;i<values.length();i++)
+                result.add(values.getDouble(i));
+
+        return result;
+        }
 }

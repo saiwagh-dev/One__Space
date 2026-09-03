@@ -20,6 +20,7 @@ public class FileProcessingService{
     private final FileDAO fileDAO=new FileDAO();
     private final SpaceDAO spaceDAO=new SpaceDAO();
     private final FileEventSyncService eventSyncService=new FileEventSyncService();
+    private final EmbeddingService embeddingService=new EmbeddingService();
 
     public String processFile(
             Path path,
@@ -153,12 +154,56 @@ public class FileProcessingService{
 
         taskCompleted(listener,"AI");
 
+        taskStarted(listener,"Embedding");
+
+        try{
+        String searchableText=
+                embeddingService.buildFileText(
+                        file.getFileName(),
+                        result.getDescription(),
+                        result.getSmartTags(),
+                        result.getCategory(),
+                        file.getFileType()
+                );
+
+        file.setEmbedding(
+                embeddingService.embedDocument(searchableText)
+        );
+
+        System.out.println(
+                "[EMBED] Generated vector for "
+                        +file.getFileName()
+                        +" ("+file.getEmbedding().size()+" dimensions)"
+        );
+
+        }catch(Exception e){
+        System.out.println(
+                "[EMBED] Failed, continuing without embedding: "
+                        +e.getMessage()
+        );
+        }
+
+        taskCompleted(listener,"Embedding");
+
+        taskStarted(listener,"Space");
+
+        taskCompleted(listener,"Embedding");
+
         taskStarted(listener,"Space");
 
         String spaceId=
                 spaceResolver.resolveSpaceId(
                         result
                 );
+
+        if(spaceId==null||spaceId.isBlank())
+        throw new IllegalStateException(
+                "Unable to resolve a Space for the file."
+        );
+
+        file.setSpaceId(spaceId);
+
+        taskCompleted(listener,"Space");
 
         if(spaceId==null||spaceId.isBlank())
             throw new IllegalStateException(
