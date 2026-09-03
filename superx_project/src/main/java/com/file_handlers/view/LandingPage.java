@@ -159,6 +159,7 @@ public class LandingPage extends Application {
 
     // ================= DYNAMIC SPACE =================
 
+<<<<<<< HEAD
    public static void showUnifiedSpace(String spaceId, String spaceName) {
     System.out.println(
             "[NAVIGATION] Opening Space: "
@@ -172,6 +173,21 @@ public class LandingPage extends Application {
 
     setScene(view.getUnifiedSpaceScene());
 }
+=======
+    public static void showUnifiedSpace(String spaceId, String spaceName) {
+        System.out.println(
+                "[NAVIGATION] Opening Space: "
+                        + spaceName
+                        + " | ID: "
+                        + spaceId
+        );
+
+        UnifiedSpaceView view =
+                new UnifiedSpaceView(spaceId, spaceName);
+
+        setScene(view.getUnifiedSpaceScene());
+    }
+>>>>>>> origin/Development
     public static void showUnifiedSpaceView() {
         showUnifiedSpace("all", "All Spaces");
     }

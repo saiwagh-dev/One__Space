@@ -24,6 +24,9 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
 import javafx.util.Duration;
 
+import java.awt.Desktop;
+import java.io.File;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -388,9 +391,14 @@ public class UserSearch {
         HBox.setHgrow(topRow.getChildren().get(1), Priority.ALWAYS);
         topRow.setAlignment(Pos.CENTER_LEFT);
 
-        StackPane previewPane = new StackPane(label("FILE PREVIEW", 10, FontWeight.BOLD, "#38BDF8"));
-        previewPane.setPrefHeight(isGrid ? 42 : 32);
-        previewPane.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-background-radius: 6; -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 6;");
+        Button previewBtn=createFileActionButton("File Preview");
+        Button folderBtn=createFileActionButton("Open in Local Folder");
+        previewBtn.setOnAction(e->openFile(file.path));
+        folderBtn.setOnAction(e->openFolder(file.path));
+        VBox previewPane=new VBox(5,previewBtn,folderBtn);
+        previewPane.setPrefHeight(isGrid?72:66);
+        previewPane.setAlignment(Pos.CENTER);
+        previewPane.setStyle("-fx-background-color:"+CARD_BG_INNER+";-fx-background-radius:6;-fx-border-color:rgba(255,255,255,0.05);-fx-border-radius:6;");
 
         Label nameLbl = label(file.name, 13, FontWeight.BOLD, WHITE); nameLbl.setWrapText(true);
         Label pathLbl = label(file.path, 10, FontWeight.NORMAL, LIGHT_SECONDARY); pathLbl.setWrapText(true);
@@ -416,6 +424,46 @@ public class UserSearch {
             tt.setToY(0); tt.play();
         });
         return card;
+    }
+    
+    private Button createFileActionButton(String text){
+        Button b=new Button(text);
+        b.setMaxWidth(Double.MAX_VALUE);
+        b.setFont(Font.font(FONT,FontWeight.SEMI_BOLD,10));
+        b.setStyle("-fx-background-color:rgba(56,189,248,0.08);-fx-border-color:rgba(56,189,248,0.3);-fx-border-radius:6;-fx-background-radius:6;-fx-text-fill:#38BDF8;-fx-padding:5 10;-fx-cursor:hand;");
+        b.setOnMouseEntered(e->b.setStyle("-fx-background-color:rgba(56,189,248,0.18);-fx-border-color:#38BDF8;-fx-border-radius:6;-fx-background-radius:6;-fx-text-fill:#38BDF8;-fx-padding:5 10;-fx-cursor:hand;"));
+        b.setOnMouseExited(e->b.setStyle("-fx-background-color:rgba(56,189,248,0.08);-fx-border-color:rgba(56,189,248,0.3);-fx-border-radius:6;-fx-background-radius:6;-fx-text-fill:#38BDF8;-fx-padding:5 10;-fx-cursor:hand;"));
+        return b;
+    }
+
+    private void openFile(String path){
+        if(path==null||path.isBlank()){showFileAlert("No local file path available.");return;}
+        try{
+            File f=new File(path);
+            if(!f.exists()){showFileAlert("The file no longer exists at its stored location.");return;}
+            if(!Desktop.isDesktopSupported()){showFileAlert("Opening files is not supported on this system.");return;}
+            Desktop.getDesktop().open(f);
+        }catch(Exception e){showFileAlert("Unable to open the selected file.");}
+    }
+
+    private void openFolder(String path){
+        if(path==null||path.isBlank()){showFileAlert("No local file path available.");return;}
+        try{
+            File f=new File(path);
+            if(!f.exists()){showFileAlert("The file no longer exists at its stored location.");return;}
+            File folder=f.getParentFile();
+            if(folder==null||!folder.exists()){showFileAlert("The local folder could not be found.");return;}
+            if(!Desktop.isDesktopSupported()){showFileAlert("Opening folders is not supported on this system.");return;}
+            Desktop.getDesktop().open(folder);
+        }catch(Exception e){showFileAlert("Unable to open the local folder.");}
+    }
+
+    private void showFileAlert(String message){
+        Alert a=new Alert(Alert.AlertType.INFORMATION);
+        a.setTitle("OneSpace");
+        a.setHeaderText(null);
+        a.setContentText(message);
+        a.showAndWait();
     }
 
     private void applyFilter(MenuButton button, String type, String displayLabel) {

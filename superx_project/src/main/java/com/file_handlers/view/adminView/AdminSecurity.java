@@ -12,6 +12,7 @@ import java.util.Map;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -190,6 +191,23 @@ public class AdminSecurity {
         logoPane.setPrefSize(42, 42);
         logoPane.setAlignment(Pos.CENTER);
 
+        DropShadow blueShadow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.6), 12, 0, 0, 0);
+        ScaleTransition st = new ScaleTransition(Duration.millis(180), logoPane);
+        logoPane.setOnMouseEntered(e -> {
+            logoPane.setEffect(blueShadow);
+            st.stop();
+            st.setToX(1.08);
+            st.setToY(1.08);
+            st.play();
+        });
+        logoPane.setOnMouseExited(e -> {
+            logoPane.setEffect(null);
+            st.stop();
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+        });
+
         return logoPane;
     }
 
@@ -216,6 +234,10 @@ public class AdminSecurity {
         button.setAlignment(Pos.CENTER_LEFT);
         button.setPadding(new Insets(0, 12, 0, 12));
 
+        ScaleTransition st = new ScaleTransition(Duration.millis(160), button);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(160), button);
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(37, 99, 235, 0.75), 14, 0, 0, 2);
+
         if (selected) {
             button.setStyle(
                 "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
@@ -226,17 +248,39 @@ public class AdminSecurity {
                 "-fx-cursor: hand;" +
                 "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);"
             );
+            button.setOnMouseEntered(e -> {
+                st.stop(); tt.stop();
+                st.setToX(1.02); st.setToY(1.02);
+                tt.setToX(3);
+                st.play(); tt.play();
+            });
+            button.setOnMouseExited(e -> {
+                st.stop(); tt.stop();
+                st.setToX(1.0); st.setToY(1.0);
+                tt.setToX(0);
+                st.play(); tt.play();
+            });
         } else {
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
-                icon.setStroke(Color.WHITE);
+                button.setStyle("-fx-background-color: rgba(37, 99, 235, 0.15); -fx-border-color: rgba(56, 189, 248, 0.5); -fx-border-radius: 12; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 1;");
+                button.setEffect(blueGlow);
+                icon.setStroke(Color.web("#38BDF8"));
                 label.setTextFill(Color.WHITE);
+                st.stop(); tt.stop();
+                st.setToX(1.02); st.setToY(1.02);
+                tt.setToX(3);
+                st.play(); tt.play();
             });
             button.setOnMouseExited(e -> {
                 button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+                button.setEffect(null);
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
                 label.setTextFill(Color.web(WHITE));
+                st.stop(); tt.stop();
+                st.setToX(1.0); st.setToY(1.0);
+                tt.setToX(0);
+                st.play(); tt.play();
             });
         }
         return button;
@@ -317,6 +361,26 @@ public class AdminSecurity {
         notificationButton.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notificationButton.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.6), 14, 0, 0, 2);
+        ScaleTransition stNotif = new ScaleTransition(Duration.millis(180), notificationButton);
+        TranslateTransition ttNotif = new TranslateTransition(Duration.millis(180), notificationButton);
+        notificationButton.setOnMouseEntered(e -> {
+            notificationButton.setStyle("-fx-background-color: rgba(37, 99, 235, 0.2); -fx-border-color: #38BDF8; -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
+            notificationButton.setEffect(blueGlow);
+            stNotif.stop(); ttNotif.stop();
+            stNotif.setToX(1.05); stNotif.setToY(1.05);
+            ttNotif.setToY(-2);
+            stNotif.play(); ttNotif.play();
+        });
+        notificationButton.setOnMouseExited(e -> {
+            notificationButton.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
+            notificationButton.setEffect(null);
+            stNotif.stop(); ttNotif.stop();
+            stNotif.setToX(1.0); stNotif.setToY(1.0);
+            ttNotif.setToY(0);
+            stNotif.play(); ttNotif.play();
+        });
+
         String loginName = getLoggedInAdminName();
         String loginInitial = getInitials(loginName);
 
@@ -335,6 +399,25 @@ public class AdminSecurity {
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+
+        ScaleTransition stProf = new ScaleTransition(Duration.millis(180), profile);
+        TranslateTransition ttProf = new TranslateTransition(Duration.millis(180), profile);
+        profile.setOnMouseEntered(e -> {
+            profile.setStyle("-fx-background-color: rgba(37, 99, 235, 0.2); -fx-border-color: #38BDF8; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+            profile.setEffect(blueGlow);
+            stProf.stop(); ttProf.stop();
+            stProf.setToX(1.03); stProf.setToY(1.03);
+            ttProf.setToY(-1);
+            stProf.play(); ttProf.play();
+        });
+        profile.setOnMouseExited(e -> {
+            profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+            profile.setEffect(null);
+            stProf.stop(); ttProf.stop();
+            stProf.setToX(1.0); stProf.setToY(1.0);
+            ttProf.setToY(0);
+            stProf.play(); ttProf.play();
+        });
 
         Popup profilePopup = createProfilePopup();
         profile.setOnMouseClicked(e -> {
@@ -416,6 +499,24 @@ public class AdminSecurity {
         item.setPadding(new Insets(8, 10, 8, 10));
         item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
 
+        ScaleTransition st = new ScaleTransition(Duration.millis(150), item);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(150), item);
+
+        item.setOnMouseEntered(e -> {
+            item.setStyle("-fx-background-color: rgba(37, 99, 235, 0.2); -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
+            st.stop(); tt.stop();
+            st.setToX(1.03); st.setToY(1.03);
+            tt.setToX(3);
+            st.play(); tt.play();
+        });
+        item.setOnMouseExited(e -> {
+            item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+            st.stop(); tt.stop();
+            st.setToX(1.0); st.setToY(1.0);
+            tt.setToX(0);
+            st.play(); tt.play();
+        });
+
         item.setOnMouseClicked(e -> action.run());
         return item;
     }
@@ -461,12 +562,53 @@ public class AdminSecurity {
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.25), 5, 0, 0, 2);"
         );
 
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.5), 12, 0, 0, 2);
+        ScaleTransition stDate = new ScaleTransition(Duration.millis(180), date);
+        TranslateTransition ttDate = new TranslateTransition(Duration.millis(180), date);
+        date.setOnMouseEntered(e -> {
+            date.setStyle(
+                    "-fx-background-color: rgba(13, 22, 38, 0.95);" +
+                    "-fx-border-color: #38BDF8;" +
+                    "-fx-border-width: 1.5;" +
+                    "-fx-border-radius: 10;" +
+                    "-fx-background-radius: 10;" +
+                    "-fx-font-family: " + FONT + ";" +
+                    "-fx-font-size: 13px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-text-fill: #F8FAFC;" +
+                    "-fx-cursor: hand;"
+            );
+            date.setEffect(blueGlow);
+            stDate.stop(); ttDate.stop();
+            stDate.setToX(1.03); stDate.setToY(1.03);
+            ttDate.setToY(-1);
+            stDate.play(); ttDate.play();
+        });
+        date.setOnMouseExited(e -> {
+            date.setStyle(
+                    "-fx-background-color: rgba(13, 22, 38, 0.85);" +
+                    "-fx-border-color: " + CARD_BORDER + ";" +
+                    "-fx-border-width: 1.5;" +
+                    "-fx-border-radius: 10;" +
+                    "-fx-background-radius: 10;" +
+                    "-fx-font-family: " + FONT + ";" +
+                    "-fx-font-size: 13px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-text-fill: #F8FAFC;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.25), 5, 0, 0, 2);"
+            );
+            stDate.stop(); ttDate.stop();
+            stDate.setToX(1.0); stDate.setToY(1.0);
+            ttDate.setToY(0);
+            stDate.play(); ttDate.play();
+        });
+
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
 
         HBox header = new HBox(headerText, headerSpacer, date);
         header.setAlignment(Pos.CENTER_LEFT);
-
 
         Region fullWidthFailedLogin = createFailedLoginCard();
         fullWidthFailedLogin.setMaxWidth(Double.MAX_VALUE);
@@ -527,7 +669,24 @@ public class AdminSecurity {
             chart.layout();
             for (XYChart.Data<String, Number> d : series.getData()) {
                 if (d.getNode() != null) {
-                    d.getNode().setStyle("-fx-background-color: " + ORANGE + ", white; -fx-background-radius: 6px; -fx-padding: 4px;");
+                    d.getNode().setStyle("-fx-background-color: " + BLUE + ", white; -fx-background-radius: 6px; -fx-padding: 4px;");
+                    DropShadow dotGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.8), 10, 0, 0, 0);
+                    ScaleTransition stNode = new ScaleTransition(Duration.millis(160), d.getNode());
+                    TranslateTransition ttNode = new TranslateTransition(Duration.millis(160), d.getNode());
+                    d.getNode().setOnMouseEntered(e -> {
+                        d.getNode().setEffect(dotGlow);
+                        stNode.stop(); ttNode.stop();
+                        stNode.setToX(1.4); stNode.setToY(1.4);
+                        ttNode.setToY(-2);
+                        stNode.play(); ttNode.play();
+                    });
+                    d.getNode().setOnMouseExited(e -> {
+                        d.getNode().setEffect(null);
+                        stNode.stop(); ttNode.stop();
+                        stNode.setToX(1.0); stNode.setToY(1.0);
+                        ttNode.setToY(0);
+                        stNode.play(); ttNode.play();
+                    });
                 }
             }
         });
@@ -593,12 +752,33 @@ public class AdminSecurity {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Label attemptsLabel = createWrappedLabel(attempts, 11, true, ORANGE);
+        Label attemptsLabel = createWrappedLabel(attempts, 11, true, "#38BDF8");
 
-        HBox row = new HBox(10, new Circle(3.5, Color.web(ORANGE)), ipLabel, spacer, attemptsLabel);
+        HBox row = new HBox(10, new Circle(3.5, Color.web("#38BDF8")), ipLabel, spacer, attemptsLabel);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(4, 10, 4, 10));
-        row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8;");
+        row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
+
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.4), 10, 0, 0, 1);
+        ScaleTransition st = new ScaleTransition(Duration.millis(160), row);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(160), row);
+        row.setOnMouseEntered(e -> {
+            row.setStyle("-fx-background-color: rgba(37, 99, 235, 0.15); -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
+            row.setEffect(blueGlow);
+            st.stop(); tt.stop();
+            st.setToX(1.02); st.setToY(1.02);
+            tt.setToY(-1);
+            st.play(); tt.play();
+        });
+        row.setOnMouseExited(e -> {
+            row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8;");
+            row.setEffect(null);
+            st.stop(); tt.stop();
+            st.setToX(1.0); st.setToY(1.0);
+            tt.setToY(0);
+            st.play(); tt.play();
+        });
+
         return row;
     }
 
@@ -860,10 +1040,30 @@ public class AdminSecurity {
         HBox row = new HBox(12, iconPane, text, spacer, timeLabel);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(8, 12, 8, 12));
-        row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 10; -fx-background-radius: 10;");
+        row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;");
+
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(37, 99, 235, 0.4), 14, 0, 0, 2);
+        ScaleTransition st = new ScaleTransition(Duration.millis(160), row);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(160), row);
+        row.setOnMouseEntered(e -> {
+            row.setStyle("-fx-background-color: rgba(37, 99, 235, 0.15); -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;");
+            row.setEffect(blueGlow);
+            st.stop(); tt.stop();
+            st.setToX(1.015); st.setToY(1.015);
+            tt.setToY(-1.5);
+            st.play(); tt.play();
+        });
+        row.setOnMouseExited(e -> {
+            row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 10; -fx-background-radius: 10;");
+            row.setEffect(null);
+            st.stop(); tt.stop();
+            st.setToX(1.0); st.setToY(1.0);
+            tt.setToY(0);
+            st.play(); tt.play();
+        });
+
         return row;
     }
-
 
     private void openCreativeModalWindow(String windowTitle, String message, String type) {
         Stage modalStage = new Stage();
@@ -890,13 +1090,24 @@ public class AdminSecurity {
         StackPane closeBtnPane = new StackPane(closeIcon);
         closeBtnPane.setPrefSize(34, 34);
         closeBtnPane.setStyle("-fx-background-radius: 8; -fx-cursor: hand; -fx-background-color: transparent;");
+
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.6), 12, 0, 0, 0);
+        ScaleTransition stClose = new ScaleTransition(Duration.millis(160), closeBtnPane);
         closeBtnPane.setOnMouseEntered(e -> {
-            closeBtnPane.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-background-radius: 8; -fx-cursor: hand;");
+            closeBtnPane.setStyle("-fx-background-color: rgba(37, 99, 235, 0.25); -fx-border-color: #38BDF8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
+            closeBtnPane.setEffect(blueGlow);
             closeIcon.setStroke(Color.WHITE);
+            stClose.stop();
+            stClose.setToX(1.1); stClose.setToY(1.1);
+            stClose.play();
         });
         closeBtnPane.setOnMouseExited(e -> {
             closeBtnPane.setStyle("-fx-background-color: transparent; -fx-background-radius: 8; -fx-cursor: hand;");
+            closeBtnPane.setEffect(null);
             closeIcon.setStroke(Color.web(LIGHT_SECONDARY));
+            stClose.stop();
+            stClose.setToX(1.0); stClose.setToY(1.0);
+            stClose.play();
         });
 
         HBox headerRow = new HBox(headerText, closeBtnPane);
@@ -911,6 +1122,24 @@ public class AdminSecurity {
 
         Button actionBtn = new Button("Done & Close");
         actionBtn.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #0284C7); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 24; -fx-font-size: 13px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(2, 132, 199, 0.5), 14, 0, 0, 3);");
+
+        ScaleTransition stAction = new ScaleTransition(Duration.millis(160), actionBtn);
+        TranslateTransition ttAction = new TranslateTransition(Duration.millis(160), actionBtn);
+        DropShadow btnGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.8), 16, 0, 0, 3);
+        actionBtn.setOnMouseEntered(e -> {
+            actionBtn.setEffect(btnGlow);
+            stAction.stop(); ttAction.stop();
+            stAction.setToX(1.04); stAction.setToY(1.04);
+            ttAction.setToY(-2);
+            stAction.play(); ttAction.play();
+        });
+        actionBtn.setOnMouseExited(e -> {
+            actionBtn.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #0284C7); -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 10 24; -fx-font-size: 13px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(2, 132, 199, 0.5), 14, 0, 0, 3);");
+            stAction.stop(); ttAction.stop();
+            stAction.setToX(1.0); stAction.setToY(1.0);
+            ttAction.setToY(0);
+            stAction.play(); ttAction.play();
+        });
 
         closeBtnPane.setOnMouseClicked(e -> closeModalWithAnimation(modalStage, headerRow.getParent()));
         actionBtn.setOnAction(e -> closeModalWithAnimation(modalStage, headerRow.getParent()));
@@ -1073,7 +1302,7 @@ public class AdminSecurity {
                 System.err.println(
                         "[SECURITY] Could not load alert table: "
                                 + task.getException()
-                )
+                        )
         );
 
         Thread thread =
@@ -1118,6 +1347,24 @@ public class AdminSecurity {
             "-fx-background-color: rgba(255, 255, 255, 0.08); -fx-text-fill: #94A3B8; -fx-background-radius: 12; -fx-padding: 6 12; -fx-font-weight: bold; -fx-cursor: hand;"
         );
 
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.6), 12, 0, 0, 1);
+        ScaleTransition stTog = new ScaleTransition(Duration.millis(160), toggle);
+        TranslateTransition ttTog = new TranslateTransition(Duration.millis(160), toggle);
+        toggle.setOnMouseEntered(e -> {
+            toggle.setEffect(blueGlow);
+            stTog.stop(); ttTog.stop();
+            stTog.setToX(1.05); stTog.setToY(1.05);
+            ttTog.setToY(-1);
+            stTog.play(); ttTog.play();
+        });
+        toggle.setOnMouseExited(e -> {
+            toggle.setEffect(null);
+            stTog.stop(); ttTog.stop();
+            stTog.setToX(1.0); stTog.setToY(1.0);
+            ttTog.setToY(0);
+            stTog.play(); ttTog.play();
+        });
+
         toggle.setOnAction(e -> {
             if (toggle.isSelected()) {
                 toggle.setText("ON");
@@ -1132,6 +1379,26 @@ public class AdminSecurity {
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(16));
         row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-background-radius: 12; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 12;");
+
+        ScaleTransition stRow = new ScaleTransition(Duration.millis(160), row);
+        TranslateTransition ttRow = new TranslateTransition(Duration.millis(160), row);
+        row.setOnMouseEntered(e -> {
+            row.setStyle("-fx-background-color: rgba(37, 99, 235, 0.15); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 12;");
+            row.setEffect(blueGlow);
+            stRow.stop(); ttRow.stop();
+            stRow.setToX(1.015); stRow.setToY(1.015);
+            ttRow.setToY(-1.5);
+            stRow.play(); ttRow.play();
+        });
+        row.setOnMouseExited(e -> {
+            row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-background-radius: 12; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 12;");
+            row.setEffect(null);
+            stRow.stop(); ttRow.stop();
+            stRow.setToX(1.0); stRow.setToY(1.0);
+            ttRow.setToY(0);
+            stRow.play(); ttRow.play();
+        });
+
         return row;
     }
 
@@ -1186,6 +1453,25 @@ public class AdminSecurity {
 
         StackPane pane = new StackPane(backgroundArc, enabledArc, center);
         pane.setPrefSize(120, 120);
+
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.5), 14, 0, 0, 0);
+        ScaleTransition st = new ScaleTransition(Duration.millis(180), pane);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(180), pane);
+        pane.setOnMouseEntered(e -> {
+            pane.setEffect(blueGlow);
+            st.stop(); tt.stop();
+            st.setToX(1.05); st.setToY(1.05);
+            tt.setToY(-2);
+            st.play(); tt.play();
+        });
+        pane.setOnMouseExited(e -> {
+            pane.setEffect(null);
+            st.stop(); tt.stop();
+            st.setToX(1.0); st.setToY(1.0);
+            tt.setToY(0);
+            st.play(); tt.play();
+        });
+
         return pane;
     }
 
@@ -1199,6 +1485,27 @@ public class AdminSecurity {
         VBox box = new VBox(4, titleRow, valueLabel);
         box.setPadding(new Insets(8, 12, 8, 12));
         box.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8;");
+
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.35), 10, 0, 0, 1);
+        ScaleTransition st = new ScaleTransition(Duration.millis(160), box);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(160), box);
+        box.setOnMouseEntered(e -> {
+            box.setStyle("-fx-background-color: rgba(37, 99, 235, 0.15); -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 8; -fx-background-radius: 8;");
+            box.setEffect(blueGlow);
+            st.stop(); tt.stop();
+            st.setToX(1.03); st.setToY(1.03);
+            tt.setToY(-1);
+            st.play(); tt.play();
+        });
+        box.setOnMouseExited(e -> {
+            box.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8;");
+            box.setEffect(null);
+            st.stop(); tt.stop();
+            st.setToX(1.0); st.setToY(1.0);
+            tt.setToY(0);
+            st.play(); tt.play();
+        });
+
         return box;
     }
 
@@ -1215,6 +1522,39 @@ public class AdminSecurity {
                 "-fx-background-radius: 20;" +
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);"
         );
+
+        DropShadow blueCardGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.45), 28, 0, 0, 6);
+        ScaleTransition st = new ScaleTransition(Duration.millis(180), box);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(180), box);
+        box.setOnMouseEntered(e -> {
+            box.setStyle(
+                    "-fx-background-color: " + CARD_BG + ";" +
+                    "-fx-border-color: #38BDF8;" +
+                    "-fx-border-width: 1.2;" +
+                    "-fx-border-radius: 20;" +
+                    "-fx-background-radius: 20;"
+            );
+            box.setEffect(blueCardGlow);
+            st.stop(); tt.stop();
+            st.setToX(1.01); st.setToY(1.01);
+            tt.setToY(-2);
+            st.play(); tt.play();
+        });
+        box.setOnMouseExited(e -> {
+            box.setStyle(
+                    "-fx-background-color: " + CARD_BG + ";" +
+                    "-fx-border-color: " + CARD_BORDER + ";" +
+                    "-fx-border-width: 1.2;" +
+                    "-fx-border-radius: 20;" +
+                    "-fx-background-radius: 20;" +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);"
+            );
+            st.stop(); tt.stop();
+            st.setToX(1.0); st.setToY(1.0);
+            tt.setToY(0);
+            st.play(); tt.play();
+        });
+
         return box;
     }
 
@@ -1261,6 +1601,25 @@ public class AdminSecurity {
         Label badge = new Label(text);
         badge.setFont(Font.font(FONT, FontWeight.BOLD, 11));
         badge.setStyle("-fx-text-fill: " + textColor + " !important; -fx-background-color: " + bgColor + "; -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 3 8 3 8;");
+
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.5), 10, 0, 0, 1);
+        ScaleTransition st = new ScaleTransition(Duration.millis(160), badge);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(160), badge);
+        badge.setOnMouseEntered(e -> {
+            badge.setEffect(blueGlow);
+            st.stop(); tt.stop();
+            st.setToX(1.05); st.setToY(1.05);
+            tt.setToY(-1);
+            st.play(); tt.play();
+        });
+        badge.setOnMouseExited(e -> {
+            badge.setEffect(null);
+            st.stop(); tt.stop();
+            st.setToX(1.0); st.setToY(1.0);
+            tt.setToY(0);
+            st.play(); tt.play();
+        });
+
         return badge;
     }
 
@@ -1281,13 +1640,25 @@ public class AdminSecurity {
         label.setStyle("-fx-text-fill: " + PURPLE + " !important;");
         label.setCursor(javafx.scene.Cursor.HAND);
 
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.8), 12, 0, 0, 0);
+        ScaleTransition st = new ScaleTransition(Duration.millis(160), label);
         label.setOnMouseEntered(e -> {
             label.setUnderline(true);
             label.setStyle("-fx-text-fill: #38BDF8 !important;");
+            label.setEffect(blueGlow);
+            st.stop();
+            st.setToX(1.03);
+            st.setToY(1.03);
+            st.play();
         });
         label.setOnMouseExited(e -> {
             label.setUnderline(false);
             label.setStyle("-fx-text-fill: " + PURPLE + " !important;");
+            label.setEffect(null);
+            st.stop();
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
         });
 
         return label;

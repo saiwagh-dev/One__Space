@@ -23,7 +23,9 @@ import javafx.stage.Popup;
 import javafx.util.Duration;
 
 import com.file_handlers.dao.FileDAO;
+import com.file_handlers.dao.SpaceDAO;
 import com.file_handlers.model.FileData;
+import com.file_handlers.model.SpaceData;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
@@ -33,6 +35,7 @@ import java.util.*;
 
 public class UserDashboard {
     private final FileDAO fileDAO = new FileDAO();
+    private final SpaceDAO spaceDAO = new SpaceDAO();
 
     // Typography
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -312,8 +315,8 @@ public class UserDashboard {
         );
 
         HBox card2 = createMetricCard(
-                "dashboard", "Active Spaces", "6 Spaces",
-                "AI organized", "Personal · College · Office",
+                "dashboard", "Active Spaces", "Loading...",
+                "● Syncing", "From Firestore",
                 "#38BDF8", "rgba(56, 189, 248, 0.15)", "#38BDF8"
         );
 
@@ -324,8 +327,8 @@ public class UserDashboard {
         );
 
         HBox card4 = createMetricCard(
-                "ai", "AI Actions Live", "126 Actions",
-                "⚡ Live pipeline", "12 summaries · 8 links",
+                "ai", "AI Actions Live", "Loading...",
+                "⚡ Syncing", "From indexed files",
                 "#FBBF24", "rgba(245, 158, 11, 0.15)", "#FBBF24"
         );
 
@@ -413,15 +416,37 @@ public class UserDashboard {
         StackPane donutChartPane = new StackPane(chart, donutHole, chartCenterText);
         applyHoverAnimation(donutChartPane, 1.03, 0);
 
-        HBox tableHeader = new HBox(
-                createHeaderLabel("Space", 200),
-                createHeaderLabel("Storage Used", 110),
-                createHeaderLabel("Percentage", 140)
-        );
-        VBox spaceRows = new VBox(11, tableHeader, new Label("Loading..."));
+        //
+        Label spaceHeader = createHeaderLabel("Space", 0);
+        Label storageHeader = createHeaderLabel("Storage Used", 0);
+        Label percentageHeader = createHeaderLabel("Percentage", 0);
 
-        HBox cardContent = new HBox(28, donutChartPane, spaceRows);
+        HBox tableHeader = new HBox(spaceHeader, storageHeader, percentageHeader);
+        tableHeader.setPadding(new Insets(0, 8, 8, 8));
+
+        VBox spaceRows = new VBox(8, tableHeader, new Label("Loading..."));
+        spaceRows.setFillWidth(true);
+
+        ScrollPane spaceRowsScrollPane = new ScrollPane(spaceRows);
+        spaceRowsScrollPane.setFitToWidth(true);
+        spaceRowsScrollPane.setFitToHeight(true);
+        spaceRowsScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        spaceRowsScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        spaceRowsScrollPane.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-background: transparent;" +
+                "-fx-padding: 0;"
+        );
+
+        // Bind header column widths after spaceRowsScrollPane is instantiated
+        spaceHeader.prefWidthProperty().bind(spaceRowsScrollPane.widthProperty().multiply(0.35));
+        storageHeader.prefWidthProperty().bind(spaceRowsScrollPane.widthProperty().multiply(0.25));
+        percentageHeader.prefWidthProperty().bind(spaceRowsScrollPane.widthProperty().multiply(0.40));
+
+        HBox cardContent = new HBox(24, donutChartPane, spaceRowsScrollPane);
         cardContent.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(spaceRowsScrollPane, Priority.ALWAYS);
+        VBox.setVgrow(cardContent, Priority.ALWAYS);
 
         Label lastUpdated = new Label("Last updated just now");
         lastUpdated.setStyle(
@@ -430,6 +455,7 @@ public class UserDashboard {
         );
 
         VBox occupancyCard = new VBox(16, cardHeader, cardContent, lastUpdated);
+        VBox.setVgrow(occupancyCard, Priority.ALWAYS);
         occupancyCard.setPadding(new Insets(24));
         occupancyCard.setStyle(
                 "-fx-background-color: " + CARD_BG + ";" +
@@ -440,7 +466,18 @@ public class UserDashboard {
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);"
         );
 
-        loadDashboardData(pieChartData, chart, chartValText, chartSubText, spaceRows, lastUpdated, card1, card2, card3);
+        loadDashboardData(
+                pieChartData,
+                chart,
+                chartValText,
+                chartSubText,
+                spaceRows,
+                lastUpdated,
+                card1,
+                card2,
+                card3,
+                card4
+        );
 
         VBox contentBody = new VBox(
                 22,
@@ -448,6 +485,7 @@ public class UserDashboard {
                 metricsRow,
                 occupancyCard
         );
+        VBox.setVgrow(occupancyCard, Priority.ALWAYS);
 
         contentBody.setPadding(new Insets(
                 24,
@@ -462,7 +500,7 @@ public class UserDashboard {
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setStyle(
                 "-fx-background-color: transparent;" +
                 "-fx-background: transparent;" +
@@ -676,50 +714,309 @@ public class UserDashboard {
         return button;
     }
 
-    private void loadDashboardData(ObservableList<PieChart.Data> chartData, PieChart chart, Label totalLabel, Label subLabel, VBox rows, Label updated, HBox card1, HBox card2, HBox card3) {
+    private void loadDashboardData(
+            ObservableList<PieChart.Data> chartData,
+            PieChart chart,
+            Label totalLabel,
+            Label subLabel,
+            VBox rows,
+            Label updated,
+            HBox card1,
+            HBox card2,
+            HBox card3,
+            HBox card4
+    ) {
         UserSession session = UserSession.getInstance();
-        if (session == null || !UserSession.isLoggedIn() || session.getUid() == null || session.getUid().isBlank()) return;
+
+        if (session == null ||
+                !UserSession.isLoggedIn() ||
+                session.getUid() == null ||
+                session.getUid().isBlank()) {
+            return;
+        }
+
+        String uid = session.getUid();
+
         Thread t = new Thread(() -> {
             try {
-                List<FileData> files = fileDAO.getFileSummaries(session.getUid());
-                String[] ids = {"personal", "college", "office", "finance", "entertainment", "other"};
-                String[] names = {"Personal", "College", "Office", "Finance", "Entertainment", "Others"};
-                long[] totals = new long[ids.length];
-                long total = 0;
-                for (FileData f : files) {
-                    total += f.getFileSize();
-                    String id = f.getSpaceId();
-                    if (id != null) {
-                        for (int i = 0; i < ids.length; i++) {
-                            if (ids[i].equalsIgnoreCase(id)) {
-                                totals[i] += f.getFileSize();
+                // =====================================================
+                // 1. LOAD CURRENT FILES
+                // =====================================================
+
+                List<FileData> files =
+                        fileDAO.getFileSummaries(uid);
+
+                // =====================================================
+                // 2. LOAD CURRENT CUSTOM SPACES
+                // =====================================================
+
+                List<SpaceData> customSpaces =
+                        spaceDAO.getUserSpaces(uid);
+
+                // =====================================================
+                // 3. BUILD ALL SPACES
+                //    Six built-in Spaces + user's custom Spaces
+                // =====================================================
+
+                List<String> spaceIds = new ArrayList<>();
+                List<String> spaceNames = new ArrayList<>();
+
+                spaceIds.addAll(Arrays.asList(
+                        "personal",
+                        "college",
+                        "office",
+                        "finance",
+                        "entertainment",
+                        "other"
+                ));
+
+                spaceNames.addAll(Arrays.asList(
+                        "Personal",
+                        "College",
+                        "Office",
+                        "Finance",
+                        "Entertainment",
+                        "Others"
+                ));
+
+                for (SpaceData customSpace : customSpaces) {
+                    if (customSpace == null ||
+                            customSpace.getSpaceId() == null ||
+                            customSpace.getSpaceId().isBlank()) {
+                        continue;
+                    }
+
+                    spaceIds.add(customSpace.getSpaceId());
+                    spaceNames.add(
+                            customSpace.getName() == null ||
+                                    customSpace.getName().isBlank()
+                                    ? customSpace.getSpaceId()
+                                    : customSpace.getName()
+                    );
+                }
+
+                long[] totals =
+                        new long[spaceIds.size()];
+
+                long totalBytes = 0;
+                int aiActionCount = 0;
+
+                // =====================================================
+                // 4. CALCULATE FILE / STORAGE / AI STATISTICS
+                // =====================================================
+
+                for (FileData file : files) {
+
+                    if (file == null) {
+                        continue;
+                    }
+
+                    totalBytes += Math.max(0, file.getFileSize());
+
+                    String spaceId =
+                            file.getSpaceId();
+
+                    if (spaceId != null &&
+                            !spaceId.isBlank()) {
+
+                        for (int i = 0; i < spaceIds.size(); i++) {
+
+                            if (spaceIds.get(i)
+                                    .equalsIgnoreCase(spaceId)) {
+
+                                totals[i] +=
+                                        Math.max(0, file.getFileSize());
+
                                 break;
                             }
                         }
                     }
-                }
-                final long totalBytes = total;
-                Platform.runLater(() -> {
-                    chartData.clear();
-                    rows.getChildren().setAll(tableHeaderNode(rows));
-                    for (int i = 0; i < ids.length; i++) {
-                        double pct = totalBytes == 0 ? 0 : (totals[i] * 100.0 / totalBytes);
-                        chartData.add(new PieChart.Data(names[i], totals[i]));
-                        rows.getChildren().add(createSpaceRow("files", CHART_COLORS[i % CHART_COLORS.length], names[i], formatSize(totals[i]), pct / 100, String.format("%.0f%%", pct), CHART_COLORS[i % CHART_COLORS.length]));
+
+                    // An AI action means this file has an AI category.
+                    String aiCategory =
+                            file.getAiCategory();
+
+                    if (aiCategory != null &&
+                            !aiCategory.isBlank()) {
+                        aiActionCount++;
                     }
-                    totalLabel.setText(formatSize(totalBytes));
-                    subLabel.setText("across " + files.size() + " files");
-                    updated.setText("Last updated just now");
-                    setMetricValue(card1, files.size() + " Files", "● Indexed");
-                    setMetricValue(card3, formatSize(totalBytes), "● Synced");
+                }
+
+                final long finalTotalBytes =
+                        totalBytes;
+
+                final int finalAiActionCount =
+                        aiActionCount;
+
+                final int totalSpaceCount =
+                        spaceIds.size();
+
+                final int customSpaceCount =
+                        totalSpaceCount - 6;
+
+                // =====================================================
+                // 5. UPDATE JAVAFX UI
+                // =====================================================
+
+                Platform.runLater(() -> {
+
+                    chartData.clear();
+
+                    rows.getChildren().setAll(
+                            tableHeaderNode(rows)
+                    );
+
+                    for (int i = 0;
+                            i < spaceIds.size();
+                            i++) {
+
+                        double percentage =
+                                finalTotalBytes == 0
+                                        ? 0
+                                        : totals[i] * 100.0 /
+                                                finalTotalBytes;
+
+                        String color =
+                                CHART_COLORS[
+                                        i % CHART_COLORS.length
+                                ];
+
+                        chartData.add(
+                                new PieChart.Data(
+                                        spaceNames.get(i),
+                                        totals[i]
+                                )
+                        );
+
+                        rows.getChildren().add(
+                                createSpaceRow(
+                                        "files",
+                                        color,
+                                        spaceNames.get(i),
+                                        formatSize(totals[i]),
+                                        percentage / 100.0,
+                                        String.format(
+                                                "%.0f%%",
+                                                percentage
+                                        ),
+                                        color
+                                )
+                        );
+                    }
+
+                    // -------------------------------------------------
+                    // Main occupancy summary
+                    // -------------------------------------------------
+
+                    totalLabel.setText(
+                            formatSize(finalTotalBytes)
+                    );
+
+                    subLabel.setText(
+                            "across " +
+                                    files.size() +
+                                    " files"
+                    );
+
+                    updated.setText(
+                            "Last updated just now"
+                    );
+
+                    // -------------------------------------------------
+                    // Indexing Activity
+                    // -------------------------------------------------
+
+                    setMetricValue(
+                            card1,
+                            files.size() + " Files",
+                            "● Indexed",
+                            "Current Firestore index"
+                    );
+
+                    // -------------------------------------------------
+                    // Active Spaces
+                    // -------------------------------------------------
+
+                    setMetricValue(
+                            card2,
+                            totalSpaceCount + " Spaces",
+                            "● Synced",
+                            "6 built-in · " +
+                                    customSpaceCount +
+                                    " custom"
+                    );
+
+                    // -------------------------------------------------
+                    // Indexed Storage
+                    // -------------------------------------------------
+
+                    setMetricValue(
+                            card3,
+                            formatSize(finalTotalBytes),
+                            "● Synced",
+                            "Current Firestore index"
+                    );
+
+                    // -------------------------------------------------
+                    // AI Actions Live
+                    // -------------------------------------------------
+
+                    setMetricValue(
+                            card4,
+                            finalAiActionCount + " Actions",
+                            "⚡ Live",
+                            finalAiActionCount +
+                                    " AI-classified files"
+                    );
+
                     applyPieChartColors(chartData);
                 });
+
             } catch (Exception e) {
-                Platform.runLater(() -> updated.setText("ⓘ Unable to load dashboard data"));
-                System.out.println("[Dashboard] Unable to load files: " + e.getMessage());
+
+                Platform.runLater(() -> {
+                    updated.setText(
+                            "ⓘ Unable to load dashboard data"
+                    );
+
+                    setMetricValue(
+                            card1,
+                            "Unavailable",
+                            "ⓘ Error",
+                            "Firestore unavailable"
+                    );
+
+                    setMetricValue(
+                            card2,
+                            "Unavailable",
+                            "ⓘ Error",
+                            "Firestore unavailable"
+                    );
+
+                    setMetricValue(
+                            card3,
+                            "Unavailable",
+                            "ⓘ Error",
+                            "Firestore unavailable"
+                    );
+
+                    setMetricValue(
+                            card4,
+                            "Unavailable",
+                            "ⓘ Error",
+                            "Firestore unavailable"
+                    );
+                });
+
+                System.out.println(
+                        "[Dashboard] Unable to load dashboard data: "
+                                + e.getMessage()
+                );
             }
         });
+
         t.setDaemon(true);
+        t.setName("OneSpace-Dashboard-Loader");
         t.start();
     }
 
@@ -732,13 +1029,61 @@ public class UserDashboard {
 
     private javafx.scene.Node tableHeaderNode(VBox rows) { return rows.getChildren().get(0); }
 
-    private void setMetricValue(HBox card, String value, String badge) {
-        if (card.getChildren().isEmpty() || !(card.getChildren().get(0) instanceof VBox)) return;
-        VBox content = (VBox) card.getChildren().get(0);
-        if (content.getChildren().size() > 1 && content.getChildren().get(1) instanceof Label) ((Label) content.getChildren().get(1)).setText(value);
-        if (content.getChildren().size() > 2 && content.getChildren().get(2) instanceof HBox) {
-            HBox bottom = (HBox) content.getChildren().get(2);
-            if (!bottom.getChildren().isEmpty() && bottom.getChildren().get(0) instanceof Label) ((Label) bottom.getChildren().get(0)).setText(badge);
+    private void setMetricValue(
+            HBox card,
+            String value,
+            String badge
+    ) {
+        setMetricValue(
+                card,
+                value,
+                badge,
+                null
+        );
+    }
+
+    private void setMetricValue(
+            HBox card,
+            String value,
+            String badge,
+            String subText
+    ) {
+        if (card == null ||
+                card.getChildren().isEmpty() ||
+                !(card.getChildren().get(0) instanceof VBox)) {
+            return;
+        }
+
+        VBox content =
+                (VBox) card.getChildren().get(0);
+
+        if (content.getChildren().size() > 1 &&
+                content.getChildren().get(1) instanceof Label) {
+
+            ((Label) content.getChildren().get(1))
+                    .setText(value);
+        }
+
+        if (content.getChildren().size() > 2 &&
+                content.getChildren().get(2) instanceof HBox) {
+
+            HBox bottom =
+                    (HBox) content.getChildren().get(2);
+
+            if (!bottom.getChildren().isEmpty() &&
+                    bottom.getChildren().get(0) instanceof Label) {
+
+                ((Label) bottom.getChildren().get(0))
+                        .setText(badge);
+            }
+
+            if (subText != null &&
+                    bottom.getChildren().size() > 1 &&
+                    bottom.getChildren().get(1) instanceof Label) {
+
+                ((Label) bottom.getChildren().get(1))
+                        .setText(subText);
+            }
         }
     }
 
@@ -850,80 +1195,86 @@ public class UserDashboard {
         return label;
     }
 
+        
     private HBox createSpaceRow(String iconType, String iconHex, String title, String storage, double progress, String percent, String colorHex) {
-        SVGPath folderIcon = createIcon(iconType);
-        folderIcon.setStroke(Color.web(iconHex));
-        folderIcon.setStrokeWidth(2);
+            SVGPath folderIcon = createIcon(iconType);
+            folderIcon.setStroke(Color.web(iconHex));
+            folderIcon.setStrokeWidth(2);
 
-        StackPane iconPane = new StackPane(folderIcon);
-        iconPane.setPrefSize(28, 28); iconPane.setMinSize(28, 28);
-        iconPane.setStyle(
-                "-fx-background-color: " + iconHex + "22;" +
-                "-fx-background-radius: 6;" +
-                "-fx-border-color: " + iconHex + "44;" +
-                "-fx-border-radius: 6;"
-        );
+            StackPane iconPane = new StackPane(folderIcon);
+            iconPane.setPrefSize(28, 28); iconPane.setMinSize(28, 28);
+            iconPane.setStyle(
+                    "-fx-background-color: " + iconHex + "22;" +
+                    "-fx-background-radius: 6;" +
+                    "-fx-border-color: " + iconHex + "44;" +
+                    "-fx-border-radius: 6;"
+            );
 
-        Label spaceName = new Label(title);
-        spaceName.setStyle(
-                "-fx-font-size: 13px;" +
-                "-fx-font-weight: 700;" +
-                "-fx-text-fill: " + WHITE + ";"
-        );
+            Label spaceName = new Label(title);
+            spaceName.setStyle(
+                    "-fx-font-size: 13px;" +
+                    "-fx-font-weight: 700;" +
+                    "-fx-text-fill: " + WHITE + ";"
+            );
 
-        HBox nameGroup = new HBox(10, iconPane, spaceName);
-        nameGroup.setAlignment(Pos.CENTER_LEFT);
-        nameGroup.setPrefWidth(200);
+            HBox nameGroup = new HBox(10, iconPane, spaceName);
+            nameGroup.setAlignment(Pos.CENTER_LEFT);
 
-        Label sizeLbl = new Label(storage);
-        sizeLbl.setStyle(
-                "-fx-font-size: 12px;" +
-                "-fx-font-weight: 700;" +
-                "-fx-text-fill: " + WHITE + ";"
-        );
-        sizeLbl.setPrefWidth(110);
+            Label sizeLbl = new Label(storage);
+            sizeLbl.setStyle(
+                    "-fx-font-size: 12px;" +
+                    "-fx-font-weight: 700;" +
+                    "-fx-text-fill: " + WHITE + ";"
+            );
+            sizeLbl.setAlignment(Pos.CENTER_LEFT);
 
-        ProgressBar bar = new ProgressBar(progress);
-        bar.setPrefWidth(90);
-        bar.setPrefHeight(6);
-        bar.setStyle(
-                "-fx-accent: " + colorHex + ";" +
-                "-fx-control-inner-background: rgba(13, 22, 38, 0.85);"
-        );
+            ProgressBar bar = new ProgressBar(progress);
+            bar.setMaxWidth(Double.MAX_VALUE);
+            bar.setPrefHeight(6);
+            bar.setStyle(
+                    "-fx-accent: " + colorHex + ";" +
+                    "-fx-control-inner-background: rgba(13, 22, 38, 0.85);"
+            );
+            HBox.setHgrow(bar, Priority.ALWAYS);
 
-        Label percentLbl = new Label(percent);
-        percentLbl.setStyle(
-                "-fx-font-size: 12px;" +
-                "-fx-font-weight: 700;" +
-                "-fx-text-fill: " + LIGHT_SECONDARY + ";"
-        );
-        percentLbl.setPrefWidth(40);
+            Label percentLbl = new Label(percent);
+            percentLbl.setStyle(
+                    "-fx-font-size: 12px;" +
+                    "-fx-font-weight: 700;" +
+                    "-fx-text-fill: " + LIGHT_SECONDARY + ";"
+            );
+            percentLbl.setMinWidth(35);
+            percentLbl.setAlignment(Pos.CENTER_RIGHT);
 
-        HBox progressGroup = new HBox(10, bar, percentLbl);
-        progressGroup.setAlignment(Pos.CENTER_LEFT);
-        progressGroup.setPrefWidth(140);
+            HBox progressGroup = new HBox(10, bar, percentLbl);
+            progressGroup.setAlignment(Pos.CENTER_LEFT);
 
-        HBox row = new HBox(nameGroup, sizeLbl, progressGroup);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(6, 8, 6, 8));
-        row.setStyle("-fx-background-color: transparent; -fx-background-radius: 8;");
-
-        row.setOnMouseEntered(e -> {
-            row.setStyle("-fx-background-color: rgba(56, 189, 248, 0.08); -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
-            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
-            tt.setToX(4);
-            tt.play();
-        });
-
-        row.setOnMouseExited(e -> {
+            HBox row = new HBox(nameGroup, sizeLbl, progressGroup);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.setPadding(new Insets(6, 8, 6, 8));
             row.setStyle("-fx-background-color: transparent; -fx-background-radius: 8;");
-            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
-            tt.setToX(0);
-            tt.play();
-        });
 
-        return row;
-    }
+            // Bind column widths to match header ratio (35% / 25% / 40%)
+            nameGroup.prefWidthProperty().bind(row.widthProperty().multiply(0.35));
+            sizeLbl.prefWidthProperty().bind(row.widthProperty().multiply(0.25));
+            progressGroup.prefWidthProperty().bind(row.widthProperty().multiply(0.40));
+
+            row.setOnMouseEntered(e -> {
+                row.setStyle("-fx-background-color: rgba(56, 189, 248, 0.08); -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+                tt.setToX(4);
+                tt.play();
+            });
+
+            row.setOnMouseExited(e -> {
+                row.setStyle("-fx-background-color: transparent; -fx-background-radius: 8;");
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+                tt.setToX(0);
+                tt.play();
+            });
+
+            return row;
+        }
 
     private void applyPieChartColors(ObservableList<PieChart.Data> data) {
         int i = 0;

@@ -4,8 +4,11 @@ import com.file_handlers.view.LandingPage;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -13,6 +16,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.effect.BlurType;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -26,9 +31,12 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
+import javafx.util.Duration;
 
 public class AdminSettings {
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
+    public static boolean isGlobalLightMode = false;
 
     // Dynamic Theme Tokens (Mutable for Light / Dark toggling)
     private String sidebarBg = "#070C16";
@@ -49,7 +57,6 @@ public class AdminSettings {
     private static final String PURPLE_LIGHT = "rgba(0, 210, 255, 0.15)";
 
     private static final String CARD_BG = null;
-
     private static final String CARD_BORDER = null;
 
 
@@ -62,6 +69,7 @@ public class AdminSettings {
 
     private boolean isLightMode = false;
     private String activeUserName = "Admin";
+    private String userEmail = "admin@onespace.local";
     private String initials = "A";
 
     public AdminSettings() {}
@@ -92,6 +100,7 @@ public class AdminSettings {
 
     private void applyTheme(boolean lightMode) {
         this.isLightMode = lightMode;
+        isGlobalLightMode = lightMode;
 
         if (lightMode) {
             sidebarBg = "#FFFFFF";
@@ -178,6 +187,31 @@ public class AdminSettings {
         return sidebar;
     }
 
+    private void applyHoverAnimation(Node node, double scale, int translateY) {
+        ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(180), node);
+        TranslateTransition translateTransition = new TranslateTransition(Duration.millis(180), node);
+
+        node.setOnMouseEntered(e -> {
+            scaleTransition.stop();
+            translateTransition.stop();
+            scaleTransition.setToX(scale);
+            scaleTransition.setToY(scale);
+            translateTransition.setToY(translateY);
+            scaleTransition.play();
+            translateTransition.play();
+        });
+
+        node.setOnMouseExited(e -> {
+            scaleTransition.stop();
+            translateTransition.stop();
+            scaleTransition.setToX(1.0);
+            scaleTransition.setToY(1.0);
+            translateTransition.setToY(0);
+            scaleTransition.play();
+            translateTransition.play();
+        });
+    }
+
     private StackPane createLogo() {
         Image logoImage = new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
         ImageView logoView = new ImageView(logoImage);
@@ -188,6 +222,7 @@ public class AdminSettings {
         StackPane logoPane = new StackPane(logoView);
         logoPane.setPrefSize(42, 42);
         logoPane.setAlignment(Pos.CENTER);
+        applyHoverAnimation(logoPane, 1.08, 0);
         return logoPane;
     }
 
@@ -214,6 +249,10 @@ public class AdminSettings {
         button.setAlignment(Pos.CENTER_LEFT);
         button.setPadding(new Insets(0, 12, 0, 12));
 
+        ScaleTransition st = new ScaleTransition(Duration.millis(160), button);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(160), button);
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(37, 99, 235, 0.75), 14, 0, 0, 2);
+
         if (selected) {
             button.setStyle(
                 "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
@@ -224,18 +263,40 @@ public class AdminSettings {
                 "-fx-cursor: hand;" +
                 "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.4), 14, 0, 0, 2);"
             );
+            button.setOnMouseEntered(e -> {
+                st.stop(); tt.stop();
+                st.setToX(1.02); st.setToY(1.02);
+                tt.setToX(3);
+                st.play(); tt.play();
+            });
+            button.setOnMouseExited(e -> {
+                st.stop(); tt.stop();
+                st.setToX(1.0); st.setToY(1.0);
+                tt.setToX(0);
+                st.play(); tt.play();
+            });
         } else {
             String hoverBg = isLightMode ? "#F1F5F9" : "rgba(255, 255, 255, 0.05)";
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: " + hoverBg + "; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+                button.setStyle("-fx-background-color: " + hoverBg + "; -fx-border-color: rgba(56, 189, 248, 0.5); -fx-border-radius: 12; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 1;");
+                button.setEffect(blueGlow);
                 icon.setStroke(Color.web(BLUE));
                 label.setTextFill(Color.web(isLightMode ? BLUE : "#FFFFFF"));
+                st.stop(); tt.stop();
+                st.setToX(1.02); st.setToY(1.02);
+                tt.setToX(3);
+                st.play(); tt.play();
             });
             button.setOnMouseExited(e -> {
                 button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+                button.setEffect(null);
                 icon.setStroke(Color.web(textSecondary));
                 label.setTextFill(Color.web(isLightMode ? textPrimary : "#FFFFFF"));
+                st.stop(); tt.stop();
+                st.setToX(1.0); st.setToY(1.0);
+                tt.setToX(0);
+                st.play(); tt.play();
             });
         }
         return button;
@@ -290,6 +351,27 @@ public class AdminSettings {
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: " + topbarWidgetBg + "; -fx-border-color: " + sidebarBorder + "; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(37, 99, 235, 0.75), 14, 0, 0, 2);
+
+        ScaleTransition stProf = new ScaleTransition(Duration.millis(180), profile);
+        TranslateTransition ttProf = new TranslateTransition(Duration.millis(180), profile);
+        profile.setOnMouseEntered(e -> {
+            profile.setStyle("-fx-background-color: " + topbarWidgetBg + "; -fx-border-color: #38BDF8; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+            profile.setEffect(blueGlow);
+            stProf.stop(); ttProf.stop();
+            stProf.setToX(1.03); stProf.setToY(1.03);
+            ttProf.setToY(-1);
+            stProf.play(); ttProf.play();
+        });
+        profile.setOnMouseExited(e -> {
+            profile.setStyle("-fx-background-color: " + topbarWidgetBg + "; -fx-border-color: " + sidebarBorder + "; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+            profile.setEffect(null);
+            stProf.stop(); ttProf.stop();
+            stProf.setToX(1.0); stProf.setToY(1.0);
+            ttProf.setToY(0);
+            stProf.play(); ttProf.play();
+        });
 
         Popup profilePopup = createProfilePopup();
         profile.setOnMouseClicked(e -> {
@@ -367,6 +449,24 @@ public class AdminSettings {
         item.setPadding(new Insets(8, 10, 8, 10));
         item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
 
+        ScaleTransition st = new ScaleTransition(Duration.millis(150), item);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(150), item);
+
+        item.setOnMouseEntered(e -> {
+            item.setStyle("-fx-background-color: rgba(37, 99, 235, 0.2); -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
+            st.stop(); tt.stop();
+            st.setToX(1.03); st.setToY(1.03);
+            tt.setToX(3);
+            st.play(); tt.play();
+        });
+        item.setOnMouseExited(e -> {
+            item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
+            st.stop(); tt.stop();
+            st.setToX(1.0); st.setToY(1.0);
+            tt.setToX(0);
+            st.play(); tt.play();
+        });
+
         item.setOnMouseClicked(e -> action.run());
         return item;
     }
@@ -389,7 +489,7 @@ public class AdminSettings {
 
         // 1. Account Profile Card
         VBox accountCard = createSettingsCard();
-        VBox accountInfo = new VBox(3, createCardLabel("Admin", 16, FontWeight.BOLD), createSecondaryLabel("admin@onespace.com", 13));
+        VBox accountInfo = new VBox(3, createCardLabel(activeUserName, 16, FontWeight.BOLD), createSecondaryLabel(userEmail, 13));
         HBox accountLeft = new HBox(14, createIconBox("users", BLUE, BLUE_LIGHT), accountInfo);
         accountLeft.setAlignment(Pos.CENTER_LEFT);
 
@@ -416,17 +516,9 @@ public class AdminSettings {
         Button darkButton = createThemeButton("☾", "Dark", !isLightMode);
         Button systemButton = createThemeButton("▣", "System", false);
 
-        lightButton.setOnAction(e -> {
-            applyTheme(true);
-        });
-
-        darkButton.setOnAction(e -> {
-            applyTheme(false);
-        });
-
-        systemButton.setOnAction(e -> {
-            applyTheme(false);
-        });
+        lightButton.setOnAction(e -> applyTheme(true));
+        darkButton.setOnAction(e -> applyTheme(false));
+        systemButton.setOnAction(e -> applyTheme(false));
 
         HBox themeButtons = new HBox(12, lightButton, darkButton, systemButton);
         themeButtons.setAlignment(Pos.CENTER_LEFT);
@@ -450,6 +542,13 @@ public class AdminSettings {
         passwordCombo.getItems().addAll("Strong (Min 8 characters)", "Medium (Min 6 characters)", "Custom Policy");
         passwordCombo.setValue("Strong (Min 8 characters)");
         styleComboBox(passwordCombo);
+        passwordCombo.setOnAction(e -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Policy Updated");
+            alert.setHeaderText(null);
+            alert.setContentText("Password policy updated to: " + passwordCombo.getValue());
+            alert.showAndWait();
+        });
 
         ToggleButton twoFactorToggle = new ToggleButton();
         twoFactorToggle.setSelected(true);
@@ -459,6 +558,7 @@ public class AdminSettings {
         HBox twoFactorBox = new HBox(10, twoFactorToggle, enabledLabel);
         twoFactorBox.setAlignment(Pos.CENTER_LEFT);
         twoFactorToggle.setStyle(createToggleStyle(true));
+        applyHoverAnimation(twoFactorToggle, 1.05, -1);
         twoFactorToggle.setOnAction(e -> {
             boolean enabled = twoFactorToggle.isSelected();
             enabledLabel.setText(enabled ? "Enabled" : "Disabled");
@@ -469,11 +569,25 @@ public class AdminSettings {
         sessionCombo.getItems().addAll("15 minutes", "30 minutes", "1 hour", "2 hours", "Never");
         sessionCombo.setValue("30 minutes");
         styleComboBox(sessionCombo);
+        sessionCombo.setOnAction(e -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Session Timeout");
+            alert.setHeaderText(null);
+            alert.setContentText("Session timeout configured to: " + sessionCombo.getValue());
+            alert.showAndWait();
+        });
 
         ComboBox<String> attemptsCombo = new ComboBox<>();
         attemptsCombo.getItems().addAll("3 attempts allowed", "5 attempts allowed", "10 attempts allowed", "Unlimited");
         attemptsCombo.setValue("5 attempts allowed");
         styleComboBox(attemptsCombo);
+        attemptsCombo.setOnAction(e -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Login Attempts");
+            alert.setHeaderText(null);
+            alert.setContentText("Allowed login attempts set to: " + attemptsCombo.getValue());
+            alert.showAndWait();
+        });
 
         VBox securityForm = new VBox(12,
                 createFormRow(createFormLabel("Password Policy"), passwordCombo),
@@ -500,6 +614,7 @@ public class AdminSettings {
                 "-fx-background-radius: 20;" +
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0," + (isLightMode ? "0.06" : "0.6") + "), 24, 0, 0, 10);"
         );
+        applyHoverAnimation(box, 1.01, -2);
         return box;
     }
 
@@ -527,6 +642,7 @@ public class AdminSettings {
         box.setPrefSize(32, 32);
         box.setMaxSize(32, 32);
         box.setStyle("-fx-background-color: " + background + "; -fx-border-color: " + color + "55; -fx-border-radius: 8; -fx-background-radius: 8;");
+        applyHoverAnimation(box, 1.08, 0);
         return box;
     }
 
@@ -536,11 +652,8 @@ public class AdminSettings {
         button.setPadding(new Insets(0, 15, 0, 15));
 
         String baseStyle = "-fx-background-color: " + (isLightMode ? "#F8FAFC" : "rgba(255, 255, 255, 0.05)") + "; -fx-border-color: " + cardBorder + "; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: " + textPrimary + "; -fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-cursor: hand;";
-        String hoverStyle = "-fx-background-color: " + (isLightMode ? "#EEF2FF" : "rgba(255, 255, 255, 0.1)") + "; -fx-border-color: " + BLUE + "; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: " + (isLightMode ? BLUE : "#FFFFFF") + "; -fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-cursor: hand;";
-
         button.setStyle(baseStyle);
-        button.setOnMouseEntered(e -> button.setStyle(hoverStyle));
-        button.setOnMouseExited(e -> button.setStyle(baseStyle));
+        applyHoverAnimation(button, 1.04, -1);
         return button;
     }
 
@@ -561,6 +674,7 @@ public class AdminSettings {
         button.setPadding(new Insets(0, 14, 0, 14));
 
         applyThemeButtonStyle(button, iconLabel, textLabel, selected);
+        applyHoverAnimation(button, 1.04, -1);
         return button;
     }
 
@@ -617,6 +731,7 @@ public class AdminSettings {
     private void styleComboBox(ComboBox<String> comboBox) {
         comboBox.setPrefWidth(345); comboBox.setPrefHeight(34);
         comboBox.setStyle("-fx-background-color: " + (isLightMode ? "#F8FAFC" : "rgba(10, 18, 33, 0.85)") + "; -fx-border-color: " + cardBorder + "; -fx-border-width: 1; -fx-border-radius: 7; -fx-background-radius: 7; -fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: " + textPrimary + ";");
+        applyHoverAnimation(comboBox, 1.02, -1);
     }
 
     private String createToggleStyle(boolean enabled) {

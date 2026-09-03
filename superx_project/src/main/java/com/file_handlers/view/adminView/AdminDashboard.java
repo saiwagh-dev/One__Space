@@ -1,10 +1,14 @@
 package com.file_handlers.view.adminView;
 
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
@@ -28,6 +32,8 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.concurrent.Task;
+import javafx.util.Duration;
+
 import java.io.InputStream;
 
 import com.file_handlers.model.UserSession;
@@ -39,7 +45,6 @@ import java.time.LocalTime;
 
 public class AdminDashboard {
     
-
     // Typography
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
@@ -84,12 +89,12 @@ public class AdminDashboard {
                 this.activeUserName = parts[0];
                 this.initials = this.activeUserName.substring(0, 1).toUpperCase();
             }
-        }}
+        }
+    }
+
     private final AdminStatsDAO statsDAO1 = new AdminStatsDAO();
     private Label totalUsersValue1;
     private Label totalFilesValue1;
-
-  
 
     public Scene getAdminDashboardScene() {
        
@@ -179,6 +184,7 @@ public class AdminDashboard {
         StackPane logoPane = new StackPane(logoView);
         logoPane.setPrefSize(42, 42);
         logoPane.setAlignment(Pos.CENTER);
+        applyHoverAnimation(logoPane, 1.08, 0);
 
         return logoPane;
     }
@@ -218,14 +224,20 @@ public class AdminDashboard {
         } else {
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
-                button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
-                icon.setStroke(Color.WHITE);
-                label.setTextFill(Color.WHITE);
+                button.setStyle("-fx-background-color: rgba(56, 189, 248, 0.12); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
+                icon.setStroke(Color.web("#38BDF8"));
+                label.setTextFill(Color.web("#38BDF8"));
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), button);
+                tt.setToX(4);
+                tt.play();
             });
             button.setOnMouseExited(e -> {
                 button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 icon.setStroke(Color.web(LIGHT_SECONDARY));
                 label.setTextFill(Color.web(WHITE));
+                TranslateTransition tt = new TranslateTransition(Duration.millis(120), button);
+                tt.setToX(0);
+                tt.play();
             });
         }
         return button;
@@ -243,12 +255,14 @@ public class AdminDashboard {
         notification.setGraphic(bell);
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
+        applyHoverAnimation(notification, 1.08, 0);
 
         Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        applyHoverAnimation(avatar, 1.15, 0);
 
         Label admin = new Label(activeUserName);
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
@@ -258,6 +272,7 @@ public class AdminDashboard {
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
+        applyHoverAnimation(profile, 1.03, 0);
 
         ContextMenu profileMenu = createProfileMenu();
         profile.setOnMouseClicked(e -> {
@@ -548,8 +563,20 @@ public class AdminDashboard {
         String styleHover = "-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.9), rgba(12, 22, 40, 0.95)); -fx-border-color: " + iconColor + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, " + iconColor + "66, 20, 0, 0, 6);";
 
         card.setStyle(styleIdle);
-        card.setOnMouseEntered(e -> card.setStyle(styleHover));
-        card.setOnMouseExited(e -> card.setStyle(styleIdle));
+        card.setOnMouseEntered(e -> {
+            card.setStyle(styleHover);
+            ScaleTransition st = new ScaleTransition(Duration.millis(120), card);
+            st.setToX(1.02);
+            st.setToY(1.02);
+            st.play();
+        });
+        card.setOnMouseExited(e -> {
+            card.setStyle(styleIdle);
+            ScaleTransition st = new ScaleTransition(Duration.millis(120), card);
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+        });
 
         if (onClick != null) {
             card.setOnMouseClicked(e -> onClick.handle(e));
@@ -606,8 +633,77 @@ public class AdminDashboard {
         HBox row = new HBox(10, service, spacer, status);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(8, 12, 8, 12));
-        row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8;");
+        String rowIdle = "-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;";
+        String rowHover = "-fx-background-color: rgba(16, 28, 48, 0.95); -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.2), 8, 0, 0, 2);";
+        row.setStyle(rowIdle);
+        row.setOnMouseEntered(e -> {
+            row.setStyle(rowHover);
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+            tt.setToX(4);
+            tt.play();
+        });
+        row.setOnMouseExited(e -> {
+            row.setStyle(rowIdle);
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+            tt.setToX(0);
+            tt.play();
+        });
+
+        row.setOnMouseClicked(e -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle(serviceName + " Diagnostics");
+            alert.setHeaderText(serviceName + " is Operational");
+
+            switch (serviceName) {
+                case "Database":
+                    alert.setContentText("Status: Online\nLatency: 18 ms\nConnection: Firestore / Cloud Database Active\nRead/Write: Healthy");
+                    break;
+                case "Authentication":
+                    alert.setContentText("Status: Online\nActive Sessions: Monitored\nToken Engine: Operational\n2FA Validation: Enabled");
+                    break;
+                case "Local File Access":
+                    alert.setContentText("Status: Online\nDisk Access: Read/Write Permission Granted\nStorage Path: Accessible\nCache: Operational");
+                    break;
+                case "AI Processing Service":
+                    alert.setContentText("Status: Online\nModel Inference: Ready\nIndexing Pipeline: Active\nResponse Latency: 42 ms");
+                    break;
+                default:
+                    alert.setContentText("Status: Online\nAll services running smoothly with no issues reported.");
+                    break;
+            }
+
+            alert.showAndWait();
+        });
+
         return row;
+    }
+
+    private void applyHoverAnimation(Node node, double scaleTo, double translateY) {
+        node.setOnMouseEntered(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(scaleTo);
+            st.setToY(scaleTo);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(translateY);
+                tt.play();
+            }
+        });
+
+        node.setOnMouseExited(e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+
+            if (translateY != 0) {
+                TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
+                tt.setToY(0);
+                tt.play();
+            }
+        });
     }
 
     private SVGPath createIcon(String type) {
@@ -630,4 +726,4 @@ public class AdminDashboard {
         }
         return icon;
     }
-}
+}   

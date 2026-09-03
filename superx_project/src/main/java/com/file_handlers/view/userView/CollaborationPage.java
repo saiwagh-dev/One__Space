@@ -883,6 +883,10 @@ public class CollaborationPage {
         }
     }
 
+    private HBox createWorkspaceCard(WorkspaceData w) {
+        return createWorkspaceCard(w, null, w.docId);
+    }
+
     private HBox createWorkspaceCard(WorkspaceData w, BorderPane root, String docId) {
         SVGPath icon = createIcon(w.iconType);
         icon.setStroke(Color.web(w.iconColor));

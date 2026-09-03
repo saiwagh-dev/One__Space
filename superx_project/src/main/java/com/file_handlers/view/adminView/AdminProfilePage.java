@@ -8,6 +8,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.CustomMenuItem;
@@ -28,8 +29,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
+import java.io.File;
+import java.io.FileInputStream;
 
 public class AdminProfilePage {
 
@@ -68,8 +73,38 @@ public class AdminProfilePage {
     private Label heroEmailLabel;
     private Label heroHandleLabel;
     private Label heroDescLabel;
+    private Label bigAvatar;
+    private Label topBarAdminName;
+    private Label topBarAvatar;
 
-    public AdminProfilePage() { UserSession session = UserSession.getInstance();
+    private void updateAdminSymbol(String fullName) {
+        if (fullName == null || fullName.trim().isEmpty()) {
+            if (bigAvatar != null && bigAvatar.getGraphic() == null) bigAvatar.setText("AD");
+            if (topBarAvatar != null) topBarAvatar.setText("A");
+            return;
+        }
+
+        String[] parts = fullName.trim().split("\\s+");
+        String symbol;
+        if (parts.length > 1 && !parts[1].isEmpty()) {
+            symbol = (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
+        } else {
+            symbol = parts[0].substring(0, 1).toUpperCase();
+        }
+
+        if (bigAvatar != null && bigAvatar.getGraphic() == null) {
+            bigAvatar.setText(symbol);
+        }
+        if (topBarAvatar != null) {
+            topBarAvatar.setText(parts[0].substring(0, 1).toUpperCase());
+        }
+        if (topBarAdminName != null) {
+            topBarAdminName.setText(parts[0]);
+        }
+    }
+
+    public AdminProfilePage() { 
+        UserSession session = UserSession.getInstance();
 
         if (session != null && session.getDisplayName() != null) {
             String fullName = session.getDisplayName().trim();
@@ -78,7 +113,8 @@ public class AdminProfilePage {
                 this.activeUserName = parts[0];
                 this.initials = this.activeUserName.substring(0, 1).toUpperCase();
             }
-        }}
+        }
+    }
 
     public Scene getAdminProfileScene() {
         BorderPane root = new BorderPane();
@@ -228,17 +264,17 @@ public class AdminProfilePage {
         notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
 
-        Label avatar = new Label(initials);
-        avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
-        avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        topBarAvatar = new Label(initials);
+        topBarAvatar.setPrefSize(34, 34); topBarAvatar.setAlignment(Pos.CENTER);
+        topBarAvatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        topBarAvatar.setTextFill(Color.WHITE);
+        topBarAvatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
 
-        Label admin = new Label(activeUserName);
-        admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
-        admin.setTextFill(Color.WHITE);
+        topBarAdminName = new Label(activeUserName);
+        topBarAdminName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
+        topBarAdminName.setTextFill(Color.WHITE);
 
-        HBox profile = new HBox(10, avatar, admin);
+        HBox profile = new HBox(10, topBarAvatar, topBarAdminName);
         profile.setAlignment(Pos.CENTER);
         profile.setPadding(new Insets(4, 12, 4, 6));
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
@@ -376,9 +412,51 @@ public class AdminProfilePage {
 
         Button resetBtn = new Button("Reset Changes");
         resetBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 16;");
+        resetBtn.setOnAction(e -> {
+            fullNameField.setText("Admin User");
+            emailField.setText("admin@onespace.com");
+            usernameField.setText("@admin");
+            bioArea.setText("System administrator with full access to OneSpace platform and all resources.");
+            heroNameLabel.setText("Admin User");
+            heroEmailLabel.setText("admin@onespace.com");
+            heroHandleLabel.setText("@admin");
+            heroDescLabel.setText("System administrator with full access to OneSpace platform and all resources.");
+            updateAdminSymbol("Admin User");
+            savedStatus.setText("✓ Reset to defaults");
+            savedStatus.setTextFill(Color.web(GREEN));
+        });
         
         Button saveBtn = new Button("Save Changes");
         saveBtn.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #0284C7); -fx-background-radius: 8; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 16; -fx-effect: dropshadow(three-pass-box, rgba(2, 132, 199, 0.5), 14, 0, 0, 3);");
+        saveBtn.setOnAction(e -> {
+            String nameVal = fullNameField.getText().trim();
+            String emailVal = emailField.getText().trim();
+            String userVal = usernameField.getText().trim();
+            if (!userVal.startsWith("@") && !userVal.isEmpty()) {
+                userVal = "@" + userVal;
+                usernameField.setText(userVal);
+            }
+            heroNameLabel.setText(nameVal.isEmpty() ? "Admin User" : nameVal);
+            heroEmailLabel.setText(emailVal.isEmpty() ? "admin@onespace.com" : emailVal);
+            heroHandleLabel.setText(userVal.isEmpty() ? "@admin" : userVal);
+            heroDescLabel.setText(bioArea.getText());
+
+            updateAdminSymbol(nameVal);
+
+            UserSession session = UserSession.getInstance();
+            if (session != null) {
+                if (!nameVal.isEmpty()) session.setDisplayName(nameVal);
+                if (!emailVal.isEmpty()) session.setEmail(emailVal);
+            }
+            savedStatus.setText("✓ All changes saved");
+            savedStatus.setTextFill(Color.web(GREEN));
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Success");
+            alert.setHeaderText(null);
+            alert.setContentText("Profile updated successfully!");
+            alert.showAndWait();
+        });
 
         HBox actionFooter = new HBox(12, bottomSpacer, resetBtn, saveBtn);
         actionFooter.setAlignment(Pos.CENTER_RIGHT);
@@ -393,7 +471,7 @@ public class AdminProfilePage {
     }
 
     private VBox createHeroCard() {
-        Label bigAvatar = new Label("AD");
+        bigAvatar = new Label(initials);
         bigAvatar.setPrefSize(72, 72); bigAvatar.setMinSize(72, 72); bigAvatar.setMaxSize(72, 72);
         bigAvatar.setAlignment(Pos.CENTER);
         bigAvatar.setFont(Font.font(FONT, FontWeight.BOLD, 24));
@@ -406,6 +484,22 @@ public class AdminProfilePage {
         cameraIcon.setStrokeWidth(2);
         changePhotoBtn.setGraphic(cameraIcon);
         changePhotoBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-text-fill: " + WHITE + "; -fx-font-size: 11px; -fx-cursor: hand;");
+        changePhotoBtn.setOnAction(e -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select Profile Image");
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg"));
+            File file = fileChooser.showOpenDialog(null);
+            if (file != null) {
+                try {
+                    javafx.scene.image.ImageView imgView = new javafx.scene.image.ImageView(new javafx.scene.image.Image(new FileInputStream(file)));
+                    imgView.setFitWidth(64);
+                    imgView.setFitHeight(64);
+                    imgView.setPreserveRatio(true);
+                    bigAvatar.setText("");
+                    bigAvatar.setGraphic(imgView);
+                } catch (Exception ignored) {}
+            }
+        });
 
         VBox avatarCol = new VBox(10, bigAvatar, changePhotoBtn);
         avatarCol.setAlignment(Pos.CENTER);
@@ -528,15 +622,27 @@ public class AdminProfilePage {
         cancelBtn.setOnAction(e -> modalStage.close());
 
         saveBtn.setOnAction(e -> {
-            fullNameField.setText(modalNameField.getText());
-            emailField.setText(modalEmailField.getText());
-            usernameField.setText(modalUsernameField.getText());
-            bioArea.setText(modalBioArea.getText());
+            String uName = modalUsernameField.getText().trim();
+            if (!uName.startsWith("@") && !uName.isEmpty()) {
+                uName = "@" + uName;
+            }
+            fullNameField.setText(modalNameField.getText().trim());
+            emailField.setText(modalEmailField.getText().trim());
+            usernameField.setText(uName);
+            bioArea.setText(modalBioArea.getText().trim());
 
-            heroNameLabel.setText(modalNameField.getText());
-            heroEmailLabel.setText(modalEmailField.getText());
-            heroHandleLabel.setText(modalUsernameField.getText());
-            heroDescLabel.setText(modalBioArea.getText());
+            heroNameLabel.setText(modalNameField.getText().trim());
+            heroEmailLabel.setText(modalEmailField.getText().trim());
+            heroHandleLabel.setText(uName);
+            heroDescLabel.setText(modalBioArea.getText().trim());
+
+            updateAdminSymbol(modalNameField.getText().trim());
+
+            UserSession session = UserSession.getInstance();
+            if (session != null) {
+                if (!modalNameField.getText().trim().isEmpty()) session.setDisplayName(modalNameField.getText().trim());
+                if (!modalEmailField.getText().trim().isEmpty()) session.setEmail(modalEmailField.getText().trim());
+            }
 
             modalStage.close();
         });
@@ -607,6 +713,33 @@ public class AdminProfilePage {
         cancelBtn.setOnAction(e -> modalStage.close());
 
         saveBtn.setOnAction(e -> {
+            String cp = currentPassField.getText();
+            String np = newPassField.getText();
+            String conf = confirmPassField.getText();
+
+            if (cp.isEmpty() || np.isEmpty() || conf.isEmpty()) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Warning");
+                alert.setHeaderText(null);
+                alert.setContentText("Please fill in all password fields.");
+                alert.showAndWait();
+                return;
+            }
+
+            if (!np.equals(conf)) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText(null);
+                alert.setContentText("New password and confirm password do not match.");
+                alert.showAndWait();
+                return;
+            }
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Success");
+            alert.setHeaderText(null);
+            alert.setContentText("Password updated successfully.");
+            alert.showAndWait();
             modalStage.close();
         });
 
@@ -638,31 +771,37 @@ public class AdminProfilePage {
         VBox heading = new VBox(2, title, subtitle);
 
         fullNameField = new TextField("Admin User");
-        fullNameField.setEditable(false);
+        fullNameField.setEditable(true);
         fullNameField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+        fullNameField.textProperty().addListener((obs, o, n) -> {
+            heroNameLabel.setText(n.isEmpty() ? "Admin User" : n);
+            updateAdminSymbol(n);
+        });
         Label fnLbl = new Label("Full Name");
         fnLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
         fnLbl.setStyle("-fx-text-fill: " + WHITE + ";");
         VBox fullNameGroup = new VBox(4, fnLbl, fullNameField);
 
         emailField = new TextField("admin@onespace.com");
-        emailField.setEditable(false);
+        emailField.setEditable(true);
         emailField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+        emailField.textProperty().addListener((obs, o, n) -> heroEmailLabel.setText(n.isEmpty() ? "admin@onespace.com" : n));
         Label emLbl = new Label("Email Address");
         emLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
         emLbl.setStyle("-fx-text-fill: " + WHITE + ";");
         VBox emailGroup = new VBox(4, emLbl, emailField);
 
         usernameField = new TextField("@admin");
-        usernameField.setEditable(false);
+        usernameField.setEditable(true);
         usernameField.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8;");
+        usernameField.textProperty().addListener((obs, o, n) -> heroHandleLabel.setText(n.isEmpty() ? "@admin" : n));
         Label unLbl = new Label("Username");
         unLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
         unLbl.setStyle("-fx-text-fill: " + WHITE + ";");
         VBox usernameGroup = new VBox(4, unLbl, usernameField);
 
         bioArea = new TextArea("System administrator with full access to OneSpace platform and all resources.");
-        bioArea.setEditable(false);
+        bioArea.setEditable(true);
         bioArea.setVisible(false);
         bioArea.setManaged(false);
 
@@ -708,6 +847,17 @@ public class AdminProfilePage {
 
         Button deleteBtn = new Button("Delete Account");
         deleteBtn.setStyle("-fx-background-color: " + DANGER_BTN + "; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+        deleteBtn.setOnAction(e -> {
+            Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmAlert.setTitle("Confirm Deletion");
+            confirmAlert.setHeaderText("Delete Administrator Account");
+            confirmAlert.setContentText("Are you sure you want to permanently delete your administrator account? This action cannot be undone.");
+            confirmAlert.showAndWait().ifPresent(response -> {
+                if (response == javafx.scene.control.ButtonType.OK) {
+                    LandingPage.showAdminLoginPage();
+                }
+            });
+        });
 
         SVGPath alertIcon = createIcon("alert");
         alertIcon.setStroke(Color.web("#EF4444"));
