@@ -52,7 +52,8 @@ public class AddReminderPage {
     private static final String LIGHT_SECONDARY = "#94A3B8";
     private static final String BLUE = "#2563EB";
 
-    private TextField titleField, reminderTimeField;
+    private TextField titleField;
+    private TextField reminderTimeField;
     private TextArea descriptionField;
     private ComboBox<String> reminderTypeCombo, repeatCombo, priorityCombo;
     private DatePicker reminderDatePicker;
@@ -165,7 +166,22 @@ public class AddReminderPage {
         descriptionField.setPromptText("Add more details about this reminder...");
         descriptionField.setWrapText(true);
         descriptionField.setPrefRowCount(3);
-        descriptionField.setStyle("-fx-control-inner-background: " + INPUT_BG + "; -fx-background-color: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-prompt-text-fill: " + LIGHT_SECONDARY + "; -fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-border-color: " + INPUT_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8;");
+        descriptionField.setStyle(
+            "-fx-control-inner-background: " + INPUT_BG + ";" +
+            "-fx-background-color: " + INPUT_BG + ";" +
+            "-fx-text-fill: " + WHITE + ";" +
+            "-fx-prompt-text-fill: " + LIGHT_SECONDARY + ";" +
+            "-fx-font-family: " + FONT + ";" +
+            "-fx-font-size: 13px;" +
+            "-fx-border-color: " + INPUT_BORDER + ";" +
+            "-fx-border-radius: 8;" +
+            "-fx-background-radius: 8;"
+        );
+
+        // Override the internal default white viewport/content region of TextArea
+        descriptionField.lookupAll(".content").forEach(node -> 
+            node.setStyle("-fx-background-color: " + INPUT_BG + ";")
+        );
 
         reminderTypeCombo = new ComboBox<>();
         reminderTypeCombo.getItems().addAll("Document Reminder", "Task Reminder", "Event Reminder", "Deadline Reminder");
@@ -188,11 +204,28 @@ public class AddReminderPage {
         reminderDatePicker.setPromptText("dd/mm/yyyy");
         reminderDatePicker.setPrefHeight(42);
         reminderDatePicker.setMaxWidth(Double.MAX_VALUE);
-        reminderDatePicker.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-control-inner-background: " + INPUT_BG + "; -fx-text-fill: " + WHITE + "; -fx-font-family: " + FONT + ";");
+        reminderDatePicker.setStyle(
+            "-fx-background-color: " + INPUT_BG + ";" +
+            "-fx-control-inner-background: " + INPUT_BG + ";" +
+            "-fx-border-color: " + INPUT_BORDER + ";" +
+            "-fx-border-radius: 8;" +
+            "-fx-background-radius: 8;" +
+            "-fx-text-fill: " + WHITE + ";" +
+            "-fx-font-family: " + FONT + ";" +
+            "-fx-font-size: 13px;" +
+            "-fx-prompt-text-fill: " + LIGHT_SECONDARY + ";"
+        );
 
-        reminderTimeField = new TextField();
-        reminderTimeField.setPromptText("--:-- --");
-        styleTextField(reminderTimeField);
+        // Style the internal editor field of DatePicker to match standard text fields
+        reminderDatePicker.getEditor().setStyle(
+            "-fx-background-color: transparent;" +
+            "-fx-text-fill: " + WHITE + ";" +
+            "-fx-prompt-text-fill: " + LIGHT_SECONDARY + ";" +
+            "-fx-font-family: " + FONT + ";" +
+            "-fx-font-size: 13px;"
+        );
+
+        HBox timePickerBox = createTimePickerControl();
 
         repeatCombo = new ComboBox<>();
         repeatCombo.getItems().addAll("Does not repeat", "Every day", "Every week", "Every month", "Every year");
@@ -226,8 +259,7 @@ public class AddReminderPage {
         HBox.setHgrow(reminderTypeBox, Priority.ALWAYS);
         HBox.setHgrow(documentBox, Priority.ALWAYS);
 
-        HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminder Time", reminderTimeField));
-        HBox repeatPriority = row(field("Repeat", repeatCombo), field("Priority", priorityCombo));
+HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminder Time", timePickerBox));        HBox repeatPriority = row(field("Repeat", repeatCombo), field("Priority", priorityCombo));
 
         VBox details = new VBox(16, section("Reminder Details"), fieldLabel("Title *"), titleField, fieldLabel("Description"), descriptionField, typeFile, dateTime, repeatPriority, notificationBox);
         details.setPadding(new Insets(24));
@@ -569,6 +601,95 @@ public class AddReminderPage {
         }
     }
 
+    private HBox createTimePickerControl() {
+        reminderTimeField = new TextField();
+        reminderTimeField.setPromptText("Select time");
+        reminderTimeField.setEditable(false); // Disable direct typing
+        styleTextField(reminderTimeField);
+
+        Button clockBtn = new Button("⏰");
+        clockBtn.setPrefHeight(42);
+        clockBtn.setStyle(
+            "-fx-background-color: " + INPUT_BG + ";" +
+            "-fx-border-color: " + INPUT_BORDER + ";" +
+            "-fx-border-radius: 8;" +
+            "-fx-background-radius: 8;" +
+            "-fx-text-fill: " + WHITE + ";" +
+            "-fx-cursor: hand;" +
+            "-fx-font-size: 14px;"
+        );
+
+        // Create Popover/Popup for time selection
+        Popup timePopup = new Popup();
+        timePopup.setAutoHide(true);
+
+        ComboBox<String> hoursCombo = new ComboBox<>();
+        for (int i = 1; i <= 12; i++) {
+            hoursCombo.getItems().add(String.format("%02d", i));
+        }
+        hoursCombo.setValue("09");
+        styleCombo(hoursCombo);
+
+        ComboBox<String> minutesCombo = new ComboBox<>();
+        for (int i = 0; i < 60; i += 5) { // 5-minute increments
+            minutesCombo.getItems().add(String.format("%02d", i));
+        }
+        minutesCombo.setValue("00");
+        styleCombo(minutesCombo);
+
+        ComboBox<String> amPmCombo = new ComboBox<>();
+        amPmCombo.getItems().addAll("AM", "PM");
+        amPmCombo.setValue("AM");
+        styleCombo(amPmCombo);
+
+        Button setTimeBtn = new Button("Set Time");
+        setTimeBtn.setStyle(
+            "-fx-background-color: #2563EB;" +
+            "-fx-text-fill: white;" +
+            "-fx-font-weight: bold;" +
+            "-fx-border-radius: 6;" +
+            "-fx-background-radius: 6;" +
+            "-fx-cursor: hand;"
+        );
+
+        setTimeBtn.setOnAction(e -> {
+            String selectedTime = hoursCombo.getValue() + ":" + minutesCombo.getValue() + " " + amPmCombo.getValue();
+            reminderTimeField.setText(selectedTime);
+            timePopup.hide();
+        });
+
+        HBox pickerLayout = new HBox(8, hoursCombo, new Label(":"), minutesCombo, amPmCombo, setTimeBtn);
+        pickerLayout.setAlignment(Pos.CENTER);
+        pickerLayout.setPadding(new Insets(12));
+        pickerLayout.setStyle(
+            "-fx-background-color: #0A121E;" +
+            "-fx-border-color: #1E2D42;" +
+            "-fx-border-width: 1px;" +
+            "-fx-border-radius: 10px;" +
+            "-fx-background-radius: 10px;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 16, 0, 0, 8);"
+        );
+
+        timePopup.getContent().add(pickerLayout);
+
+        // Show popup on clicking the text field or clock button
+        javafx.event.EventHandler<javafx.scene.input.MouseEvent> showPicker = e -> {
+            if (!timePopup.isShowing()) {
+                javafx.geometry.Point2D p = reminderTimeField.localToScreen(0, reminderTimeField.getHeight() + 4);
+                timePopup.show(reminderTimeField, p.getX(), p.getY());
+            } else {
+                timePopup.hide();
+            }
+        };
+
+        reminderTimeField.setOnMouseClicked(showPicker);
+        clockBtn.setOnMouseClicked(showPicker);
+
+        HBox container = new HBox(8, reminderTimeField, clockBtn);
+        HBox.setHgrow(reminderTimeField, Priority.ALWAYS);
+        return container;
+    }
+
     private Timestamp toTimestamp(java.time.LocalDate date) {
         return Timestamp.of(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
     }
@@ -696,12 +817,46 @@ public class AddReminderPage {
     }
 
     private void styleCombo(ComboBox<String> c) {
-        c.setPrefHeight(42);
-        c.setMaxWidth(Double.MAX_VALUE);
-        c.setStyle("-fx-background-color: " + INPUT_BG + "; -fx-border-color: " + INPUT_BORDER + "; -fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-text-fill: " + WHITE + "; -fx-border-radius: 8; -fx-background-radius: 8;");
-    }
+    c.setPrefHeight(42);
+    c.setMaxWidth(Double.MAX_VALUE);
+    c.setStyle(
+        "-fx-background-color: " + INPUT_BG + ";" +
+        "-fx-border-color: " + INPUT_BORDER + ";" +
+        "-fx-border-radius: 8;" +
+        "-fx-background-radius: 8;" +
+        "-fx-font-family: " + FONT + ";" +
+        "-fx-font-size: 13px;"
+    );
 
-    private VBox field(String name, Control control) {
+    // Style the selected text inside the ComboBox button
+        c.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setTextFill(Color.WHITE);
+                    setStyle("-fx-background-color: #0D1626; -fx-padding: 8px 12px;");
+                }
+            }
+        });
+
+        c.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setTextFill(Color.WHITE);
+                }
+            }
+        });
+    }
+    private VBox field(String name, javafx.scene.Node control) {
         return new VBox(6, fieldLabel(name), control);
     }
 

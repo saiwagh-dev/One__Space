@@ -278,28 +278,49 @@ public class UnifiedSpaceView {
         storageLabel = statValue("Loading...");
         updatedLabel = statValue("Loading...");
 
+        // Configure GridPane to fill full width of the main Files card section
         GridPane stats = new GridPane();
-        stats.setHgap(14);
+        stats.setHgap(12);
+
+        ColumnConstraints col1 = new ColumnConstraints();
+        col1.setPercentWidth(33.333);
+        ColumnConstraints col2 = new ColumnConstraints();
+        col2.setPercentWidth(33.333);
+        ColumnConstraints col3 = new ColumnConstraints();
+        col3.setPercentWidth(33.333);
+
+        stats.getColumnConstraints().addAll(col1, col2, col3);
+
         stats.add(statCard("Files", countLabel, "files"), 0, 0);
         stats.add(statCard("Storage", storageLabel, "storage"), 1, 0);
         stats.add(statCard("Last Updated", updatedLabel, "recent"), 2, 0);
 
-        Region statsRowSpacer = new Region();
-        HBox.setHgrow(statsRowSpacer, Priority.ALWAYS);
+        HBox.setHgrow(stats, Priority.ALWAYS);
 
-        HBox statsRow = new HBox(stats, statsRowSpacer);
+        // Set up the Import Files button above the File Preview card
+        HBox statsRow = new HBox(16);
         statsRow.setAlignment(Pos.CENTER_LEFT);
 
         if (!"all".equals(spaceId)) {
             Button importFilesBtn = new Button("⬆   Import Files");
             importFilesBtn.setFont(Font.font(FONT, FontWeight.BOLD, 13));
-            String importIdle = "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 10 18; -fx-cursor: hand; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 10;";
-            String importHover = "-fx-background-color: linear-gradient(to right, #2563EB, #3B82F6); -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 10 18; -fx-cursor: hand; -fx-border-color: rgba(96, 165, 250, 0.85); -fx-border-radius: 10;";
+            importFilesBtn.setPrefWidth(370);
+            importFilesBtn.setMinWidth(370);
+            importFilesBtn.setMaxWidth(370);
+            importFilesBtn.setPrefHeight(60);
+            importFilesBtn.setMinHeight(60);
+            importFilesBtn.setMaxHeight(60);
+            
+            String importIdle = "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: white; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 12;";
+            String importHover = "-fx-background-color: linear-gradient(to right, #2563EB, #3B82F6); -fx-text-fill: white; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-color: rgba(96, 165, 250, 0.85); -fx-border-radius: 12;";
             importFilesBtn.setStyle(importIdle);
             importFilesBtn.setOnMouseEntered(e -> importFilesBtn.setStyle(importHover));
             importFilesBtn.setOnMouseExited(e -> importFilesBtn.setStyle(importIdle));
             importFilesBtn.setOnAction(e -> importFilesDirectly());
-            statsRow.getChildren().add(importFilesBtn);
+
+            statsRow.getChildren().addAll(stats, importFilesBtn);
+        } else {
+            statsRow.getChildren().addAll(stats);
         }
 
         filePane = new FlowPane(12, 12);
@@ -846,23 +867,34 @@ public class UnifiedSpaceView {
         icon.setStrokeWidth(2);
 
         StackPane symbolPane = new StackPane(icon);
-        symbolPane.setPrefSize(28, 28); symbolPane.setMinSize(28, 28);
+        symbolPane.setPrefSize(24, 24); 
+        symbolPane.setMinSize(24, 24);
         symbolPane.setStyle("-fx-background-color: rgba(56, 189, 248, 0.15); -fx-background-radius: 6; -fx-border-color: rgba(56, 189, 248, 0.3); -fx-border-radius: 6;");
 
         Region gap = new Region();
         HBox.setHgrow(gap, Priority.ALWAYS);
 
-        HBox row = new HBox(heading, gap, symbolPane);
-        VBox card = new VBox(8, row, value);
-        card.setPadding(new Insets(14));
-        card.setMinHeight(85);
-        card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 14; -fx-background-radius: 14;");
+        HBox topRow = new HBox(heading, gap, symbolPane);
+        topRow.setAlignment(Pos.CENTER_LEFT);
+
+        // Properly align value vertically so it doesn't stick to the bottom
+        value.setAlignment(Pos.CENTER_LEFT);
+        VBox.setVgrow(value, Priority.ALWAYS);
+
+        VBox card = new VBox(2, topRow, value);
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setPadding(new Insets(10, 14, 10, 14));
+        card.setMinHeight(60);
+        card.setMaxHeight(60);
+        card.setMaxWidth(Double.MAX_VALUE);
+        card.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 12; -fx-background-radius: 12;");
 
         return card;
     }
 
-    private Label statValue(String text) { return label(text, 19, FontWeight.BOLD, WHITE); }
-
+    private Label statValue(String text) { 
+        return label(text, 16, FontWeight.BOLD, WHITE); 
+    }
     private VBox detailBox(String title, Label value) {
         return new VBox(2, label(title, 10, FontWeight.BOLD, LIGHT_SECONDARY), value);
     }
