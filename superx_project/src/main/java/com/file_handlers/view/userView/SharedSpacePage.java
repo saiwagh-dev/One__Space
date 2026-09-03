@@ -5,14 +5,21 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import com.cloudinary.utils.ObjectUtils;
 
 import com.file_handlers.config.FirebaseConfig;
+import com.file_handlers.controller.CollaborationController;
 import com.file_handlers.model.CollaborationFileData;
 import com.file_handlers.model.CollaborationMemberData;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
+import com.file_handlers.dao.CommentDAO;
+import com.file_handlers.util.MentionUtil;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -69,11 +76,17 @@ public class SharedSpacePage {
     private Label createdDateLabel;
     private Label ownerNameLabel;
     private Button manageAccessButton;
+    private ScrollPane mainScrollPane;
 
     private String currentUserRole = "Owner";
     private String createdDate = "26 Aug 2026";
     private String workspaceOwnerName = "Aarav Verma";
-    private String workspaceOwnerEmail = "aarav.verma@email.com";
+    private String workspaceOwnerEmail = "";
+
+    // Overlay Stack Container & Floating Chat Panel tracking
+    private StackPane stackContainer;
+    private VBox floatingChatPanel;
+    private boolean isDiscussionOpen = false;
 
     public SharedSpacePage() {
         this("Shared Space");
@@ -87,7 +100,7 @@ public class SharedSpacePage {
         
         loadDefaultData();
         
-        javafx.application.Platform.runLater(() -> {
+        Platform.runLater(() -> {
             refreshMemberList();
             updateMemberCount();
         });
@@ -101,7 +114,7 @@ public class SharedSpacePage {
             return currentUserRole != null ? currentUserRole : "Viewer";
         }
 
-        if (workspaceOwnerEmail != null && workspaceOwnerEmail.equalsIgnoreCase(myEmail)) {
+        if (workspaceOwnerEmail != null && !workspaceOwnerEmail.isEmpty() && workspaceOwnerEmail.equalsIgnoreCase(myEmail)) {
             return "Owner";
         }
 
@@ -117,11 +130,20 @@ public class SharedSpacePage {
 
     private boolean isCurrentLoggedInUserOwner() {
         String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
-        if (workspaceOwnerEmail != null && workspaceOwnerEmail.equalsIgnoreCase(myEmail)) {
+        if (myEmail == null || myEmail.isEmpty()) {
+            return false;
+        }
+        if (workspaceOwnerEmail != null && !workspaceOwnerEmail.isEmpty() && workspaceOwnerEmail.equalsIgnoreCase(myEmail)) {
             return true;
         }
-        String role = getLoggedInUserRole();
-        return "Owner".equalsIgnoreCase(role);
+        for (CollaborationMemberData m : membersList) {
+            if (m.email != null && m.email.equalsIgnoreCase(myEmail)) {
+                if ("Owner".equalsIgnoreCase(m.role)) {
+                    return true;
+                }
+            }
+        }
+        return "Owner".equalsIgnoreCase(currentUserRole);
     }
 
     private void listenForRealtimeFiles() {
@@ -140,7 +162,7 @@ public class SharedSpacePage {
                         for (com.google.cloud.firestore.DocumentChange docChange : snapshots.getDocumentChanges()) {
                             CollaborationFileData cloudFile = docChange.getDocument().toObject(CollaborationFileData.class);
 
-                            javafx.application.Platform.runLater(() -> {
+                            Platform.runLater(() -> {
                                 if (cloudFile != null && cloudFile.fileName != null) {
                                     if (cloudFile.size == null || cloudFile.size.equalsIgnoreCase("Cloud File") || cloudFile.size.equalsIgnoreCase("Local File") || cloudFile.size.isEmpty()) {
                                         cloudFile.size = "1.2 MB";
@@ -200,7 +222,7 @@ public class SharedSpacePage {
                         for (com.google.cloud.firestore.DocumentChange docChange : value.getDocumentChanges()) {
                             CollaborationMemberData cloudMember = docChange.getDocument().toObject(CollaborationMemberData.class);
                             
-                            javafx.application.Platform.runLater(() -> {
+                            Platform.runLater(() -> {
                                 if (docChange.getType() == com.google.cloud.firestore.DocumentChange.Type.ADDED) {
                                     boolean exists = membersList.stream().anyMatch(m -> m.email != null && m.email.equalsIgnoreCase(cloudMember.email));
                                     if (!exists) {
@@ -257,7 +279,7 @@ public class SharedSpacePage {
                         || permission.equals("UPLOAD")
                         || permission.equals("EDIT_FILE")
                         || permission.equals("DELETE_FILE")
-                        || permission.equals("ADD_MEMBER"); // <-- Add this line
+                        || permission.equals("ADD_MEMBER");
             case "Editor":
             case "Moderator":
                 return permission.equals("VIEW")
@@ -295,8 +317,90 @@ public class SharedSpacePage {
 
         VBox titleBox = new VBox(4, title, subtitle);
 
-        HBox header = new HBox(12, back, titleBox);
-        header.setAlignment(Pos.CENTER_LEFT);
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+
+        // Discussion floating toggle button
+        Button discussionBtn = new Button("💬 Discussion");
+        discussionBtn.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        discussionBtn.setStyle(
+            "-fx-background-color: rgba(37, 99, 235, 0.2);" +
+            "-fx-text-fill: #60A5FA;" +
+            "-fx-border-color: rgba(37, 99, 235, 0.4);" +
+            "-fx-border-radius: 8;" +
+            "-fx-background-radius: 8;" +
+            "-fx-cursor: hand;" +
+            "-fx-padding: 6 14;"
+        );
+        discussionBtn.setOnAction(e -> toggleDiscussionPanel(discussionBtn));
+
+        String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
+        boolean isOwner = isCurrentLoggedInUserOwner();
+
+        HBox topHeaderBox;
+
+        if (!isOwner) {
+            Button leaveSpaceBtn = new Button("Leave Workspace");
+            leaveSpaceBtn.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+            leaveSpaceBtn.setStyle(
+                "-fx-background-color: rgba(239, 68, 68, 0.15);" +
+                "-fx-text-fill: #F87171;" +
+                "-fx-border-color: rgba(239, 68, 68, 0.4);" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;" +
+                "-fx-cursor: hand;" +
+                "-fx-padding: 6 14;"
+            );
+
+            leaveSpaceBtn.setOnAction(e -> {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+                confirm.setTitle("Leave Workspace");
+                confirm.setHeaderText("Leave '" + spaceName + "'?");
+                confirm.setContentText("You will lose access to the files and chat in this shared space.");
+
+                confirm.showAndWait().ifPresent(response -> {
+                    if (response == ButtonType.OK) {
+                        new Thread(() -> {
+                            try {
+                                var db = FirebaseConfig.getFirestore();
+                                var workspaces = db.collection("workspaces").get().get().getDocuments();
+                                String targetDocId = null;
+                                
+                                for (var wsDoc : workspaces) {
+                                    String name = wsDoc.getString("spaceName");
+                                    if (name == null) name = wsDoc.getString("name");
+                                    if (spaceName.equals(name) || wsDoc.getId().equals(spaceName.replaceAll("\\s+", "_"))) {
+                                        targetDocId = wsDoc.getId();
+                                        break;
+                                    }
+                                }
+
+                                if (targetDocId != null) {
+                                    var membersDocs = db.collection("workspaces").document(targetDocId)
+                                                        .collection("members").get().get().getDocuments();
+                                    for (var mDoc : membersDocs) {
+                                        String email = mDoc.getString("email");
+                                        if (email != null && email.equalsIgnoreCase(myEmail)) {
+                                            mDoc.getReference().delete();
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                Platform.runLater(() -> LandingPage.showCollaborationPage());
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+                        }).start();
+                    }
+                });
+            });
+
+            topHeaderBox = new HBox(12, back, titleBox, headerSpacer, discussionBtn, leaveSpaceBtn);
+        } else {
+            topHeaderBox = new HBox(12, back, titleBox, headerSpacer, discussionBtn);
+        }
+        topHeaderBox.setAlignment(Pos.CENTER_LEFT);
 
         HBox summary = createSummaryCard();
         VBox files = createFilesCard();
@@ -313,7 +417,7 @@ public class SharedSpacePage {
         refreshMemberList();
         updateMemberCount();
 
-        content.getChildren().addAll(header, summary, center);
+        content.getChildren().addAll(topHeaderBox, summary, center);
         VBox.setVgrow(center, Priority.ALWAYS);
 
         return content;
@@ -400,6 +504,189 @@ public class SharedSpacePage {
         card.getChildren().addAll(owner, members, files, created);
         return card;
     }
+
+    private VBox createCommentsSection(String workspaceDocId, String fileDocId) {
+        VBox container = new VBox(10);
+        container.setPadding(new Insets(16));
+        container.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 14; -fx-background-radius: 14;");
+
+        Label header = new Label(fileDocId == null ? "Workspace Live Chat" : "File Chat Thread");
+        header.setFont(Font.font(FONT, FontWeight.BOLD, 15));
+        header.setStyle("-fx-text-fill: " + WHITE + ";");
+
+        Button clearChatBtn = new Button("Clear Chat");
+        clearChatBtn.setFont(Font.font(FONT, FontWeight.BOLD, 10));
+        clearChatBtn.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-text-fill: #F87171; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 4 8;");
+        
+        clearChatBtn.setOnAction(e -> {
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+            confirm.setTitle("Clear Chat");
+            confirm.setHeaderText("Clear all messages?");
+            confirm.setContentText("This will delete the chat history for everyone in this workspace.");
+            
+            confirm.showAndWait().ifPresent(response -> {
+                if (response == ButtonType.OK) {
+                    new Thread(() -> {
+                        try {
+                            com.google.cloud.firestore.Firestore db = FirebaseConfig.getFirestore();
+                            com.google.cloud.firestore.CollectionReference commentsRef = db
+                                    .collection("workspaces")
+                                    .document(workspaceDocId)
+                                    .collection(fileDocId == null ? "comments" : "files_" + fileDocId + "_comments");
+
+                            var docs = commentsRef.get().get().getDocuments();
+                            for (var doc : docs) {
+                                doc.getReference().delete();
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            });
+        });
+
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+        HBox headerRow = new HBox(10, header, headerSpacer, clearChatBtn);
+        headerRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox commentList = new VBox(10);
+        commentList.setPadding(new Insets(8));
+        ScrollPane scroll = new ScrollPane(commentList);
+        scroll.setFitToWidth(true);
+        VBox.setVgrow(scroll, Priority.ALWAYS);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        
+        scroll.lookupAll(".scroll-bar").forEach(node -> {
+            node.setStyle("-fx-pref-width: 0; -fx-opacity: 0; -fx-background-color: transparent;");
+        });
+
+        TextField inputField = new TextField();
+        inputField.setPromptText("Type a message or use @username...");
+        inputField.setMinHeight(40);
+        inputField.setPrefHeight(40);
+        inputField.setMaxHeight(40);
+        inputField.setStyle(
+                "-fx-background-color:" + INPUT_BG + ";" +
+                "-fx-text-fill:" + WHITE + ";" +
+                "-fx-prompt-text-fill:" + LIGHT_SECONDARY + ";" +
+                "-fx-border-color:" + INPUT_BORDER + ";" +
+                "-fx-border-radius:20;" +
+                "-fx-background-radius:20;" +
+                "-fx-padding:0 14 0 14;"
+        );
+
+        Button sendBtn = new Button("Send");
+        sendBtn.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        sendBtn.setPrefHeight(40);
+        sendBtn.setPadding(new Insets(0, 18, 0, 18));
+        sendBtn.setStyle(
+                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+                "-fx-background-radius: 20;" +
+                "-fx-cursor: hand;" +
+                "-fx-text-fill: white;"
+        );
+
+        CommentDAO commentDao = new CommentDAO();
+
+        java.util.function.Consumer<List<Map<String, Object>>> renderComments = (comments) -> {
+            Platform.runLater(() -> {
+                commentList.getChildren().clear();
+                if (comments.isEmpty()) {
+                    Label empty = new Label("No messages yet. Start the conversation!");
+                    empty.setFont(Font.font(FONT, 12));
+                    empty.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
+                    commentList.getChildren().add(empty);
+                    return;
+                }
+                
+                String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
+
+                for (var c : comments) {
+                    String author = (String) c.get("authorName");
+                    String text = (String) c.get("text");
+                    String email = (String) c.get("authorEmail");
+                    
+                    boolean isMe = email != null && !email.isEmpty() && email.equalsIgnoreCase(myEmail);
+
+                    VBox bubble = new VBox(3);
+                    bubble.setPadding(new Insets(10, 12, 10, 12));
+                    bubble.setMaxWidth(260);
+                    
+                    Label authorLbl = new Label(isMe ? "You" : (author != null ? author : "User"));
+                    authorLbl.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+                    authorLbl.setTextFill(Color.web("#FBBF24"));
+
+                    Label textLbl = new Label(text);
+                    textLbl.setFont(Font.font(FONT, 12));
+                    textLbl.setTextFill(Color.web(WHITE));
+                    textLbl.setWrapText(true);
+                    bubble.getChildren().addAll(authorLbl, textLbl);
+
+                    HBox wrapper = new HBox(bubble);
+                    if (isMe) {
+                        bubble.setStyle("-fx-background-color: rgba(37, 99, 235, 0.3); -fx-background-radius: 12 12 2 12; -fx-border-color: rgba(37, 99, 235, 0.5); -fx-border-radius: 12 12 2 12;");
+                        wrapper.setAlignment(Pos.CENTER_RIGHT);
+                    } else {
+                        bubble.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12 12 12 2; -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 12 12 12 2;");
+                        wrapper.setAlignment(Pos.CENTER_LEFT);
+                    }
+                    commentList.getChildren().add(wrapper);
+                }
+                scroll.setVvalue(1.0);
+            });
+        };
+
+        try {
+            com.google.cloud.firestore.CollectionReference commentsRef = FirebaseConfig.getFirestore()
+                    .collection("workspaces")
+                    .document(workspaceDocId)
+                    .collection(fileDocId == null ? "comments" : "files_" + fileDocId + "_comments");
+
+            commentsRef.orderBy("timestamp", com.google.cloud.firestore.Query.Direction.ASCENDING)
+                    .addSnapshotListener((snapshots, e) -> {
+                if (e != null) {
+                    e.printStackTrace();
+                    return;
+                }
+                if (snapshots != null) {
+                    List<Map<String, Object>> liveComments = new ArrayList<>();
+                    for (var doc : snapshots.getDocuments()) {
+                        liveComments.add(doc.getData());
+                    }
+                    renderComments.accept(liveComments);
+                }
+            });
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        Runnable sendMessage = () -> {
+            String text = inputField.getText().trim();
+            if (!text.isEmpty()) {
+                String myName = UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null 
+                        ? UserSession.getInstance().getDisplayName() : "User";
+                String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
+
+                commentDao.addComment(workspaceDocId, fileDocId, text, myName, myEmail, () -> {
+                    Platform.runLater(() -> inputField.clear());
+                }, ex -> ex.printStackTrace());
+            }
+        };
+
+        sendBtn.setOnAction(e -> sendMessage.run());
+        inputField.setOnAction(e -> sendMessage.run());
+
+        HBox inputBox = new HBox(8, inputField, sendBtn);
+        HBox.setHgrow(inputField, Priority.ALWAYS);
+        inputBox.setAlignment(Pos.CENTER);
+
+        container.getChildren().addAll(headerRow, scroll, inputBox);
+        return container;
+    }
     
     private VBox createSummaryItem(
             String iconType,
@@ -479,9 +766,15 @@ public class SharedSpacePage {
                     .collection("workspaces")
                     .document(spaceName.replaceAll("\\s+", "_"));
 
-            spaceDocRef.get().addListener(() -> {
+            // PARALLELIZED: Fetch main document and subcollections concurrently using Futures
+            com.google.api.core.ApiFuture<com.google.cloud.firestore.DocumentSnapshot> docFuture = spaceDocRef.get();
+            com.google.api.core.ApiFuture<com.google.cloud.firestore.QuerySnapshot> membersFuture = spaceDocRef.collection("members").get();
+            com.google.api.core.ApiFuture<com.google.cloud.firestore.QuerySnapshot> filesFuture = spaceDocRef.collection("files").get();
+
+            // Background async loader thread to avoid freezing UI thread
+            new Thread(() -> {
                 try {
-                    var docSnap = spaceDocRef.get().get();
+                    var docSnap = docFuture.get();
                     if (docSnap.exists()) {
                         if (docSnap.contains("createdAt")) {
                             Object cDate = docSnap.get("createdAt");
@@ -496,21 +789,12 @@ public class SharedSpacePage {
                             workspaceOwnerEmail = docSnap.getString("ownerEmail");
                         }
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }, command -> command.run());
 
-            com.google.api.core.ApiFuture<com.google.cloud.firestore.QuerySnapshot> future = 
-                spaceDocRef.collection("members").get();
-
-            com.google.api.core.ApiFutures.addCallback(future, new com.google.api.core.ApiFutureCallback<com.google.cloud.firestore.QuerySnapshot>() {
-                @Override
-                public void onSuccess(com.google.cloud.firestore.QuerySnapshot result) {
                     boolean isAuthorized = false;
                     List<CollaborationMemberData> fetchedMembers = new ArrayList<>();
+                    var memberResult = membersFuture.get();
                     
-                    for (com.google.cloud.firestore.DocumentSnapshot doc : result.getDocuments()) {
+                    for (com.google.cloud.firestore.DocumentSnapshot doc : memberResult.getDocuments()) {
                         CollaborationMemberData member = doc.toObject(CollaborationMemberData.class);
                         if (member != null) {
                             fetchedMembers.add(member);
@@ -542,9 +826,7 @@ public class SharedSpacePage {
 
                     List<CollaborationFileData> fetchedFiles = new ArrayList<>();
                     try {
-                        var fileDocs = spaceDocRef.collection("files")
-                            .get().get().getDocuments();
-                            
+                        var fileDocs = filesFuture.get().getDocuments();
                         for (var fDoc : fileDocs) {
                             CollaborationFileData file = fDoc.toObject(CollaborationFileData.class);
                             if (file != null) {
@@ -562,8 +844,8 @@ public class SharedSpacePage {
                     }
 
                     final boolean allowed = isAuthorized;
-                    
-                    javafx.application.Platform.runLater(() -> {
+
+                    Platform.runLater(() -> {
                         membersList.clear();
                         membersList.addAll(fetchedMembers);
 
@@ -587,6 +869,10 @@ public class SharedSpacePage {
                         refreshFileList();
                         refreshMemberList();
 
+                        if (mainScrollPane != null) {
+                            mainScrollPane.setContent(getSharedSpaceContent());
+                        }
+
                         if (allowed || membersList.isEmpty()) {
                             listenForRealtimeFiles();
                             listenForRealtimeMembers();
@@ -594,13 +880,11 @@ public class SharedSpacePage {
                             showAccessDeniedPopup("Your invite is still pending. Please accept it in the Collaboration page first.");
                         }
                     });
-                }
 
-                @Override
-                public void onFailure(Throwable t) {
-                    t.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            }, command -> command.run());
+            }, "shared-space-loader").start();
 
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -672,51 +956,23 @@ public class SharedSpacePage {
                 final String currentUserName = (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) 
                         ? UserSession.getInstance().getDisplayName() : "User";
 
-                String fileName = selectedFile.getName();
-                long bytes = selectedFile.length();
-                String actualSize = "1.2 KB";
-                if (bytes < 1024) {
-                    actualSize = bytes + " B";
-                } else if (bytes < 1024 * 1024) {
-                    actualSize = (bytes / 1024) + " KB";
-                } else {
-                    actualSize = String.format("%.1f MB", (double) bytes / (1024 * 1024));
-                }
+                upload.setDisable(true);
+                upload.setText("Uploading...");
 
-                String actualDate = java.time.LocalDate.now().format(
-                    java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy")
+                String workspaceDocId = spaceName.replaceAll("\\s+", "_");
+
+                new CollaborationController().addFileToWorkspace(workspaceDocId, selectedFile, currentUserName,
+                    successPublicId -> Platform.runLater(() -> {
+                        upload.setDisable(false);
+                        upload.setText("+ Upload File");
+                    }),
+                    ex -> Platform.runLater(() -> {
+                        ex.printStackTrace();
+                        upload.setDisable(false);
+                        upload.setText("+ Upload File");
+                        showAccessDeniedPopup("Upload failed: " + ex.getMessage());
+                    })
                 );
-
-                final String fileId = "file_" + System.currentTimeMillis();
-                String secureUrl = selectedFile.toURI().toString();
-
-                CollaborationFileData newFile = new CollaborationFileData("FILE", fileName, actualSize, actualDate, "#38BDF8", secureUrl, currentUserName);
-
-                try {
-                    java.util.Map<String, Object> fileMap = new java.util.HashMap<>();
-                    fileMap.put("icon", newFile.icon);
-                    fileMap.put("fileName", newFile.fileName);
-                    fileMap.put("size", newFile.size);
-                    fileMap.put("uploadedOn", newFile.uploadedOn);
-                    fileMap.put("iconColor", newFile.iconColor);
-                    fileMap.put("secureUrl", newFile.secureUrl);
-                    fileMap.put("uploaderName", newFile.uploaderName);
-
-                    FirebaseConfig.getFirestore()
-                        .collection("workspaces")
-                        .document(spaceName.replaceAll("\\s+", "_"))
-                        .collection("files")
-                        .document(fileId)
-                        .set(fileMap);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-
-                javafx.application.Platform.runLater(() -> {
-                    filesList.add(newFile);
-                    refreshFileList();
-                    updateFileCount();
-                });
             }
         });
 
@@ -808,7 +1064,7 @@ public class SharedSpacePage {
         manageAccessButton.setAlignment(Pos.CENTER);
         manageAccessButton.setFont(Font.font(FONT, FontWeight.BOLD, 11));
         manageAccessButton.setTextFill(Color.WHITE);
-       manageAccessButton.setStyle(
+        manageAccessButton.setStyle(
         "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
         "-fx-background-radius: 7;" +
         "-fx-cursor: hand;");
@@ -945,6 +1201,73 @@ public class SharedSpacePage {
         fileListBox.requestLayout();
     }
 
+    private void toggleDiscussionPanel(Button discussionBtn) {
+    if (stackContainer == null && discussionBtn != null && discussionBtn.getScene() != null) {
+        javafx.scene.Parent root = discussionBtn.getScene().getRoot();
+        if (root instanceof BorderPane) {
+            BorderPane bp = (BorderPane) root;
+            if (bp.getCenter() instanceof StackPane) {
+                stackContainer = (StackPane) bp.getCenter();
+            } else if (bp.getCenter() != null) {
+                javafx.scene.Node oldCenter = bp.getCenter();
+                stackContainer = new StackPane(oldCenter);
+                stackContainer.setStyle("-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";");
+                bp.setCenter(stackContainer);
+            }
+        }
+    }
+
+    if (stackContainer == null) {
+        System.out.println("Warning: stackContainer could not be resolved.");
+        return;
+    }
+
+    if (isDiscussionOpen) {
+        if (floatingChatPanel != null) {
+            stackContainer.getChildren().remove(floatingChatPanel);
+        }
+        isDiscussionOpen = false;
+    } else {
+        if (floatingChatPanel == null) {
+            String workspaceDocId = spaceName.replaceAll("\\s+", "_");
+            VBox board = createCommentsSection(workspaceDocId, null);
+            
+            Button closeBtn = new Button("✕");
+            closeBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: " + LIGHT_SECONDARY + "; -fx-cursor: hand; -fx-font-size: 14px;");
+            
+            Region r = new Region();
+            HBox.setHgrow(r, Priority.ALWAYS);
+            
+            HBox topBar = new HBox(r, closeBtn);
+            topBar.setAlignment(Pos.CENTER_RIGHT);
+            topBar.setPadding(new Insets(4, 4, 0, 0));
+
+            closeBtn.setOnAction(e -> toggleDiscussionPanel(discussionBtn));
+
+            floatingChatPanel = new VBox(0, topBar, board);
+            floatingChatPanel.setMaxWidth(360);
+            floatingChatPanel.setPrefWidth(360);
+            floatingChatPanel.setMaxHeight(Double.MAX_VALUE);
+        floatingChatPanel.setStyle(
+    "-fx-background-color: #0B132B;" +
+    "-fx-border-color: " + CARD_BORDER + ";" +
+    "-fx-border-radius: 16;" +
+    "-fx-background-radius: 16;" +
+    "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 24, 0, 0, 10);"
+);
+StackPane.setAlignment(floatingChatPanel, Pos.TOP_RIGHT);
+StackPane.setMargin(floatingChatPanel, new Insets(70, 24, 24, 24));
+VBox.setVgrow(board, Priority.ALWAYS);
+        }
+        
+        if (!stackContainer.getChildren().contains(floatingChatPanel)) {
+            stackContainer.getChildren().add(floatingChatPanel);
+        }
+        isDiscussionOpen = true;
+    }
+    stackContainer.requestLayout();
+}
+
     private HBox createFileRow(CollaborationFileData file) {
         HBox row = new HBox();
         row.setAlignment(Pos.CENTER_LEFT);
@@ -1025,24 +1348,35 @@ public class SharedSpacePage {
             boolean isOwnerUser = "Owner".equalsIgnoreCase(activeRole);
 
             if (isOwnerUser || isModerator) {
-                try {
-                    com.google.cloud.firestore.Firestore db = FirebaseConfig.getFirestore();
-                    var docs = db.collection("workspaces")
-                        .document(spaceName.replaceAll("\\s+", "_"))
-                        .collection("files")
-                        .whereEqualTo("fileName", file.fileName)
-                        .get().get().getDocuments();
-                        
-                    for (var doc : docs) {
-                        doc.getReference().delete();
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-
                 filesList.remove(file);
                 refreshFileList();
                 updateFileCount();
+
+                Thread deleteThread = new Thread(() -> {
+                    try {
+                        com.google.cloud.firestore.Firestore db = FirebaseConfig.getFirestore();
+                        var docs = db.collection("workspaces")
+                            .document(spaceName.replaceAll("\\s+", "_"))
+                            .collection("files")
+                            .whereEqualTo("fileName", file.fileName)
+                            .get().get().getDocuments();
+
+                        for (var doc : docs) {
+                            Object publicId = doc.get("cloudinaryPublicId");
+                            if (publicId != null) {
+                                try {
+                                    new CollaborationController()
+                                        .deleteFile(publicId.toString(), r -> {}, ex -> ex.printStackTrace());
+                                } catch (Exception ignored) {}
+                            }
+                            doc.getReference().delete();
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }, "delete-file-" + file.fileName);
+                deleteThread.setDaemon(true);
+                deleteThread.start();
             } else {
                 showAccessDeniedPopup("You do not have permission to delete files.");
             }
@@ -1490,33 +1824,33 @@ public class SharedSpacePage {
                         roleCombo.getValue()));
 
         roleCombo.setCellFactory(lv -> new ListCell<String>() {
-    @Override
-    protected void updateItem(String item, boolean empty) {
-        super.updateItem(item, empty);
-        if (empty || item == null) {
-            setText(null);
-            setStyle("-fx-background-color: #0A121E;");
-        } else {
-            setText(item);
-            setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-            setTextFill(Color.WHITE);
-            setStyle("-fx-background-color: #0A121E;");
-        }
-    }
-});
-roleCombo.setButtonCell(new ListCell<String>() {
-    @Override
-    protected void updateItem(String item, boolean empty) {
-        super.updateItem(item, empty);
-        if (empty || item == null) {
-            setText(null);
-        } else {
-            setText(item);
-            setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
-            setTextFill(Color.WHITE);
-        }
-    }
-});
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: #0A121E;");
+                } else {
+                    setText(item);
+                    setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+                    setTextFill(Color.WHITE);
+                    setStyle("-fx-background-color: #0A121E;");
+                }
+            }
+        });
+        roleCombo.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
+                    setTextFill(Color.WHITE);
+                }
+            }
+        });
 
         row.getChildren().addAll(
                 avatar,
@@ -1737,26 +2071,25 @@ roleCombo.setButtonCell(new ListCell<String>() {
     }
 
     public Scene getSharedSpacePageScene() {
-        BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: " + SIDEBAR_BG + ";");
-        root.setLeft(createSidebar());
+        BorderPane rootLayout = new BorderPane();
+        rootLayout.setStyle("-fx-background-color: " + SIDEBAR_BG + ";");
+        rootLayout.setLeft(createSidebar());
 
         VBox mainContent = getSharedSpaceContent();
         
-        ScrollPane scrollPane = new ScrollPane(mainContent);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        mainScrollPane = new ScrollPane(mainContent);
+        mainScrollPane.setFitToWidth(true);
+        mainScrollPane.setFitToHeight(true);
+        mainScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        mainScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        mainScrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
-        VBox mainArea = new VBox(scrollPane);
-        mainArea.setStyle("-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";");
-        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+        stackContainer = new StackPane(mainScrollPane);
+        stackContainer.setStyle("-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";");
 
-        root.setCenter(mainArea);
+        rootLayout.setCenter(stackContainer);
 
-        return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
+        return new Scene(rootLayout, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
     private VBox createSidebar() {
