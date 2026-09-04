@@ -10,7 +10,7 @@ public class CollaborationMemberData {
     public String avatarColor;
     public String status;
 
-    public CollaborationMemberData() {} // Required for Firestore mapping
+    public CollaborationMemberData() {} 
 
     public CollaborationMemberData(String initials, String name, String email, String role, String avatarBackground, String avatarColor, String status) {
         this.initials = initials;

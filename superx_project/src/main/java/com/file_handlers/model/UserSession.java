@@ -170,8 +170,7 @@ public class UserSession {
             JSONObject payloadJson =
                     new JSONObject(json);
 
-            // Firebase UID is normally available
-            // as "user_id".
+           
 
             String uid =
                     payloadJson.optString(

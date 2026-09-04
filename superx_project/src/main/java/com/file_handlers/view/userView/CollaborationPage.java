@@ -34,24 +34,19 @@ import java.util.HashMap;
 
 public class CollaborationPage {
 
-    // Typography
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-    // 1. Sidebar & Top Bar Tones
     private static final String SIDEBAR_BG = "#070C16";
     private static final String SIDEBAR_BORDER = "rgba(255, 255, 255, 0.07)";
 
-    // 2. Center Workspace Canvas: Atmospheric Dark Radial Glow
     private static final String MAIN_BG = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
 
-    // 3. Main Glassmorphic Cards & Container Colors
     private static final String CARD_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
     private static final String CARD_BG_INNER = "linear-gradient(to bottom right, rgba(13, 22, 38, 0.9), rgba(8, 14, 26, 0.95))";
     private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
     private static final String INPUT_BG = "rgba(13, 22, 38, 0.85)";
     private static final String INPUT_BORDER = "rgba(255, 255, 255, 0.1)";
 
-    // 4. Vibrant Typography & Accent Highlights
     private static final String WHITE = "#FFFFFF";
     private static final String LIGHT_SECONDARY = "#94A3B8";
     private static final String BLUE = "#2563EB";
@@ -1168,6 +1163,8 @@ public class CollaborationPage {
         }
 
         ScrollPane scroll = new ScrollPane(list);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
         scroll.setFitToWidth(true);
         scroll.setPrefViewportHeight(430);
         scroll.setPrefWidth(620);
@@ -1446,6 +1443,8 @@ public class CollaborationPage {
         }
 
         ScrollPane scroll = new ScrollPane(list);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
         scroll.setFitToWidth(true);
         scroll.setPrefViewportHeight(430);
         scroll.setPrefWidth(500);

@@ -12,12 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
  
-/**
- * Single source of truth for all "workspaces" collection reads/writes.
- * Views and Controllers should never call FirebaseConfig.getFirestore() directly for
- * workspace data — go through this class so there is exactly one place to fix bugs
- * or change the schema.
- */
+
 public class WorkspaceDAO {
  
     private static final String COLLECTION = "workspaces";

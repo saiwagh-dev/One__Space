@@ -17,7 +17,6 @@ import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
 import com.file_handlers.dao.CommentDAO;
-import com.file_handlers.util.MentionUtil;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -38,24 +37,19 @@ import javafx.stage.FileChooser;
 
 public class SharedSpacePage {
 
-    // Typography
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-    // 1. Sidebar & Top Bar Tones (Matching CollaborationPage)
     private static final String SIDEBAR_BG = "#070C16";
     private static final String SIDEBAR_BORDER = "rgba(255, 255, 255, 0.07)";
 
-    // 2. Center Workspace Canvas: Atmospheric Dark Radial Glow
     private static final String MAIN_BG = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
 
-    // 3. Main Glassmorphic Cards & Container Colors
     private static final String CARD_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
     private static final String CARD_BG_INNER = "linear-gradient(to bottom right, rgba(13, 22, 38, 0.9), rgba(8, 14, 26, 0.95))";
     private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
     private static final String INPUT_BG = "rgba(13, 22, 38, 0.85)";
     private static final String INPUT_BORDER = "rgba(255, 255, 255, 0.1)";
 
-    // 4. Vibrant Typography & Accent Highlights
     private static final String WHITE = "#FFFFFF";
     private static final String LIGHT_SECONDARY = "#94A3B8";
     private static final String BLUE = "#2563EB";
@@ -98,7 +92,6 @@ public class SharedSpacePage {
         this(spaceName, 0, 0, "Owner");
     }
 
-    // Cached constructor accepting initial state to eliminate flash/re-fetch from zero
     public SharedSpacePage(String spaceName, int initialMembers, int initialFiles, String initialRole) {
         this.spaceName =
                 spaceName == null || spaceName.trim().isEmpty()
@@ -313,7 +306,6 @@ public class SharedSpacePage {
         Region headerSpacer = new Region();
         HBox.setHgrow(headerSpacer, Priority.ALWAYS);
 
-        // Discussion floating toggle button
         Button discussionBtn = new Button("💬 Discussion");
         discussionBtn.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         discussionBtn.setStyle(
@@ -841,7 +833,6 @@ public class SharedSpacePage {
         try {
             com.google.cloud.firestore.Firestore db = FirebaseConfig.getFirestore();
             
-            // Background async loader thread
             new Thread(() -> {
                 try {
                     // Directly target the standardized document ID first for instant lookup

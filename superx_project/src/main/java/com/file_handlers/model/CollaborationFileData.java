@@ -7,10 +7,9 @@ public class CollaborationFileData {
     public String uploadedOn;
     public String iconColor;
     public String secureUrl;
-    public String uploadedBy; // Updated to match what is written in CollaborationController
+    public String uploadedBy; 
     public String cloudinaryPublicId;
 
-    // Default constructor required for Firestore toObject() mapping
     public CollaborationFileData() {}
 
     public CollaborationFileData(String icon, String fileName, String size, String uploadedOn, String iconColor, String secureUrl, String uploadedBy, String cloudinaryPublicId) {
