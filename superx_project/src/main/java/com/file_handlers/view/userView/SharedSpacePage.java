@@ -282,8 +282,8 @@ public class SharedSpacePage {
                         || permission.equals("DELETE_FILE");
             case "Viewer":
                 return permission.equals("VIEW")
-                        || permission.equals("SEARCH")
-                        || permission.equals("UPLOAD");
+                        || permission.equals("SEARCH");
+                
             default:
                 return false;
         }
@@ -1495,6 +1495,10 @@ fileScroll.lookupAll(".scroll-bar").forEach(node -> {
         return row;
     }
 
+    
+
+    
+
     private void showFilePreviewDialog(CollaborationFileData file) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Viewing File: " + (file.fileName != null ? file.fileName : "Document"));
@@ -1536,6 +1540,63 @@ fileScroll.lookupAll(".scroll-bar").forEach(node -> {
         addCloseButton(dialog);
         dialog.showAndWait();
     }
+
+    private void openFileNatively(CollaborationFileData file) {
+    if (file.secureUrl == null || file.secureUrl.isEmpty()) {
+        showAccessDeniedPopup("This file has no downloadable link.");
+        return;
+    }
+
+    new Thread(() -> {
+        try {
+            File localFile = downloadToTemp(file);
+            Platform.runLater(() -> {
+                try {
+                    if (java.awt.Desktop.isDesktopSupported()
+                            && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.OPEN)) {
+                        java.awt.Desktop.getDesktop().open(localFile);
+                    } else {
+                        showAccessDeniedPopup("Opening files natively isn't supported on this system.");
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    showAccessDeniedPopup("No app is registered to open this file type, or it failed to launch.");
+                }
+            });
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Platform.runLater(() -> showAccessDeniedPopup("Download failed: " + ex.getMessage()));
+        }
+    }, "open-native-" + file.fileName).start();
+}
+
+private File downloadToTemp(CollaborationFileData file) throws Exception {
+    File cacheDir = new File(System.getProperty("java.io.tmpdir"), "OneSpaceCache");
+    if (!cacheDir.exists()) cacheDir.mkdirs();
+
+    String safeName = file.fileName != null ? file.fileName : "downloaded_file";
+    File localFile = new File(cacheDir, safeName);
+
+    java.net.URL url = new java.net.URL(file.secureUrl);
+    java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+    long remoteLength = conn.getContentLengthLong();
+    conn.disconnect();
+
+    // Skip re-downloading if a matching cached copy already exists
+    if (localFile.exists() && remoteLength > 0 && localFile.length() == remoteLength) {
+        return localFile;
+    }
+
+    try (java.io.InputStream in = url.openStream();
+         java.io.FileOutputStream out = new java.io.FileOutputStream(localFile)) {
+        byte[] buffer = new byte[8192];
+        int bytesRead;
+        while ((bytesRead = in.read(buffer)) != -1) {
+            out.write(buffer, 0, bytesRead);
+        }
+    }
+    return localFile;
+}
 
     private void showInfoPopup(
             String title,
@@ -1758,6 +1819,16 @@ fileScroll.lookupAll(".scroll-bar").forEach(node -> {
         addCloseButton(dialog);
         dialog.showAndWait();
     }
+    
+    private Button createFilterButton(String text) {
+    Button btn = new Button(text);
+    btn.getStyleClass().add("filter-button");
+    btn.setOnAction(e -> {
+        // Implement your filtering logic or category state change here
+        refreshFileList();
+    });
+    return btn;
+}
 
     private void showAllMembersPopup() {
         Dialog<ButtonType> dialog = new Dialog<>();
@@ -1897,15 +1968,54 @@ fileScroll.lookupAll(".scroll-bar").forEach(node -> {
         }
 
         if ("pending".equalsIgnoreCase(status)) {
-            Label pendingBadge = new Label("⏳ Pending Acceptance");
+            Label pendingBadge = new Label("⏳ Pending");
             pendingBadge.setFont(Font.font(FONT, FontWeight.BOLD, 11));
             pendingBadge.setTextFill(Color.web("#FBBF24"));
             pendingBadge.setPadding(new Insets(6, 12, 6, 12));
             pendingBadge.setStyle("-fx-background-color: rgba(245, 158, 11, 0.2); -fx-background-radius: 6;"); 
             
-            row.getChildren().addAll(avatar, info, pendingBadge);
+            Button cancelInviteBtn = new Button("Cancel");
+            cancelInviteBtn.setFont(Font.font(FONT, FontWeight.BOLD, 10));
+            cancelInviteBtn.setStyle(
+                "-fx-background-color: rgba(239, 68, 68, 0.15);" +
+                "-fx-text-fill: #F87171;" +
+                "-fx-border-color: rgba(239, 68, 68, 0.4);" +
+                "-fx-border-radius: 6;" +
+                "-fx-background-radius: 6;" +
+                "-fx-cursor: hand;" +
+                "-fx-padding: 6 10;"
+            );
+
+           cancelInviteBtn.setOnAction(e -> {
+                try {
+                    String memberId = member.email.toLowerCase().replaceAll("[^a-z0-9]", "_");
+                    FirebaseConfig.getFirestore()
+                        .collection("workspaces")
+                        .document(spaceName.replaceAll("\\s+", "_"))
+                        .collection("members")
+                        .document(memberId)
+                        .delete();
+
+                    membersList.remove(member);
+                    refreshMemberList();
+                    updateMemberCount();
+
+                    // Instantly remove this row from the popup parent container
+                    javafx.scene.Parent parent = row.getParent();
+                    if (parent instanceof VBox) {
+                        ((VBox) parent).getChildren().remove(row);
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            });
+
+            HBox pendingBox = new HBox(8, pendingBadge, cancelInviteBtn);
+            pendingBox.setAlignment(Pos.CENTER_RIGHT);
+
+            row.getChildren().addAll(avatar, info, pendingBox);
             return row;
-        } 
+        }
         else if ("declined".equalsIgnoreCase(status)) {
             Label declinedBadge = new Label("✕ Declined Request");
             declinedBadge.setFont(Font.font(FONT, FontWeight.BOLD, 11));
