@@ -3,7 +3,9 @@ package com.file_handlers.dao;
 import com.file_handlers.config.FirebaseConfig;
 import com.file_handlers.model.Workspace;
 import com.google.cloud.firestore.*;
+import javafx.application.Platform;
  
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,64 +35,77 @@ public class WorkspaceDAO {
     public void createWorkspace(String name, String ownerId, String ownerName, String ownerEmail,
                                  List<String> memberEmails,
                                  Consumer<String> onSuccess, Consumer<Exception> onError) {
-        try {
-            String docId = docIdFor(name);
+        new Thread(() -> {
+            try {
+                String docId = docIdFor(name);
  
-            Map<String, Object> data = new HashMap<>();
-            data.put("name", name.trim());
-            data.put("ownerId", ownerId);
-            data.put("memberCount", memberEmails.size() + 1); // + owner
-            data.put("fileCount", 0);
-            data.put("createdAt", FieldValue.serverTimestamp());
+                Map<String, Object> data = new HashMap<>();
+                data.put("name", name.trim());
+                data.put("ownerId", ownerId);
+                data.put("memberCount", memberEmails.size() + 1); // + owner
+                data.put("fileCount", 0);
+                data.put("createdAt", FieldValue.serverTimestamp());
+
+                List<String> allEmails = new ArrayList<>();
+                if (ownerEmail != null && !ownerEmail.isBlank()) allEmails.add(ownerEmail.trim().toLowerCase());
+                for (String email : memberEmails) {
+                    if (email != null && !email.isBlank()) allEmails.add(email.trim().toLowerCase());
+                }
+                data.put("memberEmails", allEmails);
  
-            DocumentReference wsRef = db.collection(COLLECTION).document(docId);
-            wsRef.set(data).get();
+                DocumentReference wsRef = db.collection(COLLECTION).document(docId);
+                wsRef.set(data).get();
  
-            Map<String, Object> ownerData = new HashMap<>();
-            ownerData.put("name", ownerName);
-            ownerData.put("email", ownerEmail);
-            ownerData.put("role", "Owner");
-            ownerData.put("status", "active");
-            wsRef.collection("members").document(sanitize(ownerEmail)).set(ownerData).get();
+                Map<String, Object> ownerData = new HashMap<>();
+                ownerData.put("name", ownerName);
+                ownerData.put("email", ownerEmail);
+                ownerData.put("role", "Owner");
+                ownerData.put("status", "active");
+                wsRef.collection("members").document(sanitize(ownerEmail)).set(ownerData).get();
  
-            for (String email : memberEmails) {
-                if (email == null || email.isBlank()) continue;
-                String trimmed = email.trim();
-                Map<String, Object> memberData = new HashMap<>();
-                memberData.put("name", trimmed.split("@")[0]);
-                memberData.put("email", trimmed);
-                memberData.put("role", "Viewer");
-                memberData.put("status", "pending"); // flip to "active" if you add an accept flow
-                wsRef.collection("members").document(sanitize(trimmed)).set(memberData).get();
+                for (String email : memberEmails) {
+                    if (email == null || email.isBlank()) continue;
+                    String trimmed = email.trim();
+                    Map<String, Object> memberData = new HashMap<>();
+                    memberData.put("name", trimmed.split("@")[0]);
+                    memberData.put("email", trimmed);
+                    memberData.put("role", "Viewer");
+                    memberData.put("status", "pending");
+                    wsRef.collection("members").document(sanitize(trimmed)).set(memberData).get();
+                }
+ 
+                if (onSuccess != null) {
+                    Platform.runLater(() -> onSuccess.accept(docId));
+                }
+            } catch (Exception e) {
+                if (onError != null) {
+                    Platform.runLater(() -> onError.accept(e));
+                }
             }
- 
-            if (onSuccess != null) onSuccess.accept(docId);
-        } catch (Exception e) {
-            if (onError != null) onError.accept(e);
-        }
+        }).start();
     }
  
-   public void renameWorkspace(String workspaceDocId, String newName, Runnable onSuccess, Consumer<Exception> onError) {
-    new Thread(() -> {
-        try {
-            com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
-            
-            java.util.Map<String, Object> updates = new java.util.HashMap<>();
-            updates.put("name", newName);
-            updates.put("spaceName", newName);
+    public void renameWorkspace(String workspaceDocId, String newName, Runnable onSuccess, Consumer<Exception> onError) {
+        new Thread(() -> {
+            try {
+                Firestore db = FirebaseConfig.getFirestore();
+                
+                Map<String, Object> updates = new HashMap<>();
+                updates.put("name", newName);
+                updates.put("spaceName", newName);
 
-            db.collection("workspaces").document(workspaceDocId).update(updates).get();
-            
-            if (onSuccess != null) {
-                onSuccess.run();
+                db.collection("workspaces").document(workspaceDocId).update(updates).get();
+                
+                if (onSuccess != null) {
+                    Platform.runLater(onSuccess);
+                }
+            } catch (Exception e) {
+                if (onError != null) {
+                    Platform.runLater(() -> onError.accept(e));
+                }
             }
-        } catch (Exception e) {
-            if (onError != null) {
-                onError.accept(e);
-            }
-        }
-    }).start();
-}
+        }).start();
+    }
  
     public void deleteWorkspace(String workspaceDocId, Runnable onSuccess, Consumer<Exception> onError) {
         try {
@@ -120,4 +135,3 @@ public class WorkspaceDAO {
         return email.toLowerCase().replaceAll("[^a-z0-9]", "_");
     }
 }
- 

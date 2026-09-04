@@ -99,6 +99,7 @@ public class CollaborationPage {
     private void initializeWorkspacesAndActivities() {
         workspaces.clear();
         activitiesList.clear();
+        pendingInvitesCount = 0;
         
         String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
         if (myEmail == null || myEmail.trim().isEmpty()) {
@@ -124,11 +125,11 @@ public class CollaborationPage {
                 String fetchedOwnerEmail = "";
                 String userAssignedRole = "Viewer";
                 boolean isUserMemberOrOwner = false;
+                boolean isPending = false;
                 
                 List<ActivityItem> tempWorkspaceActivities = new ArrayList<>();
                 
                 try {
-                    // Optimized: Asynchronous Fetching without blocking execution threads synchronously using .get()
                     CompletableFuture<List<com.google.cloud.firestore.QueryDocumentSnapshot>> membersFuture = CompletableFuture.supplyAsync(() -> {
                         try {
                             return db.collection("workspaces").document(docId).collection("members").get().get().getDocuments();
@@ -145,7 +146,6 @@ public class CollaborationPage {
                         }
                     });
 
-                    // Combined asynchronous join to prevent thread blocking stalls
                     CompletableFuture.allOf(membersFuture, filesFuture).join();
 
                     var membersDocs = membersFuture.get();
@@ -167,15 +167,21 @@ public class CollaborationPage {
                         if (mEmail != null && mEmail.equalsIgnoreCase(myEmail)) {
                             if ("active".equalsIgnoreCase(mStatus) || "Owner".equalsIgnoreCase(mRole)) {
                                 isUserMemberOrOwner = true;
+                            } else if ("pending".equalsIgnoreCase(mStatus)) {
+                                isPending = true;
                             }
                             if (mRole != null && !mRole.isEmpty()) {
                                 userAssignedRole = mRole;
                             }
                         }
 
-                        if (mName != null) {
+                        if (mName != null && ("active".equalsIgnoreCase(mStatus) || "Owner".equalsIgnoreCase(mRole))) {
                             tempWorkspaceActivities.add(new ActivityItem(mName, "joined '" + spaceName + "'", "Recently"));
                         }
+                    }
+
+                    if (isPending) {
+                        pendingInvitesCount++;
                     }
 
                     fileCount = filesDocs.size();
@@ -328,10 +334,6 @@ public class CollaborationPage {
             userDropdownPopup.hide();
             Platform.runLater(LandingPage::showUserProfilePage);
         });
-        profileDropdownBtn.setOnMouseClicked(e -> {
-            userDropdownPopup.hide();
-            Platform.runLater(LandingPage::showUserProfilePage);
-        });
 
         Button settingsDropdownBtn = new Button("⚙    Settings");
         settingsDropdownBtn.setMaxWidth(Double.MAX_VALUE);
@@ -362,10 +364,6 @@ public class CollaborationPage {
                 "-fx-cursor: hand;"
         ));
         settingsDropdownBtn.setOnAction(e -> {
-            userDropdownPopup.hide();
-            Platform.runLater(LandingPage::showSettingPage);
-        });
-        settingsDropdownBtn.setOnMouseClicked(e -> {
             userDropdownPopup.hide();
             Platform.runLater(LandingPage::showSettingPage);
         });
@@ -402,11 +400,6 @@ public class CollaborationPage {
                 "-fx-cursor: hand;"
         ));
         logoutDropdownBtn.setOnAction(e -> {
-            userDropdownPopup.hide();
-            UserSession.clearSession();
-            Platform.runLater(LandingPage::showUserLoginPage);
-        });
-        logoutDropdownBtn.setOnMouseClicked(e -> {
             userDropdownPopup.hide();
             UserSession.clearSession();
             Platform.runLater(LandingPage::showUserLoginPage);
@@ -605,27 +598,10 @@ public class CollaborationPage {
         root.setLeft(sidebar);
         root.setCenter(mainArea);
 
+        // Optimized: Single pass background load thread calling initializeWorkspacesAndActivities() without duplicate scans
         Thread loadThread = new Thread(() -> {
             try {
                 initializeWorkspacesAndActivities();
-                
-                String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
-                int count = 0;
-                if (!myEmail.isEmpty()) {
-                    com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
-                    var workspacesDocs = db.collection("workspaces").get().get().getDocuments();
-                    for (var wsDoc : workspacesDocs) {
-                        var membersDocs = db.collection("workspaces").document(wsDoc.getId()).collection("members").get().get().getDocuments();
-                        for (var mDoc : membersDocs) {
-                            String email = mDoc.getString("email");
-                            String status = mDoc.getString("status");
-                            if (email != null && email.equalsIgnoreCase(myEmail) && "pending".equalsIgnoreCase(status)) {
-                                count++;
-                            }
-                        }
-                    }
-                }
-                pendingInvitesCount = count;
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -844,7 +820,7 @@ public class CollaborationPage {
         if (filesValue != null) filesValue.setText(totalFiles + " Files");
     }
 
-   private void rebuildWorkspaceCards(BorderPane root) {
+    private void rebuildWorkspaceCards(BorderPane root) {
         workspaceListPane.getChildren().clear();
 
         if (!isGridView) {
@@ -966,7 +942,6 @@ public class CollaborationPage {
 
         return card;
     }
-    
 
     private VBox createWorkspaceGridCard(WorkspaceData w, BorderPane root, String docId) {
         SVGPath icon = createIcon(w.iconType);
@@ -1062,7 +1037,7 @@ public class CollaborationPage {
 
                 new Thread(() -> {
                     try {
-                        new WorkspaceDAO().deleteWorkspace(docId, () -> {}, ex -> ex.printStackTrace());
+                        new WorkspaceDAO().deleteWorkspace(docId, () -> {}, ex -> {});
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -1072,41 +1047,39 @@ public class CollaborationPage {
     }
 
     private void promptRenameWorkspace(String docId, String currentName, BorderPane root) {
-    TextInputDialog dialog = new TextInputDialog(currentName);
-    dialog.setTitle("Rename Workspace");
-    dialog.setHeaderText("Enter a new name for this shared space:");
-    dialog.setContentText("Workspace Name:");
+        TextInputDialog dialog = new TextInputDialog(currentName);
+        dialog.setTitle("Rename Workspace");
+        dialog.setHeaderText("Enter a new name for this shared space:");
+        dialog.setContentText("Workspace Name:");
 
-    dialog.showAndWait().ifPresent(newName -> {
-        String trimmed = newName.trim();
-        if (!trimmed.isEmpty() && !trimmed.equals(currentName)) {
-            // Directly perform the Firestore update asynchronously
-            new Thread(() -> {
-                try {
-                    com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
-                    java.util.Map<String, Object> updates = new java.util.HashMap<>();
-                    updates.put("spaceName", trimmed);
-                    updates.put("name", trimmed);
+        dialog.showAndWait().ifPresent(newName -> {
+            String trimmed = newName.trim();
+            if (!trimmed.isEmpty() && !trimmed.equals(currentName)) {
+                new Thread(() -> {
+                    try {
+                        com.google.cloud.firestore.Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
+                        java.util.Map<String, Object> updates = new java.util.HashMap<>();
+                        updates.put("spaceName", trimmed);
+                        updates.put("name", trimmed);
 
-                    // Update the workspace document in Firestore
-                    db.collection("workspaces").document(docId).update(updates).get();
+                        db.collection("workspaces").document(docId).update(updates).get();
 
-                    Platform.runLater(() -> {
-                        for (WorkspaceData w : workspaces) {
-                            if (w.docId.equals(docId)) {
-                                w.name = trimmed;
-                                break;
+                        Platform.runLater(() -> {
+                            for (WorkspaceData w : workspaces) {
+                                if (w.docId.equals(docId)) {
+                                    w.name = trimmed;
+                                    break;
+                                }
                             }
-                        }
-                        rebuildWorkspaceCards(root);
-                    });
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }).start();
-        }
-    });
-}
+                            rebuildWorkspaceCards(root);
+                        });
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }).start();
+            }
+        });
+    }
 
     private void leaveWorkspace(String docId, BorderPane root) {
         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
@@ -1240,8 +1213,8 @@ public class CollaborationPage {
                     String email = mDoc.getString("email");
                     String status = mDoc.getString("status");
 
-                if (email != null && email.equalsIgnoreCase(myEmail) && ("pending".equalsIgnoreCase(status) || "declined".equalsIgnoreCase(status))) {
-                foundAny = true;
+                    if (email != null && email.equalsIgnoreCase(myEmail) && ("pending".equalsIgnoreCase(status) || "declined".equalsIgnoreCase(status))) {
+                        foundAny = true;
 
                         String name = mDoc.getString("name");
                         if (name == null) name = "Unknown";
@@ -1318,7 +1291,7 @@ public class CollaborationPage {
         row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.08);" +
                 "-fx-border-radius: 10; -fx-background-radius: 10;");
 
-         accept.setOnAction(e -> {
+        accept.setOnAction(e -> {
             try {
                 var db = com.file_handlers.config.FirebaseConfig.getFirestore();
                 var docs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
@@ -1460,7 +1433,6 @@ public class CollaborationPage {
         }
 
         ScrollPane scroll = new ScrollPane(list);
-        
         scroll.setFitToWidth(true);
         scroll.setPrefViewportHeight(430);
         scroll.setPrefWidth(500);
