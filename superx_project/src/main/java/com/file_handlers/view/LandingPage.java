@@ -61,12 +61,20 @@ public class LandingPage extends Application {
     private static Stage primaryStage;
 
     @Override
-    public void start(Stage stage) {
-        primaryStage = stage;
+    public void start(Stage stage){
+        primaryStage=stage;
         primaryStage.setTitle("OneSpace");
-        primaryStage.setScene(getLandingPageScene());
         primaryStage.setMaximized(true);
+
+        SplashScreen splash=new SplashScreen(
+                primaryStage,
+                LandingPage::showLandingPage
+        );
+
+        primaryStage.setScene(splash.getSplashScene());
         primaryStage.show();
+
+        splash.play();
     }
 
     // Dynamic sizing helpers to prevent shrinking/flickering on scene changes
