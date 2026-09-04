@@ -1068,26 +1068,36 @@ public class SharedSpacePage {
         fileSearchField = createSearchField("Search files...");
         fileSearchField.textProperty().addListener((obs, oldValue, newValue) -> refreshFileList());
                 
-        HBox tableHeader = new HBox();
+        // Match the HBox spacing of 0 used in file rows
+        HBox tableHeader = new HBox(0);
+        tableHeader.setAlignment(Pos.CENTER_LEFT);
         tableHeader.setPadding(new Insets(7, 10, 7, 10));
+        tableHeader.setStyle("-fx-background-color: rgba(255, 255, 255, 0.04); -fx-background-radius: 6;");
+
+        // Dummy region matching the file icon dimensions so text aligns vertically
+        Region iconDummy = new Region();
+        iconDummy.setPrefSize(30, 30);
 
         Label name = new Label("Name");
+        styleTableHeader(name);
+
+        // Mirror the nameBox structure from createFileRow
+        HBox nameHeaderBox = new HBox(12, iconDummy, name);
+        nameHeaderBox.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(nameHeaderBox, Priority.ALWAYS);
+
         Label size = new Label("Size");
         Label uploaded = new Label("Uploaded On");
-        Label more = new Label("");
+        Label morePlaceholder = new Label(""); // Matches the 30px 'more' action column
 
-        styleTableHeader(name);
         styleTableHeader(size);
         styleTableHeader(uploaded);
 
-        name.setPrefWidth(260);
         size.setPrefWidth(110);
         uploaded.setPrefWidth(180);
-        more.setPrefWidth(30);
+        morePlaceholder.setPrefWidth(30);
 
-        HBox.setHgrow(name, Priority.ALWAYS);
-        tableHeader.getChildren().addAll(name, size, uploaded, more);
-
+        tableHeader.getChildren().addAll(nameHeaderBox, size, uploaded, morePlaceholder);
         fileListBox = new VBox(0);
         
        ScrollPane fileScroll = new ScrollPane(fileListBox);
