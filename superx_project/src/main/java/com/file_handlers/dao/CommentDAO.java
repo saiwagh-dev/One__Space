@@ -1,6 +1,7 @@
 package com.file_handlers.dao;
 
 import com.file_handlers.config.FirebaseConfig;
+import com.google.cloud.firestore.FieldValue;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.Query;
 import com.google.cloud.firestore.QueryDocumentSnapshot;
@@ -16,6 +17,7 @@ public class CommentDAO {
     public void addComment(String workspaceDocId, String fileDocId, String text, String authorName, String authorEmail, Runnable onSuccess, Consumer<Exception> onError) {
         new Thread(() -> {
             try {
+                System.out.println("[DEBUG] Attempting to send message to workspace: " + workspaceDocId);
                 Firestore db = FirebaseConfig.getFirestore();
                 Map<String, Object> data = new HashMap<>();
                 data.put("text", text);
@@ -31,38 +33,45 @@ public class CommentDAO {
                       .collection("comments").add(data).get();
                 }
 
+                System.out.println("[DEBUG] Message sent successfully!");
                 if (onSuccess != null) onSuccess.run();
             } catch (Exception e) {
+                System.err.println("[ERROR] Failed to send message:");
+                e.printStackTrace(); // This will force the exact error to print in your console
                 if (onError != null) onError.accept(e);
             }
         }).start();
     }
 
-    public void getComments(String workspaceDocId, String fileDocId, Consumer<List<Map<String, Object>>> onLoaded, Consumer<Exception> onError) {
-        new Thread(() -> {
-            try {
-                Firestore db = FirebaseConfig.getFirestore();
-                Query query;
-                if (fileDocId == null || fileDocId.isEmpty()) {
-                    query = db.collection("workspaces").document(workspaceDocId).collection("comments").orderBy("timestamp", Query.Direction.ASCENDING);
-                } else {
-                    query = db.collection("workspaces").document(workspaceDocId)
-                              .collection("files").document(fileDocId)
-                              .collection("comments").orderBy("timestamp", Query.Direction.ASCENDING);
-                }
-
-                List<QueryDocumentSnapshot> docs = query.get().get().getDocuments();
-                List<Map<String, Object>> comments = new ArrayList<>();
-                for (var doc : docs) {
-                    comments.add(doc.getData());
-                }
-
-                javafx.application.Platform.runLater(() -> onLoaded.accept(comments));
-            } catch (Exception e) {
-                javafx.application.Platform.runLater(() -> {
-                    if (onError != null) onError.accept(e);
-                });
+   public void getComments(String workspaceDocId, String fileDocId, Consumer<List<Map<String, Object>>> onLoaded, Consumer<Exception> onError) {
+    new Thread(() -> {
+        try {
+            Firestore db = FirebaseConfig.getFirestore();
+            Query query;
+            if (fileDocId == null || fileDocId.isEmpty()) {
+                query = db.collection("workspaces").document(workspaceDocId)
+                          .collection("comments")
+                          .orderBy("timestamp", Query.Direction.ASCENDING); // Ensures chronological order
+            } else {
+                query = db.collection("workspaces").document(workspaceDocId)
+                        .collection("files").document(fileDocId)
+                        .collection("comments")
+                        .orderBy("timestamp", Query.Direction.ASCENDING); // Ensures chronological order
             }
-        }).start();
-    }
+
+            List<QueryDocumentSnapshot> docs = query.get().get().getDocuments();
+            List<Map<String, Object>> comments = new ArrayList<>();
+            for (var doc : docs) {
+                comments.add(doc.getData());
+            }
+
+            javafx.application.Platform.runLater(() -> onLoaded.accept(comments));
+        } catch (Exception e) {
+            e.printStackTrace();
+            javafx.application.Platform.runLater(() -> {
+                if (onError != null) onError.accept(e);
+            });
+        }
+    }).start();
+}
 }
