@@ -23,6 +23,11 @@ public class FileData{
     private boolean deleted;
     private Timestamp deletedAt;
     private String fileNameLower;
+    
+    private List<Double> embedding;
+
+    public List<Double> getEmbedding(){return embedding;}
+    public void setEmbedding(List<Double> embedding){this.embedding=embedding;}
 
     public FileData(){}
 
@@ -60,7 +65,7 @@ public class FileData{
     public void setDeletedAt(Timestamp deletedAt){this.deletedAt=deletedAt;}
     public String getFileNameLower(){return fileNameLower;}
     public void setFileNameLower(String fileNameLower){this.fileNameLower=fileNameLower;}
-
+    
     public Map<String,Object> toMap(){
         Map<String,Object> data=new HashMap<>();
         data.put("fileName",fileName);
@@ -80,6 +85,7 @@ public class FileData{
         data.put("deleted",deleted);
         data.put("deletedAt",deletedAt);
         data.put("fileNameLower",fileNameLower);
+        data.put("embedding",embedding);
         return data;
     }
 }
