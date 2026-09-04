@@ -61,12 +61,20 @@ public class LandingPage extends Application {
     private static Stage primaryStage;
 
     @Override
-    public void start(Stage stage) {
-        primaryStage = stage;
+    public void start(Stage stage){
+        primaryStage=stage;
         primaryStage.setTitle("OneSpace");
-        primaryStage.setScene(getLandingPageScene());
         primaryStage.setMaximized(true);
+
+        SplashScreen splash=new SplashScreen(
+                primaryStage,
+                LandingPage::showLandingPage
+        );
+
+        primaryStage.setScene(splash.getSplashScene());
         primaryStage.show();
+
+        splash.play();
     }
 
     // Dynamic sizing helpers to prevent shrinking/flickering on scene changes
@@ -161,14 +169,14 @@ public class LandingPage extends Application {
 
     public static void showUnifiedSpace(String spaceId, String spaceName) {
         System.out.println(
-            "[NAVIGATION] Opening Space: "
-                    + spaceName
-                    + " | ID: "
-                    + spaceId
+                "[NAVIGATION] Opening Space: "
+                        + spaceName
+                        + " | ID: "
+                        + spaceId
         );
 
         UnifiedSpaceView view =
-            new UnifiedSpaceView(spaceId, spaceName);
+                new UnifiedSpaceView(spaceId, spaceName);
 
         setScene(view.getUnifiedSpaceScene());
     }
