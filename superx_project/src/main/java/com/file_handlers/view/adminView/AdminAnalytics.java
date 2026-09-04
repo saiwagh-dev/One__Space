@@ -12,6 +12,7 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
@@ -706,33 +707,73 @@ public class AdminAnalytics {
         period.setPrefWidth(130);
         period.setPrefHeight(30);
         period.getStyleClass().add("slate-dark-combo");
-        period.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-family: '" + FONT + "'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
+        
+        String idleComboStyle = "-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-family: '" + FONT + "'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-cursor: hand;";
+        String hoverComboStyle = "-fx-background-color: rgba(23, 37, 64, 0.95); -fx-border-color: #38BDF8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-family: '" + FONT + "'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-cursor: hand;";
+        period.setStyle(idleComboStyle);
 
-        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.5), 10, 0, 0, 1);
-        ScaleTransition stPeriod = new ScaleTransition(Duration.millis(180), period);
-        TranslateTransition ttPeriod = new TranslateTransition(Duration.millis(180), period);
-        period.setOnMouseEntered(e -> {
-            period.setStyle("-fx-background-color: rgba(13, 22, 38, 0.95); -fx-border-color: #38BDF8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-family: '" + FONT + "'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
-            period.setEffect(blueGlow);
+        period.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setFont(Font.font(FONT, FontWeight.BOLD, 11));
+                    setTextFill(Color.WHITE);
+                    setStyle("-fx-text-fill: #FFFFFF;");
+                }
+            }
+        });
+
+        period.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: transparent;");
+                } else {
+                    setText(item);
+                    setFont(Font.font(FONT, FontWeight.MEDIUM, 11));
+                    setTextFill(Color.WHITE);
+                    setStyle("-fx-background-color: #0D182E; -fx-text-fill: #FFFFFF; -fx-padding: 6 10;");
+                }
+            }
+        });
+
+        StackPane periodWrapper = new StackPane(period);
+        periodWrapper.setStyle("-fx-background-color: transparent;");
+
+        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.6), 12, 0, 0, 2);
+        ScaleTransition stPeriod = new ScaleTransition(Duration.millis(140), periodWrapper);
+        TranslateTransition ttPeriod = new TranslateTransition(Duration.millis(140), periodWrapper);
+
+        periodWrapper.setOnMouseEntered(e -> {
+            period.setStyle(hoverComboStyle);
+            periodWrapper.setEffect(blueGlow);
             stPeriod.stop(); ttPeriod.stop();
-            stPeriod.setToX(1.03); stPeriod.setToY(1.03);
-            ttPeriod.setToY(-1);
+            stPeriod.setToX(1.06); stPeriod.setToY(1.06);
+            ttPeriod.setToY(-2);
             stPeriod.play(); ttPeriod.play();
         });
-        period.setOnMouseExited(e -> {
-            period.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-family: '" + FONT + "'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-cursor: hand;");
-            period.setEffect(null);
+
+        periodWrapper.setOnMouseExited(e -> {
+            period.setStyle(idleComboStyle);
+            periodWrapper.setEffect(null);
             stPeriod.stop(); ttPeriod.stop();
             stPeriod.setToX(1.0); stPeriod.setToY(1.0);
             ttPeriod.setToY(0);
             stPeriod.play(); ttPeriod.play();
         });
+
         periodSelector = period;
 
         Region headingSpacer = new Region();
         HBox.setHgrow(headingSpacer, Priority.ALWAYS);
 
-        HBox heading = new HBox(title, headingSpacer, period);
+        HBox heading = new HBox(title, headingSpacer, periodWrapper);
         heading.setAlignment(Pos.CENTER_LEFT);
 
         CategoryAxis xAxis = new CategoryAxis();

@@ -14,6 +14,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.effect.BlurType;
@@ -550,21 +551,6 @@ public class AdminSettings {
             alert.showAndWait();
         });
 
-        ToggleButton twoFactorToggle = new ToggleButton();
-        twoFactorToggle.setSelected(true);
-        twoFactorToggle.setPrefSize(45, 24); twoFactorToggle.setMinSize(45, 24); twoFactorToggle.setMaxSize(45, 24);
-
-        Label enabledLabel = createSecondaryLabel("Enabled", 13);
-        HBox twoFactorBox = new HBox(10, twoFactorToggle, enabledLabel);
-        twoFactorBox.setAlignment(Pos.CENTER_LEFT);
-        twoFactorToggle.setStyle(createToggleStyle(true));
-        applyHoverAnimation(twoFactorToggle, 1.05, -1);
-        twoFactorToggle.setOnAction(e -> {
-            boolean enabled = twoFactorToggle.isSelected();
-            enabledLabel.setText(enabled ? "Enabled" : "Disabled");
-            twoFactorToggle.setStyle(createToggleStyle(enabled));
-        });
-
         ComboBox<String> sessionCombo = new ComboBox<>();
         sessionCombo.getItems().addAll("15 minutes", "30 minutes", "1 hour", "2 hours", "Never");
         sessionCombo.setValue("30 minutes");
@@ -591,7 +577,6 @@ public class AdminSettings {
 
         VBox securityForm = new VBox(12,
                 createFormRow(createFormLabel("Password Policy"), passwordCombo),
-                createFormRow(createFormLabel("Two-Factor Authentication"), twoFactorBox),
                 createFormRow(createFormLabel("Session Timeout"), sessionCombo),
                 createFormRow(createFormLabel("Login Attempts"), attemptsCombo)
         );
@@ -729,8 +714,53 @@ public class AdminSettings {
     }
 
     private void styleComboBox(ComboBox<String> comboBox) {
-        comboBox.setPrefWidth(345); comboBox.setPrefHeight(34);
-        comboBox.setStyle("-fx-background-color: " + (isLightMode ? "#F8FAFC" : "rgba(10, 18, 33, 0.85)") + "; -fx-border-color: " + cardBorder + "; -fx-border-width: 1; -fx-border-radius: 7; -fx-background-radius: 7; -fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-text-fill: " + textPrimary + ";");
+        comboBox.setPrefWidth(345);
+        comboBox.setPrefHeight(34);
+
+        String comboBg = isLightMode ? "#F8FAFC" : "rgba(10, 18, 33, 0.95)";
+        String textColor = isLightMode ? "#0F172A" : "#FFFFFF";
+
+        comboBox.setStyle(
+            "-fx-background-color: " + comboBg + ";" +
+            "-fx-border-color: " + cardBorder + ";" +
+            "-fx-border-width: 1;" +
+            "-fx-border-radius: 7;" +
+            "-fx-background-radius: 7;" +
+            "-fx-font-family: " + FONT + ";" +
+            "-fx-font-size: 12px;" +
+            "-fx-font-weight: 600;"
+        );
+
+        comboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item);
+                    setFont(Font.font(FONT, FontWeight.BOLD, 12));
+                    setTextFill(Color.web(textColor));
+                }
+            }
+        });
+
+        comboBox.setCellFactory(listView -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: transparent;");
+                } else {
+                    setText(item);
+                    setFont(Font.font(FONT, FontWeight.MEDIUM, 12));
+                    setTextFill(Color.web(textColor));
+                    setStyle("-fx-background-color: " + (isLightMode ? "#FFFFFF" : "#0D182E") + "; -fx-padding: 8 12;");
+                }
+            }
+        });
+
         applyHoverAnimation(comboBox, 1.02, -1);
     }
 

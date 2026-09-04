@@ -23,13 +23,16 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
 import javafx.util.Duration;
 
+import java.awt.Desktop;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -181,8 +184,8 @@ public class StorageIndexPage {
     }
 
     private ScrollPane createStorageContent() {
-        VBox content = new VBox(18);
-        content.setPadding(new Insets(28, ResponsiveUtil.PAGE_PADDING, 30, ResponsiveUtil.PAGE_PADDING));
+        VBox content = new VBox(20);
+        content.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 30, ResponsiveUtil.PAGE_PADDING));
         content.setStyle("-fx-background-color: transparent;");
 
         long oneSpaceSize = folderSize(oneSpace);
@@ -217,18 +220,25 @@ public class StorageIndexPage {
     private HBox createUsageCard(long size, double totalPercent, double usedPercent) {
         SVGPath folderIcon = createIcon("files");
         folderIcon.setStroke(Color.web("#34D399")); folderIcon.setStrokeWidth(2.2);
-        StackPane icon = new StackPane(folderIcon); icon.setPrefSize(76, 76);
-        icon.setStyle("-fx-background-color: rgba(16, 185, 129, 0.15); -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 50%; -fx-background-radius: 50%;");
+        StackPane icon = new StackPane(folderIcon); icon.setPrefSize(72, 72);
+        icon.setStyle("-fx-background-color: rgba(16, 185, 129, 0.15); -fx-border-color: rgba(16, 185, 129, 0.35); -fx-border-radius: 50%; -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(16, 185, 129, 0.3), 12, 0, 0, 0);");
 
-        VBox right = new VBox(3, label(String.format("%.2f%%", totalPercent), 27, true, "#34D399"), label("of total PC storage", 12, false, LIGHT_SECONDARY), label(String.format("%.2f%% of currently used space", usedPercent), 11, false, LIGHT_SECONDARY));
+        VBox right = new VBox(4, label(String.format("%.2f%%", totalPercent), 28, true, "#34D399"), label("of total PC storage", 12, false, LIGHT_SECONDARY), label(String.format("%.2f%% of currently used space", usedPercent), 11, false, LIGHT_SECONDARY));
         right.setAlignment(Pos.CENTER_RIGHT);
 
-        HBox card = new HBox(18, icon, new VBox(3, label("OneSpace Usage", 14, true, LIGHT_SECONDARY), label(format(size), 31, true, WHITE), label("Actual space occupied by OneSpace files", 12, false, LIGHT_SECONDARY)), new Region(), right);
+        ProgressBar dynamicBar = new ProgressBar(Math.min(totalPercent / 100.0, 1.0));
+        dynamicBar.setPrefWidth(220); dynamicBar.setPrefHeight(8);
+        dynamicBar.setStyle("-fx-accent: #10B981; -fx-control-inner-background: rgba(10, 18, 33, 0.85); -fx-background-radius: 10; -fx-border-radius: 10;");
+
+        VBox centerBox = new VBox(6, label("OneSpace Usage", 14, true, LIGHT_SECONDARY), label(format(size), 32, true, WHITE), dynamicBar, label("Actual space occupied by OneSpace files", 12, false, LIGHT_SECONDARY));
+        centerBox.setAlignment(Pos.CENTER_LEFT);
+
+        HBox card = new HBox(22, icon, centerBox, new Region(), right);
         HBox.setHgrow(card.getChildren().get(2), Priority.ALWAYS);
-        card.setAlignment(Pos.CENTER_LEFT); card.setPadding(new Insets(20, 24, 20, 24)); card.setStyle(cardStyle());
+        card.setAlignment(Pos.CENTER_LEFT); card.setPadding(new Insets(22, 26, 22, 26)); card.setStyle(cardStyle());
         
         card.setOnMouseEntered(e -> {
-            card.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.9), rgba(12, 22, 40, 0.95)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 24, 0, 0, 6);");
+            card.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.95), rgba(12, 22, 40, 0.98)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 24, 0, 0, 6);");
             ScaleTransition st = new ScaleTransition(Duration.millis(140), card);
             st.setToX(1.01); st.setToY(1.01); st.play();
             TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
@@ -245,17 +255,34 @@ public class StorageIndexPage {
     }
 
     private VBox createStorageBySpace(long total) {
-        VBox rows = new VBox(11);
+        VBox rows = new VBox(10);
         String[] spaces = {"Personal", "College", "Office", "Finance", "Entertainment", "Others"};
         for (String name : spaces) {
-            long size = folderSize(new File(oneSpace, name));
-            rows.getChildren().add(createSpaceRow(name, size, total == 0 ? 0 : size * 100.0 / total));
+            File spaceFolder = new File(oneSpace, name);
+            long size = folderSize(spaceFolder);
+            HBox row = createSpaceRow(name, size, total == 0 ? 0 : size * 100.0 / total);
+            
+            // Added functionality: click category row to open that category folder in OS file explorer
+            row.setOnMouseClicked(e -> {
+                if (!spaceFolder.exists()) {
+                    spaceFolder.mkdirs();
+                }
+                try {
+                    if (Desktop.isDesktopSupported()) {
+                        Desktop.getDesktop().open(spaceFolder);
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            });
+
+            rows.getChildren().add(row);
         }
-        VBox card = new VBox(10, label("Storage by Space", 17, true, WHITE), label("Space used by each OneSpace category.", 12, false, LIGHT_SECONDARY), new Separator(), rows);
-        card.setPadding(new Insets(18)); card.setStyle(cardStyle());
+        VBox card = new VBox(12, label("Storage by Space", 17, true, WHITE), label("Space used by each OneSpace category.", 12, false, LIGHT_SECONDARY), new Separator(), rows);
+        card.setPadding(new Insets(20)); card.setStyle(cardStyle());
         
         card.setOnMouseEntered(e -> {
-            card.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.9), rgba(12, 22, 40, 0.95)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 24, 0, 0, 6);");
+            card.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.95), rgba(12, 22, 40, 0.98)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 24, 0, 0, 6);");
             ScaleTransition st = new ScaleTransition(Duration.millis(140), card);
             st.setToX(1.01); st.setToY(1.01); st.play();
             TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
@@ -272,25 +299,37 @@ public class StorageIndexPage {
     }
 
     private HBox createSpaceRow(String name, long size, double percent) {
-        SVGPath dotIcon = createIcon("bullet");
-        dotIcon.setStroke(Color.web("#38BDF8")); dotIcon.setStrokeWidth(3);
+        String themeColor;
+        switch (name) {
+            case "Personal": themeColor = "#38BDF8"; break;
+            case "College": themeColor = "#A855F7"; break;
+            case "Office": themeColor = "#3B82F6"; break;
+            case "Finance": themeColor = "#10B981"; break;
+            case "Entertainment": themeColor = "#F59E0B"; break;
+            default: themeColor = "#EC4899"; break;
+        }
 
-        ProgressBar progress = new ProgressBar(Math.min(percent / 100, 1));
-        progress.setPrefWidth(100); progress.setPrefHeight(7);
-        progress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
+        Circle dot = new Circle(4, Color.web(themeColor));
+        ProgressBar progress = new ProgressBar(Math.min(percent / 100.0, 1.0));
+        progress.setPrefWidth(120); progress.setPrefHeight(8);
+        progress.setStyle("-fx-accent: " + themeColor + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85); -fx-background-radius: 8; -fx-border-radius: 8;");
 
-        HBox row = new HBox(8, dotIcon, label(name, 12, true, WHITE), label(format(size), 12, true, WHITE), new Region(), progress, label(String.format("%.1f%%", percent), 11, true, LIGHT_SECONDARY));
-        HBox.setHgrow(row.getChildren().get(3), Priority.ALWAYS);
+        HBox nameAndSize = new HBox(8, dot, label(name, 12, true, WHITE), label(format(size), 12, FontWeight.MEDIUM, LIGHT_SECONDARY));
+        nameAndSize.setAlignment(Pos.CENTER_LEFT);
+
+        HBox row = new HBox(12, nameAndSize, new Region(), progress, label(String.format("%.1f%%", percent), 11, true, WHITE));
+        HBox.setHgrow(row.getChildren().get(1), Priority.ALWAYS);
         row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(4, 6, 4, 6));
-        row.setStyle("-fx-background-color: transparent; -fx-background-radius: 6; -fx-cursor: hand;");
+        row.setPadding(new Insets(6, 10, 6, 10));
+        row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.6); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
+        
         row.setOnMouseEntered(e -> {
-            row.setStyle("-fx-background-color: rgba(56, 189, 248, 0.1); -fx-background-radius: 6; -fx-cursor: hand;");
+            row.setStyle("-fx-background-color: rgba(56, 189, 248, 0.12); -fx-border-color: " + themeColor + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, " + themeColor + "44, 8, 0, 0, 2);");
             TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
-            tt.setToX(3); tt.play();
+            tt.setToX(4); tt.play();
         });
         row.setOnMouseExited(e -> {
-            row.setStyle("-fx-background-color: transparent; -fx-background-radius: 6; -fx-cursor: hand;");
+            row.setStyle("-fx-background-color: rgba(10, 18, 33, 0.6); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8;");
             TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
             tt.setToX(0); tt.play();
         });
@@ -298,12 +337,31 @@ public class StorageIndexPage {
     }
 
     private VBox createPCStorage(long oneSpaceSize, long total, long used, File drive) {
-        VBox card = new VBox(11, label("PC Storage Info", 17, true, WHITE), label("Current internal drive information.", 12, false, LIGHT_SECONDARY), new Separator(),
-                infoRow("Drive", drive.getAbsolutePath()), infoRow("Total Capacity", format(total)), infoRow("Used", format(used) + " (" + String.format("%.2f%%", total == 0 ? 0 : used * 100.0 / total) + ")"), infoRow("Available", format(drive.getFreeSpace())), infoRow("OneSpace Usage", format(oneSpaceSize) + " (" + String.format("%.2f%%", total == 0 ? 0 : oneSpaceSize * 100.0 / total) + ")"));
-        card.setPadding(new Insets(18)); card.setStyle(cardStyle());
+        double usedPercentage = total == 0 ? 0 : used * 100.0 / total;
+        ProgressBar driveProgress = new ProgressBar(Math.min(usedPercentage / 100.0, 1.0));
+        driveProgress.setPrefWidth(220); driveProgress.setPrefHeight(8);
+        driveProgress.setStyle("-fx-accent: " + (usedPercentage > 85 ? "#EF4444" : "#38BDF8") + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85); -fx-background-radius: 8; -fx-border-radius: 8;");
+
+        HBox driveProgressRow = new HBox(12, label("Disk Capacity Usage", 12, true, LIGHT_SECONDARY), new Region(), driveProgress, label(String.format("%.1f%%", usedPercentage), 11, true, WHITE));
+        HBox.setHgrow(driveProgressRow.getChildren().get(1), Priority.ALWAYS);
+        driveProgressRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox card = new VBox(11, 
+                label("PC Storage Info", 17, true, WHITE), 
+                label("Current internal drive information.", 12, false, LIGHT_SECONDARY), 
+                new Separator(),
+                infoRow("Drive", drive.getAbsolutePath()), 
+                infoRow("Total Capacity", format(total)), 
+                infoRow("Used", format(used) + " (" + String.format("%.2f%%", usedPercentage) + ")"), 
+                infoRow("Available", format(drive.getFreeSpace())), 
+                infoRow("OneSpace Usage", format(oneSpaceSize) + " (" + String.format("%.2f%%", total == 0 ? 0 : oneSpaceSize * 100.0 / total) + ")"),
+                new Separator(),
+                driveProgressRow
+        );
+        card.setPadding(new Insets(20)); card.setStyle(cardStyle());
         
         card.setOnMouseEntered(e -> {
-            card.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.9), rgba(12, 22, 40, 0.95)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 24, 0, 0, 6);");
+            card.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.95), rgba(12, 22, 40, 0.98)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 24, 0, 0, 6);");
             ScaleTransition st = new ScaleTransition(Duration.millis(140), card);
             st.setToX(1.01); st.setToY(1.01); st.play();
             TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
@@ -329,17 +387,17 @@ public class StorageIndexPage {
     private VBox createFileActivity(long totalSize) {
         List<File> files = getFiles(oneSpace);
         files.sort(Comparator.comparingLong(File::length).reversed());
-        VBox rows = new VBox(6);
+        VBox rows = new VBox(8);
         for (File f : files) {
             if (rows.getChildren().size() >= 8) break;
             rows.getChildren().add(createFileRow(f, totalSize == 0 ? 0 : f.length() * 100.0 / totalSize));
         }
         if (files.isEmpty()) rows.getChildren().add(label("No files are currently stored in OneSpace.", 12, false, LIGHT_SECONDARY));
-        VBox card = new VBox(10, label("Files Occupying Storage", 17, true, WHITE), label("Files currently stored in OneSpace, sorted by size.", 12, false, LIGHT_SECONDARY), new Separator(), rows);
-        card.setPadding(new Insets(18)); card.setStyle(cardStyle());
+        VBox card = new VBox(12, label("Files Occupying Storage", 17, true, WHITE), label("Files currently stored in OneSpace, sorted by size.", 12, false, LIGHT_SECONDARY), new Separator(), rows);
+        card.setPadding(new Insets(20)); card.setStyle(cardStyle());
         
         card.setOnMouseEntered(e -> {
-            card.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.9), rgba(12, 22, 40, 0.95)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 24, 0, 0, 6);");
+            card.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.95), rgba(12, 22, 40, 0.98)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 24, 0, 0, 6);");
             ScaleTransition st = new ScaleTransition(Duration.millis(140), card);
             st.setToX(1.01); st.setToY(1.01); st.play();
             TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
@@ -359,21 +417,33 @@ public class StorageIndexPage {
         SVGPath fileIcon = createIcon("files");
         fileIcon.setStroke(Color.web("#38BDF8")); fileIcon.setStrokeWidth(2);
 
-        ProgressBar progress = new ProgressBar(Math.min(percent / 100, 1));
-        progress.setPrefWidth(150); progress.setPrefHeight(7);
-        progress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
+        ProgressBar progress = new ProgressBar(Math.min(percent / 100.0, 1.0));
+        progress.setPrefWidth(160); progress.setPrefHeight(8);
+        progress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85); -fx-background-radius: 8; -fx-border-radius: 8;");
 
-        HBox row = new HBox(10, fileIcon, label(file.getName(), 12, true, WHITE), new Region(), progress, label(format(file.length()), 12, true, WHITE));
+        HBox row = new HBox(12, fileIcon, label(file.getName(), 12, true, WHITE), new Region(), progress, label(format(file.length()), 12, true, WHITE));
         HBox.setHgrow(row.getChildren().get(2), Priority.ALWAYS);
-        row.setAlignment(Pos.CENTER_LEFT); row.setPadding(new Insets(8, 10, 8, 10));
-        row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
+        row.setAlignment(Pos.CENTER_LEFT); row.setPadding(new Insets(10, 12, 10, 12));
+        row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;");
+        
+        // Added functionality: click individual file row to open or reveal the file directly using Desktop API
+        row.setOnMouseClicked(e -> {
+            try {
+                if (Desktop.isDesktopSupported() && file.exists()) {
+                    Desktop.getDesktop().open(file);
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        });
+
         row.setOnMouseEntered(e -> {
-            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.45); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 8, 0, 0, 0);");
+            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.5); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 8, 0, 0, 2);");
             TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
             tt.setToX(4); tt.play();
         });
         row.setOnMouseExited(e -> {
-            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8;");
+            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 10; -fx-background-radius: 10;");
             TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
             tt.setToX(0); tt.play();
         });
@@ -387,14 +457,20 @@ public class StorageIndexPage {
         long smallest = files.isEmpty() ? 0 : files.stream().mapToLong(File::length).min().orElse(0);
         long average = files.isEmpty() ? 0 : total / files.size();
 
-        return new HBox(12, stat(String.valueOf(files.size()), "Total Files"), stat(format(total), "Total OneSpace Storage"), stat(format(largest), "Largest File"), stat(format(smallest), "Smallest File"), stat(format(average), "Average File Size"));
+        return new HBox(12, 
+                stat(String.valueOf(files.size()), "Total Files"), 
+                stat(format(total), "Total OneSpace Storage"), 
+                stat(format(largest), "Largest File"), 
+                stat(format(smallest), "Smallest File"), 
+                stat(format(average), "Average File Size")
+        );
     }
 
     private VBox stat(String value, String title) {
         VBox box = new VBox(4, label(value, 19, true, "#38BDF8"), label(title, 11, false, LIGHT_SECONDARY));
-        box.setPadding(new Insets(13)); box.setStyle(cardStyle()); HBox.setHgrow(box, Priority.ALWAYS);
+        box.setPadding(new Insets(14)); box.setStyle(cardStyle()); HBox.setHgrow(box, Priority.ALWAYS);
         box.setOnMouseEntered(e -> {
-            box.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.9), rgba(12, 22, 40, 0.95)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 20, 0, 0, 4);");
+            box.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.95), rgba(12, 22, 40, 0.98)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 20, 0, 0, 4);");
             ScaleTransition st = new ScaleTransition(Duration.millis(140), box);
             st.setToX(1.03); st.setToY(1.03); st.play();
             TranslateTransition tt = new TranslateTransition(Duration.millis(140), box);
@@ -412,7 +488,7 @@ public class StorageIndexPage {
 
     private Button blueButton(String text) {
         Button button = new Button(text);
-        button.setPrefHeight(42);
+        button.setPrefHeight(40);
         button.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: #FFFFFF; -fx-font-family: " + FONT + "; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 10; -fx-border-width: 1; -fx-padding: 0 18; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.45), 10, 0, 0, 2);");
         return button;
     }
