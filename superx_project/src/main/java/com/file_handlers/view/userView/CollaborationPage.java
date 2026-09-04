@@ -587,7 +587,7 @@ public class CollaborationPage {
         scrollPane.setFitToWidth(true);
         scrollPane.setFitToHeight(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-background-insets: 0; -fx-padding: 0;");
 
         VBox mainArea = new VBox(topBar, scrollPane);
@@ -598,7 +598,6 @@ public class CollaborationPage {
         root.setLeft(sidebar);
         root.setCenter(mainArea);
 
-        // Optimized: Single pass background load thread calling initializeWorkspacesAndActivities() without duplicate scans
         Thread loadThread = new Thread(() -> {
             try {
                 initializeWorkspacesAndActivities();
@@ -835,20 +834,33 @@ public class CollaborationPage {
             }
 
             workspaceListPane.getChildren().add(list);
-        } else {
+       } else {
             GridPane grid = new GridPane();
-            grid.setHgap(12);
-            grid.setVgap(12);
+            grid.setHgap(16);
+            grid.setVgap(16);
+
+            // Make the grid columns stretch equally to occupy full horizontal space
+            javafx.scene.layout.ColumnConstraints col1 = new javafx.scene.layout.ColumnConstraints();
+            col1.setPercentWidth(50);
+            col1.setHgrow(Priority.ALWAYS);
+            
+            javafx.scene.layout.ColumnConstraints col2 = new javafx.scene.layout.ColumnConstraints();
+            col2.setPercentWidth(50);
+            col2.setHgrow(Priority.ALWAYS);
+            
+            grid.getColumnConstraints().addAll(col1, col2);
 
             int col = 0, row = 0;
 
             for (WorkspaceData workspace : workspaces) {
                 VBox card = createWorkspaceGridCard(workspace, root, workspace.docId);
+                card.setMaxWidth(Double.MAX_VALUE); // Ensure card expands to fill column width
                 card.setOnMouseClicked(e -> root.setCenter(
                         new SharedSpacePage(workspace.name).getSharedSpaceContent()));
 
-                grid.add(card, col++, row);
+                grid.add(card, col, row);
 
+                col++;
                 if (col > 1) {
                     col = 0;
                     row++;
@@ -1013,7 +1025,8 @@ public class CollaborationPage {
 
         VBox card = new VBox(10, top, title, subtitle);
         card.setPadding(new Insets(16));
-        card.setPrefWidth(280);
+        card.setMaxWidth(Double.MAX_VALUE);
+        GridPane.setHgrow(card, Priority.ALWAYS);        
         card.setMaxWidth(Double.MAX_VALUE);
         applyHover(card);
 
@@ -1611,6 +1624,14 @@ public class CollaborationPage {
                     rebuildWorkspaceCards(root);
                     updateMetrics();
                     rebuildActivityList();
+                    
+                    new Thread(() -> {
+                        initializeWorkspacesAndActivities();
+                        Platform.runLater(() -> {
+                            updateMetrics();
+                            updatePendingInvitesButtonText();
+                        });
+                    }, "instant-refresh-loader").start();
                 }),
                 ex -> Platform.runLater(() -> {
                     ex.printStackTrace();
