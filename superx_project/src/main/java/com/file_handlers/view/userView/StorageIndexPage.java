@@ -1,6 +1,8 @@
 package com.file_handlers.view.userView;
 
 import com.file_handlers.model.UserSession;
+import com.file_handlers.model.FileData;
+import com.file_handlers.dao.FileDAO;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
 
@@ -47,7 +49,6 @@ public class StorageIndexPage {
     private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
     private static final String WHITE = "#FFFFFF", LIGHT_SECONDARY = "#94A3B8", BLUE = "#2563EB";
 
-    private final File oneSpace = new File(System.getProperty("user.home"), "OneSpace");
 
     public Scene getStorageIndexPageScene() {
         BorderPane root = new BorderPane();
@@ -188,33 +189,187 @@ public class StorageIndexPage {
         content.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 30, ResponsiveUtil.PAGE_PADDING));
         content.setStyle("-fx-background-color: transparent;");
 
-        long oneSpaceSize = folderSize(oneSpace);
-        File drive = getInternalDrive();
-        long totalPC = drive.getTotalSpace(), usedPC = totalPC - drive.getFreeSpace();
-        double oneSpaceOfTotal = totalPC == 0 ? 0 : oneSpaceSize * 100.0 / totalPC;
-        double oneSpaceOfUsed = usedPC == 0 ? 0 : oneSpaceSize * 100.0 / usedPC;
+        Label loading = label("Loading storage information...", 13, false, LIGHT_SECONDARY);
+        content.getChildren().add(loading);
 
         Button refresh = blueButton("⟳   Refresh");
         refresh.setOnAction(e -> LandingPage.showStorageIndexPage());
-        applyHoverAnimation(refresh, 1.05, 0);
 
-        HBox header = new HBox(new VBox(5, label("Storage Index", 26, true, WHITE), label("Monitor the storage occupied by your OneSpace files and your PC storage.", 13, false, LIGHT_SECONDARY)), new Region(), refresh);
+        HBox header = new HBox(
+                new VBox(
+                        5,
+                        label("Storage Index", 26, true, WHITE),
+                        label("Monitor the storage occupied by your OneSpace files and your PC storage.", 13, false, LIGHT_SECONDARY)
+                ),
+                new Region(),
+                refresh
+        );
         HBox.setHgrow(header.getChildren().get(1), Priority.ALWAYS);
 
-        HBox twoCards = new HBox(14, createStorageBySpace(oneSpaceSize), createPCStorage(oneSpaceSize, totalPC, usedPC, drive));
-        HBox.setHgrow(twoCards.getChildren().get(0), Priority.ALWAYS); HBox.setHgrow(twoCards.getChildren().get(1), Priority.ALWAYS);
+        content.getChildren().add(0, header);
 
+        Thread loader = new Thread(() -> {
+            try {
+                UserSession session = UserSession.getInstance();
+
+                if (session == null || session.getUid() == null || session.getUid().isBlank()) {
+                    throw new IllegalStateException("No authenticated user session.");
+                }
+
+                FileDAO fileDAO = new FileDAO();
+                List<FileData> files = fileDAO.getFileSummaries(session.getUid());
+
+                StorageData storageData = buildStorageData(files);
+
+                Platform.runLater(() -> {
+                    content.getChildren().clear();
+
+                    content.getChildren().addAll(
+                            header,
+                            createUsageCard(
+                                    storageData.totalSize,
+                                    storageData.oneSpaceOfTotal,
+                                    storageData.oneSpaceOfUsed
+                            ),
+                            createStorageBySpace(
+                                    storageData.spaceSizes,
+                                    storageData.totalSize
+                            ),
+                            createPCStorage(
+                                    storageData.totalSize,
+                                    storageData.totalPC,
+                                    storageData.usedPC,
+                                    storageData.drive
+                            ),
+                            createFileActivity(
+                                    storageData.files,
+                                    storageData.totalSize
+                            ),
+                            createSummary(
+                                    storageData.files,
+                                    storageData.totalSize
+                            ),
+                            createSeparatorFooter()
+                    );
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+
+                Platform.runLater(() -> {
+                    content.getChildren().clear();
+                    content.getChildren().addAll(
+                            header,
+                            label("Unable to load storage information: " + e.getMessage(), 13, false, "#F87171")
+                    );
+                });
+            }
+        });
+
+        loader.setDaemon(true);
+        loader.start();
+
+        ScrollPane scroll = new ScrollPane(content);
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0;");
+        return scroll;
+    }
+
+    private StorageData buildStorageData(List<FileData> files) {
+        File drive = getInternalDrive();
+        long totalPC = drive.getTotalSpace();
+        long usedPC = totalPC - drive.getFreeSpace();
+
+        List<StorageFile> storageFiles = new ArrayList<>();
+        long totalSize = 0;
+
+        for (FileData fileData : files) {
+            if (fileData == null) {
+                continue;
+            }
+
+            long size = fileData.getFileSize();
+
+            String localPath = fileData.getLocalPath();
+            if (localPath != null && !localPath.isBlank()) {
+                File localFile = new File(localPath);
+                if (localFile.exists() && localFile.isFile()) {
+                    size = localFile.length();
+                }
+            }
+
+            if (size < 0) {
+                size = 0;
+            }
+
+            totalSize += size;
+            storageFiles.add(new StorageFile(fileData, size));
+        }
+
+        storageFiles.sort(
+                Comparator.comparingLong(
+                        StorageFile::getSize
+                ).reversed()
+        );
+
+        java.util.Map<String, Long> spaceSizes = new java.util.LinkedHashMap<>();
+        spaceSizes.put("Personal", 0L);
+        spaceSizes.put("College", 0L);
+        spaceSizes.put("Office", 0L);
+        spaceSizes.put("Finance", 0L);
+        spaceSizes.put("Entertainment", 0L);
+        spaceSizes.put("Others", 0L);
+
+        for (StorageFile storageFile : storageFiles) {
+            String spaceId = storageFile.getFile().getSpaceId();
+            String spaceName = switch (spaceId == null ? "" : spaceId.toLowerCase()) {
+                case "personal" -> "Personal";
+                case "college" -> "College";
+                case "office" -> "Office";
+                case "finance" -> "Finance";
+                case "entertainment" -> "Entertainment";
+                default -> "Others";
+            };
+
+            spaceSizes.put(
+                    spaceName,
+                    spaceSizes.get(spaceName) + storageFile.getSize()
+            );
+        }
+
+        double oneSpaceOfTotal =
+                totalPC == 0 ? 0 : totalSize * 100.0 / totalPC;
+
+        double oneSpaceOfUsed =
+                usedPC == 0 ? 0 : totalSize * 100.0 / usedPC;
+
+        return new StorageData(
+                storageFiles,
+                totalSize,
+                totalPC,
+                usedPC,
+                drive,
+                oneSpaceOfTotal,
+                oneSpaceOfUsed,
+                spaceSizes
+        );
+    }
+
+    private VBox createSeparatorFooter() {
         Separator separator = new Separator();
         separator.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08);");
 
-        HBox footer = new HBox(label("Storage data is calculated from your system.", 11, false, LIGHT_SECONDARY), new Region(), label("Actual OneSpace storage • Live system data", 11, false, LIGHT_SECONDARY));
+        HBox footer = new HBox(
+                label("Storage data is calculated from your OneSpace files and system.", 11, false, LIGHT_SECONDARY),
+                new Region(),
+                label("Actual OneSpace storage • Live system data", 11, false, LIGHT_SECONDARY)
+        );
         HBox.setHgrow(footer.getChildren().get(1), Priority.ALWAYS);
 
-        content.getChildren().addAll(header, createUsageCard(oneSpaceSize, oneSpaceOfTotal, oneSpaceOfUsed), twoCards, createFileActivity(oneSpaceSize), createSummary(oneSpace), separator, footer);
-        ScrollPane scroll = new ScrollPane(content);
-        scroll.setFitToWidth(true); scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0;");
-        return scroll;
+        VBox wrapper = new VBox(8, separator, footer);
+        return wrapper;
     }
 
     private HBox createUsageCard(long size, double totalPercent, double usedPercent) {
@@ -254,47 +409,67 @@ public class StorageIndexPage {
         return card;
     }
 
-    private VBox createStorageBySpace(long total) {
+    private VBox createStorageBySpace(java.util.Map<String, Long> spaceSizes, long total) {
         VBox rows = new VBox(10);
-        String[] spaces = {"Personal", "College", "Office", "Finance", "Entertainment", "Others"};
+
+        String[] spaces = {
+                "Personal",
+                "College",
+                "Office",
+                "Finance",
+                "Entertainment",
+                "Others"
+        };
+
         for (String name : spaces) {
-            File spaceFolder = new File(oneSpace, name);
-            long size = folderSize(spaceFolder);
-            HBox row = createSpaceRow(name, size, total == 0 ? 0 : size * 100.0 / total);
-            
-            // Added functionality: click category row to open that category folder in OS file explorer
-            row.setOnMouseClicked(e -> {
-                if (!spaceFolder.exists()) {
-                    spaceFolder.mkdirs();
-                }
-                try {
-                    if (Desktop.isDesktopSupported()) {
-                        Desktop.getDesktop().open(spaceFolder);
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            });
+            long size = spaceSizes.getOrDefault(name, 0L);
+            double percent = total == 0 ? 0 : size * 100.0 / total;
+
+            HBox row = createSpaceRow(
+                    name,
+                    size,
+                    percent
+            );
 
             rows.getChildren().add(row);
         }
-        VBox card = new VBox(12, label("Storage by Space", 17, true, WHITE), label("Space used by each OneSpace category.", 12, false, LIGHT_SECONDARY), new Separator(), rows);
-        card.setPadding(new Insets(20)); card.setStyle(cardStyle());
-        
+
+        VBox card = new VBox(
+                12,
+                label("Storage by Space", 17, true, WHITE),
+                label("Space used by each OneSpace category.", 12, false, LIGHT_SECONDARY),
+                new Separator(),
+                rows
+        );
+
+        card.setPadding(new Insets(20));
+        card.setStyle(cardStyle());
+
         card.setOnMouseEntered(e -> {
             card.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.95), rgba(12, 22, 40, 0.98)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 24, 0, 0, 6);");
             ScaleTransition st = new ScaleTransition(Duration.millis(140), card);
-            st.setToX(1.01); st.setToY(1.01); st.play();
+            st.setToX(1.01);
+            st.setToY(1.01);
+            st.play();
+
             TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
-            tt.setToY(-2); tt.play();
+            tt.setToY(-2);
+            tt.play();
         });
+
         card.setOnMouseExited(e -> {
             card.setStyle(cardStyle());
+
             ScaleTransition st = new ScaleTransition(Duration.millis(140), card);
-            st.setToX(1.0); st.setToY(1.0); st.play();
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+
             TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
-            tt.setToY(0); tt.play();
+            tt.setToY(0);
+            tt.play();
         });
+
         return card;
     }
 
@@ -384,53 +559,148 @@ public class StorageIndexPage {
         return row;
     }
 
-    private VBox createFileActivity(long totalSize) {
-        List<File> files = getFiles(oneSpace);
-        files.sort(Comparator.comparingLong(File::length).reversed());
+    private VBox createFileActivity(List<StorageFile> files, long totalSize) {
         VBox rows = new VBox(8);
-        for (File f : files) {
-            if (rows.getChildren().size() >= 8) break;
-            rows.getChildren().add(createFileRow(f, totalSize == 0 ? 0 : f.length() * 100.0 / totalSize));
+
+        for (StorageFile storageFile : files) {
+            if (rows.getChildren().size() >= 8) {
+                break;
+            }
+
+            double percent =
+                    totalSize == 0
+                            ? 0
+                            : storageFile.getSize() * 100.0 / totalSize;
+
+            rows.getChildren().add(
+                    createFileRow(
+                            storageFile.getFile(),
+                            storageFile.getSize(),
+                            percent
+                    )
+            );
         }
-        if (files.isEmpty()) rows.getChildren().add(label("No files are currently stored in OneSpace.", 12, false, LIGHT_SECONDARY));
-        VBox card = new VBox(12, label("Files Occupying Storage", 17, true, WHITE), label("Files currently stored in OneSpace, sorted by size.", 12, false, LIGHT_SECONDARY), new Separator(), rows);
-        card.setPadding(new Insets(20)); card.setStyle(cardStyle());
-        
+
+        if (files.isEmpty()) {
+            rows.getChildren().add(
+                    label(
+                            "No files are currently stored in OneSpace.",
+                            12,
+                            false,
+                            LIGHT_SECONDARY
+                    )
+            );
+        }
+
+        VBox card = new VBox(
+                12,
+                label("Files Occupying Storage", 17, true, WHITE),
+                label("Files currently stored in OneSpace, sorted by size.", 12, false, LIGHT_SECONDARY),
+                new Separator(),
+                rows
+        );
+
+        card.setPadding(new Insets(20));
+        card.setStyle(cardStyle());
+
         card.setOnMouseEntered(e -> {
             card.setStyle("-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.95), rgba(12, 22, 40, 0.98)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 24, 0, 0, 6);");
+
             ScaleTransition st = new ScaleTransition(Duration.millis(140), card);
-            st.setToX(1.01); st.setToY(1.01); st.play();
+            st.setToX(1.01);
+            st.setToY(1.01);
+            st.play();
+
             TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
-            tt.setToY(-2); tt.play();
+            tt.setToY(-2);
+            tt.play();
         });
+
         card.setOnMouseExited(e -> {
             card.setStyle(cardStyle());
+
             ScaleTransition st = new ScaleTransition(Duration.millis(140), card);
-            st.setToX(1.0); st.setToY(1.0); st.play();
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.play();
+
             TranslateTransition tt = new TranslateTransition(Duration.millis(140), card);
-            tt.setToY(0); tt.play();
+            tt.setToY(0);
+            tt.play();
         });
+
         return card;
     }
 
-    private HBox createFileRow(File file, double percent) {
+    private HBox createFileRow(
+            FileData fileData,
+            long size,
+            double percent
+    ) {
         SVGPath fileIcon = createIcon("files");
-        fileIcon.setStroke(Color.web("#38BDF8")); fileIcon.setStrokeWidth(2);
+        fileIcon.setStroke(Color.web("#38BDF8"));
+        fileIcon.setStrokeWidth(2);
 
-        ProgressBar progress = new ProgressBar(Math.min(percent / 100.0, 1.0));
-        progress.setPrefWidth(160); progress.setPrefHeight(8);
-        progress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85); -fx-background-radius: 8; -fx-border-radius: 8;");
+        ProgressBar progress =
+                new ProgressBar(
+                        Math.min(percent / 100.0, 1.0)
+                );
 
-        HBox row = new HBox(12, fileIcon, label(file.getName(), 12, true, WHITE), new Region(), progress, label(format(file.length()), 12, true, WHITE));
-        HBox.setHgrow(row.getChildren().get(2), Priority.ALWAYS);
-        row.setAlignment(Pos.CENTER_LEFT); row.setPadding(new Insets(10, 12, 10, 12));
-        row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;");
-        
-        // Added functionality: click individual file row to open or reveal the file directly using Desktop API
+        progress.setPrefWidth(160);
+        progress.setPrefHeight(8);
+        progress.setStyle(
+                "-fx-accent: " + BLUE +
+                "; -fx-control-inner-background: rgba(13, 22, 38, 0.85); -fx-background-radius: 8; -fx-border-radius: 8;"
+        );
+
+        Label fileName =
+                label(
+                        fileData.getFileName() == null
+                                ? "Unknown file"
+                                : fileData.getFileName(),
+                        12,
+                        true,
+                        WHITE
+                );
+
+        HBox row =
+                new HBox(
+                        12,
+                        fileIcon,
+                        fileName,
+                        new Region(),
+                        progress,
+                        label(format(size), 12, true, WHITE)
+                );
+
+        HBox.setHgrow(
+                row.getChildren().get(2),
+                Priority.ALWAYS
+        );
+
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(
+                new Insets(10, 12, 10, 12)
+        );
+
+        row.setStyle(
+                "-fx-background-color: " + CARD_BG_INNER +
+                "; -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;"
+        );
+
         row.setOnMouseClicked(e -> {
+            String path = fileData.getLocalPath();
+
+            if (path == null || path.isBlank()) {
+                return;
+            }
+
             try {
-                if (Desktop.isDesktopSupported() && file.exists()) {
-                    Desktop.getDesktop().open(file);
+                File localFile = new File(path);
+
+                if (Desktop.isDesktopSupported() &&
+                        localFile.exists()) {
+                    Desktop.getDesktop().open(localFile);
                 }
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -438,32 +708,141 @@ public class StorageIndexPage {
         });
 
         row.setOnMouseEntered(e -> {
-            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.5); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 8, 0, 0, 2);");
-            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
-            tt.setToX(4); tt.play();
+            row.setStyle(
+                    "-fx-background-color: " + CARD_BG_INNER +
+                    "; -fx-border-color: rgba(56, 189, 248, 0.5); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 8, 0, 0, 2);"
+            );
+
+            TranslateTransition tt =
+                    new TranslateTransition(
+                            Duration.millis(120),
+                            row
+                    );
+
+            tt.setToX(4);
+            tt.play();
         });
+
         row.setOnMouseExited(e -> {
-            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 10; -fx-background-radius: 10;");
-            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
-            tt.setToX(0); tt.play();
+            row.setStyle(
+                    "-fx-background-color: " + CARD_BG_INNER +
+                    "; -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 10; -fx-background-radius: 10;"
+            );
+
+            TranslateTransition tt =
+                    new TranslateTransition(
+                            Duration.millis(120),
+                            row
+                    );
+
+            tt.setToX(0);
+            tt.play();
         });
+
         return row;
     }
 
-    private HBox createSummary(File folder) {
-        List<File> files = getFiles(folder);
-        long total = folderSize(folder);
-        long largest = files.isEmpty() ? 0 : files.stream().mapToLong(File::length).max().orElse(0);
-        long smallest = files.isEmpty() ? 0 : files.stream().mapToLong(File::length).min().orElse(0);
-        long average = files.isEmpty() ? 0 : total / files.size();
+    private HBox createSummary(
+            List<StorageFile> files,
+            long total
+    ) {
+        long largest =
+                files.isEmpty()
+                        ? 0
+                        : files.stream()
+                                .mapToLong(
+                                        StorageFile::getSize
+                                )
+                                .max()
+                                .orElse(0);
 
-        return new HBox(12, 
-                stat(String.valueOf(files.size()), "Total Files"), 
-                stat(format(total), "Total OneSpace Storage"), 
-                stat(format(largest), "Largest File"), 
-                stat(format(smallest), "Smallest File"), 
-                stat(format(average), "Average File Size")
+        long smallest =
+                files.isEmpty()
+                        ? 0
+                        : files.stream()
+                                .mapToLong(
+                                        StorageFile::getSize
+                                )
+                                .min()
+                                .orElse(0);
+
+        long average =
+                files.isEmpty()
+                        ? 0
+                        : total / files.size();
+
+        return new HBox(
+                12,
+                stat(
+                        String.valueOf(files.size()),
+                        "Total Files"
+                ),
+                stat(
+                        format(total),
+                        "Total OneSpace Storage"
+                ),
+                stat(
+                        format(largest),
+                        "Largest File"
+                ),
+                stat(
+                        format(smallest),
+                        "Smallest File"
+                ),
+                stat(
+                        format(average),
+                        "Average File Size"
+                )
         );
+    }
+
+    private static class StorageFile {
+        private final FileData file;
+        private final long size;
+
+        StorageFile(FileData file, long size) {
+            this.file = file;
+            this.size = size;
+        }
+
+        FileData getFile() {
+            return file;
+        }
+
+        long getSize() {
+            return size;
+        }
+    }
+
+    private static class StorageData {
+        private final List<StorageFile> files;
+        private final long totalSize;
+        private final long totalPC;
+        private final long usedPC;
+        private final File drive;
+        private final double oneSpaceOfTotal;
+        private final double oneSpaceOfUsed;
+        private final java.util.Map<String, Long> spaceSizes;
+
+        StorageData(
+                List<StorageFile> files,
+                long totalSize,
+                long totalPC,
+                long usedPC,
+                File drive,
+                double oneSpaceOfTotal,
+                double oneSpaceOfUsed,
+                java.util.Map<String, Long> spaceSizes
+        ) {
+            this.files = files;
+            this.totalSize = totalSize;
+            this.totalPC = totalPC;
+            this.usedPC = usedPC;
+            this.drive = drive;
+            this.oneSpaceOfTotal = oneSpaceOfTotal;
+            this.oneSpaceOfUsed = oneSpaceOfUsed;
+            this.spaceSizes = spaceSizes;
+        }
     }
 
     private VBox stat(String value, String title) {
