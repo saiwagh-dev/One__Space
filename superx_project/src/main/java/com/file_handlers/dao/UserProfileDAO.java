@@ -14,22 +14,14 @@ public class UserProfileDAO {
 
     private final Firestore db;
 
-    // ---------------------------------------------------------
-    // Constructor
-    // ---------------------------------------------------------
+    
 
     public UserProfileDAO() {
 
         db = FirebaseConfig.getFirestore();
     }
 
-    // ---------------------------------------------------------
-    // Get user profile
-    //
-    // Firestore:
-    //
-    // users/{uid}
-    // ---------------------------------------------------------
+    
 
     public Map<String, Object> getProfile(
             String uid
@@ -57,16 +49,7 @@ public class UserProfileDAO {
         return new HashMap<>(data);
     }
 
-    // ---------------------------------------------------------
-    // Save user profile
-    //
-    // Uses merge so that other fields such as theme
-    // preferences are not accidentally overwritten later.
-    //
-    // Firestore:
-    //
-    // users/{uid}
-    // ---------------------------------------------------------
+   
 
     public boolean saveProfile(
             String uid,
@@ -96,9 +79,7 @@ public class UserProfileDAO {
         return true;
     }
 
-    // ---------------------------------------------------------
-    // Validate UID
-    // ---------------------------------------------------------
+    
 
     private void validateUid(
             String uid

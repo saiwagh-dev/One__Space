@@ -8,13 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
  
-/**
- * Single source of truth for the "workspaces/{id}/files" subcollection.
- *
- * IMPORTANT: file.secureUrl must always be a Cloudinary secure_url returned by
- * CollaborationController.uploadFile(). Never pass a local File.toURI() here —
- * that URL only resolves on the machine that uploaded it.
- */
+
 public class CollaborationFileDAO {
  
     private final Firestore db = FirebaseConfig.getFirestore();
@@ -65,7 +59,6 @@ public class CollaborationFileDAO {
         }
     }
  
-    /** Live updates — call once when the SharedSpacePage for a workspace opens. */
     public ListenerRegistration listenForFiles(String workspaceDocId, EventListener<QuerySnapshot> listener) {
         return db.collection("workspaces").document(workspaceDocId)
                   .collection("files")

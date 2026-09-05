@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
  
-/** Single source of truth for the "workspaces/{id}/members" subcollection. */
 public class MemberDAO {
  
     private final Firestore db = FirebaseConfig.getFirestore();

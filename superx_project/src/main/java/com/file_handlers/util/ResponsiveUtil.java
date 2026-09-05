@@ -19,6 +19,5 @@ public class ResponsiveUtil {
     public static final double AUTH_CARD_WIDTH = 420;
     public static final double AUTH_FIELD_WIDTH = 350;
     
-    // Private constructor to prevent instantiation
     private ResponsiveUtil() {}
 }
