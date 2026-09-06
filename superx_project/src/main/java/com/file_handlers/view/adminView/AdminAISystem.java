@@ -1,6 +1,5 @@
 package com.file_handlers.view.adminView;
 
-import com.file_handlers.view.LandingPage;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 import com.file_handlers.view.LandingPage;
@@ -14,7 +13,10 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.effect.BlurType;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -33,6 +35,9 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
 import javafx.util.Duration;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class AdminAISystem {
 
@@ -53,14 +58,22 @@ public class AdminAISystem {
     private static final String WHITE = "#FFFFFF";
     private static final String SECONDARY = "#94A3B8";
 
-    private static final String BLUE = "#2563EB";
-    private static final String CYAN = "#00D2FF";
     private static final String GREEN = "#10B981";
-    private static final String ORANGE = "#F59E0B";
-    private static final String ORANGE_LIGHT = "rgba(245, 158, 11, 0.15)";
-    
+    private static final String ORANGE_ACCENT = "#F59E0B";
+    private static final String ORANGE_GLOW = "rgba(245, 158, 11, 0.75)";
+
     private String activeUserName = "Admin";
     private String initials = "A";
+
+    // Dynamic Tracking Elements
+    private Arc accuracyArc;
+    private Label accuracyRingValue;
+    private Label confidenceLabel;
+    private Label correctionLabel;
+
+    private final Map<String, Label> metricValueLabels = new LinkedHashMap<>();
+    private final Map<String, Region> metricFills = new LinkedHashMap<>();
+    private final Map<String, StackPane> metricTracks = new LinkedHashMap<>();
 
     public AdminAISystem() {
         UserSession session = UserSession.getInstance();
@@ -109,10 +122,6 @@ public class AdminAISystem {
                 LandingPage.getCurrentHeight()
         );
     }
-
-    // =========================================================
-    // SIDEBAR
-    // =========================================================
 
     private VBox createSidebar() {
 
@@ -292,10 +301,6 @@ public class AdminAISystem {
         return button;
     }
 
-    // =========================================================
-    // TOP BAR
-    // =========================================================
-
     private HBox createTopBar() {
 
         Region spacer = new Region();
@@ -320,13 +325,15 @@ public class AdminAISystem {
         );
         applyHoverAnimation(notification, 1.08, 0);
 
+        // Updated Avatar: Authentic Blue Theme
         Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle(
-                "-fx-background-color: linear-gradient(to bottom right,#2563EB,#00D2FF);" +
-                "-fx-background-radius: 50%;"
+                "-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF);" +
+                "-fx-background-radius: 50%;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);"
         );
         applyHoverAnimation(avatar, 1.15, 0);
 
@@ -453,10 +460,6 @@ public class AdminAISystem {
         return popup;
     }
 
-    // =========================================================
-    // AI STATUS
-    // =========================================================
-
     private HBox createProfilePopupItem(
             String iconType,
             String text,
@@ -488,10 +491,6 @@ public class AdminAISystem {
 
         return item;
     }
-
-    // =========================================================
-    // MAIN CONTENT
-    // =========================================================
 
     private VBox createMainContent() {
 
@@ -532,14 +531,10 @@ public class AdminAISystem {
         return content;
     }
 
-    // =========================================================
-    // AI STATUS CARD
-    // =========================================================
-
     private VBox createAIStatusCard() {
 
         SVGPath aiIcon = createIcon("ai");
-        aiIcon.setStroke(Color.web(CYAN));
+        aiIcon.setStroke(Color.web("#00D2FF"));
         aiIcon.setStrokeWidth(2.2);
 
         StackPane iconPane = new StackPane(aiIcon);
@@ -561,7 +556,7 @@ public class AdminAISystem {
         );
 
         Label description = createLabel(
-                "AI services are available for OneSpace processing.",
+                "AI services are operational with real-time semantic analysis.",
                 "-fx-font-size: 12px; -fx-text-fill: " + SECONDARY + ";"
         );
 
@@ -583,10 +578,6 @@ public class AdminAISystem {
         return card;
     }
 
-    // =========================================================
-    // ACCURACY / PERFORMANCE
-    // =========================================================
-
     private VBox createAccuracyCard() {
 
         Label title = createLabel(
@@ -601,16 +592,37 @@ public class AdminAISystem {
                 "Last 30 Days"
         );
         filter.setValue("Last 7 Days");
-        filter.setPrefHeight(30);
+        filter.setPrefHeight(32);
+        filter.setPrefWidth(140);
         filter.setStyle(
-                "-fx-background-color: rgba(13,22,38,0.85);" +
-                "-fx-border-color: " + CARD_BORDER + ";" +
+                "-fx-background-color: #0F1D32;" +
+                "-fx-border-color: rgba(245, 158, 11, 0.5);" +
                 "-fx-border-radius: 8;" +
                 "-fx-background-radius: 8;" +
-                "-fx-font-size: 11px;" +
+                "-fx-font-size: 12px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-text-fill: #FFFFFF;"
+                "-fx-cursor: hand;"
         );
+
+        filter.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : item);
+                setStyle("-fx-background-color: #0B132B; -fx-text-fill: #FFFFFF; -fx-padding: 8 10; -fx-font-family: " + FONT + ";");
+            }
+        });
+
+        filter.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(empty ? null : item);
+                setStyle("-fx-text-fill: #FFFFFF; -fx-font-weight: bold; -fx-font-family: " + FONT + ";");
+            }
+        });
+
+        filter.setOnAction(e -> applyDynamicMetrics(filter.getValue()));
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -620,18 +632,19 @@ public class AdminAISystem {
 
         StackPane ring = createAccuracyRing();
 
+        // Warm Orange Tone badge with glowing border
         Label rate = new Label("Optimal Rate");
         rate.setFont(Font.font(FONT, FontWeight.BOLD, 10));
-        rate.setTextFill(Color.web("#34D399"));
+        rate.setTextFill(Color.web("#FCD34D"));
         rate.setStyle(
-                "-fx-background-color: rgba(16,185,129,0.15);" +
-                "-fx-border-color: rgba(16,185,129,0.3);" +
+                "-fx-background-color: rgba(245, 158, 11, 0.15);" +
+                "-fx-border-color: rgba(245, 158, 11, 0.4);" +
                 "-fx-padding: 3 8;" +
                 "-fx-border-radius: 10;" +
                 "-fx-background-radius: 10;"
         );
 
-        Label confidence = createLabel(
+        confidenceLabel = createLabel(
                 "Confidence Score: 94.2%",
                 "-fx-font-size: 11px; -fx-font-weight: bold;" +
                 " -fx-text-fill: " + SECONDARY + ";"
@@ -641,7 +654,7 @@ public class AdminAISystem {
                 10,
                 ring,
                 rate,
-                confidence
+                confidenceLabel
         );
         ringBox.setAlignment(Pos.CENTER);
         ringBox.setPadding(new Insets(12, 20, 12, 20));
@@ -655,24 +668,9 @@ public class AdminAISystem {
 
         VBox metrics = new VBox(
                 14,
-                createAccuracyRow(
-                        "File Auto-Categorization",
-                        "96.4%",
-                        0.964,
-                        BLUE
-                ),
-                createAccuracyRow(
-                        "OCR & Text Extraction",
-                        "94.1%",
-                        0.941,
-                        CYAN
-                ),
-                createAccuracyRow(
-                        "Auto-Tagging & Metadata",
-                        "91.8%",
-                        0.918,
-                        GREEN
-                )
+                createAccuracyRow("File Auto-Categorization", 0.964, "cyan"),
+                createAccuracyRow("OCR & Text Extraction", 0.941, "purple"),
+                createAccuracyRow("Auto-Tagging & Metadata", 0.918, "green")
         );
 
         HBox body = new HBox(24, ringBox, metrics);
@@ -691,12 +689,12 @@ public class AdminAISystem {
                 "-fx-background-radius: 6;"
         );
 
-        Label correction = createLabel(
+        correctionLabel = createLabel(
                 "User Correction Rate: 2.3%",
                 "-fx-font-size: 11px; -fx-font-weight: bold;" +
                 " -fx-text-fill: #34D399;"
         );
-        correction.setStyle(
+        correctionLabel.setStyle(
                 "-fx-background-color: rgba(16,185,129,0.15);" +
                 "-fx-border-color: rgba(16,185,129,0.3);" +
                 "-fx-padding: 4 10;" +
@@ -711,7 +709,7 @@ public class AdminAISystem {
                 12,
                 model,
                 footerSpacer,
-                correction
+                correctionLabel
         );
         footer.setAlignment(Pos.CENTER_LEFT);
 
@@ -728,16 +726,74 @@ public class AdminAISystem {
         return card;
     }
 
+    private void applyDynamicMetrics(String timeframe) {
+        double overallAcc;
+        double catProg, ocrProg, tagProg;
+        double confScore, corrRate;
+
+        if ("Last 24 Hours".equals(timeframe)) {
+            overallAcc = 0.968;
+            catProg = 0.982;
+            ocrProg = 0.957;
+            tagProg = 0.945;
+            confScore = 96.5;
+            corrRate = 1.4;
+        } else if ("Last 30 Days".equals(timeframe)) {
+            overallAcc = 0.923;
+            catProg = 0.938;
+            ocrProg = 0.912;
+            tagProg = 0.887;
+            confScore = 91.8;
+            corrRate = 3.6;
+        } else {
+            // Last 7 Days (Default)
+            overallAcc = 0.941;
+            catProg = 0.964;
+            ocrProg = 0.941;
+            tagProg = 0.918;
+            confScore = 94.2;
+            corrRate = 2.3;
+        }
+
+        // Update Circular Gauge
+        if (accuracyArc != null) {
+            accuracyArc.setLength(-360 * overallAcc);
+            
+            // Dynamic Orange-Amber Heat Palette
+            if (overallAcc >= 0.95) {
+                accuracyArc.setStroke(Color.web("#F59E0B"));
+            } else if (overallAcc >= 0.90) {
+                accuracyArc.setStroke(Color.web("#FB923C"));
+            } else {
+                accuracyArc.setStroke(Color.web("#EA580C"));
+            }
+        }
+        if (accuracyRingValue != null) {
+            accuracyRingValue.setText(String.format("%.1f%%", overallAcc * 100.0));
+        }
+        if (confidenceLabel != null) {
+            confidenceLabel.setText(String.format("Confidence Score: %.1f%%", confScore));
+        }
+        if (correctionLabel != null) {
+            correctionLabel.setText(String.format("User Correction Rate: %.1f%%", corrRate));
+        }
+
+        updateMetricRow("File Auto-Categorization", catProg, "cyan");
+        updateMetricRow("OCR & Text Extraction", ocrProg, "purple");
+        updateMetricRow("Auto-Tagging & Metadata", tagProg, "green");
+    }
+
     private StackPane createAccuracyRing() {
 
         double value = 0.941;
 
         Circle background = new Circle(58);
         background.setFill(Color.TRANSPARENT);
-        background.setStroke(Color.web("#26354A"));
+        background.setStroke(Color.web("#17263E"));
         background.setStrokeWidth(10);
 
-        Arc progress = new Arc(
+        // Radiant Orange Stroke
+        accuracyArc = new Arc(
                 0,
                 0,
                 58,
@@ -745,28 +801,32 @@ public class AdminAISystem {
                 90,
                 -360 * value
         );
-        progress.setFill(Color.TRANSPARENT);
-        progress.setStroke(Color.web(CYAN));
-        progress.setStrokeWidth(10);
-        progress.setStrokeLineCap(StrokeLineCap.ROUND);
-        progress.setType(ArcType.OPEN);
+        accuracyArc.setFill(Color.TRANSPARENT);
+        accuracyArc.setStroke(Color.web(ORANGE_ACCENT));
+        accuracyArc.setStrokeWidth(10);
+        accuracyArc.setStrokeLineCap(StrokeLineCap.ROUND);
+        accuracyArc.setType(ArcType.OPEN);
 
-        Label valueLabel = createLabel(
+        // Warm Glowing Amber Effect
+        DropShadow orangeGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(245, 158, 11, 0.75), 14, 0, 0, 0);
+        accuracyArc.setEffect(orangeGlow);
+
+        accuracyRingValue = createLabel(
                 "94.1%",
-                "-fx-font-size: 19px; -fx-font-weight: bold;"
+                "-fx-font-size: 20px; -fx-font-weight: 800; -fx-text-fill: #FFFFFF;"
         );
 
         Label smallLabel = createLabel(
                 "Accuracy",
-                "-fx-font-size: 10px; -fx-font-weight: bold;"
+                "-fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: #94A3B8;"
         );
 
-        VBox center = new VBox(1, valueLabel, smallLabel);
+        VBox center = new VBox(2, accuracyRingValue, smallLabel);
         center.setAlignment(Pos.CENTER);
 
         StackPane ring = new StackPane(
                 background,
-                progress,
+                accuracyArc,
                 center
         );
         ring.setPrefSize(130, 130);
@@ -776,12 +836,7 @@ public class AdminAISystem {
         return ring;
     }
 
-    private VBox createAccuracyRow(
-            String title,
-            String percent,
-            double progress,
-            String color
-    ) {
+    private VBox createAccuracyRow(String title, double initialProgress, String colorPalette) {
 
         Label name = createLabel(
                 title,
@@ -789,9 +844,8 @@ public class AdminAISystem {
         );
 
         Label value = createLabel(
-                percent,
-                "-fx-font-size: 12px; -fx-font-weight: bold;" +
-                " -fx-text-fill: " + color + ";"
+                String.format("%.1f%%", initialProgress * 100.0),
+                "-fx-font-size: 12px; -fx-font-weight: bold;"
         );
 
         Region spacer = new Region();
@@ -812,16 +866,16 @@ public class AdminAISystem {
         Region fill = new Region();
         fill.setPrefHeight(8);
         fill.setMaxHeight(8);
-        fill.prefWidthProperty().bind(
-                track.widthProperty().multiply(progress)
-        );
-        fill.setStyle(
-                "-fx-background-color: " + color + ";" +
-                "-fx-background-radius: 4;"
-        );
+        fill.setMinWidth(0);
         StackPane.setAlignment(fill, Pos.CENTER_LEFT);
 
         track.getChildren().add(fill);
+
+        metricValueLabels.put(title, value);
+        metricFills.put(title, fill);
+        metricTracks.put(title, track);
+
+        updateMetricRow(title, initialProgress, colorPalette);
 
         VBox row = new VBox(5, top, track);
         row.setPadding(new Insets(6, 0, 6, 0));
@@ -830,9 +884,53 @@ public class AdminAISystem {
         return row;
     }
 
-    // =========================================================
-    // CONFIGURATION
-    // =========================================================
+    private void updateMetricRow(String title, double progress, String colorPalette) {
+        StackPane track = metricTracks.get(title);
+        Region fill = metricFills.get(title);
+        Label valueLabel = metricValueLabels.get(title);
+
+        if (track != null && fill != null) {
+            double clamped = Math.max(0.0, Math.min(1.0, progress));
+
+            fill.prefWidthProperty().unbind();
+            fill.maxWidthProperty().unbind();
+            fill.prefWidthProperty().bind(track.widthProperty().multiply(clamped));
+            fill.maxWidthProperty().bind(fill.prefWidthProperty());
+
+            double percentVal = clamped * 100.0;
+            if (valueLabel != null) {
+                valueLabel.setText(String.format("%.1f%%", percentVal));
+            }
+
+            String gradientStyle;
+            String shadowColor;
+            String textColor;
+
+            if ("cyan".equalsIgnoreCase(colorPalette)) {
+                gradientStyle = "linear-gradient(to right, #06B6D4, #22D3EE)";
+                shadowColor = "rgba(34, 211, 238, 0.4)";
+                textColor = "#22D3EE";
+            } else if ("purple".equalsIgnoreCase(colorPalette)) {
+                gradientStyle = "linear-gradient(to right, #7C3AED, #C084FC)";
+                shadowColor = "rgba(192, 132, 252, 0.4)";
+                textColor = "#C084FC";
+            } else {
+                gradientStyle = "linear-gradient(to right, #059669, #10B981)";
+                shadowColor = "rgba(16, 185, 129, 0.4)";
+                textColor = "#10B981";
+            }
+
+            if (valueLabel != null) {
+                valueLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-font-weight: bold;");
+            }
+
+            fill.setStyle(
+                    "-fx-background-color: " + gradientStyle + ";" +
+                    "-fx-background-radius: 4;" +
+                    "-fx-effect: dropshadow(two-pass-box, " + shadowColor + ", 4, 0, 0, 1);"
+            );
+        }
+    }
 
     private VBox createConfigurationCard() {
 
@@ -843,12 +941,12 @@ public class AdminAISystem {
 
         VBox model = createInfoRow(
                 "Model",
-                "Gemini"
+                "Gemini 1.5 Flash"
         );
 
         VBox integration = createInfoRow(
                 "Integration",
-                "AIClassificationService"
+                "AIClassificationService (REST Endpoint)"
         );
 
         VBox output = createInfoRow(
@@ -912,10 +1010,6 @@ public class AdminAISystem {
 
         return row;
     }
-
-    // =========================================================
-    // CAPABILITIES
-    // =========================================================
 
     private VBox createCapabilitiesCard() {
 
@@ -1005,10 +1099,6 @@ public class AdminAISystem {
 
         return row;
     }
-
-    // =========================================================
-    // PROCESSING FLOW
-    // =========================================================
 
     private VBox createProcessingCard() {
 
@@ -1150,10 +1240,6 @@ public class AdminAISystem {
 
         return label;
     }
-
-    // =========================================================
-    // ICONS
-    // =========================================================
 
     private SVGPath createIcon(String type) {
 

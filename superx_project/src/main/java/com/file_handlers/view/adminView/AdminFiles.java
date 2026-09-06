@@ -73,7 +73,8 @@ public class AdminFiles {
                 this.activeUserName = parts[0];
                 this.initials = this.activeUserName.substring(0, 1).toUpperCase();
             }
-        }}
+        }
+    }
     private final AdminFileStatsDAO statsDAO = new AdminFileStatsDAO();
 
     private Label totalFilesValue;
@@ -85,8 +86,6 @@ public class AdminFiles {
     private final Map<String, Label> categoryCountLabels = new LinkedHashMap<>();
     private final Map<String, Region> categoryProgressFills = new LinkedHashMap<>();
     private final Map<String, StackPane> categoryProgressBackgrounds = new LinkedHashMap<>();
-
-   
 
     public Scene getAdminFilesScene() {
         BorderPane root = new BorderPane();
@@ -244,11 +243,18 @@ public class AdminFiles {
         notification.setOnAction(e -> LandingPage.showNotificationPage());
 
         Label avatar = new Label(initials);
-        avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
+        avatar.setPrefSize(34, 34); 
+        avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-text-fill: #FFFFFF; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
-
+        avatar.setStyle(
+        "-fx-font-family: " + FONT + ";" +
+        "-fx-font-size: 12px;" +
+        "-fx-font-weight: 700;" +
+        "-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF);" +
+        "-fx-background-radius: 50%;" +
+        "-fx-text-fill: #FFFFFF;" +
+        "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
         Label admin = new Label(activeUserName);
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
@@ -349,7 +355,6 @@ public class AdminFiles {
 
         VBox heading = new VBox(4, title, subtitle);
 
-        // Vertically stacked cards centered with balanced compact dimensions
         VBox fileTypesCard = createFileTypesOverview();
         VBox categoriesCard = createMostUsedCategories();
 
@@ -371,7 +376,6 @@ public class AdminFiles {
     }
 
     private VBox createFileTypesOverview() {
-
         Label title = new Label("File Types Overview");
         title.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 16px; -fx-font-weight: 700; -fx-text-fill: " + CARD_TITLE + ";");
 
@@ -436,15 +440,9 @@ public class AdminFiles {
         middle.setMaxWidth(Double.MAX_VALUE);
 
         VBox card = new VBox(16, headerRow, middle);
-        card.setMaxWidth(820);
-        card.setPadding(new Insets(24));
-        card.setStyle("-fx-background-color: " + CARD_BG + "; " +
-                "-fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; " +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
         card.setMaxWidth(880);
         card.setFillWidth(true);
         card.setPadding(new Insets(20, 24, 20, 24));
-        
         card.setStyle("-fx-background-color: " + CARD_BG + "; " +
                       "-fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 18; -fx-background-radius: 18; " +
                       "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.55), 20, 0, 0, 8);");
@@ -464,7 +462,6 @@ public class AdminFiles {
     }
 
     private HBox createLegendRow(String name, String hexColor) {
-
         Label nameLabel = new Label(name);
         nameLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + CARD_TITLE + ";");
         nameLabel.setPrefWidth(90);
@@ -476,7 +473,9 @@ public class AdminFiles {
 
         Region progressFill = new Region();
         progressFill.setPrefHeight(8); progressFill.setMaxHeight(8);
+        progressFill.setMinWidth(0);
         progressFill.setStyle("-fx-background-color: " + hexColor + "; -fx-background-radius: 6;");
+        
         StackPane.setAlignment(progressFill, Pos.CENTER_LEFT);
         progressBackground.getChildren().add(progressFill);
         HBox.setHgrow(progressBackground, Priority.ALWAYS);
@@ -490,8 +489,9 @@ public class AdminFiles {
         typeProgressFills.put(name, progressFill);
         typeProgressBackgrounds.put(name, progressBackground);
 
-        progressBackground.widthProperty().addListener((obs, oldWidth, newWidth) ->
-                updateTypeProgress(name, currentTypeProgress(name)));
+        // Bind directly to background width * 0% initially
+        progressFill.prefWidthProperty().bind(progressBackground.widthProperty().multiply(0.0));
+        progressFill.maxWidthProperty().bind(progressFill.prefWidthProperty());
 
         HBox row = new HBox(14, nameLabel, progressBackground, percentageLabel);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -499,23 +499,19 @@ public class AdminFiles {
         return row;
     }
 
-    private double currentTypeProgress(String name) {
-        PieChart.Data data = typeSlices.get(name);
-        double total = typeSlices.values().stream()
-                .mapToDouble(PieChart.Data::getPieValue)
-                .sum();
-        return total <= 0 ? 0 : data.getPieValue() / total;
-    }
-
     private void updateTypeProgress(String name, double progress) {
         StackPane background = typeProgressBackgrounds.get(name);
         Region fill = typeProgressFills.get(name);
-        if (background != null && fill != null)
-            fill.setPrefWidth(background.getWidth() * progress);
+        if (background != null && fill != null) {
+            double clamped = Math.max(0.0, Math.min(1.0, progress));
+            fill.prefWidthProperty().unbind();
+            fill.maxWidthProperty().unbind();
+            fill.prefWidthProperty().bind(background.widthProperty().multiply(clamped));
+            fill.maxWidthProperty().bind(fill.prefWidthProperty());
+        }
     }
 
     private VBox createMostUsedCategories() {
-
         Label title = new Label("Most Used Categories");
         title.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 16px; -fx-font-weight: 700; -fx-text-fill: " + CARD_TITLE + ";");
 
@@ -543,7 +539,6 @@ public class AdminFiles {
     }
 
     private HBox createCategoryRow(String category) {
-
         Label categoryLabel = new Label(category);
         categoryLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + CARD_TITLE + ";");
         categoryLabel.setPrefWidth(90);
@@ -561,20 +556,21 @@ public class AdminFiles {
         Region progressFill = new Region();
         progressFill.setPrefHeight(8);
         progressFill.setMaxHeight(8);
+        progressFill.setMinWidth(0);
         progressFill.setStyle(
                 "-fx-background-color: linear-gradient(to right, #0284C7, #38BDF8);" +
-                "-fx-background-radius: 6;" +
-                "-fx-effect: dropshadow(two-pass-box, rgba(56,189,248,0.35), 4, 0, 0, 1);"
+                "-fx-background-radius: 6;"
         );
 
         StackPane.setAlignment(progressFill, Pos.CENTER_LEFT);
         progressBackground.getChildren().add(progressFill);
-
         HBox.setHgrow(progressBackground, Priority.ALWAYS);
 
-        String count = null;
-        String percentageText = null;
-        Label countLabel = new Label(count + " (" + percentageText + ")");
+        // Bind initially to 0% width of the line
+        progressFill.prefWidthProperty().bind(progressBackground.widthProperty().multiply(0.0));
+        progressFill.maxWidthProperty().bind(progressFill.prefWidthProperty());
+
+        Label countLabel = new Label("0 (0%)");
         countLabel.setStyle("-fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: " + CARD_SECONDARY + ";");
         countLabel.setPrefWidth(100);
         countLabel.setAlignment(Pos.CENTER_RIGHT);
@@ -582,10 +578,6 @@ public class AdminFiles {
         categoryCountLabels.put(category, countLabel);
         categoryProgressFills.put(category, progressFill);
         categoryProgressBackgrounds.put(category, progressBackground);
-
-        progressBackground.widthProperty().addListener((obs, oldWidth, newWidth) ->
-                updateCategoryProgress(category, currentCategoryProgress(category))
-        );
 
         HBox row = new HBox(
                 14,
@@ -599,33 +591,43 @@ public class AdminFiles {
         return row;
     }
 
-    private double currentCategoryProgress(String category) {
-        int total = categoryCountLabels.values().stream()
-                .mapToInt(label -> {
-                    String text = label.getText();
-                    try {
-                        return Integer.parseInt(text.split(" ")[0]);
-                    } catch (Exception e) {
-                        return 0;
-                    }
-                }).sum();
-
-        Label label = categoryCountLabels.get(category);
-        int count = 0;
-        if (label != null) {
-            try {
-                count = Integer.parseInt(label.getText().split(" ")[0]);
-            } catch (Exception ignored) {}
-        }
-
-        return total <= 0 ? 0 : (double) count / total;
-    }
-
     private void updateCategoryProgress(String category, double progress) {
         StackPane background = categoryProgressBackgrounds.get(category);
         Region fill = categoryProgressFills.get(category);
-        if (background != null && fill != null)
-            fill.setPrefWidth(background.getWidth() * progress);
+        
+        if (background != null && fill != null) {
+            double clamped = Math.max(0.0, Math.min(1.0, progress));
+
+            // Dynamically bind width strictly to percentage of the line
+            fill.prefWidthProperty().unbind();
+            fill.maxWidthProperty().unbind();
+            fill.prefWidthProperty().bind(background.widthProperty().multiply(clamped));
+            fill.maxWidthProperty().bind(fill.prefWidthProperty());
+            
+            double percentVal = clamped * 100.0;
+            String gradientStyle;
+            String shadowColor;
+
+            if (percentVal >= 70.0) {
+                gradientStyle = "linear-gradient(to right, #059669, #10B981)";
+                shadowColor = "rgba(16, 185, 129, 0.4)";
+            } else if (percentVal >= 40.0) {
+                gradientStyle = "linear-gradient(to right, #0284C7, #38BDF8)";
+                shadowColor = "rgba(56, 189, 248, 0.35)";
+            } else if (percentVal >= 15.0) {
+                gradientStyle = "linear-gradient(to right, #D97706, #F59E0B)";
+                shadowColor = "rgba(245, 158, 11, 0.35)";
+            } else {
+                gradientStyle = "linear-gradient(to right, #DC2626, #F87171)";
+                shadowColor = "rgba(248, 113, 113, 0.35)";
+            }
+
+            fill.setStyle(
+                "-fx-background-color: " + gradientStyle + ";" +
+                "-fx-background-radius: 6;" +
+                "-fx-effect: dropshadow(two-pass-box, " + shadowColor + ", 4, 0, 0, 1);"
+            );
+        }
     }
 
     // =========================================================
@@ -633,7 +635,6 @@ public class AdminFiles {
     // =========================================================
 
     private void loadStatsAsync() {
-
         Task<FileStats> task = new Task<>() {
             @Override
             protected FileStats call() throws Exception {
@@ -665,7 +666,6 @@ public class AdminFiles {
     }
 
     private void updateStats(FileStats stats) {
-
         totalFilesValue.setText(
                 String.valueOf(stats.totalFiles)
         );
@@ -675,28 +675,18 @@ public class AdminFiles {
                 .sum();
 
         for (String type : typeSlices.keySet()) {
-
             int count = stats.fileTypes.getOrDefault(type, 0);
 
-            // Audio is grouped into Others to match the existing UI.
             if (type.equals("Others"))
                 count += stats.fileTypes.getOrDefault("Audio", 0);
 
             typeSlices.get(type).setPieValue(count);
 
-            double percentage =
-                    typeTotal <= 0
-                            ? 0
-                            : (count * 100.0 / typeTotal);
+            double fraction = typeTotal <= 0 ? 0.0 : ((double) count / typeTotal);
+            double percentage = fraction * 100.0;
 
-            typePercentLabels.get(type).setText(
-                    formatPercentage(percentage)
-            );
-
-            updateTypeProgress(
-                    type,
-                    typeTotal <= 0 ? 0 : (double) count / typeTotal
-            );
+            typePercentLabels.get(type).setText(formatPercentage(percentage));
+            updateTypeProgress(type, fraction);
         }
 
         int categoryTotal = stats.categories.values().stream()
@@ -704,25 +694,16 @@ public class AdminFiles {
                 .sum();
 
         for (String category : categoryCountLabels.keySet()) {
+            int count = stats.categories.getOrDefault(category, 0);
 
-            int count =
-                    stats.categories.getOrDefault(category, 0);
-
-            double percentage =
-                    categoryTotal <= 0
-                            ? 0
-                            : (count * 100.0 / categoryTotal);
+            double fraction = categoryTotal <= 0 ? 0.0 : ((double) count / categoryTotal);
+            double percentage = fraction * 100.0;
 
             categoryCountLabels.get(category).setText(
                     count + " (" + formatPercentage(percentage) + ")"
             );
 
-            updateCategoryProgress(
-                    category,
-                    categoryTotal <= 0
-                            ? 0
-                            : (double) count / categoryTotal
-            );
+            updateCategoryProgress(category, fraction);
         }
     }
 
@@ -731,7 +712,6 @@ public class AdminFiles {
     }
 
     private static class FileStats {
-
         private final int totalFiles;
         private final Map<String, Integer> fileTypes;
         private final Map<String, Integer> categories;
