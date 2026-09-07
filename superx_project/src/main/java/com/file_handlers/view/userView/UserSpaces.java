@@ -28,6 +28,7 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
 import javafx.util.Duration;
 
+import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,6 +63,11 @@ public class UserSpaces {
 
     private final FileDAO fileDAO = new FileDAO();
     private final SpaceDAO spaceDAO = new SpaceDAO();
+
+    // References for dynamic sidebar storage card
+    private Label storageVal;
+    private Label storagePercent;
+    private ProgressBar storageBar;
 
     // Cycled through for custom (user-created) Spaces, which have no fixed icon/color.
     private static final String[] CUSTOM_ICONS = {"🗂", "📌", "🧩", "🚀", "🌿", "🎯", "📚", "🎨"};
@@ -124,7 +130,6 @@ public class UserSpaces {
         profile.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
         applyHoverAnimation(profile, 1.04, 0);
 
-        // Custom Dropdown Menu
         Popup userDropdownPopup = new Popup();
         userDropdownPopup.setAutoHide(true);
 
@@ -473,8 +478,6 @@ public class UserSpaces {
         thread.start();
     }
 
-    
-
     private List<String> parseSmartTags(String raw) {
         List<String> tags = new ArrayList<>();
         if (raw == null || raw.isBlank()) {
@@ -484,8 +487,6 @@ public class UserSpaces {
         for (String piece : raw.split("[,\\n]")) {
             String token = piece.trim().toLowerCase(Locale.ROOT);
             if (token.isEmpty()) continue;
-
-            // Keep tags to a single word each; if the user typed a phrase, take the first word.
             token = token.split("\\s+")[0];
 
             if (!tags.contains(token)) tags.add(token);
@@ -570,8 +571,8 @@ public class UserSpaces {
         VBox navList = new VBox(4, dashboard, spacesBtn, search, calendar, ai, collab, recent, trash);
 
         Label storageTitle = label("Storage Used", 12, FontWeight.BOLD, WHITE);
-        Label storageVal = label("64.2 GB of 100 GB", 12, FontWeight.BOLD, WHITE);
-        Label storagePercent = label("64%", 11, FontWeight.BOLD, LIGHT_SECONDARY);
+        storageVal = label("Syncing...", 12, FontWeight.BOLD, WHITE);
+        storagePercent = label("0%", 11, FontWeight.BOLD, LIGHT_SECONDARY);
 
         Region storageSpacer = new Region();
         HBox.setHgrow(storageSpacer, Priority.ALWAYS);
@@ -579,7 +580,7 @@ public class UserSpaces {
         HBox storageValGroup = new HBox(storageVal, storageSpacer, storagePercent);
         storageValGroup.setAlignment(Pos.CENTER_LEFT);
 
-        ProgressBar storageBar = new ProgressBar(0.64);
+        storageBar = new ProgressBar(0.0);
         storageBar.setMaxWidth(Double.MAX_VALUE);
         storageBar.setPrefHeight(6);
         storageBar.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
@@ -741,50 +742,45 @@ public class UserSpaces {
             "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 12, 0, 0, 6);"
         );
 
-        // Edit Item
         CustomMenuItem editItem = createCustomMenuItem("✎   Edit Space", "#38BDF8");
         editItem.setOnAction(e -> showEditSpaceDialog(info));
 
-        // Delete Item
         CustomMenuItem deleteItem = createCustomMenuItem("🗑   Delete Space", "#F87171");
         deleteItem.setOnAction(e -> confirmDeleteSpace(info));
 
         menu.getItems().addAll(editItem, deleteItem);
-        
-        // Position menu neatly below the 3-dots button
         menu.show(anchor, Side.BOTTOM, -50, 2);
     }
 
-private CustomMenuItem createCustomMenuItem(String text, String textColor) {
-    Label label = new Label(text);
-    label.setStyle(
-        "-fx-text-fill: " + textColor + "; " +
-        "-fx-font-family: " + FONT + "; " +
-        "-fx-font-size: 11px; " +
-        "-fx-font-weight: bold;"
-    );
+    private CustomMenuItem createCustomMenuItem(String text, String textColor) {
+        Label label = new Label(text);
+        label.setStyle(
+            "-fx-text-fill: " + textColor + "; " +
+            "-fx-font-family: " + FONT + "; " +
+            "-fx-font-size: 11px; " +
+            "-fx-font-weight: bold;"
+        );
 
-    HBox container = new HBox(label);
-    container.setAlignment(Pos.CENTER_LEFT);
-    container.setPadding(new Insets(4, 8, 4, 8));
-    container.setStyle("-fx-background-color: transparent; -fx-background-radius: 6px; -fx-cursor: hand;");
+        HBox container = new HBox(label);
+        container.setAlignment(Pos.CENTER_LEFT);
+        container.setPadding(new Insets(4, 8, 4, 8));
+        container.setStyle("-fx-background-color: transparent; -fx-background-radius: 6px; -fx-cursor: hand;");
 
-    // Dark sleek background hover state for high contrast and readability
-    container.setOnMouseEntered(e -> container.setStyle(
-        "-fx-background-color: #1E293B; " +
-        "-fx-background-radius: 6px; " +
-        "-fx-cursor: hand;"
-    ));
-    container.setOnMouseExited(e -> container.setStyle(
-        "-fx-background-color: transparent; " +
-        "-fx-background-radius: 6px; " +
-        "-fx-cursor: hand;"
-    ));
+        container.setOnMouseEntered(e -> container.setStyle(
+            "-fx-background-color: #1E293B; " +
+            "-fx-background-radius: 6px; " +
+            "-fx-cursor: hand;"
+        ));
+        container.setOnMouseExited(e -> container.setStyle(
+            "-fx-background-color: transparent; " +
+            "-fx-background-radius: 6px; " +
+            "-fx-cursor: hand;"
+        ));
 
-    CustomMenuItem menuItem = new CustomMenuItem(container);
-    menuItem.setHideOnClick(true);
-    return menuItem;
-}
+        CustomMenuItem menuItem = new CustomMenuItem(container);
+        menuItem.setHideOnClick(true);
+        return menuItem;
+    }
 
     private void showEditSpaceDialog(SpaceInfo info) {
         UserSession session = UserSession.getInstance();
@@ -819,7 +815,6 @@ private CustomMenuItem createCustomMenuItem(String text, String textColor) {
         ButtonType saveButtonType = new ButtonType("Save Changes", ButtonBar.ButtonData.OK_DONE);
         dialogPane.getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
 
-        // Header Styling
         Label dialogTitle = label("Edit " + info.name, 18, FontWeight.BOLD, WHITE);
         Label dialogSub = label("Update space metadata and AI routing tags.", 12, FontWeight.NORMAL, LIGHT_SECONDARY);
         VBox dialogHeader = new VBox(4, dialogTitle, dialogSub);
@@ -853,7 +848,6 @@ private CustomMenuItem createCustomMenuItem(String text, String textColor) {
         content.setStyle("-fx-background-color: #0A121E;");
         dialogPane.setContent(content);
 
-        // Style Action Buttons
         Button saveButton = (Button) dialogPane.lookupButton(saveButtonType);
         saveButton.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: white; -fx-background-radius: 8; -fx-font-family: " + FONT + "; -fx-font-weight: bold; -fx-cursor: hand;");
         
@@ -894,7 +888,6 @@ private CustomMenuItem createCustomMenuItem(String text, String textColor) {
                 SpaceInfo info = new SpaceInfo(updated.getName(), updated.getSpaceId(), updated.getDescription() == null || updated.getDescription().isBlank() ? "Custom space." : updated.getDescription(), old.icon, old.iconBackground, old.iconTextColor);
                 customSpaceInfos.set(i, info);
                 SpaceCardView oldCard = spaceCards.get(spaceId);
-                int index = spaces.indexOf(old) >= 0 ? spaces.indexOf(old) : -1;
                 if (oldCard != null) {
                     int gridIndex = spaces.size() + i;
                     spacesGrid.getChildren().remove(oldCard.card);
@@ -1016,10 +1009,26 @@ private CustomMenuItem createCustomMenuItem(String text, String textColor) {
 
                 long totalSize = 0;
 
+                String systemDrive = System.getenv("SystemDrive");
+                File drive = systemDrive != null ? new File(systemDrive + "\\") : new File("/");
+                long totalPC = drive.getTotalSpace();
+
                 for (FileData file : files) {
+                    if (file == null) continue;
+
+                    long size = file.getFileSize();
+                    String localPath = file.getLocalPath();
+                    if (localPath != null && !localPath.isBlank()) {
+                        File localFile = new File(localPath);
+                        if (localFile.exists() && localFile.isFile()) {
+                            size = localFile.length();
+                        }
+                    }
+                    if (size < 0) size = 0;
+
+                    totalSize += size;
 
                     String spaceId = file.getSpaceId();
-
                     if (spaceId == null || spaceId.isBlank())
                         continue;
 
@@ -1030,8 +1039,7 @@ private CustomMenuItem createCustomMenuItem(String text, String textColor) {
                             );
 
                     stat.fileCount++;
-                    stat.totalSize += file.getFileSize();
-                    totalSize += file.getFileSize();
+                    stat.totalSize += size;
 
                     Timestamp uploadedAt =
                             file.getUploadedAt();
@@ -1052,6 +1060,7 @@ private CustomMenuItem createCustomMenuItem(String text, String textColor) {
                 }
 
                 final long finalTotalSize = totalSize;
+                final double oneSpaceOfTotal = totalPC == 0 ? 0 : (finalTotalSize * 100.0 / totalPC);
 
                 Platform.runLater(() -> {
 
@@ -1081,6 +1090,13 @@ private CustomMenuItem createCustomMenuItem(String text, String textColor) {
                             formatSize(finalTotalSize) +
                             " used"
                     );
+
+                    // Dynamic update for sidebar storage card matching StorageIndexPage
+                    if (storageVal != null && storagePercent != null && storageBar != null) {
+                        storageVal.setText(formatSize(finalTotalSize) + " of " + formatSize(totalPC));
+                        storagePercent.setText(String.format("%.1f%%", oneSpaceOfTotal));
+                        storageBar.setProgress(Math.min(oneSpaceOfTotal / 100.0, 1.0));
+                    }
                 });
 
             } catch (Exception e) {
@@ -1130,7 +1146,7 @@ private CustomMenuItem createCustomMenuItem(String text, String textColor) {
 
     private String formatSize(long bytes) {
         if (bytes <= 0)
-            return "—";
+            return "0 B";
         if (bytes < 1024)
             return bytes + " B";
         if (bytes < 1048576)

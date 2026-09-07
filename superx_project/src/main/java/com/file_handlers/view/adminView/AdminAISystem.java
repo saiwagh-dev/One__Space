@@ -49,18 +49,17 @@ public class AdminAISystem {
     private static final String SIDEBAR_BORDER = "rgba(255,255,255,0.07)";
 
     private static final String MAIN_BG =
-            "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
+            "radial-gradient(center 70% 20%, radius 85%, #0D1F3D 0%, #060B14 65%, #03060A 100%)";
 
     private static final String CARD_BG =
-            "linear-gradient(to bottom right, rgba(16,28,48,0.85), rgba(9,16,30,0.95))";
-    private static final String CARD_BORDER = "rgba(56,189,248,0.22)";
+            "linear-gradient(to bottom right, rgba(16,28,48,0.75), rgba(9,16,30,0.92))";
+    private static final String CARD_BORDER = "rgba(56,189,248,0.18)";
 
     private static final String WHITE = "#FFFFFF";
     private static final String SECONDARY = "#94A3B8";
 
     private static final String GREEN = "#10B981";
     private static final String ORANGE_ACCENT = "#F59E0B";
-    private static final String ORANGE_GLOW = "rgba(245, 158, 11, 0.75)";
 
     private String activeUserName = "Admin";
     private String initials = "A";
@@ -252,12 +251,13 @@ public class AdminAISystem {
 
         if (active) {
             button.setStyle(
-                    "-fx-background-color: linear-gradient(to right,#1D4ED8,#2563EB);" +
+                    "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
                     "-fx-background-radius: 12;" +
                     "-fx-border-color: rgba(96,165,250,0.6);" +
                     "-fx-border-radius: 12;" +
                     "-fx-border-width: 1;" +
-                    "-fx-cursor: hand;"
+                    "-fx-cursor: hand;" +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.3), 8, 0, 0, 2);"
             );
         } else {
             button.setStyle(
@@ -325,9 +325,9 @@ public class AdminAISystem {
         );
         applyHoverAnimation(notification, 1.08, 0);
 
-        // Updated Avatar: Authentic Blue Theme
         Label avatar = new Label(initials);
-        avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
+        avatar.setPrefSize(34, 34); 
+        avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
         avatar.setStyle(
@@ -500,7 +500,7 @@ public class AdminAISystem {
         );
 
         Label subtitle = createLabel(
-                "Monitor the AI capabilities used by OneSpace.",
+                "Monitor real-time status and operational metrics of OneSpace AI.",
                 "-fx-font-size: 13px; -fx-font-weight: 500;" +
                 " -fx-text-fill: " + SECONDARY + ";"
         );
@@ -542,21 +542,23 @@ public class AdminAISystem {
         iconPane.setMinSize(48, 48);
         iconPane.setMaxSize(48, 48);
         iconPane.setStyle(
-                "-fx-background-color: rgba(0,210,255,0.15);" +
-                "-fx-border-color: rgba(0,210,255,0.3);" +
+                "-fx-background-color: rgba(0,210,255,0.12);" +
+                "-fx-border-color: rgba(0,210,255,0.35);" +
                 "-fx-border-radius: 12;" +
                 "-fx-background-radius: 12;"
         );
 
-        Circle dot = new Circle(6, Color.web(GREEN));
+        Circle dot = new Circle(5, Color.web(GREEN));
+        DropShadow greenGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.web(GREEN), 8, 0, 0, 0);
+        dot.setEffect(greenGlow);
 
         Label status = createLabel(
-                "Online",
+                "Operational",
                 "-fx-font-size: 15px; -fx-font-weight: bold;"
         );
 
         Label description = createLabel(
-                "AI services are operational with real-time semantic analysis.",
+                "All AI models, vector stores, and parsing pipelines are responding normally.",
                 "-fx-font-size: 12px; -fx-text-fill: " + SECONDARY + ";"
         );
 
@@ -596,7 +598,7 @@ public class AdminAISystem {
         filter.setPrefWidth(140);
         filter.setStyle(
                 "-fx-background-color: #0F1D32;" +
-                "-fx-border-color: rgba(245, 158, 11, 0.5);" +
+                "-fx-border-color: rgba(245, 158, 11, 0.4);" +
                 "-fx-border-radius: 8;" +
                 "-fx-background-radius: 8;" +
                 "-fx-font-size: 12px;" +
@@ -632,8 +634,7 @@ public class AdminAISystem {
 
         StackPane ring = createAccuracyRing();
 
-        // Warm Orange Tone badge with glowing border
-        Label rate = new Label("Optimal Rate");
+        Label rate = new Label("Optimal Performance");
         rate.setFont(Font.font(FONT, FontWeight.BOLD, 10));
         rate.setTextFill(Color.web("#FCD34D"));
         rate.setStyle(
@@ -657,7 +658,7 @@ public class AdminAISystem {
                 confidenceLabel
         );
         ringBox.setAlignment(Pos.CENTER);
-        ringBox.setPadding(new Insets(12, 20, 12, 20));
+        ringBox.setPadding(new Insets(14, 22, 14, 22));
         ringBox.setStyle(
                 "-fx-background-color: rgba(10,18,33,0.85);" +
                 "-fx-border-color: " + CARD_BORDER + ";" +
@@ -678,12 +679,12 @@ public class AdminAISystem {
         HBox.setHgrow(metrics, Priority.ALWAYS);
 
         Label model = createLabel(
-                "AI Model: Gemini",
+                "Engine: Gemini 1.5 Flash",
                 "-fx-font-size: 11px; -fx-font-weight: bold;"
         );
         model.setStyle(
-                "-fx-background-color: rgba(255,255,255,0.08);" +
-                "-fx-border-color: rgba(255,255,255,0.1);" +
+                "-fx-background-color: rgba(255,255,255,0.06);" +
+                "-fx-border-color: rgba(255,255,255,0.12);" +
                 "-fx-padding: 4 10;" +
                 "-fx-border-radius: 6;" +
                 "-fx-background-radius: 6;"
@@ -695,7 +696,7 @@ public class AdminAISystem {
                 " -fx-text-fill: #34D399;"
         );
         correctionLabel.setStyle(
-                "-fx-background-color: rgba(16,185,129,0.15);" +
+                "-fx-background-color: rgba(16,185,129,0.12);" +
                 "-fx-border-color: rgba(16,185,129,0.3);" +
                 "-fx-padding: 4 10;" +
                 "-fx-border-radius: 6;" +
@@ -746,7 +747,6 @@ public class AdminAISystem {
             confScore = 91.8;
             corrRate = 3.6;
         } else {
-            // Last 7 Days (Default)
             overallAcc = 0.941;
             catProg = 0.964;
             ocrProg = 0.941;
@@ -755,11 +755,8 @@ public class AdminAISystem {
             corrRate = 2.3;
         }
 
-        // Update Circular Gauge
         if (accuracyArc != null) {
             accuracyArc.setLength(-360 * overallAcc);
-            
-            // Dynamic Orange-Amber Heat Palette
             if (overallAcc >= 0.95) {
                 accuracyArc.setStroke(Color.web("#F59E0B"));
             } else if (overallAcc >= 0.90) {
@@ -792,7 +789,6 @@ public class AdminAISystem {
         background.setStroke(Color.web("#17263E"));
         background.setStrokeWidth(10);
 
-        // Radiant Orange Stroke
         accuracyArc = new Arc(
                 0,
                 0,
@@ -807,8 +803,7 @@ public class AdminAISystem {
         accuracyArc.setStrokeLineCap(StrokeLineCap.ROUND);
         accuracyArc.setType(ArcType.OPEN);
 
-        // Warm Glowing Amber Effect
-        DropShadow orangeGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(245, 158, 11, 0.75), 14, 0, 0, 0);
+        DropShadow orangeGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(245, 158, 11, 0.65), 12, 0, 0, 0);
         accuracyArc.setEffect(orangeGlow);
 
         accuracyRingValue = createLabel(
@@ -859,7 +854,7 @@ public class AdminAISystem {
         track.setMaxHeight(8);
         track.setMaxWidth(Double.MAX_VALUE);
         track.setStyle(
-                "-fx-background-color: rgba(255,255,255,0.08);" +
+                "-fx-background-color: rgba(255,255,255,0.06);" +
                 "-fx-background-radius: 4;"
         );
 
