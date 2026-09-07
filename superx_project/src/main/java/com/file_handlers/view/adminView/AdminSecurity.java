@@ -1,14 +1,12 @@
 package com.file_handlers.view.adminView;
 
-import com.file_handlers.controller.AdminAuthController;
 import com.file_handlers.dao.AdminAlertDAO;
+import com.file_handlers.model.UserSession;
 import com.file_handlers.util.ResponsiveUtil;
 import com.file_handlers.view.LandingPage;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
@@ -28,8 +26,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Arc;
-import javafx.scene.shape.ArcType;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
@@ -44,6 +40,10 @@ public class AdminSecurity {
 
     private final AdminAlertDAO alertDAO = new AdminAlertDAO();
     private Label failedLoginCountLabel;
+    private Label changeBadgeLabel;
+    private LineChart<String, Number> failedLoginChart;
+    private VBox ipsContainer;
+    private ComboBox<String> timeframeCombo;
 
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
@@ -59,7 +59,6 @@ public class AdminSecurity {
     private static final String CARD_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
     private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
 
-    private static final String BLACK = "#FFFFFF";
     private static final String WHITE = "#FFFFFF";
     private static final String LIGHT_SECONDARY = "#94A3B8";
 
@@ -71,7 +70,20 @@ public class AdminSecurity {
     public static final String RED = "#EF4444";
     private static final String ORANGE = "#F59E0B";
 
-    public AdminSecurity() {}
+    private String activeUserName = "Admin";
+    private String initials = "A";
+
+    public AdminSecurity() {
+        UserSession session = UserSession.getInstance();
+        if (session != null && session.getDisplayName() != null) {
+            String fullName = session.getDisplayName().trim();
+            if (!fullName.isEmpty()) {
+                String[] parts = fullName.split("\\s+");
+                this.activeUserName = parts[0];
+                this.initials = this.activeUserName.substring(0, 1).toUpperCase();
+            }
+        }
+    }
 
     public Scene getSecurityScene() {
         BorderPane root = new BorderPane();
@@ -286,68 +298,6 @@ public class AdminSecurity {
         return button;
     }
 
-    private String getLoggedInAdminName() {
-        try {
-            AdminAuthController controller = new AdminAuthController();
-            for (java.lang.reflect.Method m : controller.getClass().getMethods()) {
-                if (m.getName().equalsIgnoreCase("getCurrentAdminName") || 
-                    m.getName().equalsIgnoreCase("getLoggedInUserName") ||
-                    m.getName().equalsIgnoreCase("getAdminName") ||
-                    m.getName().equalsIgnoreCase("getCurrentUser")) {
-                    Object val = m.invoke(controller);
-                    if (val != null && !val.toString().trim().isEmpty()) {
-                        return val.toString().trim();
-                    }
-                }
-            }
-        } catch (Exception ignored) {}
-
-        try {
-            Class<?> sessionClass = Class.forName("com.file_handlers.session.AdminSession");
-            java.lang.reflect.Method m = sessionClass.getMethod("getCurrentUser");
-            Object user = m.invoke(null);
-            if (user != null) {
-                try {
-                    Object name = user.getClass().getMethod("getName").invoke(user);
-                    if (name != null && !name.toString().trim().isEmpty()) return name.toString().trim();
-                } catch (Exception e) {
-                    return user.toString().trim();
-                }
-            }
-        } catch (Exception ignored) {}
-
-        try {
-            for (java.lang.reflect.Field f : LandingPage.class.getDeclaredFields()) {
-                if (f.getName().toLowerCase().contains("user") || f.getName().toLowerCase().contains("admin")) {
-                    f.setAccessible(true);
-                    Object val = f.get(null);
-                    if (val != null && !val.toString().trim().isEmpty() && !val.toString().equalsIgnoreCase("Admin")) {
-                        return val.toString().trim();
-                    }
-                }
-            }
-        } catch (Exception ignored) {}
-
-        try {
-            for (java.lang.reflect.Method m : LandingPage.class.getMethods()) {
-                if (m.getParameterCount() == 0 && (m.getName().startsWith("getAdmin") || m.getName().startsWith("getUser") || m.getName().startsWith("getLoggedIn"))) {
-                    Object val = m.invoke(null);
-                    if (val != null && !val.toString().trim().isEmpty() && !val.toString().equalsIgnoreCase("Admin")) {
-                        return val.toString().trim();
-                    }
-                }
-            }
-        } catch (Exception ignored) {}
-
-        return "Sai";
-    }
-
-    private String getInitials(String name) {
-        if (name == null || name.trim().isEmpty()) return "U";
-        String trimmed = name.trim();
-        return String.valueOf(trimmed.charAt(0)).toUpperCase();
-    }
-
     private HBox createTopBar() {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -381,17 +331,18 @@ public class AdminSecurity {
             stNotif.play(); ttNotif.play();
         });
 
-        String loginName = getLoggedInAdminName();
-        String loginInitial = getInitials(loginName);
-
-        Label avatar = new Label(loginInitial);
+        Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34);
         avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-background-color: #0084FF; -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(0, 132, 255, 0.5), 10, 0, 0, 2);");
+        avatar.setStyle(
+                "-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF);" +
+                "-fx-background-radius: 50%;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);"
+        );
 
-        Label adminName = new Label(loginName);
+        Label adminName = new Label(activeUserName);
         adminName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         adminName.setTextFill(Color.WHITE);
 
@@ -562,6 +513,9 @@ public class AdminSecurity {
                 "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.25), 5, 0, 0, 2);"
         );
 
+        timeframeCombo = date;
+        date.valueProperty().addListener((obs, oldVal, newVal) -> loadSecurityTelemetry(newVal));
+
         DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.5), 12, 0, 0, 2);
         ScaleTransition stDate = new ScaleTransition(Duration.millis(180), date);
         TranslateTransition ttDate = new TranslateTransition(Duration.millis(180), date);
@@ -619,6 +573,9 @@ public class AdminSecurity {
         HBox.setHgrow(fullWidthAlerts, Priority.ALWAYS);
 
         root.getChildren().addAll(header, fullWidthFailedLogin, fullWidthAlerts);
+        
+        loadSecurityTelemetry(date.getValue());
+
         return root;
     }
 
@@ -627,10 +584,11 @@ public class AdminSecurity {
         card.setPrefHeight(380);
         card.setMaxHeight(380);
 
-        HBox header = cardHeader("security", "Failed Login Attempts", "Last 30 Days");
+        HBox header = cardHeader("security", "Failed Login Attempts & Security Incidents", "Live Audit");
         failedLoginCountLabel = bigNumber("Loading...");
+        changeBadgeLabel = badge("--", "rgba(56, 189, 248, 0.15)", "#38BDF8");
         HBox numberRow = new HBox(8, failedLoginCountLabel);
-        HBox change = new HBox(8, badge("↑ 18.6%", "rgba(16, 185, 129, 0.15)", GREEN), createSmallSecondaryText("vs previous period"));
+        HBox change = new HBox(8, changeBadgeLabel, createSmallSecondaryText("vs previous timeframe"));
 
         CategoryAxis xAxis = new CategoryAxis();
         NumberAxis yAxis = new NumberAxis();
@@ -652,98 +610,181 @@ public class AdminSecurity {
         chart.setVerticalGridLinesVisible(false);
         chart.setAlternativeRowFillVisible(false);
         chart.setAlternativeColumnFillVisible(false);
-        chart.setPrefHeight(125);
-        chart.setMaxHeight(125);
+        chart.setPrefHeight(135);
+        chart.setMaxHeight(135);
         chart.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0;");
         chart.lookupAll(".chart-plot-background").forEach(n -> n.setStyle("-fx-background-color: transparent;"));
 
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.getData().add(new XYChart.Data<>("Week 1", 18));
-        series.getData().add(new XYChart.Data<>("Week 2", 32));
-        series.getData().add(new XYChart.Data<>("Week 3", 47));
-        series.getData().add(new XYChart.Data<>("Week 4", 65));
-        chart.getData().add(series);
+        failedLoginChart = chart;
 
-        Platform.runLater(() -> {
-            chart.applyCss();
-            chart.layout();
-            for (XYChart.Data<String, Number> d : series.getData()) {
-                if (d.getNode() != null) {
-                    d.getNode().setStyle("-fx-background-color: " + BLUE + ", white; -fx-background-radius: 6px; -fx-padding: 4px;");
-                    DropShadow dotGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.8), 10, 0, 0, 0);
-                    ScaleTransition stNode = new ScaleTransition(Duration.millis(160), d.getNode());
-                    TranslateTransition ttNode = new TranslateTransition(Duration.millis(160), d.getNode());
-                    d.getNode().setOnMouseEntered(e -> {
-                        d.getNode().setEffect(dotGlow);
-                        stNode.stop(); ttNode.stop();
-                        stNode.setToX(1.4); stNode.setToY(1.4);
-                        ttNode.setToY(-2);
-                        stNode.play(); ttNode.play();
-                    });
-                    d.getNode().setOnMouseExited(e -> {
-                        d.getNode().setEffect(null);
-                        stNode.stop(); ttNode.stop();
-                        stNode.setToX(1.0); stNode.setToY(1.0);
-                        ttNode.setToY(0);
-                        stNode.play(); ttNode.play();
-                    });
-                }
-            }
-        });
+        ipsContainer = new VBox(6);
+        ipsContainer.getChildren().add(createWrappedLabel("Scanning audit logs...", 11, false, LIGHT_SECONDARY));
 
-        VBox ips = new VBox(
-                6,
-                ipRow("192.168.1.45", "28 attempts"),
-                ipRow("203.0.113.10", "21 attempts"),
-                ipRow("45.77.32.11", "17 attempts")
-        );
-
-        VBox ipsSection = new VBox(6, sectionLabel("Top IP Addresses"), ips);
+        VBox ipsSection = new VBox(6, sectionLabel("Top Source IP Addresses"), ipsContainer);
+        ipsSection.setPrefWidth(240);
+        ipsSection.setMinWidth(220);
 
         HBox chartAndIps = new HBox(16, chart, ipsSection);
         chartAndIps.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(chart, Priority.ALWAYS);
-        HBox.setHgrow(ipsSection, Priority.SOMETIMES);
 
         card.getChildren().addAll(header, numberRow, change, chartAndIps);
-
-        loadFailedLoginCount();
 
         return card;
     }
 
-    private void loadFailedLoginCount() {
+    private void loadSecurityTelemetry(String periodStr) {
+        int days = 30;
+        if ("Last 7 Days".equals(periodStr)) days = 7;
+        else if ("Last 90 Days".equals(periodStr)) days = 90;
+        else if ("This Year".equals(periodStr)) days = 365;
 
-        Task<Integer> task = new Task<>() {
+        final int targetDays = days;
+
+        Task<SecurityMetricsResult> task = new Task<>() {
             @Override
-            protected Integer call() throws Exception {
-                return alertDAO.getFailedLoginCount(30);
+            protected SecurityMetricsResult call() throws Exception {
+                List<Map<String, Object>> allAlerts = alertDAO.getRecentAlerts(250);
+                long now = System.currentTimeMillis();
+                long periodMillis = (long) targetDays * 24 * 60 * 60 * 1000;
+                long halfPeriod = periodMillis / 4;
+
+                int currentPeriodTotal = 0;
+                int previousPeriodTotal = 0;
+
+                int[] bucketCounts = new int[4];
+                Map<String, Integer> ipFrequency = new HashMap<>();
+
+                for (Map<String, Object> data : allAlerts) {
+                    long timestamp = extractTimestamp(data.get("createdAt"));
+                    if (timestamp <= 0) continue;
+
+                    long age = now - timestamp;
+
+                    String ip = extractIp(data);
+                    if (age <= periodMillis) {
+                        currentPeriodTotal++;
+                        if (ip != null) {
+                            ipFrequency.put(ip, ipFrequency.getOrDefault(ip, 0) + 1);
+                        }
+
+                        int bucketIndex = 3 - (int) Math.min(3, age / halfPeriod);
+                        bucketCounts[bucketIndex]++;
+                    } else if (age <= periodMillis * 2) {
+                        previousPeriodTotal++;
+                    }
+                }
+
+                if (currentPeriodTotal == 0) {
+                    int directCount = alertDAO.getFailedLoginCount(targetDays);
+                    currentPeriodTotal = directCount;
+                }
+
+                return new SecurityMetricsResult(currentPeriodTotal, previousPeriodTotal, bucketCounts, ipFrequency, targetDays);
             }
         };
 
-        task.setOnSucceeded(e ->
-                failedLoginCountLabel.setText(
-                        String.valueOf(task.getValue())
-                )
-        );
+        task.setOnSucceeded(e -> {
+            SecurityMetricsResult res = task.getValue();
 
-        task.setOnFailed(e -> {
-            failedLoginCountLabel.setText("--");
+            failedLoginCountLabel.setText(String.valueOf(res.currentCount));
 
-            System.err.println(
-                    "[SECURITY] Could not load failed login count: "
-                            + task.getException()
-            );
+            if (res.previousCount == 0) {
+                changeBadgeLabel.setText(res.currentCount > 0 ? "↑ Active" : "0% No Change");
+                changeBadgeLabel.setStyle("-fx-text-fill: #10B981 !important; -fx-background-color: rgba(16, 185, 129, 0.15); -fx-border-color: rgba(16, 185, 129, 0.3); -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 3 8;");
+            } else {
+                double diff = ((double) (res.currentCount - res.previousCount) / res.previousCount) * 100.0;
+                String sign = diff >= 0 ? "↑ " : "↓ ";
+                String color = diff > 0 ? RED : GREEN;
+                String bg = diff > 0 ? "rgba(239, 68, 68, 0.15)" : "rgba(16, 185, 129, 0.15)";
+                changeBadgeLabel.setText(sign + String.format("%.1f%%", Math.abs(diff)));
+                changeBadgeLabel.setStyle("-fx-text-fill: " + color + " !important; -fx-background-color: " + bg + "; -fx-border-color: " + color + "55; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 3 8;");
+            }
+
+            failedLoginChart.getData().clear();
+            XYChart.Series<String, Number> series = new XYChart.Series<>();
+
+            String[] labels = res.days <= 7 
+                    ? new String[]{"Days 1-2", "Days 3-4", "Days 5-6", "Today"}
+                    : new String[]{"W1", "W2", "W3", "W4"};
+
+            for (int i = 0; i < 4; i++) {
+                series.getData().add(new XYChart.Data<>(labels[i], res.buckets[i]));
+            }
+
+            failedLoginChart.getData().add(series);
+
+            Platform.runLater(() -> {
+                for (XYChart.Data<String, Number> d : series.getData()) {
+                    if (d.getNode() != null) {
+                        d.getNode().setStyle("-fx-background-color: " + BLUE + ", white; -fx-background-radius: 6px; -fx-padding: 4px;");
+                    }
+                }
+            });
+
+            ipsContainer.getChildren().clear();
+            if (res.topIps.isEmpty()) {
+                ipsContainer.getChildren().add(createWrappedLabel("No external threats recorded.", 11, false, LIGHT_SECONDARY));
+            } else {
+                List<Map.Entry<String, Integer>> sorted = new ArrayList<>(res.topIps.entrySet());
+                sorted.sort((a, b) -> b.getValue().compareTo(a.getValue()));
+
+                int limit = Math.min(3, sorted.size());
+                for (int i = 0; i < limit; i++) {
+                    Map.Entry<String, Integer> entry = sorted.get(i);
+                    ipsContainer.getChildren().add(ipRow(entry.getKey(), entry.getValue() + " events"));
+                }
+            }
         });
 
-        Thread thread =
-                new Thread(
-                        task,
-                        "FailedLoginCountLoader"
-                );
+        task.setOnFailed(e -> {
+            failedLoginCountLabel.setText("0");
+            changeBadgeLabel.setText("Offline");
+            ipsContainer.getChildren().clear();
+            ipsContainer.getChildren().add(createWrappedLabel("Telemetry unavailable", 11, false, LIGHT_SECONDARY));
+        });
 
-        thread.setDaemon(true);
-        thread.start();
+        Thread th = new Thread(task, "SecurityTelemetryWorker");
+        th.setDaemon(true);
+        th.start();
+    }
+
+    private String extractIp(Map<String, Object> data) {
+        if (data.containsKey("ip")) return String.valueOf(data.get("ip"));
+        if (data.containsKey("sourceIp")) return String.valueOf(data.get("sourceIp"));
+        if (data.containsKey("clientIp")) return String.valueOf(data.get("clientIp"));
+        
+        String desc = String.valueOf(data.getOrDefault("description", ""));
+        if (desc.contains("IP: ")) {
+            String[] split = desc.split("IP: ");
+            if (split.length > 1) {
+                return split[1].split(" ")[0].replaceAll("[^0-9.]", "");
+            }
+        }
+        return null;
+    }
+
+    private long extractTimestamp(Object value) {
+        if (value instanceof com.google.cloud.Timestamp t) return t.toDate().getTime();
+        if (value instanceof java.util.Date d) return d.getTime();
+        if (value instanceof Number n) return n.longValue();
+        return -1;
+    }
+
+    private static class SecurityMetricsResult {
+        int currentCount;
+        int previousCount;
+        int[] buckets;
+        Map<String, Integer> topIps;
+        int days;
+
+        SecurityMetricsResult(int currentCount, int previousCount, int[] buckets, Map<String, Integer> topIps, int days) {
+            this.currentCount = currentCount;
+            this.previousCount = previousCount;
+            this.buckets = buckets;
+            this.topIps = topIps;
+            this.days = days;
+        }
     }
 
     private HBox ipRow(String ip, String attempts) {
@@ -1396,11 +1437,13 @@ public class AdminSecurity {
             stRow.stop(); ttRow.stop();
             stRow.setToX(1.0); stRow.setToY(1.0);
             ttRow.setToY(0);
-            stRow.play(); ttRow.play();
+            stRow.play(); ttPlay();
         });
 
         return row;
     }
+
+    private void ttPlay() {}
 
     private String createModalCss() {
         return "data:text/css," +
@@ -1430,83 +1473,6 @@ public class AdminSecurity {
         public String getTime() { return time; }
         public String getTitle() { return title; }
         public String getDescription() { return description; }
-    }
-
-    private StackPane donut() {
-        Arc backgroundArc = new Arc(0, 0, 52, 52, 0, 360);
-        backgroundArc.setType(ArcType.OPEN);
-        backgroundArc.setFill(Color.TRANSPARENT);
-        backgroundArc.setStroke(Color.web("rgba(255, 255, 255, 0.1)"));
-        backgroundArc.setStrokeWidth(12);
-
-        Arc enabledArc = new Arc(0, 0, 52, 52, 90, -246);
-        enabledArc.setType(ArcType.OPEN);
-        enabledArc.setFill(Color.TRANSPARENT);
-        enabledArc.setStroke(Color.web(GREEN));
-        enabledArc.setStrokeWidth(12);
-
-        Label number = createWrappedLabel("342", 20, true, WHITE);
-        Label total = createWrappedLabel("Total Users", 10, false, LIGHT_SECONDARY);
-
-        VBox center = new VBox(2, number, total);
-        center.setAlignment(Pos.CENTER);
-
-        StackPane pane = new StackPane(backgroundArc, enabledArc, center);
-        pane.setPrefSize(120, 120);
-
-        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.5), 14, 0, 0, 0);
-        ScaleTransition st = new ScaleTransition(Duration.millis(180), pane);
-        TranslateTransition tt = new TranslateTransition(Duration.millis(180), pane);
-        pane.setOnMouseEntered(e -> {
-            pane.setEffect(blueGlow);
-            st.stop(); tt.stop();
-            st.setToX(1.05); st.setToY(1.05);
-            tt.setToY(-2);
-            st.play(); tt.play();
-        });
-        pane.setOnMouseExited(e -> {
-            pane.setEffect(null);
-            st.stop(); tt.stop();
-            st.setToX(1.0); st.setToY(1.0);
-            tt.setToY(0);
-            st.play(); tt.play();
-        });
-
-        return pane;
-    }
-
-    private VBox legend(String color, String title, String value) {
-        Label titleLabel = createWrappedLabel(title, 11, false, LIGHT_SECONDARY);
-        Label valueLabel = createWrappedLabel(value, 13, true, WHITE);
-
-        HBox titleRow = new HBox(8, new Circle(4, Color.web(color)), titleLabel);
-        titleRow.setAlignment(Pos.CENTER_LEFT);
-
-        VBox box = new VBox(4, titleRow, valueLabel);
-        box.setPadding(new Insets(8, 12, 8, 12));
-        box.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8;");
-
-        DropShadow blueGlow = new DropShadow(BlurType.THREE_PASS_BOX, Color.rgb(56, 189, 248, 0.35), 10, 0, 0, 1);
-        ScaleTransition st = new ScaleTransition(Duration.millis(160), box);
-        TranslateTransition tt = new TranslateTransition(Duration.millis(160), box);
-        box.setOnMouseEntered(e -> {
-            box.setStyle("-fx-background-color: rgba(37, 99, 235, 0.15); -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 8; -fx-background-radius: 8;");
-            box.setEffect(blueGlow);
-            st.stop(); tt.stop();
-            st.setToX(1.03); st.setToY(1.03);
-            tt.setToY(-1);
-            st.play(); tt.play();
-        });
-        box.setOnMouseExited(e -> {
-            box.setStyle("-fx-background-color: rgba(10, 18, 33, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 8; -fx-background-radius: 8;");
-            box.setEffect(null);
-            st.stop(); tt.stop();
-            st.setToX(1.0); st.setToY(1.0);
-            tt.setToY(0);
-            st.play(); tt.play();
-        });
-
-        return box;
     }
 
     private VBox card() {

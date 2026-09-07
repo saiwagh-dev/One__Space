@@ -28,7 +28,9 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class NotificationPage {
 
@@ -549,12 +551,16 @@ public class NotificationPage {
         data.clear();
         
         String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
+        String myUid = UserSession.getInstance() != null ? UserSession.getInstance().getUid() : "";
+        
         if (myEmail == null || myEmail.trim().isEmpty()) {
-            return; // Exit if no user is logged in
+            return;
         }
 
         try {
             com.google.cloud.firestore.Firestore db = FirebaseConfig.getFirestore();
+
+            // 1. Dynamic Collaboration Notifications (from Firestore workspaces)
             var workspacesDocs = db.collection("workspaces").get().get().getDocuments();
 
             for (var wsDoc : workspacesDocs) {
@@ -567,7 +573,6 @@ public class NotificationPage {
                 boolean isUserMemberOrOwner = false;
                 List<N> workspaceNotifications = new ArrayList<>();
 
-                // Check members subcollection to verify if user belongs to this workspace
                 var memberDocs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
                 
                 for (var mDoc : memberDocs) {
@@ -575,67 +580,85 @@ public class NotificationPage {
                     String status = mDoc.getString("status");
                     String name = mDoc.getString("name");
                     String role = mDoc.getString("role");
+                    String timeLabel = formatRelativeTime(mDoc.getDate("updatedAt") != null ? mDoc.getDate("updatedAt") : mDoc.getDate("createdAt"));
 
                     if (email != null && email.equalsIgnoreCase(myEmail)) {
                         if ("active".equalsIgnoreCase(status) || "Owner".equalsIgnoreCase(role)) {
                             isUserMemberOrOwner = true;
                         }
                         if ("pending".equalsIgnoreCase(status)) {
-                            // User has a pending invite to this space
-                            workspaceNotifications.add(new N("👥", "Collaboration Invite", "You have been invited to join '" + spaceName + "' as " + (role != null ? role : "Viewer"), "Recent", "Collaboration"));
-                            isUserMemberOrOwner = true; // Allow them to see their own invite
+                            workspaceNotifications.add(new N("👥", "Collaboration Invite", "You have been invited to join '" + spaceName + "' as " + (role != null ? role : "Viewer"), timeLabel, "Collaboration"));
+                            isUserMemberOrOwner = true;
                         } else if ("active".equalsIgnoreCase(status)) {
-                            workspaceNotifications.add(new N("👥", "Workspace Access Active", "You are an active " + role + " in '" + spaceName + "'", "Synced", "Collaboration"));
+                            workspaceNotifications.add(new N("👥", "Workspace Access Active", "You are an active " + role + " in '" + spaceName + "'", timeLabel, "Collaboration"));
                         }
                     } else if (name != null) {
-                        // Other team member activity inside a workspace this user belongs to
-                        workspaceNotifications.add(new N("👥", name + " joined workspace", "Added to '" + spaceName + "'", "Recent", "Collaboration"));
+                        workspaceNotifications.add(new N("👥", name + " joined workspace", "Added to '" + spaceName + "'", timeLabel, "Collaboration"));
                     }
                 }
 
-                // If the user has no association with this workspace, skip its notifications completely
                 if (!isUserMemberOrOwner) {
                     continue;
                 }
 
-                // Check files subcollection for recent file uploads within this authorized workspace
                 var fileDocs = db.collection("workspaces").document(spaceDocId).collection("files").get().get().getDocuments();
                 for (var fDoc : fileDocs) {
                     String fileName = fDoc.getString("fileName");
+                    String uploadedBy = fDoc.getString("uploadedByName");
+                    String timeLabel = formatRelativeTime(fDoc.getDate("uploadedAt") != null ? fDoc.getDate("uploadedAt") : fDoc.getDate("timestamp"));
                     if (fileName != null) {
-                        workspaceNotifications.add(new N("📄", "File uploaded in " + spaceName, fileName, "Recent", "Collaboration"));
+                        String titleText = (uploadedBy != null && !uploadedBy.trim().isEmpty()) 
+                                ? uploadedBy + " uploaded " + fileName 
+                                : "File uploaded in " + spaceName;
+                        workspaceNotifications.add(new N("📄", titleText, "Shared in " + spaceName, timeLabel, "Collaboration"));
                     }
                 }
 
-                // Add collected notifications for this workspace to the main list
                 data.addAll(workspaceNotifications);
             }
+
+            // 2. Dynamic Reminders & Events (from user's reminders / events subcollection if available)
+            if (myUid != null && !myUid.trim().isEmpty()) {
+                var reminderDocs = db.collection("users").document(myUid).collection("reminders").get().get().getDocuments();
+                for (var rDoc : reminderDocs) {
+                    String title = rDoc.getString("title");
+                    String note = rDoc.getString("note");
+                    String icon = rDoc.getString("icon") != null ? rDoc.getString("icon") : "📅";
+                    String timeLabel = formatRelativeTime(rDoc.getDate("dueAt") != null ? rDoc.getDate("dueAt") : rDoc.getDate("createdAt"));
+                    if (title != null) {
+                        data.add(new N(icon, title, note != null ? note : "Upcoming reminder", timeLabel, "Reminders"));
+                    }
+                }
+            }
+
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        data.add(new N("📄", "12 duplicate files detected",
-                "Downloads folder · 4.2 GB recoverable", "1 h", "Reminders"));
-
-        data.add(new N("🛡", "Sensitive files found",
-                "Personal files and scans detected", "3 h", "Reminders"));
-
-        data.add(new N("📅", "Document expires in 12 days",
-                "Linked to Document_Scan.pdf", "5 h", "Reminders"));
-
-        data.add(new N("💬", "Riya commented on a shared file",
-                "Cloud_Computing_Seminar.pptx", "Yesterday", "Collaboration"));
-
-        data.add(new N("✦", "AI created 2 new Spaces",
-                "Healthcare and Travel from 609 files", "2 d", "Reminders"));
-
-        data.add(new N("👥", "Priya Sharma uploaded SVM_Optimization.pdf",
-                "Shared in College Presentation Workspace", "2 d", "Collaboration"));
-        // Fallback if no workspace notifications exist yet
+        // Empty state fallback when no dynamic entries exist
         if (data.isEmpty()) {
-            data.add(new N("🔔", "No new notifications", "Your workspaces are up to date", "Just now", "Reminders"));
+            data.add(new N("🔔", "No new notifications", "Your workspaces and reminders are up to date", "Just now", "Reminders"));
         }
     }
+
+    private String formatRelativeTime(Date date) {
+        if (date == null) return "Recent";
+        long diff = System.currentTimeMillis() - date.getTime();
+        if (diff < 0) {
+            long days = TimeUnit.MILLISECONDS.toDays(Math.abs(diff));
+            return days <= 0 ? "Today" : "In " + days + " d";
+        }
+        long mins = TimeUnit.MILLISECONDS.toMinutes(diff);
+        if (mins < 1) return "Just now";
+        if (mins < 60) return mins + " m";
+        long hours = TimeUnit.MILLISECONDS.toHours(diff);
+        if (hours < 24) return hours + " h";
+        long days = TimeUnit.MILLISECONDS.toDays(diff);
+        if (days == 1) return "Yesterday";
+        if (days < 7) return days + " d";
+        return (days / 7) + " w";
+    }
+
     private static class N {
         String icon, title, sub, time, type;
         boolean read = false;
