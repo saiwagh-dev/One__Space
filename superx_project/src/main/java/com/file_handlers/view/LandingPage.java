@@ -214,6 +214,10 @@ public class LandingPage extends Application {
         setScene(new AdminSettings().getAdminSettingsScene());
     }
 
+    public static void showAdminAboutUs() {
+        setScene(new AboutUsPage().getAboutUsScene());
+    }
+    
     public static void showAdminSignUp() {
         setScene(new AdminSignUpPage().getAdminSignUpScene());
     }

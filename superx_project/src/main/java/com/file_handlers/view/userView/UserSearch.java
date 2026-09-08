@@ -631,6 +631,14 @@ public class UserSearch{
                 "-fx-padding: 0;"
         );
 
+        Platform.runLater(()->{
+        Node verticalBar=scrollPane.lookup(".scroll-bar:vertical");
+        if(verticalBar!=null){
+                verticalBar.setOpacity(0);
+                verticalBar.setMouseTransparent(true);
+        }
+        });
+
         VBox mainArea=
                 new VBox(
                         topBar,

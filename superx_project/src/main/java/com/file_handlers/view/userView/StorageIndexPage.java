@@ -274,6 +274,15 @@ public class StorageIndexPage {
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0;");
+
+        Platform.runLater(()->{
+        Node verticalBar=scroll.lookup(".scroll-bar:vertical");
+        if(verticalBar!=null){
+            verticalBar.setOpacity(0);
+            verticalBar.setMouseTransparent(true);
+        }
+    });
+        
         return scroll;
     }
 

@@ -525,6 +525,14 @@ public class UserCalendar{
                         +"-fx-background: transparent;"
         );
 
+        Platform.runLater(()->{
+        Node verticalBar=reminderScroll.lookup(".scroll-bar:vertical");
+        if(verticalBar!=null){
+                verticalBar.setOpacity(0);
+                verticalBar.setMouseTransparent(true);
+        }
+        });
+
         VBox remindersCard=
                 new VBox(
                         reminderScroll

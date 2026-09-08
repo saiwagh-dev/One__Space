@@ -16,7 +16,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.effect.BlurType;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
@@ -39,7 +38,6 @@ public class AdminSettings {
 
     public static boolean isGlobalLightMode = false;
 
-    // Dynamic Theme Tokens (Mutable for Light / Dark toggling)
     private String sidebarBg = "#070C16";
     private String sidebarBorder = "rgba(255, 255, 255, 0.07)";
     private String mainBg = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
@@ -49,7 +47,6 @@ public class AdminSettings {
     private String textSecondary = "#94A3B8";
     private String topbarWidgetBg = "rgba(13, 22, 38, 0.85)";
 
-    // Accent Colors
     private static final String BLUE = "#2563EB";
     private static final String BLUE_LIGHT = "rgba(37, 99, 235, 0.15)";
     private static final String GREEN = "#10B981";
@@ -60,8 +57,6 @@ public class AdminSettings {
     private static final String CARD_BG = null;
     private static final String CARD_BORDER = null;
 
-
-    // Root Containers for Theme Updates
     private BorderPane rootLayout;
     private VBox sidebarNode;
     private HBox topBarNode;
@@ -124,7 +119,7 @@ public class AdminSettings {
         }
 
         rootLayout.setStyle("-fx-background-color: " + sidebarBg + ";");
-        
+
         sidebarNode = createSidebar();
         rootLayout.setLeft(sidebarNode);
 
@@ -264,42 +259,59 @@ public class AdminSettings {
                 "-fx-cursor: hand;" +
                 "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.4), 14, 0, 0, 2);"
             );
+
             button.setOnMouseEntered(e -> {
-                st.stop(); tt.stop();
-                st.setToX(1.02); st.setToY(1.02);
+                st.stop();
+                tt.stop();
+                st.setToX(1.02);
+                st.setToY(1.02);
                 tt.setToX(3);
-                st.play(); tt.play();
+                st.play();
+                tt.play();
             });
+
             button.setOnMouseExited(e -> {
-                st.stop(); tt.stop();
-                st.setToX(1.0); st.setToY(1.0);
+                st.stop();
+                tt.stop();
+                st.setToX(1.0);
+                st.setToY(1.0);
                 tt.setToX(0);
-                st.play(); tt.play();
+                st.play();
+                tt.play();
             });
         } else {
             String hoverBg = isLightMode ? "#F1F5F9" : "rgba(255, 255, 255, 0.05)";
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
+
             button.setOnMouseEntered(e -> {
                 button.setStyle("-fx-background-color: " + hoverBg + "; -fx-border-color: rgba(56, 189, 248, 0.5); -fx-border-radius: 12; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 1;");
                 button.setEffect(blueGlow);
                 icon.setStroke(Color.web(BLUE));
                 label.setTextFill(Color.web(isLightMode ? BLUE : "#FFFFFF"));
-                st.stop(); tt.stop();
-                st.setToX(1.02); st.setToY(1.02);
+                st.stop();
+                tt.stop();
+                st.setToX(1.02);
+                st.setToY(1.02);
                 tt.setToX(3);
-                st.play(); tt.play();
+                st.play();
+                tt.play();
             });
+
             button.setOnMouseExited(e -> {
                 button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
                 button.setEffect(null);
                 icon.setStroke(Color.web(textSecondary));
                 label.setTextFill(Color.web(isLightMode ? textPrimary : "#FFFFFF"));
-                st.stop(); tt.stop();
-                st.setToX(1.0); st.setToY(1.0);
+                st.stop();
+                tt.stop();
+                st.setToX(1.0);
+                st.setToY(1.0);
                 tt.setToX(0);
-                st.play(); tt.play();
+                st.play();
+                tt.play();
             });
         }
+
         return button;
     }
 
@@ -308,21 +320,33 @@ public class AdminSettings {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         UserSession session = UserSession.getInstance();
-        String activeUserName = (session != null && session.getDisplayName() != null && !session.getDisplayName().isBlank())
+
+        String activeUserName = (session != null &&
+                session.getDisplayName() != null &&
+                !session.getDisplayName().isBlank())
                 ? session.getDisplayName()
-                : ((session != null && session.getEmail() != null && !session.getEmail().isBlank()) ? session.getEmail() : "Admin");
+                : ((session != null &&
+                   session.getEmail() != null &&
+                   !session.getEmail().isBlank())
+                   ? session.getEmail()
+                   : "Admin");
+
         String initials = "A";
         String[] nameParts = activeUserName.trim().split("\\s+");
+
         if (nameParts.length > 0) {
             StringBuilder initialsBuilder = new StringBuilder();
+
             for (String part : nameParts) {
                 if (!part.isBlank()) {
                     initialsBuilder.append(part.charAt(0));
+
                     if (initialsBuilder.length() >= 2) {
                         break;
                     }
                 }
             }
+
             if (initialsBuilder.length() > 0) {
                 initials = initialsBuilder.toString().toUpperCase();
             }
@@ -357,24 +381,33 @@ public class AdminSettings {
 
         ScaleTransition stProf = new ScaleTransition(Duration.millis(180), profile);
         TranslateTransition ttProf = new TranslateTransition(Duration.millis(180), profile);
+
         profile.setOnMouseEntered(e -> {
             profile.setStyle("-fx-background-color: " + topbarWidgetBg + "; -fx-border-color: #38BDF8; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
             profile.setEffect(blueGlow);
-            stProf.stop(); ttProf.stop();
-            stProf.setToX(1.03); stProf.setToY(1.03);
+            stProf.stop();
+            ttProf.stop();
+            stProf.setToX(1.03);
+            stProf.setToY(1.03);
             ttProf.setToY(-1);
-            stProf.play(); ttProf.play();
+            stProf.play();
+            ttProf.play();
         });
+
         profile.setOnMouseExited(e -> {
             profile.setStyle("-fx-background-color: " + topbarWidgetBg + "; -fx-border-color: " + sidebarBorder + "; -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
             profile.setEffect(null);
-            stProf.stop(); ttProf.stop();
-            stProf.setToX(1.0); stProf.setToY(1.0);
+            stProf.stop();
+            ttProf.stop();
+            stProf.setToX(1.0);
+            stProf.setToY(1.0);
             ttProf.setToY(0);
-            stProf.play(); ttProf.play();
+            stProf.play();
+            ttProf.play();
         });
 
         Popup profilePopup = createProfilePopup();
+
         profile.setOnMouseClicked(e -> {
             if (profilePopup.isShowing()) {
                 profilePopup.hide();
@@ -391,6 +424,7 @@ public class AdminSettings {
         topBar.setMaxHeight(70);
         topBar.setPadding(new Insets(16, ResponsiveUtil.PAGE_PADDING, 14, ResponsiveUtil.PAGE_PADDING));
         topBar.setStyle("-fx-background-color: transparent; -fx-border-color: " + sidebarBorder + "; -fx-border-width: 0 0 1 0;");
+
         return topBar;
     }
 
@@ -455,17 +489,24 @@ public class AdminSettings {
 
         item.setOnMouseEntered(e -> {
             item.setStyle("-fx-background-color: rgba(37, 99, 235, 0.2); -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
-            st.stop(); tt.stop();
-            st.setToX(1.03); st.setToY(1.03);
+            st.stop();
+            tt.stop();
+            st.setToX(1.03);
+            st.setToY(1.03);
             tt.setToX(3);
-            st.play(); tt.play();
+            st.play();
+            tt.play();
         });
+
         item.setOnMouseExited(e -> {
             item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;");
-            st.stop(); tt.stop();
-            st.setToX(1.0); st.setToY(1.0);
+            st.stop();
+            tt.stop();
+            st.setToX(1.0);
+            st.setToY(1.0);
             tt.setToX(0);
-            st.play(); tt.play();
+            st.play();
+            tt.play();
         });
 
         item.setOnMouseClicked(e -> action.run());
@@ -488,7 +529,6 @@ public class AdminSettings {
 
         VBox heading = new VBox(6, title, subtitle);
 
-        // 1. Account Profile Card
         VBox accountCard = createSettingsCard();
         VBox accountInfo = new VBox(3, createCardLabel(activeUserName, 16, FontWeight.BOLD), createSecondaryLabel(userEmail, 13));
         HBox accountLeft = new HBox(14, createIconBox("users", BLUE, BLUE_LIGHT), accountInfo);
@@ -507,7 +547,6 @@ public class AdminSettings {
         accountRow.setAlignment(Pos.CENTER_LEFT);
         accountCard.getChildren().add(accountRow);
 
-        // 2. Appearance Card with Live Theme Switching
         VBox appearanceCard = createSettingsCard();
         VBox appearanceTitle = new VBox(3, createCardLabel("Appearance", 16, FontWeight.BOLD), createSecondaryLabel("Customize how OneSpace looks and adapts.", 13));
         HBox appearanceLeft = new HBox(14, createIconBox("appearance", PURPLE, PURPLE_LIGHT), appearanceTitle);
@@ -523,7 +562,13 @@ public class AdminSettings {
 
         HBox themeButtons = new HBox(12, lightButton, darkButton, systemButton);
         themeButtons.setAlignment(Pos.CENTER_LEFT);
-        VBox themeBox = new VBox(7, createCardLabel("Theme", 13, FontWeight.BOLD), themeButtons);
+
+        VBox themeBox = new VBox(
+                7,
+                createCardLabel("Theme", 13, FontWeight.BOLD),
+                themeButtons
+        );
+
         themeBox.setAlignment(Pos.CENTER_LEFT);
 
         Region appearanceSpacer = new Region();
@@ -533,16 +578,31 @@ public class AdminSettings {
         appearanceRow.setAlignment(Pos.CENTER_LEFT);
         appearanceCard.getChildren().add(appearanceRow);
 
-        // 3. Security Settings Card
         VBox securityCard = createSettingsCard();
-        VBox securityTitle = new VBox(3, createCardLabel("Security Settings", 16, FontWeight.BOLD), createSecondaryLabel("Manage security and access control.", 13));
-        HBox securityHeader = new HBox(14, createIconBox("security", GREEN, GREEN_LIGHT), securityTitle);
+
+        VBox securityTitle = new VBox(
+                3,
+                createCardLabel("Security Settings", 16, FontWeight.BOLD),
+                createSecondaryLabel("Manage security and access control.", 13)
+        );
+
+        HBox securityHeader = new HBox(
+                14,
+                createIconBox("security", GREEN, GREEN_LIGHT),
+                securityTitle
+        );
+
         securityHeader.setAlignment(Pos.CENTER_LEFT);
 
         ComboBox<String> passwordCombo = new ComboBox<>();
-        passwordCombo.getItems().addAll("Strong (Min 8 characters)", "Medium (Min 6 characters)", "Custom Policy");
+        passwordCombo.getItems().addAll(
+                "Strong (Min 8 characters)",
+                "Medium (Min 6 characters)",
+                "Custom Policy"
+        );
         passwordCombo.setValue("Strong (Min 8 characters)");
         styleComboBox(passwordCombo);
+
         passwordCombo.setOnAction(e -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Policy Updated");
@@ -552,9 +612,16 @@ public class AdminSettings {
         });
 
         ComboBox<String> sessionCombo = new ComboBox<>();
-        sessionCombo.getItems().addAll("15 minutes", "30 minutes", "1 hour", "2 hours", "Never");
+        sessionCombo.getItems().addAll(
+                "15 minutes",
+                "30 minutes",
+                "1 hour",
+                "2 hours",
+                "Never"
+        );
         sessionCombo.setValue("30 minutes");
         styleComboBox(sessionCombo);
+
         sessionCombo.setOnAction(e -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Session Timeout");
@@ -564,9 +631,15 @@ public class AdminSettings {
         });
 
         ComboBox<String> attemptsCombo = new ComboBox<>();
-        attemptsCombo.getItems().addAll("3 attempts allowed", "5 attempts allowed", "10 attempts allowed", "Unlimited");
+        attemptsCombo.getItems().addAll(
+                "3 attempts allowed",
+                "5 attempts allowed",
+                "10 attempts allowed",
+                "Unlimited"
+        );
         attemptsCombo.setValue("5 attempts allowed");
         styleComboBox(attemptsCombo);
+
         attemptsCombo.setOnAction(e -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Login Attempts");
@@ -575,15 +648,63 @@ public class AdminSettings {
             alert.showAndWait();
         });
 
-        VBox securityForm = new VBox(12,
+        VBox securityForm = new VBox(
+                12,
                 createFormRow(createFormLabel("Password Policy"), passwordCombo),
                 createFormRow(createFormLabel("Session Timeout"), sessionCombo),
                 createFormRow(createFormLabel("Login Attempts"), attemptsCombo)
         );
+
         securityForm.setPadding(new Insets(14, 0, 0, 0));
         securityCard.getChildren().addAll(securityHeader, securityForm);
 
-        content.getChildren().addAll(heading, accountCard, appearanceCard, securityCard);
+        Button aboutUsButton = new Button("ⓘ  About Us");
+        aboutUsButton.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
+        aboutUsButton.setTextFill(Color.web(textPrimary));
+        aboutUsButton.setPrefHeight(36);
+        aboutUsButton.setPadding(new Insets(0, 18, 0, 18));
+        aboutUsButton.setStyle(
+                "-fx-background-color: " + (isLightMode ? "#F8FAFC" : "rgba(255, 255, 255, 0.05)") + ";" +
+                "-fx-border-color: " + cardBorder + ";" +
+                "-fx-border-width: 1;" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;" +
+                "-fx-cursor: hand;"
+        );
+
+        aboutUsButton.setOnMouseEntered(e -> aboutUsButton.setStyle(
+                "-fx-background-color: " + (isLightMode ? "#E2E8F0" : "rgba(23, 37, 64, 0.95)") + ";" +
+                "-fx-border-color: #38BDF8;" +
+                "-fx-border-width: 1;" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;" +
+                "-fx-cursor: hand;"
+        ));
+
+        aboutUsButton.setOnMouseExited(e -> aboutUsButton.setStyle(
+                "-fx-background-color: " + (isLightMode ? "#F8FAFC" : "rgba(255, 255, 255, 0.05)") + ";" +
+                "-fx-border-color: " + cardBorder + ";" +
+                "-fx-border-width: 1;" +
+                "-fx-border-radius: 10;" +
+                "-fx-background-radius: 10;" +
+                "-fx-cursor: hand;"
+        ));
+
+        aboutUsButton.setOnAction(
+                e -> LandingPage.showAdminAboutUs()
+        );
+
+        HBox aboutUsRow = new HBox(aboutUsButton);
+        aboutUsRow.setAlignment(Pos.CENTER_RIGHT);
+
+        content.getChildren().addAll(
+                heading,
+                accountCard,
+                appearanceCard,
+                securityCard,
+                aboutUsRow
+        );
+
         return content;
     }
 
@@ -628,6 +749,7 @@ public class AdminSettings {
         box.setMaxSize(32, 32);
         box.setStyle("-fx-background-color: " + background + "; -fx-border-color: " + color + "55; -fx-border-radius: 8; -fx-background-radius: 8;");
         applyHoverAnimation(box, 1.08, 0);
+
         return box;
     }
 
@@ -636,9 +758,23 @@ public class AdminSettings {
         button.setPrefHeight(34);
         button.setPadding(new Insets(0, 15, 0, 15));
 
-        String baseStyle = "-fx-background-color: " + (isLightMode ? "#F8FAFC" : "rgba(255, 255, 255, 0.05)") + "; -fx-border-color: " + cardBorder + "; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: " + textPrimary + "; -fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 600; -fx-cursor: hand;";
+        String baseStyle =
+                "-fx-background-color: " +
+                (isLightMode ? "#F8FAFC" : "rgba(255, 255, 255, 0.05)") +
+                ";" +
+                "-fx-border-color: " + cardBorder + ";" +
+                "-fx-border-width: 1;" +
+                "-fx-border-radius: 8;" +
+                "-fx-background-radius: 8;" +
+                "-fx-text-fill: " + textPrimary + ";" +
+                "-fx-font-family: " + FONT + ";" +
+                "-fx-font-size: 12px;" +
+                "-fx-font-weight: 600;" +
+                "-fx-cursor: hand;";
+
         button.setStyle(baseStyle);
         applyHoverAnimation(button, 1.04, -1);
+
         return button;
     }
 
@@ -654,36 +790,71 @@ public class AdminSettings {
 
         Button button = new Button();
         button.setGraphic(content);
-        button.setPrefHeight(34); 
+        button.setPrefHeight(34);
         button.setMinHeight(34);
         button.setPadding(new Insets(0, 14, 0, 14));
 
         applyThemeButtonStyle(button, iconLabel, textLabel, selected);
         applyHoverAnimation(button, 1.04, -1);
+
         return button;
     }
 
-    private void applyThemeButtonStyle(Button button, Label iconLabel, Label textLabel, boolean selected) {
+    private void applyThemeButtonStyle(
+            Button button,
+            Label iconLabel,
+            Label textLabel,
+            boolean selected) {
+
         String baseStyle;
         String hoverStyle;
 
         if (selected) {
-            baseStyle = "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-width: 1;";
-            hoverStyle = "-fx-background-color: linear-gradient(to right, #1D4ED8, #0284C7); -fx-border-color: rgba(96, 165, 250, 0.8); -fx-border-width: 1;";
+            baseStyle =
+                    "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
+                    "-fx-border-color: rgba(96, 165, 250, 0.6);" +
+                    "-fx-border-width: 1;";
+
+            hoverStyle =
+                    "-fx-background-color: linear-gradient(to right, #1D4ED8, #0284C7);" +
+                    "-fx-border-color: rgba(96, 165, 250, 0.8);" +
+                    "-fx-border-width: 1;";
+
             iconLabel.setTextFill(Color.WHITE);
             textLabel.setTextFill(Color.WHITE);
         } else {
-            baseStyle = "-fx-background-color: " + (isLightMode ? "#F1F5F9" : "rgba(10, 18, 33, 0.85)") + "; -fx-border-color: " + (isLightMode ? "#CBD5E1" : "rgba(255, 255, 255, 0.08)") + "; -fx-border-width: 1;";
-            hoverStyle = "-fx-background-color: " + (isLightMode ? "#E2E8F0" : "rgba(23, 37, 64, 0.95)") + "; -fx-border-color: " + BLUE + "; -fx-border-width: 1;";
+            baseStyle =
+                    "-fx-background-color: " +
+                    (isLightMode ? "#F1F5F9" : "rgba(10, 18, 33, 0.85)") +
+                    ";" +
+                    "-fx-border-color: " +
+                    (isLightMode ? "#CBD5E1" : "rgba(255, 255, 255, 0.08)") +
+                    ";" +
+                    "-fx-border-width: 1;";
+
+            hoverStyle =
+                    "-fx-background-color: " +
+                    (isLightMode ? "#E2E8F0" : "rgba(23, 37, 64, 0.95)") +
+                    ";" +
+                    "-fx-border-color: " + BLUE + ";" +
+                    "-fx-border-width: 1;";
+
             iconLabel.setTextFill(Color.web(BLUE));
             textLabel.setTextFill(Color.web(textSecondary));
         }
 
-        String common = " -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-focus-color: transparent; -fx-faint-focus-color: transparent;";
+        String common =
+                " -fx-border-radius: 8;" +
+                " -fx-background-radius: 8;" +
+                " -fx-cursor: hand;" +
+                " -fx-focus-color: transparent;" +
+                " -fx-faint-focus-color: transparent;";
+
         button.setStyle(baseStyle + common);
 
         button.setOnMouseEntered(e -> {
             button.setStyle(hoverStyle + common);
+
             if (!selected) {
                 iconLabel.setTextFill(Color.web(BLUE));
                 textLabel.setTextFill(Color.web(textPrimary));
@@ -692,6 +863,7 @@ public class AdminSettings {
 
         button.setOnMouseExited(e -> {
             button.setStyle(baseStyle + common);
+
             if (!selected) {
                 iconLabel.setTextFill(Color.web(BLUE));
                 textLabel.setTextFill(Color.web(textSecondary));
@@ -701,7 +873,8 @@ public class AdminSettings {
 
     private Label createFormLabel(String text) {
         Label label = new Label(text);
-        label.setPrefWidth(210); label.setMinWidth(210);
+        label.setPrefWidth(210);
+        label.setMinWidth(210);
         label.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         label.setTextFill(Color.web(textPrimary));
         return label;
@@ -735,6 +908,7 @@ public class AdminSettings {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
+
                 if (empty || item == null) {
                     setText(null);
                 } else {
@@ -749,6 +923,7 @@ public class AdminSettings {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
+
                 if (empty || item == null) {
                     setText(null);
                     setStyle("-fx-background-color: transparent;");
@@ -756,7 +931,11 @@ public class AdminSettings {
                     setText(item);
                     setFont(Font.font(FONT, FontWeight.MEDIUM, 12));
                     setTextFill(Color.web(textColor));
-                    setStyle("-fx-background-color: " + (isLightMode ? "#FFFFFF" : "#0D182E") + "; -fx-padding: 8 12;");
+                    setStyle(
+                            "-fx-background-color: " +
+                            (isLightMode ? "#FFFFFF" : "#0D182E") +
+                            "; -fx-padding: 8 12;"
+                    );
                 }
             }
         });
@@ -765,28 +944,70 @@ public class AdminSettings {
     }
 
     private String createToggleStyle(boolean enabled) {
-        return "-fx-background-color: " + (enabled ? BLUE : (isLightMode ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)")) + "; -fx-background-radius: 20; -fx-border-radius: 20; -fx-text-fill: transparent; -fx-padding: 0; -fx-cursor: hand;";
+        return "-fx-background-color: " +
+                (enabled ? BLUE : (isLightMode ? "#E2E8F0" : "rgba(255, 255, 255, 0.08)")) +
+                "; -fx-background-radius: 20; -fx-border-radius: 20; -fx-text-fill: transparent; -fx-padding: 0; -fx-cursor: hand;";
     }
 
     private SVGPath createIcon(String type) {
         SVGPath icon = new SVGPath();
         icon.setFill(Color.TRANSPARENT);
         icon.setStrokeWidth(2);
+
         switch (type) {
-            case "dashboard": icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z"); break;
-            case "users": icon.setContent("M8 11 A3 3 0 1 0 8 5 A3 3 0 0 0 8 11 Z M16 11 A3 3 0 1 0 16 5 A3 3 0 0 0 16 11 Z M2 20 C2 16 5 14 8 14 C11 14 14 16 14 20 M12 15 C14 14 17 14 19 15 C21 16 22 18 22 20"); break;
-            case "files": icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13"); break;
-            case "collaboration": icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"); break;
-            case "ai": icon.setContent("M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z"); break;
-            case "analytics": icon.setContent("M4 20 V11 M10 20 V6 M16 20 V13 M22 20 V3"); break;
-            case "security": icon.setContent("M12 2 L20 5 V11 C20 16 17 20 12 22 C7 20 4 16 4 11 V5 Z M9 12 L11 14 L15 9"); break;
-            case "settings": icon.setContent("M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21 M5.6 5.6 L7.7 7.7 M16.3 16.3 L18.4 18.4 M18.4 5.6 L16.3 7.7 M7.7 16.3 L5.6 18.4 M12 8 A4 4 0 1 0 12 16 A4 4 0 0 0 12 8"); break;
-            case "logout": icon.setContent("M10 4 H5 V20 H10 M14 8 L19 12 L14 16 M19 12 H8"); break;
-            case "search": icon.setContent("M10 3 A7 7 0 1 0 10 17 A7 7 0 0 0 10 3 Z M15 15 L21 21"); break;
-            case "bell": icon.setContent("M6 17 H18 M8 17 V10 A4 4 0 0 1 16 10 V17 M10 20 H14"); break;
-            case "appearance": icon.setContent("M12 3 A9 9 0 1 0 12 21 A9 9 0 0 0 12 3 Z M12 3 V21"); break;
-            default: icon.setContent("M4 4 H20 V20 H4 Z"); break;
+            case "dashboard":
+                icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z");
+                break;
+
+            case "users":
+                icon.setContent("M8 11 A3 3 0 1 0 8 5 A3 3 0 0 0 8 11 Z M16 11 A3 3 0 1 0 16 5 A3 3 0 0 0 16 11 Z M2 20 C2 16 5 14 8 14 C11 14 14 16 14 20 M12 15 C14 14 17 14 19 15 C21 16 22 18 22 20");
+                break;
+
+            case "files":
+                icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13");
+                break;
+
+            case "collaboration":
+                icon.setContent("M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75");
+                break;
+
+            case "ai":
+                icon.setContent("M12 2 L13.5 8.5 L20 7 L15.5 11.5 L21 15 L14 14.5 L12 22 L10 14.5 L3 15 L8.5 11.5 L4 7 L10.5 8.5 Z");
+                break;
+
+            case "analytics":
+                icon.setContent("M4 20 V11 M10 20 V6 M16 20 V13 M22 20 V3");
+                break;
+
+            case "security":
+                icon.setContent("M12 2 L20 5 V11 C20 16 17 20 12 22 C7 20 4 16 4 11 V5 Z M9 12 L11 14 L15 9");
+                break;
+
+            case "settings":
+                icon.setContent("M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21 M5.6 5.6 L7.7 7.7 M16.3 16.3 L18.4 18.4 M18.4 5.6 L16.3 7.7 M7.7 16.3 L5.6 18.4 M12 8 A4 4 0 1 0 12 16 A4 4 0 0 0 12 8");
+                break;
+
+            case "logout":
+                icon.setContent("M10 4 H5 V20 H10 M14 8 L19 12 L14 16 M19 12 H8");
+                break;
+
+            case "search":
+                icon.setContent("M10 3 A7 7 0 1 0 10 17 A7 7 0 0 0 10 3 Z M15 15 L21 21");
+                break;
+
+            case "bell":
+                icon.setContent("M6 17 H18 M8 17 V10 A4 4 0 0 1 16 10 V17 M10 20 H14");
+                break;
+
+            case "appearance":
+                icon.setContent("M12 3 A9 9 0 1 0 12 21 A9 9 0 0 0 12 3 Z M12 3 V21");
+                break;
+
+            default:
+                icon.setContent("M4 4 H20 V20 H4 Z");
+                break;
         }
+
         return icon;
     }
 }
