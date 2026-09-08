@@ -184,8 +184,8 @@ public class AdminSettings {
     }
 
     private void applyHoverAnimation(Node node, double scale, int translateY) {
-        ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(180), node);
-        TranslateTransition translateTransition = new TranslateTransition(Duration.millis(180), node);
+        ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(160), node);
+        TranslateTransition translateTransition = new TranslateTransition(Duration.millis(160), node);
 
         node.setOnMouseEntered(e -> {
             scaleTransition.stop();
@@ -537,7 +537,8 @@ public class AdminSettings {
         Region accountSpacer = new Region();
         HBox.setHgrow(accountSpacer, Priority.ALWAYS);
 
-        Button editProfile = createOutlineButton("Edit Profile");
+        // Explicitly styled in Green with vibrant hover glow
+        Button editProfile = createOutlineButton("Edit Profile", GREEN);
         editProfile.setOnAction(e -> LandingPage.showAdminProfilePage());
 
         HBox accountButtons = new HBox(10, editProfile);
@@ -712,15 +713,44 @@ public class AdminSettings {
         VBox box = new VBox(14);
         box.setFillWidth(true);
         box.setPadding(new Insets(20));
-        box.setStyle(
+
+        String idleStyle =
                 "-fx-background-color: " + cardBg + ";" +
                 "-fx-border-color: " + cardBorder + ";" +
                 "-fx-border-width: 1.2;" +
                 "-fx-border-radius: 20;" +
                 "-fx-background-radius: 20;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0," + (isLightMode ? "0.06" : "0.6") + "), 24, 0, 0, 10);"
-        );
-        applyHoverAnimation(box, 1.01, -2);
+                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0," + (isLightMode ? "0.06" : "0.6") + "), 24, 0, 0, 10);";
+
+        String hoverStyle =
+                "-fx-background-color: " + (isLightMode ? "#FFFFFF" : "linear-gradient(to bottom right, rgba(23, 40, 68, 0.92), rgba(12, 22, 40, 0.96))") + ";" +
+                "-fx-border-color: #38BDF8;" +
+                "-fx-border-width: 1.2;" +
+                "-fx-border-radius: 20;" +
+                "-fx-background-radius: 20;" +
+                "-fx-effect: dropshadow(three-pass-box, rgba(56,189,248," + (isLightMode ? "0.2" : "0.35") + "), 24, 0, 0, 6);";
+
+        box.setStyle(idleStyle);
+
+        ScaleTransition st = new ScaleTransition(Duration.millis(160), box);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(160), box);
+
+        box.setOnMouseEntered(e -> {
+            box.setStyle(hoverStyle);
+            st.stop(); tt.stop();
+            st.setToX(1.015); st.setToY(1.015);
+            tt.setToY(-2);
+            st.play(); tt.play();
+        });
+
+        box.setOnMouseExited(e -> {
+            box.setStyle(idleStyle);
+            st.stop(); tt.stop();
+            st.setToX(1.0); st.setToY(1.0);
+            tt.setToY(0);
+            st.play(); tt.play();
+        });
+
         return box;
     }
 
@@ -753,10 +783,35 @@ public class AdminSettings {
         return box;
     }
 
-    private Button createOutlineButton(String text) {
+    private Button createOutlineButton(String text, String textColorHex) {
         Button button = new Button(text);
         button.setPrefHeight(34);
-        button.setPadding(new Insets(0, 15, 0, 15));
+        button.setPadding(new Insets(0, 16, 0, 16));
+
+        String bg = isLightMode ? "#F8FAFC" : "rgba(255, 255, 255, 0.05)";
+        String idleStyle = "-fx-background-color: " + bg + "; -fx-border-color: " + cardBorder + "; -fx-border-width: 1.2; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: " + textColorHex + "; -fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-cursor: hand;";
+        String hoverStyle = "-fx-background-color: rgba(16, 185, 129, 0.16); -fx-border-color: " + GREEN + "; -fx-border-width: 1.2; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: " + textColorHex + "; -fx-font-family: " + FONT + "; -fx-font-size: 12px; -fx-font-weight: 700; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(16, 185, 129, 0.4), 10, 0, 0, 2);";
+
+        button.setStyle(idleStyle);
+
+        ScaleTransition st = new ScaleTransition(Duration.millis(140), button);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(140), button);
+
+        button.setOnMouseEntered(e -> {
+            button.setStyle(hoverStyle);
+            st.stop(); tt.stop();
+            st.setToX(1.05); st.setToY(1.05);
+            tt.setToY(-1.5);
+            st.play(); tt.play();
+        });
+
+        button.setOnMouseExited(e -> {
+            button.setStyle(idleStyle);
+            st.stop(); tt.stop();
+            st.setToX(1.0); st.setToY(1.0);
+            tt.setToY(0);
+            st.play(); tt.play();
+        });
 
         String baseStyle =
                 "-fx-background-color: " +
@@ -852,13 +907,20 @@ public class AdminSettings {
 
         button.setStyle(baseStyle + common);
 
+        ScaleTransition st = new ScaleTransition(Duration.millis(140), button);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(140), button);
+
         button.setOnMouseEntered(e -> {
             button.setStyle(hoverStyle + common);
 
             if (!selected) {
-                iconLabel.setTextFill(Color.web(BLUE));
+                iconLabel.setTextFill(Color.web("#38BDF8"));
                 textLabel.setTextFill(Color.web(textPrimary));
             }
+            st.stop(); tt.stop();
+            st.setToX(1.04); st.setToY(1.04);
+            tt.setToY(-1.5);
+            st.play(); tt.play();
         });
 
         button.setOnMouseExited(e -> {
@@ -868,6 +930,10 @@ public class AdminSettings {
                 iconLabel.setTextFill(Color.web(BLUE));
                 textLabel.setTextFill(Color.web(textSecondary));
             }
+            st.stop(); tt.stop();
+            st.setToX(1.0); st.setToY(1.0);
+            tt.setToY(0);
+            st.play(); tt.play();
         });
     }
 
@@ -888,21 +954,35 @@ public class AdminSettings {
 
     private void styleComboBox(ComboBox<String> comboBox) {
         comboBox.setPrefWidth(345);
-        comboBox.setPrefHeight(34);
+        comboBox.setPrefHeight(36);
 
         String comboBg = isLightMode ? "#F8FAFC" : "rgba(10, 18, 33, 0.95)";
         String textColor = isLightMode ? "#0F172A" : "#FFFFFF";
 
-        comboBox.setStyle(
+        String idleStyle =
             "-fx-background-color: " + comboBg + ";" +
             "-fx-border-color: " + cardBorder + ";" +
-            "-fx-border-width: 1;" +
-            "-fx-border-radius: 7;" +
-            "-fx-background-radius: 7;" +
+            "-fx-border-width: 1.2;" +
+            "-fx-border-radius: 8;" +
+            "-fx-background-radius: 8;" +
             "-fx-font-family: " + FONT + ";" +
             "-fx-font-size: 12px;" +
-            "-fx-font-weight: 600;"
-        );
+            "-fx-font-weight: 600;" +
+            "-fx-cursor: hand;";
+
+        String hoverStyle =
+            "-fx-background-color: " + (isLightMode ? "#FFFFFF" : "#0D182E") + ";" +
+            "-fx-border-color: #38BDF8;" +
+            "-fx-border-width: 1.2;" +
+            "-fx-border-radius: 8;" +
+            "-fx-background-radius: 8;" +
+            "-fx-font-family: " + FONT + ";" +
+            "-fx-font-size: 12px;" +
+            "-fx-font-weight: 600;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 10, 0, 0, 2);";
+
+        comboBox.setStyle(idleStyle);
 
         comboBox.setButtonCell(new ListCell<>() {
             @Override
@@ -940,8 +1020,16 @@ public class AdminSettings {
             }
         });
 
-        applyHoverAnimation(comboBox, 1.02, -1);
-    }
+        ScaleTransition st = new ScaleTransition(Duration.millis(140), comboBox);
+        TranslateTransition tt = new TranslateTransition(Duration.millis(140), comboBox);
+
+        comboBox.setOnMouseEntered(e -> {
+            comboBox.setStyle(hoverStyle);
+            st.stop(); tt.stop();
+            st.setToX(1.02); st.setToY(1.02);
+            tt.setToY(-1.5);
+            st.play(); tt.play();
+        });
 
     private String createToggleStyle(boolean enabled) {
         return "-fx-background-color: " +

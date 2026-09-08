@@ -1,5 +1,7 @@
 package com.file_handlers.view.adminView;
 
+import com.file_handlers.config.FirebaseConfig;
+import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
 import javafx.animation.ScaleTransition;
@@ -20,16 +22,24 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
 import javafx.util.Duration;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class AdminNotificationPage {
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
     private static final String SIDEBAR_BG = "#070C16", SIDEBAR_BORDER = "rgba(255, 255, 255, 0.07)";
     private static final String MAIN_BG = "radial-gradient(center 70% 20%, radius 80%, #0D1F3D 0%, #060B14 60%, #03060A 100%)";
     private static final String CARD_BG = "linear-gradient(to bottom right, rgba(16, 28, 48, 0.85), rgba(9, 16, 30, 0.95))";
-    private static final String CARD_BORDER = "rgba(56, 189, 248, 0.22)";
-    private static final String WHITE = "#FFFFFF", LIGHT_SECONDARY = "#94A3B8", BLUE = "#2563EB", CYAN = "#00D2FF";
+    private static final String CARD_BORDER = "rgba(56, 189, 248, 0.28)";
+    private static final String WHITE = "#FFFFFF", LIGHT_SECONDARY = "#94A3B8";
+    
+    // Sky Blue Theme Accents
+    private static final String SKY_BLUE_PRIMARY = "#38BDF8";
+    private static final String SKY_BLUE_DARK = "#0284C7";
+    private static final String SKY_BLUE_BG = "rgba(56, 189, 248, 0.15)";
     
     private String activeUserName = "Admin", initials = "A";
     private final List<NotificationItemData> allNotifications = new ArrayList<>();
@@ -56,6 +66,15 @@ public class AdminNotificationPage {
     }
 
     public Scene getAdminNotificationPageScene() {
+        if (UserSession.getInstance() != null && UserSession.getInstance().getDisplayName() != null) {
+            String fullName = UserSession.getInstance().getDisplayName().trim();
+            if (!fullName.isEmpty()) {
+                String[] parts = fullName.split("\\s+");
+                activeUserName = parts[0];
+                initials = activeUserName.substring(0, 1).toUpperCase();
+            }
+        }
+
         initData();
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: " + SIDEBAR_BG + ";");
@@ -127,12 +146,12 @@ public class AdminNotificationPage {
         button.setAlignment(Pos.CENTER_LEFT); button.setPadding(new Insets(0, 12, 0, 12));
 
         if (active) {
-            button.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-background-radius: 12; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);");
+            button.setStyle("-fx-background-color: linear-gradient(to right, #0284C7, #38BDF8); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.6); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.55), 14, 0, 0, 2);");
         } else {
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
                 button.setStyle("-fx-background-color: rgba(56, 189, 248, 0.12); -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
-                icon.setStroke(Color.web("#38BDF8")); label.setTextFill(Color.web("#38BDF8"));
+                icon.setStroke(Color.web(SKY_BLUE_PRIMARY)); label.setTextFill(Color.web(SKY_BLUE_PRIMARY));
                 TranslateTransition tt = new TranslateTransition(Duration.millis(120), button); tt.setToX(4); tt.play();
             });
             button.setOnMouseExited(e -> {
@@ -146,17 +165,17 @@ public class AdminNotificationPage {
 
     private HBox createTopBar() {
         Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
-        SVGPath bell = createIcon("bell"); bell.setStroke(Color.WHITE); bell.setStrokeWidth(2);
+        SVGPath bell = createIcon("bell"); bell.setStroke(Color.web(SKY_BLUE_PRIMARY)); bell.setStrokeWidth(2);
 
         Button notification = new Button(); notification.setGraphic(bell);
-        notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
+        notification.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(56, 189, 248, 0.3); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 10;");
         notification.setOnAction(e -> LandingPage.showAdminNotificationPage());
         applyHover(notification, 1.08, 0);
 
         Label avatar = new Label(initials);
         avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12)); avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #0284C7, #38BDF8); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.5), 10, 0, 0, 2);");
         applyHover(avatar, 1.15, 0);
 
         Label admin = new Label(activeUserName); admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13)); admin.setTextFill(Color.WHITE);
@@ -182,14 +201,14 @@ public class AdminNotificationPage {
 
     private Popup createProfilePopup() {
         Popup popup = new Popup(); popup.setAutoHide(true);
-        HBox profileBtn = createProfilePopupItem("users", "Profile Page", "#F59E0B", () -> { popup.hide(); LandingPage.showAdminProfilePage(); });
-        HBox settingsBtn = createProfilePopupItem("settings", "Settings", "#38BDF8", () -> { popup.hide(); LandingPage.showAdminSettings(); });
+        HBox profileBtn = createProfilePopupItem("users", "Profile Page", "#38BDF8", () -> { popup.hide(); LandingPage.showAdminProfilePage(); });
+        HBox settingsBtn = createProfilePopupItem("settings", "Settings", "#0284C7", () -> { popup.hide(); LandingPage.showAdminSettings(); });
         HBox signOutBtn = createProfilePopupItem("logout", "Sign Out", "#F87171", () -> { popup.hide(); LandingPage.showAdminLoginPage(); });
 
         Region menuDivider = new Region(); menuDivider.setPrefHeight(1); menuDivider.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08);");
         VBox menuBox = new VBox(6, profileBtn, settingsBtn, menuDivider, signOutBtn);
         menuBox.setPrefWidth(170); menuBox.setPadding(new Insets(10, 8, 10, 8));
-        menuBox.setStyle("-fx-background-color: #0B132B; -fx-border-color: rgba(255, 255, 255, 0.12); -fx-border-width: 1.2; -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 24, 0, 0, 10);");
+        menuBox.setStyle("-fx-background-color: #0B132B; -fx-border-color: rgba(56, 189, 248, 0.25); -fx-border-width: 1.2; -fx-border-radius: 14; -fx-background-radius: 14; -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.8), 24, 0, 0, 10);");
         popup.getContent().add(menuBox);
         return popup;
     }
@@ -202,21 +221,21 @@ public class AdminNotificationPage {
         HBox item = new HBox(12, iconBox, label); item.setAlignment(Pos.CENTER_LEFT); item.setPadding(new Insets(8, 10, 8, 10));
         item.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-background-radius: 6;");
         item.setOnMouseEntered(e -> item.setStyle("-fx-background-color: rgba(56, 189, 248, 0.12); -fx-cursor: hand; -fx-background-radius: 6;"));
-        item.setOnMouseExited(e -> item.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-background-radius: 6;"));
+        item.setOnMouseExited(e -> item.setStyle("-fx-background-color: transparent; -fx-cursor: hand;"));
         item.setOnMouseClicked(e -> action.run());
         return item;
     }
 
     private VBox createNotificationContent() {
-        Label title = new Label("Notifications"); title.setFont(Font.font(FONT, FontWeight.BOLD, 24)); title.setTextFill(Color.web(WHITE));
-        Label subtitle = new Label("Findings from the last scan and updates from your collaborators.");
+        Label title = new Label("Admin Notifications"); title.setFont(Font.font(FONT, FontWeight.BOLD, 24)); title.setTextFill(Color.web(WHITE));
+        Label subtitle = new Label("System health, workspace governance, and user authorization updates.");
         subtitle.setFont(Font.font(FONT, FontWeight.MEDIUM, 13)); subtitle.setTextFill(Color.web(LIGHT_SECONDARY));
         VBox titleBox = new VBox(4, title, subtitle);
 
         Button markAllReadBtn = new Button("Mark all read");
         markAllReadBtn.setPrefHeight(34); markAllReadBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 12));
         markAllReadBtn.setTextFill(Color.web(WHITE)); markAllReadBtn.setPadding(new Insets(0, 16, 0, 16));
-        markAllReadBtn.setStyle("-fx-background-color: rgba(255, 255, 255, 0.06); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
+        markAllReadBtn.setStyle("-fx-background-color: rgba(56, 189, 248, 0.08); -fx-border-color: " + CARD_BORDER + "; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
         applyHover(markAllReadBtn, 1.05, 0);
         markAllReadBtn.setOnAction(e -> { allNotifications.forEach(n -> n.isRead = true); renderList(); });
 
@@ -233,13 +252,13 @@ public class AdminNotificationPage {
         notificationListContainer = new VBox(10);
         renderList();
 
-        SVGPath warnIcon = createIcon("alert"); warnIcon.setStroke(Color.web("#F59E0B")); warnIcon.setStrokeWidth(2);
-        Label warnText = new Label("OneSpace never deletes or moves files on its own. Every suggested clean-up requires your explicit confirmation.");
-        warnText.setFont(Font.font(FONT, FontWeight.NORMAL, 12)); warnText.setTextFill(Color.web(LIGHT_SECONDARY));
+        SVGPath infoIcon = createIcon("bell"); infoIcon.setStroke(Color.web(SKY_BLUE_PRIMARY)); infoIcon.setStrokeWidth(2);
+        Label bannerText = new Label("Administrative Oversight: Showing active workspace registries, role escalations, and system telemetry.");
+        bannerText.setFont(Font.font(FONT, FontWeight.NORMAL, 12)); bannerText.setTextFill(Color.web(LIGHT_SECONDARY));
 
-        HBox disclaimerBanner = new HBox(10, warnIcon, warnText);
+        HBox disclaimerBanner = new HBox(10, infoIcon, bannerText);
         disclaimerBanner.setAlignment(Pos.CENTER_LEFT); disclaimerBanner.setPadding(new Insets(14, 18, 14, 18));
-        disclaimerBanner.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: rgba(245, 158, 11, 0.3); -fx-border-radius: 12; -fx-background-radius: 12;");
+        disclaimerBanner.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-radius: 12; -fx-background-radius: 12;");
         applyHover(disclaimerBanner, 1.01, -2);
 
         VBox content = new VBox(20, headerRow, filterGroup, notificationListContainer, disclaimerBanner);
@@ -259,21 +278,21 @@ public class AdminNotificationPage {
 
     private HBox createNotificationCard(NotificationItemData data) {
         SVGPath icon = createIcon(data.iconType);
-        icon.setStroke(Color.web(data.type.equalsIgnoreCase("Collaboration") ? CYAN : BLUE)); icon.setStrokeWidth(2.0);
+        icon.setStroke(Color.web(SKY_BLUE_PRIMARY)); icon.setStrokeWidth(2.0);
         StackPane iconBox = new StackPane(icon); iconBox.setPrefSize(36, 36);
-        iconBox.setStyle("-fx-background-color: rgba(37, 99, 235, 0.15); -fx-border-color: rgba(56, 189, 248, 0.3); -fx-border-radius: 8; -fx-background-radius: 8;");
+        iconBox.setStyle("-fx-background-color: " + SKY_BLUE_BG + "; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 8; -fx-background-radius: 8;");
 
         Label titleLbl = new Label(data.title); titleLbl.setFont(Font.font(FONT, FontWeight.BOLD, 13)); titleLbl.setTextFill(Color.web(WHITE));
         Label subLbl = new Label(data.subtitle); subLbl.setFont(Font.font(FONT, FontWeight.NORMAL, 12)); subLbl.setTextFill(Color.web(LIGHT_SECONDARY));
         VBox textGroup = new VBox(3, titleLbl, subLbl);
 
-        Label timeLbl = new Label(data.time); timeLbl.setFont(Font.font(FONT, FontWeight.MEDIUM, 11)); timeLbl.setTextFill(Color.web(LIGHT_SECONDARY));
+        Label timeLbl = new Label(data.time); timeLbl.setFont(Font.font(FONT, FontWeight.MEDIUM, 11)); timeLbl.setTextFill(Color.web(SKY_BLUE_PRIMARY));
         Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
 
         HBox row = new HBox(14, iconBox, textGroup, spacer, timeLbl);
         row.setAlignment(Pos.CENTER_LEFT); row.setPadding(new Insets(16, 18, 16, 18));
         String idleStyle = "-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 14; -fx-background-radius: 14;";
-        String hoverStyle = "-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.9), rgba(12, 22, 40, 0.95)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 14; -fx-background-radius: 14; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 16, 0, 0, 4);";
+        String hoverStyle = "-fx-background-color: linear-gradient(to bottom right, rgba(23, 40, 68, 0.9), rgba(12, 22, 40, 0.95)); -fx-border-color: #38BDF8; -fx-border-width: 1.2; -fx-border-radius: 14; -fx-background-radius: 14; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.4), 16, 0, 0, 4);";
 
         row.setStyle(idleStyle);
         row.setOnMouseEntered(e -> {
@@ -289,9 +308,9 @@ public class AdminNotificationPage {
 
     private void updateFilter(String filter, Button selected, Button... unselected) {
         this.activeFilter = filter;
-        selected.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
+        selected.setStyle("-fx-background-color: linear-gradient(to right, #0284C7, #38BDF8); -fx-border-color: rgba(56, 189, 248, 0.7); -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56, 189, 248, 0.35), 8, 0, 0, 2);");
         for (Button btn : unselected) {
-            btn.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: #94A3B8; -fx-font-weight: normal; -fx-cursor: hand;");
+            btn.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: #94A3B8; -fx-font-weight: normal; -fx-cursor: hand; -fx-effect: null;");
         }
         renderList();
     }
@@ -299,19 +318,99 @@ public class AdminNotificationPage {
     private Button createFilterPill(String text, boolean isSelected) {
         Button btn = new Button(text);
         btn.setPrefHeight(32); btn.setFont(Font.font(FONT, isSelected ? FontWeight.BOLD : FontWeight.MEDIUM, 12)); btn.setPadding(new Insets(0, 16, 0, 16));
-        btn.setStyle(isSelected ? "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: white; -fx-cursor: hand;" : "-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: #94A3B8; -fx-cursor: hand;");
+        btn.setStyle(isSelected 
+                ? "-fx-background-color: linear-gradient(to right, #0284C7, #38BDF8); -fx-border-color: rgba(56, 189, 248, 0.7); -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: white; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56, 189, 248, 0.35), 8, 0, 0, 2);"
+                : "-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-text-fill: #94A3B8; -fx-cursor: hand;");
         applyHover(btn, 1.05, 0);
         return btn;
     }
 
     private void initData() {
         allNotifications.clear();
-        allNotifications.add(new NotificationItemData("files", "12 duplicate files detected", "Downloads folder · 4.2 GB recoverable", "1 h", "Reminders"));
-        allNotifications.add(new NotificationItemData("security", "Sensitive files found", "Sensitive identity, PAN and passport scans detected", "3 h", "Reminders"));
-        allNotifications.add(new NotificationItemData("security", "Passport expires in 12 days", "Linked to Passport_Scan.pdf", "5 h", "Reminders"));
-        allNotifications.add(new NotificationItemData("collaboration", "Riya commented on a shared file", "Cloud_Computing_Seminar.pptx", "Yesterday", "Collaboration"));
-        allNotifications.add(new NotificationItemData("ai", "AI created 2 new Spaces", "Healthcare and Travel from 609 files", "2 d", "Reminders"));
-        allNotifications.add(new NotificationItemData("collaboration", "Priya Sharma uploaded 'SVM_Optimization.pdf'", "Shared in College Presentation Workspace", "2 d", "Collaboration"));
+
+        try {
+            com.google.cloud.firestore.Firestore db = FirebaseConfig.getFirestore();
+            if (db == null) {
+                allNotifications.add(new NotificationItemData("bell", "Database Disconnected", "Firestore client instance is not initialized.", "Just now", "Reminders"));
+                return;
+            }
+
+            var workspacesDocs = db.collection("workspaces").get().get().getDocuments();
+            int totalActiveWorkspaces = workspacesDocs.size();
+            int totalSystemFiles = 0;
+            int totalPendingInvites = 0;
+
+            for (var wsDoc : workspacesDocs) {
+                String spaceDocId = wsDoc.getId();
+                String spaceName = wsDoc.getString("spaceName");
+                if (spaceName == null || spaceName.trim().isEmpty()) {
+                    spaceName = spaceDocId.replaceAll("_", " ");
+                }
+
+                // 1. High-Level Event: Workspace Registry
+                Date wsCreated = wsDoc.getDate("createdAt");
+                String createdTimeStr = formatRelativeTime(wsCreated != null ? wsCreated : wsDoc.getDate("timestamp"));
+                String createdBy = wsDoc.getString("createdBy");
+                String subtitle = (createdBy != null && !createdBy.isEmpty())
+                        ? "Registered by " + createdBy + " · Workspace ID: " + spaceDocId
+                        : "Active shared workspace environment";
+                allNotifications.add(new NotificationItemData("dashboard", "Workspace: " + spaceName, subtitle, createdTimeStr, "Collaboration"));
+
+                // Count files for system telemetry
+                var fileDocs = db.collection("workspaces").document(spaceDocId).collection("files").get().get().getDocuments();
+                totalSystemFiles += fileDocs.size();
+
+                // 2. High-Level Event: Privilege & Authorization Audits
+                var memberDocs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
+                for (var mDoc : memberDocs) {
+                    String name = mDoc.getString("name");
+                    String email = mDoc.getString("email");
+                    String role = mDoc.getString("role");
+                    String status = mDoc.getString("status");
+                    Date memberDate = mDoc.getDate("updatedAt") != null ? mDoc.getDate("updatedAt") : mDoc.getDate("createdAt");
+                    String timeLabel = formatRelativeTime(memberDate);
+
+                    String userIdentifier = (name != null && !name.trim().isEmpty()) ? name : email;
+                    if (userIdentifier == null) continue;
+
+                    if ("pending".equalsIgnoreCase(status)) {
+                        totalPendingInvites++;
+                        allNotifications.add(new NotificationItemData("security", "Pending Authorization: " + userIdentifier, "Awaiting invite confirmation for '" + spaceName + "'", timeLabel, "Reminders"));
+                    } else if ("Owner".equalsIgnoreCase(role) || "Admin".equalsIgnoreCase(role)) {
+                        allNotifications.add(new NotificationItemData("security", "Elevated Role: " + userIdentifier, "Assigned " + role + " privileges in '" + spaceName + "'", timeLabel, "Reminders"));
+                    }
+                }
+            }
+
+            // 3. System Telemetry Overview Card
+            allNotifications.add(new NotificationItemData("analytics", "System Telemetry & Health", totalActiveWorkspaces + " active workspaces · " + totalSystemFiles + " files hosted · " + totalPendingInvites + " pending invitations", "Just now", "Reminders"));
+
+        } catch (Exception ex) {
+            System.err.println("Error loading notifications in AdminNotificationPage: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+
+        if (allNotifications.isEmpty()) {
+            allNotifications.add(new NotificationItemData("bell", "No active notifications", "Workspaces and permissions are fully synced.", "Just now", "Reminders"));
+        }
+    }
+
+    private String formatRelativeTime(Date date) {
+        if (date == null) return "Recent";
+        long diff = System.currentTimeMillis() - date.getTime();
+        if (diff < 0) {
+            long days = TimeUnit.MILLISECONDS.toDays(Math.abs(diff));
+            return days <= 0 ? "Today" : "In " + days + " d";
+        }
+        long mins = TimeUnit.MILLISECONDS.toMinutes(diff);
+        if (mins < 1) return "Just now";
+        if (mins < 60) return mins + " m";
+        long hours = TimeUnit.MILLISECONDS.toHours(diff);
+        if (hours < 24) return hours + " h";
+        long days = TimeUnit.MILLISECONDS.toDays(diff);
+        if (days == 1) return "Yesterday";
+        if (days < 7) return days + " d";
+        return (days / 7) + " w";
     }
 
     private SVGPath createIcon(String type) {
@@ -327,7 +426,6 @@ public class AdminNotificationPage {
             case "settings": icon.setContent("M12 3 V6 M12 18 V21 M3 12 H6 M18 12 H21 M5.6 5.6 L7.7 7.7 M16.3 16.3 L18.4 18.4 M18.4 5.6 L16.3 7.7 M7.7 16.3 L5.6 18.4 M12 8 A4 4 0 1 0 12 16 A4 4 0 0 0 12 8"); break;
             case "logout": icon.setContent("M10 4 H5 V20 H10 M14 8 L19 12 L14 16 M19 12 H8"); break;
             case "bell": icon.setContent("M6 17 H18 M8 17 V10 A4 4 0 0 1 16 10 V17 M10 20 H14"); break;
-            case "alert": icon.setContent("M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01"); break;
             default: icon.setContent("M4 4 H20 V20 H4 Z"); break;
         }
         return icon;

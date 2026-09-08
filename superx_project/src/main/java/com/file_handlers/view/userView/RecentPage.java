@@ -48,6 +48,11 @@ public class RecentPage {
     private static final String LIGHT_SECONDARY = "#94A3B8";
     private static final String BLUE = "#2563EB";
 
+    // UI References for Dynamic Sidebar Storage Box
+    private Label sidebarStorageVal;
+    private Label sidebarStoragePercent;
+    private ProgressBar sidebarStorageProgress;
+
     private final FileDAO fileDAO = new FileDAO();
     private VBox fileRows;
     private Label emptyLabel;
@@ -89,75 +94,20 @@ public class RecentPage {
         profileOption.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
         applyHoverAnimation(profileOption, 1.04, 0);
 
-        // Custom Dropdown Menu
         Popup userDropdownPopup = new Popup();
         userDropdownPopup.setAutoHide(true);
 
         Button profileDropdownBtn = new Button("👥   Profile");
         profileDropdownBtn.setMaxWidth(Double.MAX_VALUE);
         profileDropdownBtn.setAlignment(Pos.CENTER_LEFT);
-        profileDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #F59E0B;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        );
-        profileDropdownBtn.setOnMouseEntered(e -> profileDropdownBtn.setStyle(
-                "-fx-background-color: #1E293B;" +
-                "-fx-text-fill: #F59E0B;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;" +
-                "-fx-background-radius: 6;"
-        ));
-        profileDropdownBtn.setOnMouseExited(e -> profileDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #F59E0B;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        ));
-        profileDropdownBtn.setOnAction(e -> {
-            userDropdownPopup.hide();
-            Platform.runLater(LandingPage::showUserProfilePage);
-        });
+        profileDropdownBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #F59E0B; -fx-font-size: 14px; -fx-font-family: " + FONT + "; -fx-padding: 8 12; -fx-cursor: hand;");
+        profileDropdownBtn.setOnAction(e -> { userDropdownPopup.hide(); Platform.runLater(LandingPage::showUserProfilePage); });
 
         Button settingsDropdownBtn = new Button("⚙   Settings");
         settingsDropdownBtn.setMaxWidth(Double.MAX_VALUE);
         settingsDropdownBtn.setAlignment(Pos.CENTER_LEFT);
-        settingsDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #38BDF8;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        );
-        settingsDropdownBtn.setOnMouseEntered(e -> settingsDropdownBtn.setStyle(
-                "-fx-background-color: #1E293B;" +
-                "-fx-text-fill: #38BDF8;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;" +
-                "-fx-background-radius: 6;"
-        ));
-        settingsDropdownBtn.setOnMouseExited(e -> settingsDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #38BDF8;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        ));
-        settingsDropdownBtn.setOnAction(e -> {
-            userDropdownPopup.hide();
-            Platform.runLater(LandingPage::showSettingPage);
-        });
+        settingsDropdownBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #38BDF8; -fx-font-size: 14px; -fx-font-family: " + FONT + "; -fx-padding: 8 12; -fx-cursor: hand;");
+        settingsDropdownBtn.setOnAction(e -> { userDropdownPopup.hide(); Platform.runLater(LandingPage::showSettingPage); });
 
         Separator dropdownSeparator = new Separator();
         dropdownSeparator.setStyle("-fx-background-color: #1E293B; -fx-padding: 4 0;");
@@ -165,55 +115,19 @@ public class RecentPage {
         Button logoutDropdownBtn = new Button("↳   Logout");
         logoutDropdownBtn.setMaxWidth(Double.MAX_VALUE);
         logoutDropdownBtn.setAlignment(Pos.CENTER_LEFT);
-        logoutDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #F87171;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        );
-        logoutDropdownBtn.setOnMouseEntered(e -> logoutDropdownBtn.setStyle(
-                "-fx-background-color: #1E293B;" +
-                "-fx-text-fill: #F87171;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;" +
-                "-fx-background-radius: 6;"
-        ));
-        logoutDropdownBtn.setOnMouseExited(e -> logoutDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #F87171;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        ));
-        logoutDropdownBtn.setOnAction(e -> {
-            userDropdownPopup.hide();
-            UserSession.clearSession();
-            Platform.runLater(LandingPage::showUserLoginPage);
-        });
+        logoutDropdownBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #F87171; -fx-font-size: 14px; -fx-font-family: " + FONT + "; -fx-padding: 8 12; -fx-cursor: hand;");
+        logoutDropdownBtn.setOnAction(e -> { userDropdownPopup.hide(); UserSession.clearSession(); Platform.runLater(LandingPage::showUserLoginPage); });
 
         VBox dropdownContainer = new VBox(4, profileDropdownBtn, settingsDropdownBtn, dropdownSeparator, logoutDropdownBtn);
         dropdownContainer.setPadding(new Insets(8));
         dropdownContainer.setPrefWidth(180);
-        dropdownContainer.setStyle(
-                "-fx-background-color: #0A121E;" +
-                "-fx-border-color: #1E2D42;" +
-                "-fx-border-width: 1px;" +
-                "-fx-border-radius: 12px;" +
-                "-fx-background-radius: 12px;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 16, 0, 0, 8);"
-        );
+        dropdownContainer.setStyle("-fx-background-color: #0A121E; -fx-border-color: #1E2D42; -fx-border-width: 1px; -fx-border-radius: 12px; -fx-background-radius: 12px;");
 
         userDropdownPopup.getContent().add(dropdownContainer);
 
         profileOption.setOnMouseClicked(e -> {
-            if (userDropdownPopup.isShowing()) {
-                userDropdownPopup.hide();
-            } else {
+            if (userDropdownPopup.isShowing()) userDropdownPopup.hide();
+            else {
                 javafx.geometry.Point2D point = profileOption.localToScreen(0, profileOption.getHeight() + 6);
                 userDropdownPopup.show(profileOption, point.getX(), point.getY());
             }
@@ -247,7 +161,7 @@ public class RecentPage {
 
         VBox recentCard = new VBox(12, listHeader, fileRows);
         recentCard.setPadding(new Insets(20));
-        recentCard.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
+        recentCard.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 20; -fx-background-radius: 20;");
 
         VBox content = new VBox(22, header, recentCard);
         content.setPadding(new Insets(24, ResponsiveUtil.PAGE_PADDING, 28, ResponsiveUtil.PAGE_PADDING));
@@ -258,7 +172,7 @@ public class RecentPage {
         scroll.setFitToHeight(true);
         scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-background-insets: 0; -fx-padding: 0;");
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 0;");
 
         VBox main = new VBox(topBar, scroll);
         main.setStyle("-fx-background: " + MAIN_BG + "; -fx-background-color: " + MAIN_BG + ";");
@@ -270,54 +184,42 @@ public class RecentPage {
         root.setCenter(main);
 
         loadRecentFiles();
+        loadDynamicSidebarStorage();
+
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
     private void applyHoverAnimation(Node node, double scaleTo, double translateY) {
         node.setOnMouseEntered(e -> {
             ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
-            st.setToX(scaleTo);
-            st.setToY(scaleTo);
-            st.play();
-
+            st.setToX(scaleTo); st.setToY(scaleTo); st.play();
             if (translateY != 0) {
                 TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
-                tt.setToY(translateY);
-                tt.play();
+                tt.setToY(translateY); tt.play();
             }
         });
-
         node.setOnMouseExited(e -> {
             ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
-            st.setToX(1.0);
-            st.setToY(1.0);
-            st.play();
-
+            st.setToX(1.0); st.setToY(1.0); st.play();
             if (translateY != 0) {
                 TranslateTransition tt = new TranslateTransition(Duration.millis(140), node);
-                tt.setToY(0);
-                tt.play();
+                tt.setToY(0); tt.play();
             }
         });
     }
 
     private void animateTranslate(Node node, double xTo, double yTo) {
         TranslateTransition tt = new TranslateTransition(Duration.millis(130), node);
-        tt.setToX(xTo);
-        tt.setToY(yTo);
-        tt.play();
+        tt.setToX(xTo); tt.setToY(yTo); tt.play();
     }
 
     private VBox createSidebar() {
         Image logoImage = new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
         ImageView logoView = new ImageView(logoImage);
-        logoView.setFitWidth(42);
-        logoView.setFitHeight(42);
-        logoView.setPreserveRatio(true);
+        logoView.setFitWidth(42); logoView.setFitHeight(42); logoView.setPreserveRatio(true);
 
         StackPane logoIcon = new StackPane(logoView);
-        logoIcon.setPrefSize(42, 42);
-        logoIcon.setAlignment(Pos.CENTER);
+        logoIcon.setPrefSize(42, 42); logoIcon.setAlignment(Pos.CENTER);
         applyHoverAnimation(logoIcon, 1.1, 0);
 
         Label logoText = label("OneSpace", 19, FontWeight.BOLD, WHITE);
@@ -340,19 +242,19 @@ public class RecentPage {
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
 
         Label storageTitle = label("Storage Used", 12, FontWeight.BOLD, WHITE);
-        Label storageVal = label("64.2 GB of 100 GB", 12, FontWeight.BOLD, WHITE);
-        Label storagePercent = label("64%", 11, FontWeight.BOLD, LIGHT_SECONDARY);
+        sidebarStorageVal = label("Syncing...", 12, FontWeight.BOLD, WHITE);
+        sidebarStoragePercent = label("0%", 11, FontWeight.BOLD, LIGHT_SECONDARY);
 
         Region storageGap = new Region();
         HBox.setHgrow(storageGap, Priority.ALWAYS);
 
-        HBox storageValGroup = new HBox(storageVal, storageGap, storagePercent);
+        HBox storageValGroup = new HBox(sidebarStorageVal, storageGap, sidebarStoragePercent);
         storageValGroup.setAlignment(Pos.CENTER_LEFT);
 
-        ProgressBar progress = new ProgressBar(.64);
-        progress.setMaxWidth(Double.MAX_VALUE);
-        progress.setPrefHeight(6);
-        progress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
+        sidebarStorageProgress = new ProgressBar(0.0);
+        sidebarStorageProgress.setMaxWidth(Double.MAX_VALUE);
+        sidebarStorageProgress.setPrefHeight(6);
+        sidebarStorageProgress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
 
         Button manageStorageBtn = new Button("Storage Index ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
@@ -361,7 +263,7 @@ public class RecentPage {
         manageStorageBtn.setOnMouseEntered(e -> animateTranslate(manageStorageBtn, 4, 0));
         manageStorageBtn.setOnMouseExited(e -> animateTranslate(manageStorageBtn, 0, 0));
 
-        VBox storageCard = new VBox(8, storageTitle, storageValGroup, progress, manageStorageBtn);
+        VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarStorageProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
         storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
         applyHoverAnimation(storageCard, 1.01, -1);
@@ -387,7 +289,6 @@ public class RecentPage {
         iconBox.setPrefSize(24, 24);
 
         Label textLabel = label(text, 13, active ? FontWeight.BOLD : FontWeight.MEDIUM, WHITE);
-
         HBox content = new HBox(12, iconBox, textLabel);
         content.setAlignment(Pos.CENTER_LEFT);
 
@@ -400,15 +301,7 @@ public class RecentPage {
         button.setOnAction(action);
 
         if (active) {
-            button.setStyle(
-                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
-                "-fx-background-radius: 12;" +
-                "-fx-border-color: rgba(96, 165, 250, 0.6);" +
-                "-fx-border-radius: 12;" +
-                "-fx-border-width: 1;" +
-                "-fx-cursor: hand;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);"
-            );
+            button.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-background-radius: 12; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
         } else {
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             button.setOnMouseEntered(e -> {
@@ -424,13 +317,48 @@ public class RecentPage {
                 animateTranslate(button, 0, 0);
             });
         }
-
         return button;
+    }
+
+    private void loadDynamicSidebarStorage() {
+        UserSession session = UserSession.getInstance();
+        if (session == null || !UserSession.isLoggedIn() || session.getUid() == null || session.getUid().isBlank()) return;
+
+        Thread thread = new Thread(() -> {
+            try {
+                List<FileData> files = fileDAO.getFileSummaries(session.getUid());
+                String systemDrive = System.getenv("SystemDrive");
+                File drive = systemDrive != null ? new File(systemDrive + "\\") : new File("/");
+                long totalPC = drive.getTotalSpace();
+
+                long totalBytes = 0;
+                for (FileData f : files) {
+                    if (f == null) continue;
+                    long sz = f.getFileSize();
+                    String path = f.getLocalPath();
+                    if (path != null && !path.isBlank()) {
+                        File lf = new File(path);
+                        if (lf.exists() && lf.isFile()) sz = lf.length();
+                    }
+                    if (sz > 0) totalBytes += sz;
+                }
+
+                final long finalBytes = totalBytes;
+                final double percent = totalPC == 0 ? 0 : (finalBytes * 100.0 / totalPC);
+
+                Platform.runLater(() -> {
+                    if (sidebarStorageVal != null) sidebarStorageVal.setText(formatSize(finalBytes) + " of " + formatSize(totalPC));
+                    if (sidebarStoragePercent != null) sidebarStoragePercent.setText(String.format("%.1f%%", percent));
+                    if (sidebarStorageProgress != null) sidebarStorageProgress.setProgress(Math.min(percent / 100.0, 1.0));
+                });
+            } catch (Exception ignored) {}
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private void loadRecentFiles() {
         UserSession session = UserSession.getInstance();
-
         if (session == null || !UserSession.isLoggedIn() || session.getUid() == null || session.getUid().isBlank()) {
             Platform.runLater(() -> showEmpty("No authenticated user."));
             return;
@@ -441,25 +369,20 @@ public class RecentPage {
                 List<FileData> files = fileDAO.getRecentFiles(session.getUid(), 20);
                 Platform.runLater(() -> displayFiles(files));
             } catch (Exception e) {
-                e.printStackTrace();
                 Platform.runLater(() -> showEmpty("Unable to load recent files."));
             }
         });
-
         thread.setDaemon(true);
         thread.start();
     }
 
     private void displayFiles(List<FileData> files) {
         fileRows.getChildren().clear();
-
         if (files == null || files.isEmpty()) {
             showEmpty("No recently accessed files.");
             return;
         }
-
-        for (FileData file : files)
-            fileRows.getChildren().add(createFileRow(file));
+        for (FileData file : files) fileRows.getChildren().add(createFileRow(file));
     }
 
     private void showEmpty(String text) {
@@ -506,17 +429,14 @@ public class RecentPage {
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(8, 12, 8, 12));
         row.setMinHeight(56);
+        row.setStyle("-fx-background-color: transparent; -fx-background-radius: 10; -fx-cursor: hand;");
 
-        String baseStyle = "-fx-background-color: transparent; -fx-background-radius: 10; -fx-cursor: hand;";
-        String hoverStyle = "-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.25), 8, 0, 0, 2);";
-
-        row.setStyle(baseStyle);
         row.setOnMouseEntered(e -> {
-            row.setStyle(hoverStyle);
+            row.setStyle("-fx-background-color: " + CARD_BG_INNER + "; -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-radius: 10; -fx-background-radius: 10; -fx-cursor: hand;");
             animateTranslate(row, 4, 0);
         });
         row.setOnMouseExited(e -> {
-            row.setStyle(baseStyle);
+            row.setStyle("-fx-background-color: transparent; -fx-background-radius: 10;");
             animateTranslate(row, 0, 0);
         });
         row.setOnMouseClicked(e -> openFile(file));
@@ -528,15 +448,12 @@ public class RecentPage {
         if (file == null || file.getLocalPath() == null || file.getLocalPath().isBlank()) return;
 
         UserSession session = UserSession.getInstance();
-
         try {
             File target = new File(file.getLocalPath());
-
             if (!target.exists()) {
                 showAlert("The file no longer exists at its stored location.");
                 return;
             }
-
             if (!Desktop.isDesktopSupported()) {
                 showAlert("Opening files is not supported on this system.");
                 return;
@@ -546,11 +463,7 @@ public class RecentPage {
 
             if (session != null && session.getUid() != null && !session.getUid().isBlank()) {
                 Thread thread = new Thread(() -> {
-                    try {
-                        fileDAO.touchFile(session.getUid(), file.getFileHash());
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    try { fileDAO.touchFile(session.getUid(), file.getFileHash()); } catch (Exception ignored) {}
                 });
                 thread.setDaemon(true);
                 thread.start();
@@ -562,19 +475,14 @@ public class RecentPage {
 
     private String formatTimestamp(FileData file) {
         if (file.getLastAccessedAt() == null) return "—";
-
         long minutes = (System.currentTimeMillis() - file.getLastAccessedAt().toDate().getTime()) / 60000;
-
         if (minutes < 1) return "Just now";
         if (minutes < 60) return minutes + " min ago";
-
         long hours = minutes / 60;
         if (hours < 24) return hours + " hr ago";
-
         long days = hours / 24;
         if (days == 1) return "Yesterday";
         if (days < 7) return days + " days ago";
-
         return file.getLastAccessedAt().toDate().toString().substring(0, 10);
     }
 

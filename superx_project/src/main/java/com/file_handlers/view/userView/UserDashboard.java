@@ -30,12 +30,18 @@ import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
 
+import java.io.File;
 import java.time.LocalTime;
 import java.util.*;
 
 public class UserDashboard {
     private final FileDAO fileDAO = new FileDAO();
     private final SpaceDAO spaceDAO = new SpaceDAO();
+
+    // UI References for Dynamic Sidebar Storage Box
+    private Label sidebarStorageVal;
+    private Label sidebarStoragePercent;
+    private ProgressBar sidebarStorageProgress;
 
     // Typography
     private static final String FONT = "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
@@ -57,13 +63,14 @@ public class UserDashboard {
     private static final String LIGHT_SECONDARY = "#94A3B8";
     private static final String BLUE = "#2563EB";
 
+    // Donut chart color palette: Exchanged Personal (#FBBF24) and Entertainment (#2563EB)
     private static final String[] CHART_COLORS = {
-            "#2563EB",
-            "#38BDF8",
-            "#34D399",
-            "#A78BFA",
-            "#FBBF24",
-            "#64748B"
+            "#FBBF24", // Personal (was #2563EB)
+            "#38BDF8", // College
+            "#34D399", // Office
+            "#A78BFA", // Finance
+            "#2563EB", // Entertainment (was #FBBF24)
+            "#64748B"  // Others / Default
     };
 
     public Scene getDashboardScene() {
@@ -116,7 +123,6 @@ public class UserDashboard {
         profileOption.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
         applyHoverAnimation(profileOption, 1.04, 0);
 
-        // Custom Dropdown Menu
         Popup userDropdownPopup = new Popup();
         userDropdownPopup.setAutoHide(true);
 
@@ -293,13 +299,18 @@ public class UserDashboard {
                 "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.45), 10, 0, 0, 2);"
         );
 
-        addFilebtn.setOnAction(e ->
-                LandingPage.setScene(
-                        new AddFileData(
-                                () -> LandingPage.showUserDashboard()
-                        ).getScene()
-                )
-        );
+        addFilebtn.setOnAction(e -> {
+            try {
+                Class<?> addFileClass = Class.forName("com.file_handlers.view.userView.AddFileData");
+                java.lang.reflect.Constructor<?> ctor = addFileClass.getConstructor(Runnable.class);
+                Object addFileInstance = ctor.newInstance((Runnable) LandingPage::showUserDashboard);
+                java.lang.reflect.Method getSceneMethod = addFileClass.getMethod("getScene");
+                Scene s = (Scene) getSceneMethod.invoke(addFileInstance);
+                LandingPage.setScene(s);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        });
         applyHoverAnimation(addFilebtn, 1.05, 0);
 
         AnchorPane greetingHeader = new AnchorPane(greetingText, addFilebtn);
@@ -407,7 +418,7 @@ public class UserDashboard {
         Circle donutHole = new Circle(66, Color.web("#0A121E"));
         Label chartValText = new Label("Loading...");
         chartValText.setStyle("-fx-font-size: 18px; -fx-font-weight: 700; -fx-text-fill: " + WHITE + ";");
-        Label chartSubText = new Label("from Firestore");
+        Label chartSubText = new Label("from Storage Index");
         chartSubText.setStyle("-fx-font-size: 11px; -fx-text-fill: " + LIGHT_SECONDARY + ";");
 
         VBox chartCenterText = new VBox(2, chartValText, chartSubText);
@@ -416,7 +427,6 @@ public class UserDashboard {
         StackPane donutChartPane = new StackPane(chart, donutHole, chartCenterText);
         applyHoverAnimation(donutChartPane, 1.03, 0);
 
-        //
         Label spaceHeader = createHeaderLabel("Space", 0);
         Label storageHeader = createHeaderLabel("Storage Used", 0);
         Label percentageHeader = createHeaderLabel("Percentage", 0);
@@ -438,7 +448,6 @@ public class UserDashboard {
                 "-fx-padding: 0;"
         );
 
-        // Bind header column widths after spaceRowsScrollPane is instantiated
         spaceHeader.prefWidthProperty().bind(spaceRowsScrollPane.widthProperty().multiply(0.35));
         storageHeader.prefWidthProperty().bind(spaceRowsScrollPane.widthProperty().multiply(0.25));
         percentageHeader.prefWidthProperty().bind(spaceRowsScrollPane.widthProperty().multiply(0.40));
@@ -607,24 +616,24 @@ public class UserDashboard {
         storageTitle.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         storageTitle.setStyle("-fx-text-fill: " + WHITE + ";");
 
-        Label storageVal = new Label("64.2 GB of 100 GB");
-        storageVal.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        storageVal.setStyle("-fx-text-fill: " + WHITE + ";");
+        sidebarStorageVal = new Label("Calculating...");
+        sidebarStorageVal.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        sidebarStorageVal.setStyle("-fx-text-fill: " + WHITE + ";");
 
-        Label storagePercent = new Label("64%");
-        storagePercent.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-        storagePercent.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
+        sidebarStoragePercent = new Label("0%");
+        sidebarStoragePercent.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+        sidebarStoragePercent.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
         Region storageSpacer = new Region();
         HBox.setHgrow(storageSpacer, Priority.ALWAYS);
 
-        HBox storageValGroup = new HBox(storageVal, storageSpacer, storagePercent);
+        HBox storageValGroup = new HBox(sidebarStorageVal, storageSpacer, sidebarStoragePercent);
         storageValGroup.setAlignment(Pos.CENTER_LEFT);
 
-        ProgressBar sidebarProgress = new ProgressBar(0.64);
-        sidebarProgress.setMaxWidth(Double.MAX_VALUE);
-        sidebarProgress.setPrefHeight(6);
-        sidebarProgress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
+        sidebarStorageProgress = new ProgressBar(0.0);
+        sidebarStorageProgress.setMaxWidth(Double.MAX_VALUE);
+        sidebarStorageProgress.setPrefHeight(6);
+        sidebarStorageProgress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
 
         Button manageStorageBtn = new Button("Storage Index ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
@@ -641,7 +650,7 @@ public class UserDashboard {
             tt.play();
         });
 
-        VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
+        VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarStorageProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
         storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
         applyHoverAnimation(storageCard, 1.01, -1);
@@ -714,6 +723,11 @@ public class UserDashboard {
         return button;
     }
 
+    private File getInternalDrive() {
+        String systemDrive = System.getenv("SystemDrive");
+        return systemDrive != null ? new File(systemDrive + "\\") : new File("/");
+    }
+
     private void loadDashboardData(
             ObservableList<PieChart.Data> chartData,
             PieChart chart,
@@ -739,24 +753,11 @@ public class UserDashboard {
 
         Thread t = new Thread(() -> {
             try {
-                // =====================================================
-                // 1. LOAD CURRENT FILES
-                // =====================================================
+                List<FileData> files = fileDAO.getFileSummaries(uid);
+                List<SpaceData> customSpaces = spaceDAO.getUserSpaces(uid);
 
-                List<FileData> files =
-                        fileDAO.getFileSummaries(uid);
-
-                // =====================================================
-                // 2. LOAD CURRENT CUSTOM SPACES
-                // =====================================================
-
-                List<SpaceData> customSpaces =
-                        spaceDAO.getUserSpaces(uid);
-
-                // =====================================================
-                // 3. BUILD ALL SPACES
-                //    Six built-in Spaces + user's custom Spaces
-                // =====================================================
+                File drive = getInternalDrive();
+                long totalPC = drive.getTotalSpace();
 
                 List<String> spaceIds = new ArrayList<>();
                 List<String> spaceNames = new ArrayList<>();
@@ -795,223 +796,112 @@ public class UserDashboard {
                     );
                 }
 
-                long[] totals =
-                        new long[spaceIds.size()];
-
+                long[] totals = new long[spaceIds.size()];
                 long totalBytes = 0;
                 int aiActionCount = 0;
 
-                // =====================================================
-                // 4. CALCULATE FILE / STORAGE / AI STATISTICS
-                // =====================================================
-
                 for (FileData file : files) {
+                    if (file == null) continue;
 
-                    if (file == null) {
-                        continue;
+                    // Compute actual size based on StorageIndexPage resolution
+                    long actualFileSize = file.getFileSize();
+                    String localPath = file.getLocalPath();
+                    if (localPath != null && !localPath.isBlank()) {
+                        File localFile = new File(localPath);
+                        if (localFile.exists() && localFile.isFile()) {
+                            actualFileSize = localFile.length();
+                        }
                     }
 
-                    totalBytes += Math.max(0, file.getFileSize());
+                    if (actualFileSize < 0) {
+                        actualFileSize = 0;
+                    }
 
-                    String spaceId =
-                            file.getSpaceId();
+                    totalBytes += actualFileSize;
+                    String spaceId = file.getSpaceId();
 
-                    if (spaceId != null &&
-                            !spaceId.isBlank()) {
-
+                    if (spaceId != null && !spaceId.isBlank()) {
                         for (int i = 0; i < spaceIds.size(); i++) {
-
-                            if (spaceIds.get(i)
-                                    .equalsIgnoreCase(spaceId)) {
-
-                                totals[i] +=
-                                        Math.max(0, file.getFileSize());
-
+                            if (spaceIds.get(i).equalsIgnoreCase(spaceId)) {
+                                totals[i] += actualFileSize;
                                 break;
                             }
                         }
                     }
 
-                    // An AI action means this file has an AI category.
-                    String aiCategory =
-                            file.getAiCategory();
-
-                    if (aiCategory != null &&
-                            !aiCategory.isBlank()) {
+                    String aiCategory = file.getAiCategory();
+                    if (aiCategory != null && !aiCategory.isBlank()) {
                         aiActionCount++;
                     }
                 }
 
-                final long finalTotalBytes =
-                        totalBytes;
-
-                final int finalAiActionCount =
-                        aiActionCount;
-
-                final int totalSpaceCount =
-                        spaceIds.size();
-
-                final int customSpaceCount =
-                        totalSpaceCount - 6;
-
-                // =====================================================
-                // 5. UPDATE JAVAFX UI
-                // =====================================================
+                final long finalTotalBytes = totalBytes;
+                final int finalAiActionCount = aiActionCount;
+                final int totalSpaceCount = spaceIds.size();
+                final int customSpaceCount = totalSpaceCount - 6;
+                final double oneSpaceOfTotalPercent = totalPC == 0 ? 0 : (finalTotalBytes * 100.0 / totalPC);
 
                 Platform.runLater(() -> {
-
                     chartData.clear();
+                    rows.getChildren().setAll(tableHeaderNode(rows));
 
-                    rows.getChildren().setAll(
-                            tableHeaderNode(rows)
-                    );
+                    for (int i = 0; i < spaceIds.size(); i++) {
+                        double percentage = finalTotalBytes == 0
+                                ? 0
+                                : (totals[i] * 100.0 / finalTotalBytes);
 
-                    for (int i = 0;
-                            i < spaceIds.size();
-                            i++) {
+                        double progressRatio = Math.max(0.0, Math.min(1.0, percentage / 100.0));
+                        String sliceColor = CHART_COLORS[i % CHART_COLORS.length];
 
-                        double percentage =
-                                finalTotalBytes == 0
-                                        ? 0
-                                        : totals[i] * 100.0 /
-                                                finalTotalBytes;
-
-                        String color =
-                                CHART_COLORS[
-                                        i % CHART_COLORS.length
-                                ];
-
-                        chartData.add(
-                                new PieChart.Data(
-                                        spaceNames.get(i),
-                                        totals[i]
-                                )
-                        );
+                        chartData.add(new PieChart.Data(spaceNames.get(i), totals[i]));
 
                         rows.getChildren().add(
                                 createSpaceRow(
                                         "files",
-                                        color,
+                                        sliceColor,
                                         spaceNames.get(i),
                                         formatSize(totals[i]),
-                                        percentage / 100.0,
-                                        String.format(
-                                                "%.0f%%",
-                                                percentage
-                                        ),
-                                        color
+                                        progressRatio,
+                                        String.format("%.0f%%", percentage)
                                 )
                         );
                     }
 
-                    // -------------------------------------------------
-                    // Main occupancy summary
-                    // -------------------------------------------------
+                    totalLabel.setText(formatSize(finalTotalBytes));
+                    subLabel.setText("across " + files.size() + " files");
+                    updated.setText("Last updated just now");
 
-                    totalLabel.setText(
-                            formatSize(finalTotalBytes)
-                    );
+                    setMetricValue(card1, files.size() + " Files", "● Indexed", "Current Storage Index");
+                    setMetricValue(card2, totalSpaceCount + " Spaces", "● Synced", "6 built-in · " + customSpaceCount + " custom");
+                    setMetricValue(card3, formatSize(finalTotalBytes), "● Synced", String.format("%.2f%% of PC disk", oneSpaceOfTotalPercent));
+                    setMetricValue(card4, finalAiActionCount + " Actions", "⚡ Live", finalAiActionCount + " AI-classified files");
 
-                    subLabel.setText(
-                            "across " +
-                                    files.size() +
-                                    " files"
-                    );
-
-                    updated.setText(
-                            "Last updated just now"
-                    );
-
-                    // -------------------------------------------------
-                    // Indexing Activity
-                    // -------------------------------------------------
-
-                    setMetricValue(
-                            card1,
-                            files.size() + " Files",
-                            "● Indexed",
-                            "Current Firestore index"
-                    );
-
-                    // -------------------------------------------------
-                    // Active Spaces
-                    // -------------------------------------------------
-
-                    setMetricValue(
-                            card2,
-                            totalSpaceCount + " Spaces",
-                            "● Synced",
-                            "6 built-in · " +
-                                    customSpaceCount +
-                                    " custom"
-                    );
-
-                    // -------------------------------------------------
-                    // Indexed Storage
-                    // -------------------------------------------------
-
-                    setMetricValue(
-                            card3,
-                            formatSize(finalTotalBytes),
-                            "● Synced",
-                            "Current Firestore index"
-                    );
-
-                    // -------------------------------------------------
-                    // AI Actions Live
-                    // -------------------------------------------------
-
-                    setMetricValue(
-                            card4,
-                            finalAiActionCount + " Actions",
-                            "⚡ Live",
-                            finalAiActionCount +
-                                    " AI-classified files"
-                    );
+                    // Dynamic update for the Sidebar Storage Card synchronized with StorageIndexPage
+                    if (sidebarStorageVal != null && sidebarStoragePercent != null && sidebarStorageProgress != null) {
+                        double progressRatio = Math.min(oneSpaceOfTotalPercent / 100.0, 1.0);
+                        sidebarStorageVal.setText(formatSize(finalTotalBytes) + " of " + formatSize(totalPC));
+                        sidebarStoragePercent.setText(String.format("%.1f%%", oneSpaceOfTotalPercent));
+                        sidebarStorageProgress.setProgress(progressRatio);
+                    }
 
                     applyPieChartColors(chartData);
                 });
 
             } catch (Exception e) {
-
                 Platform.runLater(() -> {
-                    updated.setText(
-                            "ⓘ Unable to load dashboard data"
-                    );
+                    updated.setText("ⓘ Unable to load dashboard data");
+                    setMetricValue(card1, "Unavailable", "ⓘ Error", "Firestore unavailable");
+                    setMetricValue(card2, "Unavailable", "ⓘ Error", "Firestore unavailable");
+                    setMetricValue(card3, "Unavailable", "ⓘ Error", "Firestore unavailable");
+                    setMetricValue(card4, "Unavailable", "ⓘ Error", "Firestore unavailable");
 
-                    setMetricValue(
-                            card1,
-                            "Unavailable",
-                            "ⓘ Error",
-                            "Firestore unavailable"
-                    );
-
-                    setMetricValue(
-                            card2,
-                            "Unavailable",
-                            "ⓘ Error",
-                            "Firestore unavailable"
-                    );
-
-                    setMetricValue(
-                            card3,
-                            "Unavailable",
-                            "ⓘ Error",
-                            "Firestore unavailable"
-                    );
-
-                    setMetricValue(
-                            card4,
-                            "Unavailable",
-                            "ⓘ Error",
-                            "Firestore unavailable"
-                    );
+                    if (sidebarStorageVal != null && sidebarStoragePercent != null) {
+                        sidebarStorageVal.setText("Unavailable");
+                        sidebarStoragePercent.setText("--");
+                    }
                 });
 
-                System.out.println(
-                        "[Dashboard] Unable to load dashboard data: "
-                                + e.getMessage()
-                );
+                System.out.println("[Dashboard] Unable to load dashboard data: " + e.getMessage());
             }
         });
 
@@ -1022,9 +912,9 @@ public class UserDashboard {
 
     private String formatSize(long bytes) {
         if (bytes < 1024) return bytes + " B";
-        if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
-        if (bytes < 1024 * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024));
-        return String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024));
+        if (bytes < 1048576) return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1073741824L) return String.format("%.2f MB", bytes / 1048576.0);
+        return String.format("%.2f GB", bytes / 1073741824.0);
     }
 
     private javafx.scene.Node tableHeaderNode(VBox rows) { return rows.getChildren().get(0); }
@@ -1195,86 +1085,106 @@ public class UserDashboard {
         return label;
     }
 
-        
-    private HBox createSpaceRow(String iconType, String iconHex, String title, String storage, double progress, String percent, String colorHex) {
-            SVGPath folderIcon = createIcon(iconType);
-            folderIcon.setStroke(Color.web(iconHex));
-            folderIcon.setStrokeWidth(2);
+    private HBox createSpaceRow(String iconType, String chartColorHex, String title, String storage, double progressRatio, String percentText) {
+        SVGPath folderIcon = createIcon(iconType);
+        folderIcon.setStroke(Color.web(chartColorHex));
+        folderIcon.setStrokeWidth(2);
 
-            StackPane iconPane = new StackPane(folderIcon);
-            iconPane.setPrefSize(28, 28); iconPane.setMinSize(28, 28);
-            iconPane.setStyle(
-                    "-fx-background-color: " + iconHex + "22;" +
-                    "-fx-background-radius: 6;" +
-                    "-fx-border-color: " + iconHex + "44;" +
-                    "-fx-border-radius: 6;"
-            );
+        StackPane iconPane = new StackPane(folderIcon);
+        iconPane.setPrefSize(28, 28); iconPane.setMinSize(28, 28);
+        iconPane.setStyle(
+                "-fx-background-color: " + chartColorHex + "22;" +
+                "-fx-background-radius: 6;" +
+                "-fx-border-color: " + chartColorHex + "44;" +
+                "-fx-border-radius: 6;"
+        );
 
-            Label spaceName = new Label(title);
-            spaceName.setStyle(
-                    "-fx-font-size: 13px;" +
-                    "-fx-font-weight: 700;" +
-                    "-fx-text-fill: " + WHITE + ";"
-            );
+        Label spaceName = new Label(title);
+        spaceName.setStyle(
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: 700;" +
+                "-fx-text-fill: " + WHITE + ";"
+        );
 
-            HBox nameGroup = new HBox(10, iconPane, spaceName);
-            nameGroup.setAlignment(Pos.CENTER_LEFT);
+        HBox nameGroup = new HBox(10, iconPane, spaceName);
+        nameGroup.setAlignment(Pos.CENTER_LEFT);
 
-            Label sizeLbl = new Label(storage);
-            sizeLbl.setStyle(
-                    "-fx-font-size: 12px;" +
-                    "-fx-font-weight: 700;" +
-                    "-fx-text-fill: " + WHITE + ";"
-            );
-            sizeLbl.setAlignment(Pos.CENTER_LEFT);
+        Label sizeLbl = new Label(storage);
+        sizeLbl.setStyle(
+                "-fx-font-size: 12px;" +
+                "-fx-font-weight: 700;" +
+                "-fx-text-fill: " + WHITE + ";"
+        );
+        sizeLbl.setAlignment(Pos.CENTER_LEFT);
 
-            ProgressBar bar = new ProgressBar(progress);
-            bar.setMaxWidth(Double.MAX_VALUE);
-            bar.setPrefHeight(6);
-            bar.setStyle(
-                    "-fx-accent: " + colorHex + ";" +
-                    "-fx-control-inner-background: rgba(13, 22, 38, 0.85);"
-            );
-            HBox.setHgrow(bar, Priority.ALWAYS);
+        // Full-length dark background track
+        StackPane progressTrack = new StackPane();
+        progressTrack.setPrefHeight(7);
+        progressTrack.setMinHeight(7);
+        progressTrack.setMaxHeight(7);
+        progressTrack.setMaxWidth(Double.MAX_VALUE);
+        progressTrack.setStyle(
+                "-fx-background-color: rgba(255, 255, 255, 0.08);" +
+                "-fx-background-radius: 4px;"
+        );
 
-            Label percentLbl = new Label(percent);
-            percentLbl.setStyle(
-                    "-fx-font-size: 12px;" +
-                    "-fx-font-weight: 700;" +
-                    "-fx-text-fill: " + LIGHT_SECONDARY + ";"
-            );
-            percentLbl.setMinWidth(35);
-            percentLbl.setAlignment(Pos.CENTER_RIGHT);
+        // Fill region strictly proportional to the percentage
+        Region progressFill = new Region();
+        progressFill.setPrefHeight(7);
+        progressFill.setMaxHeight(7);
+        progressFill.setMinWidth(0);
+        StackPane.setAlignment(progressFill, Pos.CENTER_LEFT);
 
-            HBox progressGroup = new HBox(10, bar, percentLbl);
-            progressGroup.setAlignment(Pos.CENTER_LEFT);
+        double clampedRatio = Math.max(0.0, Math.min(1.0, progressRatio));
+        progressFill.prefWidthProperty().bind(progressTrack.widthProperty().multiply(clampedRatio));
+        progressFill.maxWidthProperty().bind(progressFill.prefWidthProperty());
 
-            HBox row = new HBox(nameGroup, sizeLbl, progressGroup);
-            row.setAlignment(Pos.CENTER_LEFT);
-            row.setPadding(new Insets(6, 8, 6, 8));
+        progressFill.setStyle(
+                "-fx-background-color: " + chartColorHex + ";" +
+                "-fx-background-radius: 4px;" +
+                "-fx-effect: dropshadow(two-pass-box, " + chartColorHex + "88, 6, 0, 0, 1);"
+        );
+
+        progressTrack.getChildren().add(progressFill);
+        HBox.setHgrow(progressTrack, Priority.ALWAYS);
+
+        Label percentLbl = new Label(percentText);
+        percentLbl.setStyle(
+                "-fx-font-size: 12px;" +
+                "-fx-font-weight: 600;" +
+                "-fx-text-fill: " + LIGHT_SECONDARY + ";"
+        );
+        percentLbl.setMinWidth(42);
+        percentLbl.setAlignment(Pos.CENTER_RIGHT);
+
+        HBox progressGroup = new HBox(12, progressTrack, percentLbl);
+        progressGroup.setAlignment(Pos.CENTER_LEFT);
+
+        HBox row = new HBox(nameGroup, sizeLbl, progressGroup);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(6, 8, 6, 8));
+        row.setStyle("-fx-background-color: transparent; -fx-background-radius: 8;");
+
+        nameGroup.prefWidthProperty().bind(row.widthProperty().multiply(0.35));
+        sizeLbl.prefWidthProperty().bind(row.widthProperty().multiply(0.25));
+        progressGroup.prefWidthProperty().bind(row.widthProperty().multiply(0.40));
+
+        row.setOnMouseEntered(e -> {
+            row.setStyle("-fx-background-color: rgba(56, 189, 248, 0.08); -fx-border-color: " + chartColorHex + "55; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+            tt.setToX(4);
+            tt.play();
+        });
+
+        row.setOnMouseExited(e -> {
             row.setStyle("-fx-background-color: transparent; -fx-background-radius: 8;");
+            TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
+            tt.setToX(0);
+            tt.play();
+        });
 
-            // Bind column widths to match header ratio (35% / 25% / 40%)
-            nameGroup.prefWidthProperty().bind(row.widthProperty().multiply(0.35));
-            sizeLbl.prefWidthProperty().bind(row.widthProperty().multiply(0.25));
-            progressGroup.prefWidthProperty().bind(row.widthProperty().multiply(0.40));
-
-            row.setOnMouseEntered(e -> {
-                row.setStyle("-fx-background-color: rgba(56, 189, 248, 0.08); -fx-border-color: rgba(56, 189, 248, 0.35); -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8;");
-                TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
-                tt.setToX(4);
-                tt.play();
-            });
-
-            row.setOnMouseExited(e -> {
-                row.setStyle("-fx-background-color: transparent; -fx-background-radius: 8;");
-                TranslateTransition tt = new TranslateTransition(Duration.millis(120), row);
-                tt.setToX(0);
-                tt.play();
-            });
-
-            return row;
-        }
+        return row;
+    }
 
     private void applyPieChartColors(ObservableList<PieChart.Data> data) {
         int i = 0;

@@ -46,6 +46,11 @@ public class AiAssistantPage{
     private static final String LIGHT_SECONDARY="#94A3B8";
     private static final String BLUE="#2563EB";
 
+    // Dynamic storage labels
+    private Label sidebarStorageVal;
+    private Label sidebarStoragePercent;
+    private ProgressBar sidebarStorageProgress;
+
     private final List<String> chatHistory=new ArrayList<>();
     private final List<String> recentQueries=new ArrayList<>();
     private final GeminiClient geminiClient=new GeminiClient();
@@ -164,8 +169,6 @@ public class AiAssistantPage{
         menuButton.setPadding(new Insets(0,16,0,16));
         menuButton.setFont(Font.font(FONT,FontWeight.SEMI_BOLD,13));
         menuButton.setStyle("-fx-background-color: "+INPUT_BG+"; -fx-border-color: "+CARD_BORDER+"; -fx-border-radius: 10; -fx-background-radius: 10; -fx-text-fill: #38BDF8; -fx-cursor: hand;");
-        menuButton.setOnMouseEntered(e->menuButton.setStyle("-fx-background-color: rgba(56, 189, 248, 0.15); -fx-border-color: #38BDF8; -fx-border-radius: 10; -fx-background-radius: 10; -fx-text-fill: #38BDF8; -fx-cursor: hand;"));
-        menuButton.setOnMouseExited(e->menuButton.setStyle("-fx-background-color: "+INPUT_BG+"; -fx-border-color: "+CARD_BORDER+"; -fx-border-radius: 10; -fx-background-radius: 10; -fx-text-fill: #38BDF8; -fx-cursor: hand;"));
 
         menuPanel=createMenuPanel();
 
@@ -242,11 +245,8 @@ public class AiAssistantPage{
         plusButton.setGraphic(attachIcon);
         plusButton.setPrefSize(38,38);
         plusButton.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 50%; -fx-cursor: hand; -fx-padding: 0;");
-        plusButton.setOnMouseEntered(e->{plusButton.setStyle("-fx-background-color: rgba(255, 255, 255, 0.15); -fx-background-radius: 50%; -fx-cursor: hand; -fx-padding: 0;");attachIcon.setStroke(Color.WHITE);});
-        plusButton.setOnMouseExited(e->{plusButton.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 50%; -fx-cursor: hand; -fx-padding: 0;");attachIcon.setStroke(Color.web(LIGHT_SECONDARY));});
 
         MenuItem uploadItem=new MenuItem("📎   Upload File");
-        uploadItem.setStyle("-fx-text-fill: #000000;");
         ContextMenu uploadMenu=new ContextMenu(uploadItem);
 
         uploadItem.setOnAction(e->{
@@ -334,15 +334,58 @@ public class AiAssistantPage{
         root.setCenter(main);
 
         loadChatHistory();
+        loadDynamicSidebarStorage();
 
         return new Scene(root,LandingPage.getCurrentWidth(),LandingPage.getCurrentHeight());
     }
 
+    private void loadDynamicSidebarStorage() {
+        UserSession session = UserSession.getInstance();
+        if (session == null || !UserSession.isLoggedIn() || session.getUid() == null || session.getUid().isBlank()) return;
+
+        Thread thread = new Thread(() -> {
+            try {
+                List<FileData> fileList = fileDAO.getFileSummaries(session.getUid());
+                String driveLetter = System.getenv("SystemDrive");
+                File drive = driveLetter != null ? new File(driveLetter + "\\") : new File("/");
+                long totalPC = drive.getTotalSpace();
+
+                long bytes = 0;
+                for (FileData f : fileList) {
+                    if (f == null) continue;
+                    long sz = f.getFileSize();
+                    if (f.getLocalPath() != null && !f.getLocalPath().isBlank()) {
+                        File lf = new File(f.getLocalPath());
+                        if (lf.exists() && lf.isFile()) sz = lf.length();
+                    }
+                    if (sz > 0) bytes += sz;
+                }
+
+                final long finalBytes = bytes;
+                final double pct = totalPC == 0 ? 0 : (finalBytes * 100.0 / totalPC);
+
+                Platform.runLater(() -> {
+                    if (sidebarStorageVal != null) sidebarStorageVal.setText(formatStorageSize(finalBytes) + " of " + formatStorageSize(totalPC));
+                    if (sidebarStoragePercent != null) sidebarStoragePercent.setText(String.format("%.1f%%", pct));
+                    if (sidebarStorageProgress != null) sidebarStorageProgress.setProgress(Math.min(pct / 100.0, 1.0));
+                });
+            } catch (Exception ignored) {}
+        });
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private String formatStorageSize(long bytes) {
+        if (bytes <= 0) return "0 B";
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1048576) return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1073741824L) return String.format("%.1f MB", bytes / 1048576.0);
+        return String.format("%.1f GB", bytes / 1073741824.0);
+    }
+
     private void loadChatHistory(){
         UserSession session=UserSession.getInstance();
-
-        if(session==null||session.getUid()==null||session.getUid().isBlank())
-            return;
+        if(session==null||session.getUid()==null||session.getUid().isBlank()) return;
 
         Thread thread=new Thread(()->{
             try{
@@ -350,12 +393,10 @@ public class AiAssistantPage{
 
                 if(chats==null||chats.isEmpty()){
                     String chatId=aiChatDAO.createChat(session.getUid(),"New Chat");
-
                     Platform.runLater(()->{
                         currentChatId=chatId;
                         chatTitleCreated=false;
                     });
-
                     return;
                 }
 
@@ -365,80 +406,56 @@ public class AiAssistantPage{
                 Platform.runLater(()->{
                     currentChatId=latest.getChatId();
                     chatTitleCreated=latest.getTitle()!=null&&!latest.getTitle().equals("New Chat");
-
                     chatHistory.clear();
                     chatMessages.getChildren().clear();
 
                     for(AIMessageData message:messages){
                         boolean user="user".equalsIgnoreCase(message.getRole());
                         String prefix=user?"You: ":"AI: ";
-
                         chatHistory.add(prefix+safe(message.getContent()));
                         addMessage(message.getContent(),user);
-
-                        if(user)
-                            addRecentQuery(message.getContent());
+                        if(user) addRecentQuery(message.getContent());
                     }
 
-                    if(!messages.isEmpty())
-                        setChatMode(true);
-
+                    if(!messages.isEmpty()) setChatMode(true);
                     scrollToBottom();
                 });
-
             }catch(Exception e){
                 e.printStackTrace();
             }
         });
-
         thread.setDaemon(true);
         thread.start();
     }
 
     private void saveMessage(String role,String content){
         UserSession session=UserSession.getInstance();
-
-        if(session==null||session.getUid()==null||session.getUid().isBlank()||currentChatId==null||currentChatId.isBlank())
-            return;
+        if(session==null||session.getUid()==null||session.getUid().isBlank()||currentChatId==null||currentChatId.isBlank()) return;
 
         String uid=session.getUid();
         String chatId=currentChatId;
 
         Thread thread=new Thread(()->{
-            try{
-                aiChatDAO.saveMessage(uid,chatId,role,content);
-            }catch(Exception e){
-                e.printStackTrace();
-            }
+            try{ aiChatDAO.saveMessage(uid,chatId,role,content); }catch(Exception ignored){}
         });
-
         thread.setDaemon(true);
         thread.start();
     }
 
     private void updateChatTitle(String question){
         UserSession session=UserSession.getInstance();
-
-        if(session==null||session.getUid()==null||session.getUid().isBlank()||currentChatId==null||currentChatId.isBlank())
-            return;
+        if(session==null||session.getUid()==null||session.getUid().isBlank()||currentChatId==null||currentChatId.isBlank()) return;
 
         String title=question.trim();
-
-        if(title.length()>45)
-            title=title.substring(0,45).trim()+"...";
+        if(title.length()>45) title=title.substring(0,45).trim()+"...";
 
         String uid=session.getUid();
         String chatId=currentChatId;
         String finalTitle=title;
 
         Thread thread=new Thread(()->{
-            try{
-                aiChatDAO.updateChatTitle(uid,chatId,finalTitle);
-            }catch(Exception e){
-                e.printStackTrace();
-            }
+            try{ aiChatDAO.updateChatTitle(uid,chatId,finalTitle); }catch(Exception ignored){}
         });
-
         thread.setDaemon(true);
         thread.start();
     }
@@ -446,13 +463,10 @@ public class AiAssistantPage{
     private VBox createSidebar(){
         Image logoImage=new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
         ImageView logoView=new ImageView(logoImage);
-        logoView.setFitWidth(42);
-        logoView.setFitHeight(42);
-        logoView.setPreserveRatio(true);
+        logoView.setFitWidth(42); logoView.setFitHeight(42); logoView.setPreserveRatio(true);
 
         StackPane logoIcon=new StackPane(logoView);
-        logoIcon.setPrefSize(42,42);
-        logoIcon.setAlignment(Pos.CENTER);
+        logoIcon.setPrefSize(42,42); logoIcon.setAlignment(Pos.CENTER);
 
         Label logoText=label("OneSpace",19,FontWeight.BOLD,WHITE);
         HBox logoHeader=new HBox(10,logoIcon,logoText);
@@ -474,26 +488,26 @@ public class AiAssistantPage{
         VBox navList=new VBox(4,dashboardBtn,spacesBtn,searchBtn,calendarBtn,aiBtn,collabBtn,recentBtn,trashBtn);
 
         Label storageTitle=label("Storage Used",12,FontWeight.BOLD,WHITE);
-        Label storageVal=label("64.2 GB of 100 GB",12,FontWeight.BOLD,WHITE);
-        Label storagePercent=label("64%",11,FontWeight.BOLD,LIGHT_SECONDARY);
+        sidebarStorageVal=label("Syncing...",12,FontWeight.BOLD,WHITE);
+        sidebarStoragePercent=label("0%",11,FontWeight.BOLD,LIGHT_SECONDARY);
 
         Region storageSpacer=new Region();
         HBox.setHgrow(storageSpacer,Priority.ALWAYS);
 
-        HBox storageValGroup=new HBox(storageVal,storageSpacer,storagePercent);
+        HBox storageValGroup=new HBox(sidebarStorageVal,storageSpacer,sidebarStoragePercent);
         storageValGroup.setAlignment(Pos.CENTER_LEFT);
 
-        ProgressBar sidebarProgress=new ProgressBar(.64);
-        sidebarProgress.setMaxWidth(Double.MAX_VALUE);
-        sidebarProgress.setPrefHeight(6);
-        sidebarProgress.setStyle("-fx-accent: "+BLUE+"; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
+        sidebarStorageProgress=new ProgressBar(0.0);
+        sidebarStorageProgress.setMaxWidth(Double.MAX_VALUE);
+        sidebarStorageProgress.setPrefHeight(6);
+        sidebarStorageProgress.setStyle("-fx-accent: "+BLUE+"; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
 
         Button manageStorageBtn=new Button("Storage Index ›");
         manageStorageBtn.setFont(Font.font(FONT,FontWeight.SEMI_BOLD,11));
         manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
         manageStorageBtn.setOnAction(e->LandingPage.showStorageIndexPage());
 
-        VBox storageCard=new VBox(8,storageTitle,storageValGroup,sidebarProgress,manageStorageBtn);
+        VBox storageCard=new VBox(8,storageTitle,storageValGroup,sidebarStorageProgress,manageStorageBtn);
         storageCard.setPadding(new Insets(14));
         storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: "+SIDEBAR_BORDER+"; -fx-border-radius: 12; -fx-background-radius: 12;");
 
@@ -518,7 +532,6 @@ public class AiAssistantPage{
         iconBox.setPrefSize(24,24);
 
         Label label=label(text,13,active?FontWeight.BOLD:FontWeight.MEDIUM,WHITE);
-
         HBox row=new HBox(12,iconBox,label);
         row.setAlignment(Pos.CENTER_LEFT);
 
@@ -531,24 +544,18 @@ public class AiAssistantPage{
         button.setOnAction(action);
 
         if(active){
-            button.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);-fx-background-radius: 12;-fx-border-color: rgba(96, 165, 250, 0.6);-fx-border-radius: 12;-fx-border-width: 1;-fx-cursor: hand;-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);");
+            button.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);-fx-background-radius: 12;-fx-border-color: rgba(96, 165, 250, 0.6);-fx-border-radius: 12;-fx-border-width: 1;-fx-cursor: hand;");
         }else{
             button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
-            button.setOnMouseEntered(e->{button.setStyle("-fx-background-color: rgba(255, 255, 255, 0.05); -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");icon.setStroke(Color.WHITE);label.setTextFill(Color.WHITE);});
-            button.setOnMouseExited(e->{button.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");icon.setStroke(Color.web(LIGHT_SECONDARY));label.setTextFill(Color.web(WHITE));});
         }
-
         return button;
     }
 
     private void sendMessage(){
         String question=aiInput.getText().trim();
-
-        if(question.isEmpty()||sendButton.isDisabled())
-            return;
+        if(question.isEmpty()||sendButton.isDisabled()) return;
 
         String context=buildContext();
-
         chatHistory.add("You: "+question);
         addRecentQuery(question);
         addMessage(question,true);
@@ -566,12 +573,9 @@ public class AiAssistantPage{
         Thread thread=new Thread(()->{
             try{
                 UserSession session=UserSession.getInstance();
-
-                if(session==null||session.getUid()==null||session.getUid().isBlank())
-                    throw new IllegalStateException("No active user session.");
+                if(session==null||session.getUid()==null||session.getUid().isBlank()) throw new IllegalStateException("No active user session.");
 
                 List<FileData> files=fileDAO.searchFilesForAI(session.getUid(),question);
-
                 String response;
 
                 if(!isOneSpaceQuery(question,files)){
@@ -587,8 +591,7 @@ public class AiAssistantPage{
                     addMessage(response,false);
                     saveMessage("assistant",response);
 
-                    if(isOneSpaceQuery(question,files))
-                        addReferencedFiles(files);
+                    if(isOneSpaceQuery(question,files)) addReferencedFiles(files);
 
                     aiInput.setDisable(false);
                     sendButton.setDisable(false);
@@ -596,18 +599,13 @@ public class AiAssistantPage{
                     aiInput.requestFocus();
                     scrollToBottom();
                 });
-
             }catch(Exception e){
                 String error=e.getMessage()==null?"Unknown error":e.getMessage();
-
                 Platform.runLater(()->{
                     setProcessing(false);
-
                     String errorMessage="Unable to get a response.\n\n"+error;
-
                     addMessage(errorMessage,false);
                     saveMessage("assistant",errorMessage);
-
                     aiInput.setDisable(false);
                     sendButton.setDisable(false);
                     sendButton.setText("➔");
@@ -616,17 +614,13 @@ public class AiAssistantPage{
                 });
             }
         });
-
         thread.setDaemon(true);
         thread.start();
     }
 
     private boolean isOneSpaceQuery(String question,List<FileData> files){
-        if(files!=null&&!files.isEmpty())
-            return true;
-
+        if(files!=null&&!files.isEmpty()) return true;
         String query=question.toLowerCase();
-
         String[] keywords={
             "onespace","one space","file","files","document","documents",
             "space","spaces","storage","upload","uploaded","search","folder",
@@ -634,20 +628,13 @@ public class AiAssistantPage{
             "recent","calendar","collaboration","settings","profile",
             "personal","college","office","finance","entertainment"
         };
-
-        for(String keyword:keywords)
-            if(query.contains(keyword))
-                return true;
-
+        for(String keyword:keywords) if(query.contains(keyword)) return true;
         return false;
     }
 
     private String buildFileContext(List<FileData> files){
-        if(files==null||files.isEmpty())
-            return "";
-
+        if(files==null||files.isEmpty()) return "";
         StringBuilder context=new StringBuilder();
-
         for(FileData file:files){
             context.append("File: ").append(safe(file.getFileName())).append("\n");
             context.append("Description: ").append(safe(file.getDescription())).append("\n");
@@ -655,14 +642,11 @@ public class AiAssistantPage{
             context.append("Tags: ").append(file.getSmartTags()==null?"":String.join(", ",file.getSmartTags())).append("\n");
             context.append("Content: ").append(safe(file.getExtractedSnippet())).append("\n\n");
         }
-
         return context.toString();
     }
 
     private void addReferencedFiles(List<FileData> files){
-        if(files==null||files.isEmpty())
-            return;
-
+        if(files==null||files.isEmpty()) return;
         Label title=label("Referenced from OneSpace",11,FontWeight.BOLD,LIGHT_SECONDARY);
         VBox fileList=new VBox(8);
         fileList.setPadding(new Insets(8,0,0,0));
@@ -675,8 +659,6 @@ public class AiAssistantPage{
             fileButton.setPadding(new Insets(0,14,0,14));
             fileButton.setFont(Font.font(FONT,FontWeight.MEDIUM,13));
             fileButton.setStyle("-fx-background-color: "+INPUT_BG+"; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: #38BDF8; -fx-cursor: hand;");
-            fileButton.setOnMouseEntered(e->fileButton.setStyle("-fx-background-color: rgba(56, 189, 248, 0.15); -fx-border-color: #38BDF8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: #38BDF8; -fx-cursor: hand;"));
-            fileButton.setOnMouseExited(e->fileButton.setStyle("-fx-background-color: "+INPUT_BG+"; -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 8; -fx-background-radius: 8; -fx-text-fill: #38BDF8; -fx-cursor: hand;"));
             fileButton.setOnAction(e->openFile(file));
             fileList.getChildren().add(fileButton);
         }
@@ -695,38 +677,28 @@ public class AiAssistantPage{
     private void openFile(FileData file){
         try{
             File selected=new File(file.getLocalPath());
-
             if(!selected.exists()){
                 showInfo("File Not Found","The referenced file is no longer available at its saved location.");
                 return;
             }
-
             Desktop.getDesktop().open(selected);
         }catch(Exception e){
             showInfo("Unable to Open File","Could not open the referenced file.");
         }
     }
 
-    private String safe(String value){
-        return value==null?"":value;
-    }
+    private String safe(String value){ return value==null?"":value; }
 
     private void addRecentQuery(String query){
         recentQueries.remove(query);
         recentQueries.add(0,query);
-
-        if(recentQueries.size()>8)
-            recentQueries.remove(8);
-
+        if(recentQueries.size()>8) recentQueries.remove(8);
         refreshRecentQueries();
     }
 
     private void refreshRecentQueries(){
-        if(recentList==null)
-            return;
-
+        if(recentList==null) return;
         recentList.getChildren().clear();
-
         if(recentQueries.isEmpty()){
             Label empty=label("No recent queries",12,FontWeight.NORMAL,LIGHT_SECONDARY);
             empty.setPadding(new Insets(10,8,10,8));
@@ -743,8 +715,6 @@ public class AiAssistantPage{
             item.setPadding(new Insets(0,10,0,10));
             item.setFont(Font.font(FONT,FontWeight.NORMAL,12));
             item.setStyle("-fx-background-color: transparent; -fx-text-fill: "+WHITE+"; -fx-background-radius: 8; -fx-cursor: hand;");
-            item.setOnMouseEntered(e->item.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-text-fill: "+WHITE+"; -fx-background-radius: 8; -fx-cursor: hand;"));
-            item.setOnMouseExited(e->item.setStyle("-fx-background-color: transparent; -fx-text-fill: "+WHITE+"; -fx-background-radius: 8; -fx-cursor: hand;"));
             item.setOnAction(e->{aiInput.setText(query);closeMenu();aiInput.requestFocus();});
             recentList.getChildren().add(item);
         }
@@ -756,21 +726,14 @@ public class AiAssistantPage{
         aiInput.setDisable(processing);
         sendButton.setDisable(processing);
         sendButton.setText(processing?"…":"➔");
-
-        if(processing)
-            scrollToBottom();
+        if(processing) scrollToBottom();
     }
 
     private String buildContext(){
-        if(chatHistory.isEmpty())
-            return "";
-
+        if(chatHistory.isEmpty()) return "";
         StringBuilder context=new StringBuilder();
         int start=Math.max(0,chatHistory.size()-8);
-
-        for(int i=start;i<chatHistory.size();i++)
-            context.append(chatHistory.get(i)).append("\n");
-
+        for(int i=start;i<chatHistory.size();i++) context.append(chatHistory.get(i)).append("\n");
         return context.toString();
     }
 
@@ -795,8 +758,8 @@ public class AiAssistantPage{
         bubble.setPadding(new Insets(12,16,12,16));
         bubble.setMaxWidth(700);
         bubble.setStyle(user
-                ?"-fx-background-color: linear-gradient(to bottom right, #1D4ED8, #2563EB); -fx-background-radius: 18 18 4 18; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.4), 10, 0, 0, 2);"
-                :"-fx-background-color: "+INPUT_BG+"; -fx-border-color: "+INPUT_BORDER+"; -fx-background-radius: 18 18 18 4; -fx-border-radius: 18 18 18 4; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 2);");
+                ?"-fx-background-color: linear-gradient(to bottom right, #1D4ED8, #2563EB); -fx-background-radius: 18 18 4 18;"
+                :"-fx-background-color: "+INPUT_BG+"; -fx-border-color: "+INPUT_BORDER+"; -fx-background-radius: 18 18 18 4;");
 
         HBox row=new HBox(bubble);
         row.setAlignment(user?Pos.CENTER_RIGHT:Pos.CENTER_LEFT);
@@ -813,14 +776,11 @@ public class AiAssistantPage{
 
     private void newChat(){
         UserSession session=UserSession.getInstance();
-
-        if(session==null||session.getUid()==null||session.getUid().isBlank())
-            return;
+        if(session==null||session.getUid()==null||session.getUid().isBlank()) return;
 
         Thread thread=new Thread(()->{
             try{
                 String chatId=aiChatDAO.createChat(session.getUid(),"New Chat");
-
                 Platform.runLater(()->{
                     currentChatId=chatId;
                     chatTitleCreated=false;
@@ -834,12 +794,10 @@ public class AiAssistantPage{
                     closeMenu();
                     aiInput.requestFocus();
                 });
-
             }catch(Exception e){
                 Platform.runLater(()->showInfo("Unable to Create Chat","Could not create a new AI conversation."));
             }
         });
-
         thread.setDaemon(true);
         thread.start();
     }
@@ -873,32 +831,24 @@ public class AiAssistantPage{
 
     private VBox createMenuPanel(){
         VBox panel=new VBox(12);
-        panel.setPrefWidth(260);
-        panel.setMinWidth(260);
-        panel.setMaxWidth(260);
+        panel.setPrefWidth(260); panel.setMinWidth(260); panel.setMaxWidth(260);
         panel.setPadding(new Insets(20));
-        panel.setStyle("-fx-background-color: "+CARD_BG_INNER+"; -fx-border-color: "+INPUT_BORDER+"; -fx-border-width: 0 1 0 0; -fx-background-radius: 20 0 0 20; -fx-border-radius: 20 0 0 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 4, 0, 0);");
+        panel.setStyle("-fx-background-color: "+CARD_BG_INNER+"; -fx-border-color: "+INPUT_BORDER+"; -fx-border-width: 0 1 0 0; -fx-background-radius: 20 0 0 20; -fx-border-radius: 20 0 0 20;");
 
         Button back=new Button("←   Back");
-        back.setPrefHeight(38);
-        back.setMaxWidth(Double.MAX_VALUE);
-        back.setAlignment(Pos.CENTER_LEFT);
-        back.setPadding(new Insets(0,10,0,6));
+        back.setPrefHeight(38); back.setMaxWidth(Double.MAX_VALUE);
+        back.setAlignment(Pos.CENTER_LEFT); back.setPadding(new Insets(0,10,0,6));
         back.setFont(Font.font(FONT,FontWeight.MEDIUM,13));
-        back.setStyle("-fx-background-color: transparent; -fx-text-fill: "+LIGHT_SECONDARY+"; -fx-background-radius: 8; -fx-cursor: hand;");
-        back.setOnMouseEntered(e->back.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08); -fx-text-fill: "+WHITE+"; -fx-background-radius: 8; -fx-cursor: hand;"));
-        back.setOnMouseExited(e->back.setStyle("-fx-background-color: transparent; -fx-text-fill: "+LIGHT_SECONDARY+"; -fx-background-radius: 8; -fx-cursor: hand;"));
+        back.setStyle("-fx-background-color: transparent; -fx-text-fill: "+LIGHT_SECONDARY+"; -fx-cursor: hand;");
 
         Label title=label("OneSpace AI",18,FontWeight.BOLD,WHITE);
         Label subtitle=label("Your recent conversations",11,FontWeight.NORMAL,LIGHT_SECONDARY);
 
         Button newChat=new Button("＋   New Chat");
-        newChat.setMaxWidth(Double.MAX_VALUE);
-        newChat.setPrefHeight(42);
-        newChat.setAlignment(Pos.CENTER_LEFT);
-        newChat.setPadding(new Insets(0,12,0,12));
+        newChat.setMaxWidth(Double.MAX_VALUE); newChat.setPrefHeight(42);
+        newChat.setAlignment(Pos.CENTER_LEFT); newChat.setPadding(new Insets(0,12,0,12));
         newChat.setFont(Font.font(FONT,FontWeight.SEMI_BOLD,13));
-        newChat.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: #FFFFFF; -fx-background-radius: 9; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.4), 10, 0, 0, 2);");
+        newChat.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-text-fill: #FFFFFF; -fx-background-radius: 9; -fx-cursor: hand;");
 
         Label recentTitle=label("Recent",12,FontWeight.BOLD,LIGHT_SECONDARY);
 
@@ -914,14 +864,10 @@ public class AiAssistantPage{
         VBox.setVgrow(recentScroll,Priority.ALWAYS);
 
         Button clear=new Button("🗑   Clear Recent");
-        clear.setMaxWidth(Double.MAX_VALUE);
-        clear.setPrefHeight(38);
-        clear.setAlignment(Pos.CENTER_LEFT);
-        clear.setPadding(new Insets(0,10,0,10));
+        clear.setMaxWidth(Double.MAX_VALUE); clear.setPrefHeight(38);
+        clear.setAlignment(Pos.CENTER_LEFT); clear.setPadding(new Insets(0,10,0,10));
         clear.setFont(Font.font(FONT,FontWeight.MEDIUM,12));
-        clear.setStyle("-fx-background-color: transparent; -fx-text-fill: "+LIGHT_SECONDARY+"; -fx-background-radius: 8; -fx-cursor: hand;");
-        clear.setOnMouseEntered(e->clear.setStyle("-fx-background-color: rgba(239, 68, 68, 0.15); -fx-text-fill: #F87171; -fx-background-radius: 8; -fx-cursor: hand;"));
-        clear.setOnMouseExited(e->clear.setStyle("-fx-background-color: transparent; -fx-text-fill: "+LIGHT_SECONDARY+"; -fx-background-radius: 8; -fx-cursor: hand;"));
+        clear.setStyle("-fx-background-color: transparent; -fx-text-fill: "+LIGHT_SECONDARY+"; -fx-cursor: hand;");
 
         Separator sep=new Separator();
         sep.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08);");
@@ -942,8 +888,6 @@ public class AiAssistantPage{
         button.setPadding(new Insets(0,16,0,16));
         button.setFont(Font.font(FONT,FontWeight.MEDIUM,13));
         button.setStyle("-fx-background-color: rgba(56, 189, 248, 0.1); -fx-border-color: rgba(56, 189, 248, 0.3); -fx-border-radius: 19; -fx-background-radius: 19; -fx-text-fill: #38BDF8; -fx-cursor: hand;");
-        button.setOnMouseEntered(e->button.setStyle("-fx-background-color: rgba(56, 189, 248, 0.2); -fx-border-color: #38BDF8; -fx-border-radius: 19; -fx-background-radius: 19; -fx-text-fill: #38BDF8; -fx-cursor: hand;"));
-        button.setOnMouseExited(e->button.setStyle("-fx-background-color: rgba(56, 189, 248, 0.1); -fx-border-color: rgba(56, 189, 248, 0.3); -fx-border-radius: 19; -fx-background-radius: 19; -fx-text-fill: #38BDF8; -fx-cursor: hand;"));
         return button;
     }
 
@@ -958,7 +902,6 @@ public class AiAssistantPage{
         SVGPath icon=new SVGPath();
         icon.setFill(Color.TRANSPARENT);
         icon.setStrokeWidth(2);
-
         switch(type){
             case "dashboard": icon.setContent("M3 3 H10 V10 H3 Z M14 3 H21 V10 H14 Z M3 14 H10 V21 H3 Z M14 14 H21 V21 H14 Z"); break;
             case "files": icon.setContent("M5 2 H14 L19 7 V21 H5 Z M14 2 V7 H19 M8 11 H16 M8 15 H16 M8 18 H13"); break;
@@ -973,7 +916,6 @@ public class AiAssistantPage{
             case "plus": icon.setContent("M12 5v14M5 12h14"); break;
             default: icon.setContent("M4 4 H20 V20 H4 Z"); break;
         }
-
         return icon;
     }
 

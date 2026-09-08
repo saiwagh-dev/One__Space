@@ -1,5 +1,6 @@
 package com.file_handlers.view.userView;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -101,11 +102,11 @@ public class AddReminderPage {
         storageTitle.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         storageTitle.setStyle("-fx-text-fill: " + WHITE + ";");
 
-        Label storageVal = new Label("64.2 GB of 100 GB");
+        Label storageVal = new Label("Calculating...");
         storageVal.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         storageVal.setStyle("-fx-text-fill: " + WHITE + ";");
 
-        Label storagePercent = new Label("64%");
+        Label storagePercent = new Label("0%");
         storagePercent.setFont(Font.font(FONT, FontWeight.BOLD, 11));
         storagePercent.setStyle("-fx-text-fill: " + LIGHT_SECONDARY + ";");
 
@@ -113,7 +114,7 @@ public class AddReminderPage {
         HBox.setHgrow(storageValGroup.getChildren().get(1), Priority.ALWAYS);
         storageValGroup.setAlignment(Pos.CENTER_LEFT);
 
-        ProgressBar progress = new ProgressBar(0.64);
+        ProgressBar progress = new ProgressBar(0.0);
         progress.setMaxWidth(Double.MAX_VALUE);
         progress.setPrefHeight(6);
         progress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
@@ -122,6 +123,39 @@ public class AddReminderPage {
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
         manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexPage());
+
+        // Dynamic Storage Calculation
+        UserSession currentSession = UserSession.getInstance();
+        if (currentSession != null && UserSession.isLoggedIn() && currentSession.getUid() != null) {
+            new Thread(() -> {
+                try {
+                    List<FileData> files = new FileDAO().getFileSummaries(currentSession.getUid());
+                    String driveLetter = System.getenv("SystemDrive");
+                    File drive = driveLetter != null ? new File(driveLetter + "\\") : new File("/");
+                    long totalPC = drive.getTotalSpace();
+
+                    long totalBytes = 0;
+                    for (FileData f : files) {
+                        if (f == null) continue;
+                        long sz = f.getFileSize();
+                        if (f.getLocalPath() != null && !f.getLocalPath().isBlank()) {
+                            File lf = new File(f.getLocalPath());
+                            if (lf.exists() && lf.isFile()) sz = lf.length();
+                        }
+                        if (sz > 0) totalBytes += sz;
+                    }
+
+                    final long finalBytes = totalBytes;
+                    final double pct = totalPC == 0 ? 0 : (finalBytes * 100.0 / totalPC);
+
+                    Platform.runLater(() -> {
+                        storageVal.setText(formatStorageSize(finalBytes) + " of " + formatStorageSize(totalPC));
+                        storagePercent.setText(String.format("%.1f%%", pct));
+                        progress.setProgress(Math.min(pct / 100.0, 1.0));
+                    });
+                } catch (Exception ignored) {}
+            }).start();
+        }
 
         VBox storage = new VBox(8, storageTitle, storageValGroup, progress, manageStorageBtn);
         storage.setPadding(new Insets(14));
@@ -178,7 +212,6 @@ public class AddReminderPage {
             "-fx-background-radius: 8;"
         );
 
-        // Override the internal default white viewport/content region of TextArea
         descriptionField.lookupAll(".content").forEach(node -> 
             node.setStyle("-fx-background-color: " + INPUT_BG + ";")
         );
@@ -216,7 +249,6 @@ public class AddReminderPage {
             "-fx-prompt-text-fill: " + LIGHT_SECONDARY + ";"
         );
 
-        // Style the internal editor field of DatePicker to match standard text fields
         reminderDatePicker.getEditor().setStyle(
             "-fx-background-color: transparent;" +
             "-fx-text-fill: " + WHITE + ";" +
@@ -259,7 +291,8 @@ public class AddReminderPage {
         HBox.setHgrow(reminderTypeBox, Priority.ALWAYS);
         HBox.setHgrow(documentBox, Priority.ALWAYS);
 
-HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminder Time", timePickerBox));        HBox repeatPriority = row(field("Repeat", repeatCombo), field("Priority", priorityCombo));
+        HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminder Time", timePickerBox));
+        HBox repeatPriority = row(field("Repeat", repeatCombo), field("Priority", priorityCombo));
 
         VBox details = new VBox(16, section("Reminder Details"), fieldLabel("Title *"), titleField, fieldLabel("Description"), descriptionField, typeFile, dateTime, repeatPriority, notificationBox);
         details.setPadding(new Insets(24));
@@ -356,6 +389,14 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
+    private String formatStorageSize(long bytes) {
+        if (bytes <= 0) return "0 B";
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1048576) return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1073741824L) return String.format("%.1f MB", bytes / 1048576.0);
+        return String.format("%.1f GB", bytes / 1073741824.0);
+    }
+
     private HBox createTopBar() {
         String activeUserName = "User", initials = "U";
 
@@ -395,7 +436,6 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
         profileOption.setPadding(new Insets(4, 12, 4, 6));
         profileOption.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
 
-        // Custom Dropdown Menu
         Popup userDropdownPopup = new Popup();
         userDropdownPopup.setAutoHide(true);
 
@@ -410,23 +450,6 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
                 "-fx-padding: 8 12;" +
                 "-fx-cursor: hand;"
         );
-        profileDropdownBtn.setOnMouseEntered(e -> profileDropdownBtn.setStyle(
-                "-fx-background-color: #1E293B;" +
-                "-fx-text-fill: #F59E0B;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;" +
-                "-fx-background-radius: 6;"
-        ));
-        profileDropdownBtn.setOnMouseExited(e -> profileDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #F59E0B;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        ));
         profileDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
             LandingPage.showUserProfilePage();
@@ -443,23 +466,6 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
                 "-fx-padding: 8 12;" +
                 "-fx-cursor: hand;"
         );
-        settingsDropdownBtn.setOnMouseEntered(e -> settingsDropdownBtn.setStyle(
-                "-fx-background-color: #1E293B;" +
-                "-fx-text-fill: #38BDF8;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;" +
-                "-fx-background-radius: 6;"
-        ));
-        settingsDropdownBtn.setOnMouseExited(e -> settingsDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #38BDF8;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        ));
         settingsDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
             LandingPage.showSettingPage();
@@ -479,23 +485,6 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
                 "-fx-padding: 8 12;" +
                 "-fx-cursor: hand;"
         );
-        logoutDropdownBtn.setOnMouseEntered(e -> logoutDropdownBtn.setStyle(
-                "-fx-background-color: #1E293B;" +
-                "-fx-text-fill: #F87171;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;" +
-                "-fx-background-radius: 6;"
-        ));
-        logoutDropdownBtn.setOnMouseExited(e -> logoutDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #F87171;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        ));
         logoutDropdownBtn.setOnAction(e -> {
             userDropdownPopup.hide();
             UserSession.clearSession();
@@ -575,12 +564,10 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
         reminder.setLinkedFileName(selectedFileName);
 
         try {
-            String id = new ReminderDAO().saveReminder(
+            new ReminderDAO().saveReminder(
                 UserSession.getInstance().getUid(),
                 reminder
             );
-
-            System.out.println("[REMINDER] Saved: " + id);
 
             alert(
                 Alert.AlertType.INFORMATION,
@@ -591,8 +578,6 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
             LandingPage.showCalendarPage();
 
         } catch (Exception e) {
-            e.printStackTrace();
-
             alert(
                 Alert.AlertType.ERROR,
                 "Could Not Save Reminder",
@@ -604,7 +589,7 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
     private HBox createTimePickerControl() {
         reminderTimeField = new TextField();
         reminderTimeField.setPromptText("Select time");
-        reminderTimeField.setEditable(false); // Disable direct typing
+        reminderTimeField.setEditable(false);
         styleTextField(reminderTimeField);
 
         Button clockBtn = new Button("⏰");
@@ -619,7 +604,6 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
             "-fx-font-size: 14px;"
         );
 
-        // Create Popover/Popup for time selection
         Popup timePopup = new Popup();
         timePopup.setAutoHide(true);
 
@@ -631,7 +615,7 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
         styleCombo(hoursCombo);
 
         ComboBox<String> minutesCombo = new ComboBox<>();
-        for (int i = 0; i < 60; i += 5) { // 5-minute increments
+        for (int i = 0; i < 60; i += 5) {
             minutesCombo.getItems().add(String.format("%02d", i));
         }
         minutesCombo.setValue("00");
@@ -672,7 +656,6 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
 
         timePopup.getContent().add(pickerLayout);
 
-        // Show popup on clicking the text field or clock button
         javafx.event.EventHandler<javafx.scene.input.MouseEvent> showPicker = e -> {
             if (!timePopup.isShowing()) {
                 javafx.geometry.Point2D p = reminderTimeField.localToScreen(0, reminderTimeField.getHeight() + 4);
@@ -688,10 +671,6 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
         HBox container = new HBox(8, reminderTimeField, clockBtn);
         HBox.setHgrow(reminderTimeField, Priority.ALWAYS);
         return container;
-    }
-
-    private Timestamp toTimestamp(java.time.LocalDate date) {
-        return Timestamp.of(Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
     }
 
     private void chooseDocument() {
@@ -817,18 +796,17 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
     }
 
     private void styleCombo(ComboBox<String> c) {
-    c.setPrefHeight(42);
-    c.setMaxWidth(Double.MAX_VALUE);
-    c.setStyle(
-        "-fx-background-color: " + INPUT_BG + ";" +
-        "-fx-border-color: " + INPUT_BORDER + ";" +
-        "-fx-border-radius: 8;" +
-        "-fx-background-radius: 8;" +
-        "-fx-font-family: " + FONT + ";" +
-        "-fx-font-size: 13px;"
-    );
+        c.setPrefHeight(42);
+        c.setMaxWidth(Double.MAX_VALUE);
+        c.setStyle(
+            "-fx-background-color: " + INPUT_BG + ";" +
+            "-fx-border-color: " + INPUT_BORDER + ";" +
+            "-fx-border-radius: 8;" +
+            "-fx-background-radius: 8;" +
+            "-fx-font-family: " + FONT + ";" +
+            "-fx-font-size: 13px;"
+        );
 
-    // Style the selected text inside the ComboBox button
         c.setCellFactory(lv -> new ListCell<String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -856,6 +834,7 @@ HBox dateTime = row(field("Reminder Date *", reminderDatePicker), field("Reminde
             }
         });
     }
+
     private VBox field(String name, javafx.scene.Node control) {
         return new VBox(6, fieldLabel(name), control);
     }

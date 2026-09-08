@@ -29,12 +29,11 @@ import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
-import java.io.InputStream;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import javafx.concurrent.Task;
 
 import com.file_handlers.dao.AdminFileStatsDAO;
+import com.file_handlers.config.FirebaseConfig;
 import javafx.stage.Popup;
 
 import com.file_handlers.view.LandingPage;
@@ -87,6 +86,7 @@ public class AdminAnalytics {
     private ComboBox<String> periodSelector;
     private Label totalUsersAnalyticsValue;
     private Label filesUploadedAnalyticsValue;
+    private Label activeWorkspacesAnalyticsValue;
 
     public Scene getAnalyticsScene() {
         BorderPane root = new BorderPane();
@@ -306,12 +306,15 @@ public class AdminAnalytics {
             stNotif.play(); ttNotif.play();
         });
 
-        Label avatar = new Label(initials);
-        avatar.setPrefSize(34, 34); avatar.setAlignment(Pos.CENTER);
-        avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
-        avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
-
+       Label avatar = new Label(initials);
+       avatar.setPrefSize(34, 34); 
+       avatar.setAlignment(Pos.CENTER);
+       avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+       avatar.setTextFill(Color.WHITE);
+       avatar.setStyle(
+       "-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF);" +
+       "-fx-background-radius: 50%;" +
+       "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
         Label admin = new Label(activeUserName);
         admin.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
         admin.setTextFill(Color.WHITE);
@@ -449,13 +452,13 @@ public class AdminAnalytics {
 
         HBox totalUsers = createAnalyticsStatCard("users", "Total Users", "Loading...", "Current registered users", PURPLE, PURPLE_LIGHT);
         HBox filesUploaded = createAnalyticsStatCard("files", "Files Uploaded", "Loading...", "Current uploaded files", BLUE, BLUE_LIGHT);
-        HBox activeSessions = createAnalyticsStatCard("sessions", "Active Sessions", "N/A", "Not tracked", ORANGE, ORANGE_LIGHT);
+        HBox activeWorkspaces = createAnalyticsStatCard("collaboration", "Workspaces", "Loading...", "Active workspace registries", ORANGE, ORANGE_LIGHT);
 
         totalUsers.setPrefWidth(260); totalUsers.setMaxWidth(260);
         filesUploaded.setPrefWidth(260); filesUploaded.setMaxWidth(260);
-        activeSessions.setPrefWidth(260); activeSessions.setMaxWidth(260);
+        activeWorkspaces.setPrefWidth(260); activeWorkspaces.setMaxWidth(260);
 
-        HBox statsRow = new HBox(16, totalUsers, filesUploaded, activeSessions);
+        HBox statsRow = new HBox(16, totalUsers, filesUploaded, activeWorkspaces);
         statsRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox content = new VBox(22, headerBox, statsRow, createUserGrowthCard());
@@ -486,6 +489,8 @@ public class AdminAnalytics {
             totalUsersAnalyticsValue = valueLabel;
         } else if ("Files Uploaded".equals(title)) {
             filesUploadedAnalyticsValue = valueLabel;
+        } else if ("Workspaces".equals(title)) {
+            activeWorkspacesAnalyticsValue = valueLabel;
         }
         valueLabel.setTextFill(Color.WHITE);
         valueLabel.setStyle("-fx-text-fill: #FFFFFF;");
@@ -575,15 +580,24 @@ public class AdminAnalytics {
                                         : periodSelector.getValue()
                         );
 
-                int totalFiles =
-                        statsDAO.getTotalFiles();
-
-                int totalUsers =
-                        statsDAO.getTotalUsers();
+                int totalFiles = statsDAO.getTotalFiles();
+                int totalUsers = statsDAO.getTotalUsers();
+                
+                // Real-time dynamic count of workspaces
+                int totalWorkspaces = 0;
+                try {
+                    com.google.cloud.firestore.Firestore db = FirebaseConfig.getFirestore();
+                    if (db != null) {
+                        totalWorkspaces = db.collection("workspaces").get().get().size();
+                    }
+                } catch (Exception ex) {
+                    System.err.println("Workspace count retrieval note: " + ex.getMessage());
+                }
 
                 return new AnalyticsResult(
                         totalUsers,
                         totalFiles,
+                        totalWorkspaces,
                         weeklyUploads
                 );
             }
@@ -591,18 +605,16 @@ public class AdminAnalytics {
 
         task.setOnSucceeded(e -> {
 
-            AnalyticsResult result =
-                    task.getValue();
+            AnalyticsResult result = task.getValue();
 
             if (totalUsersAnalyticsValue != null)
-                totalUsersAnalyticsValue.setText(
-                        String.valueOf(result.totalUsers)
-                );
+                totalUsersAnalyticsValue.setText(String.valueOf(result.totalUsers));
 
             if (filesUploadedAnalyticsValue != null)
-                filesUploadedAnalyticsValue.setText(
-                        String.valueOf(result.totalFiles)
-                );
+                filesUploadedAnalyticsValue.setText(String.valueOf(result.totalFiles));
+
+            if (activeWorkspacesAnalyticsValue != null)
+                activeWorkspacesAnalyticsValue.setText(String.valueOf(result.totalWorkspaces));
 
             updateChart(result.weeklyUploads);
         });
@@ -615,6 +627,9 @@ public class AdminAnalytics {
             if (filesUploadedAnalyticsValue != null)
                 filesUploadedAnalyticsValue.setText("--");
 
+            if (activeWorkspacesAnalyticsValue != null)
+                activeWorkspacesAnalyticsValue.setText("--");
+
             if (userGrowthChart != null)
                 userGrowthChart.getData().clear();
 
@@ -624,31 +639,19 @@ public class AdminAnalytics {
             );
         });
 
-        Thread thread =
-                new Thread(task, "AdminAnalyticsLoader");
-
+        Thread thread = new Thread(task, "AdminAnalyticsLoader");
         thread.setDaemon(true);
         thread.start();
     }
 
-    private void updateChart(
-            Map<String, Integer> weeklyUploads
-    ) {
+    private void updateChart(Map<String, Integer> weeklyUploads) {
 
         userGrowthChart.getData().clear();
 
-        XYChart.Series<String, Number> series =
-                new XYChart.Series<>();
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
 
-        for (Map.Entry<String, Integer> entry :
-                weeklyUploads.entrySet()) {
-
-            series.getData().add(
-                    new XYChart.Data<>(
-                            entry.getKey(),
-                            entry.getValue()
-                    )
-            );
+        for (Map.Entry<String, Integer> entry : weeklyUploads.entrySet()) {
+            series.getData().add(new XYChart.Data<>(entry.getKey(), entry.getValue()));
         }
 
         userGrowthChart.getData().add(series);
@@ -682,15 +685,18 @@ public class AdminAnalytics {
 
         private final int totalUsers;
         private final int totalFiles;
+        private final int totalWorkspaces;
         private final Map<String, Integer> weeklyUploads;
 
         private AnalyticsResult(
                 int totalUsers,
                 int totalFiles,
+                int totalWorkspaces,
                 Map<String, Integer> weeklyUploads
         ) {
             this.totalUsers = totalUsers;
             this.totalFiles = totalFiles;
+            this.totalWorkspaces = totalWorkspaces;
             this.weeklyUploads = weeklyUploads;
         }
     }
@@ -880,9 +886,6 @@ public class AdminAnalytics {
                 break;
             case "bell":
                 icon.setContent("M6 17 H18 M8 17 V10 A4 4 0 0 1 16 10 V17 M10 20 H14");
-                break;
-            case "sessions":
-                icon.setContent("M12 3 A9 9 0 1 0 21 12 M12 3 V12 H21");
                 break;
             default:
                 icon.setContent("M4 4 H20 V20 H4 Z");
