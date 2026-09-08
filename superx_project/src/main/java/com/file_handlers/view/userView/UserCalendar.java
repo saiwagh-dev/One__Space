@@ -190,8 +190,36 @@ public class UserCalendar {
         reminderScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         reminderScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
-        VBox remindersCard = new VBox(reminderScroll);
-        remindersCard.setPadding(new Insets(16));
+        reminderScroll.setHbarPolicy(
+                ScrollPane.ScrollBarPolicy.NEVER
+        );
+
+        reminderScroll.setVbarPolicy(
+                ScrollPane.ScrollBarPolicy.AS_NEEDED
+        );
+
+        reminderScroll.setStyle(
+                "-fx-background-color: transparent;"
+                        +"-fx-background: transparent;"
+        );
+
+        Platform.runLater(()->{
+        Node verticalBar=reminderScroll.lookup(".scroll-bar:vertical");
+        if(verticalBar!=null){
+                verticalBar.setOpacity(0);
+                verticalBar.setMouseTransparent(true);
+        }
+        });
+
+        VBox remindersCard=
+                new VBox(
+                        reminderScroll
+                );
+
+        remindersCard.setPadding(
+                new Insets(16)
+        );
+
         remindersCard.setMinHeight(410);
         remindersCard.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + ";");
 

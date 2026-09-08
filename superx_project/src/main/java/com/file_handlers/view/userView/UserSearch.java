@@ -226,9 +226,46 @@ public class UserSearch{
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setStyle("-fx-background-color: transparent;-fx-background: transparent;-fx-padding: 0;");
 
-        VBox mainArea=new VBox(topBar,scrollPane);
-        mainArea.setStyle("-fx-background: "+MAIN_BG+";-fx-background-color: "+MAIN_BG+";");
-        VBox.setVgrow(scrollPane,Priority.ALWAYS);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
+
+        scrollPane.setHbarPolicy(
+                ScrollPane.ScrollBarPolicy.NEVER
+        );
+
+        scrollPane.setVbarPolicy(
+                ScrollPane.ScrollBarPolicy.AS_NEEDED
+        );
+
+        scrollPane.setStyle(
+                "-fx-background-color: transparent;"+
+                "-fx-background: transparent;"+
+                "-fx-padding: 0;"
+        );
+
+        Platform.runLater(()->{
+        Node verticalBar=scrollPane.lookup(".scroll-bar:vertical");
+        if(verticalBar!=null){
+                verticalBar.setOpacity(0);
+                verticalBar.setMouseTransparent(true);
+        }
+        });
+
+        VBox mainArea=
+                new VBox(
+                        topBar,
+                        scrollPane
+                );
+
+        mainArea.setStyle(
+                "-fx-background: "+MAIN_BG+";"+
+                "-fx-background-color: "+MAIN_BG+";"
+        );
+
+        VBox.setVgrow(
+                scrollPane,
+                Priority.ALWAYS
+        );
 
         BorderPane root=new BorderPane();
         root.setStyle("-fx-background-color: "+SIDEBAR_BG+";");
