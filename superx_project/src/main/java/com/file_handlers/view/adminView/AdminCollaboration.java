@@ -574,6 +574,129 @@ public class AdminCollaboration {
         alert.showAndWait();
     }
 
+    private void showWorkspaceMembersModal(Workspace w) {
+        Stage modal = new Stage();
+        modal.initModality(Modality.APPLICATION_MODAL);
+        modal.setTitle(w.name + " - Member Overview");
+
+        VBox container = new VBox(18);
+        container.setPadding(new Insets(24));
+        container.setStyle("-fx-background-color: #070C16; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-background-radius: 16; -fx-border-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.85), 24, 0, 0, 10);");
+
+        SVGPath userIcon = createIcon("users");
+        userIcon.setStroke(Color.web(CYAN_PRIMARY));
+        userIcon.setStrokeWidth(2);
+        StackPane iconPane = new StackPane(userIcon);
+        iconPane.setPrefSize(38, 38);
+        iconPane.setStyle("-fx-background-color: " + CYAN_LIGHT + "; -fx-border-color: rgba(56, 189, 248, 0.3); -fx-border-radius: 10; -fx-background-radius: 10;");
+
+        Label titleLbl = new Label(w.name);
+        titleLbl.setFont(Font.font(FONT, FontWeight.BOLD, 18));
+        titleLbl.setTextFill(Color.web(WHITE));
+
+        Label subtitleLbl = new Label("Workspace Owner: " + w.owner + "  •  ID: " + w.docId);
+        subtitleLbl.setFont(Font.font(FONT, FontWeight.NORMAL, 12));
+        subtitleLbl.setTextFill(Color.web(LIGHT_SECONDARY));
+
+        VBox titleBox = new VBox(3, titleLbl, subtitleLbl);
+
+        Region topSpacer = new Region();
+        HBox.setHgrow(topSpacer, Priority.ALWAYS);
+
+        // Member count badge
+        Label countBadge = new Label(w.members);
+        countBadge.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        countBadge.setTextFill(Color.web(INDIGO_PRIMARY));
+        countBadge.setStyle("-fx-background-color: " + INDIGO_LIGHT + "; -fx-padding: 6 14; -fx-background-radius: 20; -fx-border-color: rgba(129, 140, 248, 0.4); -fx-border-radius: 20;");
+
+        HBox headerRow = new HBox(12, iconPane, titleBox, topSpacer, countBadge);
+        headerRow.setAlignment(Pos.CENTER_LEFT);
+
+        Separator sep = new Separator();
+        sep.setStyle("-fx-background-color: rgba(255, 255, 255, 0.08);");
+
+        VBox memberList = new VBox(10);
+        memberList.setPadding(new Insets(4, 0, 4, 0));
+
+        // Loading members from Firestore
+        try {
+            Firestore db = com.file_handlers.config.FirebaseConfig.getFirestore();
+            List<QueryDocumentSnapshot> memberDocs = db.collection("workspaces").document(w.docId).collection("members").get().get().getDocuments();
+
+            if (memberDocs.isEmpty()) {
+                Label noMembers = new Label("No members registered in this workspace.");
+                noMembers.setFont(Font.font(FONT, FontWeight.MEDIUM, 13));
+                noMembers.setTextFill(Color.web(LIGHT_SECONDARY));
+                memberList.getChildren().add(noMembers);
+            } else {
+                for (QueryDocumentSnapshot mDoc : memberDocs) {
+                    String name = mDoc.getString("name");
+                    if (name == null || name.isBlank()) name = "Unknown Member";
+                    String role = mDoc.getString("role");
+                    if (role == null || role.isBlank()) role = "Member";
+                    String email = mDoc.getString("email");
+
+                    Label mAvatar = new Label(name.substring(0, 1).toUpperCase());
+                    mAvatar.setPrefSize(32, 32);
+                    mAvatar.setAlignment(Pos.CENTER);
+                    mAvatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+                    mAvatar.setTextFill(Color.WHITE);
+                    mAvatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #1D4ED8, #38BDF8); -fx-background-radius: 50%;");
+
+                    Label mName = new Label(name);
+                    mName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
+                    mName.setTextFill(Color.web(WHITE));
+
+                    Label mRole = new Label(role);
+                    mRole.setFont(Font.font(FONT, FontWeight.NORMAL, 11));
+                    mRole.setTextFill(Color.web(LIGHT_SECONDARY));
+
+                    VBox mInfo = new VBox(2, mName, mRole);
+
+                    Region memSpacer = new Region();
+                    HBox.setHgrow(memSpacer, Priority.ALWAYS);
+
+                    Label emailOrBadge = new Label(email != null && !email.isBlank() ? email : role);
+                    emailOrBadge.setFont(Font.font(FONT, FontWeight.MEDIUM, 11));
+                    emailOrBadge.setTextFill(Color.web(CYAN_PRIMARY));
+                    emailOrBadge.setStyle("-fx-background-color: " + CYAN_LIGHT + "; -fx-padding: 3 8; -fx-background-radius: 6; -fx-border-color: rgba(56, 189, 248, 0.25); -fx-border-radius: 6;");
+
+                    HBox memberRow = new HBox(12, mAvatar, mInfo, memSpacer, emailOrBadge);
+                    memberRow.setAlignment(Pos.CENTER_LEFT);
+                    memberRow.setPadding(new Insets(10, 14, 10, 14));
+                    memberRow.setStyle("-fx-background-color: rgba(16, 28, 48, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 10; -fx-background-radius: 10;");
+
+                    memberRow.setOnMouseEntered(e -> memberRow.setStyle("-fx-background-color: rgba(23, 40, 68, 0.95); -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 10; -fx-background-radius: 10;"));
+                    memberRow.setOnMouseExited(e -> memberRow.setStyle("-fx-background-color: rgba(16, 28, 48, 0.85); -fx-border-color: rgba(255, 255, 255, 0.05); -fx-border-radius: 10; -fx-background-radius: 10;"));
+
+                    memberList.getChildren().add(memberRow);
+                }
+            }
+        } catch (Exception ex) {
+            Label err = new Label("Could not load members: " + ex.getMessage());
+            err.setFont(Font.font(FONT, FontWeight.MEDIUM, 12));
+            err.setTextFill(Color.web("#F87171"));
+            memberList.getChildren().add(err);
+        }
+
+        ScrollPane scroll = new ScrollPane(memberList);
+        scroll.setFitToWidth(true);
+        scroll.setPrefHeight(280);
+        scroll.setStyle("-fx-background: transparent; -fx-background-color: transparent; -fx-padding: 0;");
+
+        Button closeBtn = new Button("Close");
+        closeBtn.setFont(Font.font(FONT, FontWeight.BOLD, 12));
+        closeBtn.setStyle("-fx-background-color: linear-gradient(to right, #2563EB, #38BDF8); -fx-text-fill: white; -fx-cursor: hand; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 8 22; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.3), 8, 0, 0, 2);");
+        closeBtn.setOnAction(e -> modal.close());
+
+        HBox bottom = new HBox(closeBtn);
+        bottom.setAlignment(Pos.CENTER_RIGHT);
+
+        container.getChildren().addAll(headerRow, sep, scroll, bottom);
+        modal.setScene(new Scene(container, 580, 440));
+        modal.show();
+    }
+
     private void showAllWorkspacesModal(List<Workspace> workspaces) {
         Stage modal = new Stage();
         modal.initModality(Modality.APPLICATION_MODAL);
@@ -627,15 +750,14 @@ public class AdminCollaboration {
                 memLbl.setTextFill(Color.web(CYAN_PRIMARY));
                 memLbl.setStyle("-fx-background-color: " + CYAN_LIGHT + "; -fx-padding: 4 10; -fx-background-radius: 12; -fx-border-color: rgba(56, 189, 248, 0.25); -fx-border-radius: 12;");
 
-                Button manageBtn = new Button("Manage");
-                manageBtn.setFont(Font.font(FONT, FontWeight.BOLD, 11));
-                manageBtn.setStyle("-fx-background-color: linear-gradient(to right, #0284C7, #38BDF8); -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 14; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 6, 0, 0, 1);");
-                manageBtn.setOnAction(e -> {
-                    modal.close();
-                    showManageWorkspaceDialog(w);
-                });
+                Button viewBtn = new Button("View");
+                viewBtn.setFont(Font.font(FONT, FontWeight.BOLD, 11));
+                viewBtn.setStyle("-fx-background-color: linear-gradient(to right, #0284C7, #38BDF8); -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 16; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 6, 0, 0, 1);");
+                viewBtn.setOnMouseEntered(e -> viewBtn.setStyle("-fx-background-color: linear-gradient(to right, #0369A1, #0284C7); -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 16; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.5), 8, 0, 0, 2);"));
+                viewBtn.setOnMouseExited(e -> viewBtn.setStyle("-fx-background-color: linear-gradient(to right, #0284C7, #38BDF8); -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 16; -fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.35), 6, 0, 0, 1);"));
+                viewBtn.setOnAction(e -> showWorkspaceMembersModal(w));
 
-                HBox item = new HBox(14, iconPane, nameBox, sp1, ownerLbl, memLbl, manageBtn);
+                HBox item = new HBox(14, iconPane, nameBox, sp1, ownerLbl, memLbl, viewBtn);
                 item.setAlignment(Pos.CENTER_LEFT);
                 item.setStyle("-fx-background-color: rgba(16, 28, 48, 0.9); -fx-padding: 12 16; -fx-background-radius: 10; -fx-border-color: rgba(56, 189, 248, 0.25); -fx-border-radius: 10;");
                 list.getChildren().add(item);

@@ -1,10 +1,13 @@
 package com.file_handlers.view.userView;
 
 import com.file_handlers.config.FirebaseConfig;
+import com.file_handlers.dao.FileDAO;
+import com.file_handlers.model.FileData;
 import com.file_handlers.model.UserSession;
 import com.file_handlers.view.LandingPage;
 import com.file_handlers.util.ResponsiveUtil;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -27,6 +30,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -54,6 +58,11 @@ public class NotificationPage {
     private static final String WHITE = "#FFFFFF";
     private static final String LIGHT_SECONDARY = "#94A3B8";
     private static final String BLUE = "#2563EB";
+
+    // Dynamic storage labels
+    private Label sidebarStorageVal;
+    private Label sidebarStoragePercent;
+    private ProgressBar sidebarStorageProgress;
 
     private final List<N> data = new ArrayList<>();
     private VBox list;
@@ -89,7 +98,7 @@ public class NotificationPage {
         avatar.setAlignment(Pos.CENTER);
         avatar.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         avatar.setTextFill(Color.WHITE);
-        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%; -fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.5), 10, 0, 0, 2);");
+        avatar.setStyle("-fx-background-color: linear-gradient(to bottom right, #2563EB, #00D2FF); -fx-background-radius: 50%;");
 
         Label userName = new Label(activeUserName);
         userName.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 13));
@@ -104,75 +113,20 @@ public class NotificationPage {
         profileOption.setPadding(new Insets(4, 12, 4, 6));
         profileOption.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
 
-        // Custom Dropdown Menu
         Popup userDropdownPopup = new Popup();
         userDropdownPopup.setAutoHide(true);
 
         Button profileDropdownBtn = new Button("👥   Profile");
         profileDropdownBtn.setMaxWidth(Double.MAX_VALUE);
         profileDropdownBtn.setAlignment(Pos.CENTER_LEFT);
-        profileDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #F59E0B;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        );
-        profileDropdownBtn.setOnMouseEntered(e -> profileDropdownBtn.setStyle(
-                "-fx-background-color: #1E293B;" +
-                "-fx-text-fill: #F59E0B;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;" +
-                "-fx-background-radius: 6;"
-        ));
-        profileDropdownBtn.setOnMouseExited(e -> profileDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #F59E0B;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        ));
-        profileDropdownBtn.setOnAction(e -> {
-            userDropdownPopup.hide();
-            LandingPage.showUserProfilePage();
-        });
+        profileDropdownBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #F59E0B; -fx-font-size: 14px; -fx-font-family: " + FONT + "; -fx-padding: 8 12; -fx-cursor: hand;");
+        profileDropdownBtn.setOnAction(e -> { userDropdownPopup.hide(); LandingPage.showUserProfilePage(); });
 
         Button settingsDropdownBtn = new Button("⚙   Settings");
         settingsDropdownBtn.setMaxWidth(Double.MAX_VALUE);
         settingsDropdownBtn.setAlignment(Pos.CENTER_LEFT);
-        settingsDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #38BDF8;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        );
-        settingsDropdownBtn.setOnMouseEntered(e -> settingsDropdownBtn.setStyle(
-                "-fx-background-color: #1E293B;" +
-                "-fx-text-fill: #38BDF8;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;" +
-                "-fx-background-radius: 6;"
-        ));
-        settingsDropdownBtn.setOnMouseExited(e -> settingsDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #38BDF8;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        ));
-        settingsDropdownBtn.setOnAction(e -> {
-            userDropdownPopup.hide();
-            LandingPage.showSettingPage();
-        });
+        settingsDropdownBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #38BDF8; -fx-font-size: 14px; -fx-font-family: " + FONT + "; -fx-padding: 8 12; -fx-cursor: hand;");
+        settingsDropdownBtn.setOnAction(e -> { userDropdownPopup.hide(); LandingPage.showSettingPage(); });
 
         Separator dropdownSeparator = new Separator();
         dropdownSeparator.setStyle("-fx-background-color: #1E293B; -fx-padding: 4 0;");
@@ -180,55 +134,19 @@ public class NotificationPage {
         Button logoutDropdownBtn = new Button("↳   Logout");
         logoutDropdownBtn.setMaxWidth(Double.MAX_VALUE);
         logoutDropdownBtn.setAlignment(Pos.CENTER_LEFT);
-        logoutDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #F87171;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        );
-        logoutDropdownBtn.setOnMouseEntered(e -> logoutDropdownBtn.setStyle(
-                "-fx-background-color: #1E293B;" +
-                "-fx-text-fill: #F87171;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;" +
-                "-fx-background-radius: 6;"
-        ));
-        logoutDropdownBtn.setOnMouseExited(e -> logoutDropdownBtn.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #F87171;" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-family: " + FONT + ";" +
-                "-fx-padding: 8 12;" +
-                "-fx-cursor: hand;"
-        ));
-        logoutDropdownBtn.setOnAction(e -> {
-            userDropdownPopup.hide();
-            UserSession.clearSession();
-            LandingPage.showUserLoginPage();
-        });
+        logoutDropdownBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #F87171; -fx-font-size: 14px; -fx-font-family: " + FONT + "; -fx-padding: 8 12; -fx-cursor: hand;");
+        logoutDropdownBtn.setOnAction(e -> { userDropdownPopup.hide(); UserSession.clearSession(); LandingPage.showUserLoginPage(); });
 
         VBox dropdownContainer = new VBox(4, profileDropdownBtn, settingsDropdownBtn, dropdownSeparator, logoutDropdownBtn);
         dropdownContainer.setPadding(new Insets(8));
         dropdownContainer.setPrefWidth(180);
-        dropdownContainer.setStyle(
-                "-fx-background-color: #0A121E;" +
-                "-fx-border-color: #1E2D42;" +
-                "-fx-border-width: 1px;" +
-                "-fx-border-radius: 12px;" +
-                "-fx-background-radius: 12px;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 16, 0, 0, 8);"
-        );
+        dropdownContainer.setStyle("-fx-background-color: #0A121E; -fx-border-color: #1E2D42; -fx-border-width: 1px; -fx-border-radius: 12px; -fx-background-radius: 12px;");
 
         userDropdownPopup.getContent().add(dropdownContainer);
 
         profileOption.setOnMouseClicked(e -> {
-            if (userDropdownPopup.isShowing()) {
-                userDropdownPopup.hide();
-            } else {
+            if (userDropdownPopup.isShowing()) userDropdownPopup.hide();
+            else {
                 javafx.geometry.Point2D point = profileOption.localToScreen(0, profileOption.getHeight() + 6);
                 userDropdownPopup.show(profileOption, point.getX(), point.getY());
             }
@@ -252,8 +170,6 @@ public class NotificationPage {
         mark.setFont(Font.font(FONT, FontWeight.BOLD, 12));
         mark.setTextFill(Color.web("#38BDF8"));
         mark.setStyle("-fx-background-color: rgba(56, 189, 248, 0.15); -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 6 14;");
-        mark.setOnMouseEntered(e -> mark.setStyle("-fx-background-color: rgba(56, 189, 248, 0.25); -fx-border-color: #38BDF8; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 6 14;"));
-        mark.setOnMouseExited(e -> mark.setStyle("-fx-background-color: rgba(56, 189, 248, 0.15); -fx-border-color: rgba(56, 189, 248, 0.4); -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 6 14;"));
         mark.setOnAction(e -> { data.forEach(n -> n.read = true); render(); });
 
         HBox header = new HBox(new VBox(4, title, sub), space(), mark);
@@ -268,7 +184,6 @@ public class NotificationPage {
         col.setOnAction(e -> setFilter("Collaboration", col, all, rem));
 
         HBox filters = new HBox(8, all, rem, col);
-
         list = new VBox(10);
         render();
 
@@ -277,7 +192,6 @@ public class NotificationPage {
         warningIcon.setStrokeWidth(2);
 
         Label warning = text("OneSpace never deletes or moves files automatically. Every suggested action requires your confirmation.", 12, false, LIGHT_SECONDARY);
-
         HBox warningBox = new HBox(10, warningIcon, warning);
         warningBox.setAlignment(Pos.CENTER_LEFT);
         warningBox.setPadding(new Insets(14, 18, 14, 18));
@@ -303,22 +217,20 @@ public class NotificationPage {
         root.setCenter(center);
         root.setStyle("-fx-background-color: " + SIDEBAR_BG + ";");
 
+        loadDynamicSidebarStorage();
+
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
 
     private VBox createSidebar() {
         Image logoImage = new Image(getClass().getResourceAsStream("/assets/logo/OneSpace_logo.png"));
         ImageView logoView = new ImageView(logoImage);
-        logoView.setFitWidth(42);
-        logoView.setFitHeight(42);
-        logoView.setPreserveRatio(true);
+        logoView.setFitWidth(42); logoView.setFitHeight(42); logoView.setPreserveRatio(true);
 
         StackPane logoIcon = new StackPane(logoView);
-        logoIcon.setPrefSize(42, 42);
-        logoIcon.setAlignment(Pos.CENTER);
+        logoIcon.setPrefSize(42, 42); logoIcon.setAlignment(Pos.CENTER);
 
         Label logoText = text("OneSpace", 19, true, WHITE);
-
         HBox logoHeader = new HBox(10, logoIcon, logoText);
         logoHeader.setAlignment(Pos.CENTER_LEFT);
 
@@ -339,23 +251,23 @@ public class NotificationPage {
         VBox navList = new VBox(4, dashboard, spaces, search, calendar, ai, collab, recent, trash, notifications);
 
         Label storageTitle = text("Storage Used", 12, true, WHITE);
-        Label storageVal = text("64.2 GB of 100 GB", 12, true, WHITE);
-        Label storagePercent = text("64%", 11, true, LIGHT_SECONDARY);
+        sidebarStorageVal = text("Syncing...", 12, true, WHITE);
+        sidebarStoragePercent = text("0%", 11, true, LIGHT_SECONDARY);
 
-        HBox storageValGroup = new HBox(storageVal, space(), storagePercent);
+        HBox storageValGroup = new HBox(sidebarStorageVal, space(), sidebarStoragePercent);
         storageValGroup.setAlignment(Pos.CENTER_LEFT);
 
-        ProgressBar sidebarProgress = new ProgressBar(0.64);
-        sidebarProgress.setMaxWidth(Double.MAX_VALUE);
-        sidebarProgress.setPrefHeight(6);
-        sidebarProgress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
+        sidebarStorageProgress = new ProgressBar(0.0);
+        sidebarStorageProgress.setMaxWidth(Double.MAX_VALUE);
+        sidebarStorageProgress.setPrefHeight(6);
+        sidebarStorageProgress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
 
         Button manageStorageBtn = new Button("Storage Index ›");
         manageStorageBtn.setFont(Font.font(FONT, FontWeight.SEMI_BOLD, 11));
         manageStorageBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #60A5FA; -fx-padding: 2 0 0 0; -fx-cursor: hand;");
         manageStorageBtn.setOnAction(e -> LandingPage.showStorageIndexPage());
 
-        VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarProgress, manageStorageBtn);
+        VBox storageCard = new VBox(8, storageTitle, storageValGroup, sidebarStorageProgress, manageStorageBtn);
         storageCard.setPadding(new Insets(14));
         storageCard.setStyle("-fx-background-color: rgba(16, 28, 48, 0.65); -fx-border-color: " + SIDEBAR_BORDER + "; -fx-border-radius: 12; -fx-background-radius: 12;");
 
@@ -394,15 +306,7 @@ public class NotificationPage {
         btn.setOnAction(action);
 
         if (active) {
-            btn.setStyle(
-                "-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB);" +
-                "-fx-background-radius: 12;" +
-                "-fx-border-color: rgba(96, 165, 250, 0.6);" +
-                "-fx-border-radius: 12;" +
-                "-fx-border-width: 1;" +
-                "-fx-cursor: hand;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(37,99,235,0.55), 14, 0, 0, 2);"
-            );
+            btn.setStyle("-fx-background-color: linear-gradient(to right, #1D4ED8, #2563EB); -fx-background-radius: 12; -fx-border-color: rgba(96, 165, 250, 0.6); -fx-border-radius: 12; -fx-border-width: 1; -fx-cursor: hand;");
         } else {
             btn.setStyle("-fx-background-color: transparent; -fx-background-radius: 12; -fx-cursor: hand; -fx-border-width: 0;");
             btn.setOnMouseEntered(e -> {
@@ -416,13 +320,57 @@ public class NotificationPage {
                 textLbl.setTextFill(Color.web(WHITE));
             });
         }
-
         return btn;
+    }
+
+    private void loadDynamicSidebarStorage() {
+        UserSession session = UserSession.getInstance();
+        if (session == null || !UserSession.isLoggedIn() || session.getUid() == null || session.getUid().isBlank()) return;
+
+        Thread thread = new Thread(() -> {
+            try {
+                FileDAO fileDAO = new FileDAO();
+                List<FileData> files = fileDAO.getFileSummaries(session.getUid());
+                String systemDrive = System.getenv("SystemDrive");
+                File drive = systemDrive != null ? new File(systemDrive + "\\") : new File("/");
+                long totalPC = drive.getTotalSpace();
+
+                long totalBytes = 0;
+                for (FileData f : files) {
+                    if (f == null) continue;
+                    long sz = f.getFileSize();
+                    String path = f.getLocalPath();
+                    if (path != null && !path.isBlank()) {
+                        File lf = new File(path);
+                        if (lf.exists() && lf.isFile()) sz = lf.length();
+                    }
+                    if (sz > 0) totalBytes += sz;
+                }
+
+                final long finalBytes = totalBytes;
+                final double percent = totalPC == 0 ? 0 : (finalBytes * 100.0 / totalPC);
+
+                Platform.runLater(() -> {
+                    if (sidebarStorageVal != null) sidebarStorageVal.setText(formatSize(finalBytes) + " of " + formatSize(totalPC));
+                    if (sidebarStoragePercent != null) sidebarStoragePercent.setText(String.format("%.1f%%", percent));
+                    if (sidebarStorageProgress != null) sidebarStorageProgress.setProgress(Math.min(percent / 100.0, 1.0));
+                });
+            } catch (Exception ignored) {}
+        });
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private String formatSize(long bytes) {
+        if (bytes <= 0) return "0 B";
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1048576) return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1073741824L) return String.format("%.1f MB", bytes / 1048576.0);
+        return String.format("%.1f GB", bytes / 1073741824.0);
     }
 
     private void render() {
         list.getChildren().clear();
-
         for (N n : data) {
             if (filter.equals("All") || n.type.equals(filter)) {
                 list.getChildren().add(card(n));
@@ -441,40 +389,17 @@ public class NotificationPage {
 
         Label title = text(n.title, 14, true, WHITE);
         Label sub = text(n.sub, 12, false, LIGHT_SECONDARY);
-
         VBox info = new VBox(3, title, sub);
 
         Label time = text(n.time, 11, true, LIGHT_SECONDARY);
-
         Label dot = text(n.read ? "" : "●", 10, true, "#38BDF8");
 
         HBox row = new HBox(14, iconPane, info, space(), time, dot);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(14, 18, 14, 18));
+        row.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-cursor: hand;");
 
-        String baseStyle = 
-                "-fx-background-color: " + CARD_BG + ";" +
-                "-fx-border-color: " + CARD_BORDER + ";" +
-                "-fx-border-width: 1.2;" +
-                "-fx-border-radius: 16;" +
-                "-fx-background-radius: 16;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 12, 0, 0, 4);";
-
-        String hoverStyle = 
-                "-fx-background-color: " + CARD_BG_INNER + ";" +
-                "-fx-border-color: #38BDF8;" +
-                "-fx-border-width: 1.2;" +
-                "-fx-border-radius: 16;" +
-                "-fx-background-radius: 16;" +
-                "-fx-effect: dropshadow(three-pass-box, rgba(56,189,248,0.22), 16, 0, 0, 6);" +
-                "-fx-cursor: hand;";
-
-        row.setStyle(baseStyle);
-
-        row.setOnMouseEntered(e -> row.setStyle(hoverStyle));
-        row.setOnMouseExited(e -> row.setStyle(baseStyle));
         row.setOnMouseClicked(e -> { n.read = true; render(); });
-
         return row;
     }
 
@@ -508,9 +433,7 @@ public class NotificationPage {
         return "-fx-background-color: " + (active ? "linear-gradient(to right, #1D4ED8, #2563EB)" : INPUT_BG) + ";" +
                "-fx-text-fill: " + (active ? WHITE : LIGHT_SECONDARY) + ";" +
                "-fx-border-color: " + (active ? "rgba(96, 165, 250, 0.6)" : "rgba(255, 255, 255, 0.1)") + ";" +
-               "-fx-border-radius: 16;" +
-               "-fx-background-radius: 16;" +
-               "-fx-cursor: hand;";
+               "-fx-border-radius: 16; -fx-background-radius: 16; -fx-cursor: hand;";
     }
 
     private Label text(String s, double size, boolean bold, String color) {
@@ -549,32 +472,23 @@ public class NotificationPage {
 
     private void init() {
         data.clear();
-        
         String myEmail = UserSession.getInstance() != null ? UserSession.getInstance().getEmail() : "";
         String myUid = UserSession.getInstance() != null ? UserSession.getInstance().getUid() : "";
-        
-        if (myEmail == null || myEmail.trim().isEmpty()) {
-            return;
-        }
+        if (myEmail == null || myEmail.trim().isEmpty()) return;
 
         try {
             com.google.cloud.firestore.Firestore db = FirebaseConfig.getFirestore();
-
-            // 1. Dynamic Collaboration Notifications (from Firestore workspaces)
             var workspacesDocs = db.collection("workspaces").get().get().getDocuments();
 
             for (var wsDoc : workspacesDocs) {
                 String spaceDocId = wsDoc.getId();
                 String spaceName = wsDoc.getString("spaceName");
-                if (spaceName == null) {
-                    spaceName = spaceDocId.replaceAll("_", " ");
-                }
+                if (spaceName == null) spaceName = spaceDocId.replaceAll("_", " ");
 
                 boolean isUserMemberOrOwner = false;
                 List<N> workspaceNotifications = new ArrayList<>();
-
                 var memberDocs = db.collection("workspaces").document(spaceDocId).collection("members").get().get().getDocuments();
-                
+
                 for (var mDoc : memberDocs) {
                     String email = mDoc.getString("email");
                     String status = mDoc.getString("status");
@@ -583,9 +497,7 @@ public class NotificationPage {
                     String timeLabel = formatRelativeTime(mDoc.getDate("updatedAt") != null ? mDoc.getDate("updatedAt") : mDoc.getDate("createdAt"));
 
                     if (email != null && email.equalsIgnoreCase(myEmail)) {
-                        if ("active".equalsIgnoreCase(status) || "Owner".equalsIgnoreCase(role)) {
-                            isUserMemberOrOwner = true;
-                        }
+                        if ("active".equalsIgnoreCase(status) || "Owner".equalsIgnoreCase(role)) isUserMemberOrOwner = true;
                         if ("pending".equalsIgnoreCase(status)) {
                             workspaceNotifications.add(new N("👥", "Collaboration Invite", "You have been invited to join '" + spaceName + "' as " + (role != null ? role : "Viewer"), timeLabel, "Collaboration"));
                             isUserMemberOrOwner = true;
@@ -597,9 +509,7 @@ public class NotificationPage {
                     }
                 }
 
-                if (!isUserMemberOrOwner) {
-                    continue;
-                }
+                if (!isUserMemberOrOwner) continue;
 
                 var fileDocs = db.collection("workspaces").document(spaceDocId).collection("files").get().get().getDocuments();
                 for (var fDoc : fileDocs) {
@@ -607,17 +517,13 @@ public class NotificationPage {
                     String uploadedBy = fDoc.getString("uploadedByName");
                     String timeLabel = formatRelativeTime(fDoc.getDate("uploadedAt") != null ? fDoc.getDate("uploadedAt") : fDoc.getDate("timestamp"));
                     if (fileName != null) {
-                        String titleText = (uploadedBy != null && !uploadedBy.trim().isEmpty()) 
-                                ? uploadedBy + " uploaded " + fileName 
-                                : "File uploaded in " + spaceName;
+                        String titleText = (uploadedBy != null && !uploadedBy.trim().isEmpty()) ? uploadedBy + " uploaded " + fileName : "File uploaded in " + spaceName;
                         workspaceNotifications.add(new N("📄", titleText, "Shared in " + spaceName, timeLabel, "Collaboration"));
                     }
                 }
-
                 data.addAll(workspaceNotifications);
             }
 
-            // 2. Dynamic Reminders & Events (from user's reminders / events subcollection if available)
             if (myUid != null && !myUid.trim().isEmpty()) {
                 var reminderDocs = db.collection("users").document(myUid).collection("reminders").get().get().getDocuments();
                 for (var rDoc : reminderDocs) {
@@ -625,17 +531,13 @@ public class NotificationPage {
                     String note = rDoc.getString("note");
                     String icon = rDoc.getString("icon") != null ? rDoc.getString("icon") : "📅";
                     String timeLabel = formatRelativeTime(rDoc.getDate("dueAt") != null ? rDoc.getDate("dueAt") : rDoc.getDate("createdAt"));
-                    if (title != null) {
-                        data.add(new N(icon, title, note != null ? note : "Upcoming reminder", timeLabel, "Reminders"));
-                    }
+                    if (title != null) data.add(new N(icon, title, note != null ? note : "Upcoming reminder", timeLabel, "Reminders"));
                 }
             }
-
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        // Empty state fallback when no dynamic entries exist
         if (data.isEmpty()) {
             data.add(new N("🔔", "No new notifications", "Your workspaces and reminders are up to date", "Just now", "Reminders"));
         }
@@ -662,7 +564,6 @@ public class NotificationPage {
     private static class N {
         String icon, title, sub, time, type;
         boolean read = false;
-
         N(String i, String t, String s, String tm, String ty) {
             icon = i; title = t; sub = s; time = tm; type = ty;
         }

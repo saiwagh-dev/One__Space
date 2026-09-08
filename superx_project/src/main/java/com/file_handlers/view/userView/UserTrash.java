@@ -23,6 +23,7 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Popup;
 import javafx.util.Duration;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +48,11 @@ public class UserTrash {
     private static final String WHITE = "#FFFFFF";
     private static final String LIGHT_SECONDARY = "#94A3B8";
     private static final String BLUE = "#2563EB";
+
+    // References for dynamic sidebar storage card
+    private Label storageVal;
+    private Label storagePercent;
+    private ProgressBar sidebarProgress;
 
     private final FileDAO fileDAO = new FileDAO();
     private final List<FileData> trashedFiles = new ArrayList<>();
@@ -92,7 +98,6 @@ public class UserTrash {
         profileOption.setStyle("-fx-background-color: rgba(13, 22, 38, 0.85); -fx-border-color: rgba(255, 255, 255, 0.08); -fx-border-radius: 20; -fx-background-radius: 20; -fx-cursor: hand;");
         applyScaleHoverAnimation(profileOption, 1.04);
 
-        // Custom Dropdown Menu
         Popup userDropdownPopup = new Popup();
         userDropdownPopup.setAutoHide(true);
 
@@ -275,7 +280,7 @@ public class UserTrash {
             tt.play();
         });
         statusCard.setOnMouseExited(e -> {
-            statusCard.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 16; -fx-background-radius: 16; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
+            statusCard.setStyle("-fx-background-color: " + CARD_BG + "; -fx-border-color: " + CARD_BORDER + "; -fx-border-width: 1.2; -fx-border-radius: 16; -fx-background-radius: 16; dropshadow(three-pass-box, rgba(0,0,0,0.6), 24, 0, 0, 10);");
             TranslateTransition tt = new TranslateTransition(Duration.millis(140), statusCard);
             tt.setToY(0);
             tt.play();
@@ -319,6 +324,7 @@ public class UserTrash {
         root.setCenter(mainArea);
 
         loadTrash();
+        loadDynamicSidebarStorage();
 
         return new Scene(root, LandingPage.getCurrentWidth(), LandingPage.getCurrentHeight());
     }
@@ -355,8 +361,8 @@ public class UserTrash {
         VBox navList = new VBox(4, dashboardBtn, spacesBtn, searchBtn, calendarBtn, aiBtn, collabBtn, recentBtn, trashBtn);
 
         Label storageTitle = label("Storage Used", 12, FontWeight.BOLD, WHITE);
-        Label storageVal = label("64.2 GB of 100 GB", 12, FontWeight.BOLD, WHITE);
-        Label storagePercent = label("64%", 11, FontWeight.BOLD, LIGHT_SECONDARY);
+        storageVal = label("Syncing...", 12, FontWeight.BOLD, WHITE);
+        storagePercent = label("0%", 11, FontWeight.BOLD, LIGHT_SECONDARY);
 
         Region storageGap = new Region();
         HBox.setHgrow(storageGap, Priority.ALWAYS);
@@ -364,7 +370,7 @@ public class UserTrash {
         HBox storageValGroup = new HBox(storageVal, storageGap, storagePercent);
         storageValGroup.setAlignment(Pos.CENTER_LEFT);
 
-        ProgressBar sidebarProgress = new ProgressBar(.64);
+        sidebarProgress = new ProgressBar(0.0);
         sidebarProgress.setMaxWidth(Double.MAX_VALUE);
         sidebarProgress.setPrefHeight(6);
         sidebarProgress.setStyle("-fx-accent: " + BLUE + "; -fx-control-inner-background: rgba(13, 22, 38, 0.85);");
@@ -439,6 +445,43 @@ public class UserTrash {
         }
 
         return button;
+    }
+
+    private void loadDynamicSidebarStorage() {
+        UserSession session = UserSession.getInstance();
+        if (session == null || !UserSession.isLoggedIn() || session.getUid() == null || session.getUid().isBlank()) return;
+
+        Thread thread = new Thread(() -> {
+            try {
+                List<FileData> fileList = fileDAO.getFileSummaries(session.getUid());
+                String systemDrive = System.getenv("SystemDrive");
+                File drive = systemDrive != null ? new File(systemDrive + "\\") : new File("/");
+                long totalPC = drive.getTotalSpace();
+
+                long totalBytes = 0;
+                for (FileData f : fileList) {
+                    if (f == null) continue;
+                    long sz = f.getFileSize();
+                    String path = f.getLocalPath();
+                    if (path != null && !path.isBlank()) {
+                        File lf = new File(path);
+                        if (lf.exists() && lf.isFile()) sz = lf.length();
+                    }
+                    if (sz > 0) totalBytes += sz;
+                }
+
+                final long finalBytes = totalBytes;
+                final double pct = totalPC == 0 ? 0 : (finalBytes * 100.0 / totalPC);
+
+                Platform.runLater(() -> {
+                    if (storageVal != null) storageVal.setText(formatSize(finalBytes) + " of " + formatSize(totalPC));
+                    if (storagePercent != null) storagePercent.setText(String.format("%.1f%%", pct));
+                    if (sidebarProgress != null) sidebarProgress.setProgress(Math.min(pct / 100.0, 1.0));
+                });
+            } catch (Exception ignored) {}
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private void loadTrash() {
@@ -602,6 +645,7 @@ public class UserTrash {
                     Platform.runLater(() -> {
                         trashedFiles.remove(file);
                         refreshTrash();
+                        loadDynamicSidebarStorage();
                     });
                 } catch (Exception e) {
                     Platform.runLater(() -> showAlert("Unable to restore the file."));
@@ -635,6 +679,7 @@ public class UserTrash {
                     Platform.runLater(() -> {
                         trashedFiles.remove(file);
                         refreshTrash();
+                        loadDynamicSidebarStorage();
                     });
                 } catch (Exception e) {
                     Platform.runLater(() -> showAlert("Unable to permanently delete the file."));
@@ -675,6 +720,7 @@ public class UserTrash {
                     Platform.runLater(() -> {
                         trashedFiles.clear();
                         refreshTrash();
+                        loadDynamicSidebarStorage();
                     });
                 } catch (Exception e) {
                     Platform.runLater(() -> showAlert("Unable to empty Trash completely."));
